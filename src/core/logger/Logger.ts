@@ -7,7 +7,7 @@
 
 import { generateShortUUID } from "@/core/utils";
 import { Subject } from "rxjs";
-import manifest from "../../../manifest.json";
+import manifest from "../../../manifest.json" with { type: "json" };
 import type { EngramEvent } from "../events";
 import { EventBus } from "../events";
 import type { LogModule } from "./LogModule";

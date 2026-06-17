@@ -7,26 +7,10 @@
  */
 
 import React, { useEffect, useMemo, useState } from "react";
-import {
-    Brain,
-    ChevronDown,
-    ChevronRight,
-    CloudCog,
-    Cpu,
-    Database,
-    FileCode,
-    Layers,
-    Link,
-    type LucideIcon,
-    Palette,
-    Search,
-    Server,
-    Settings,
-    Terminal,
-    Zap,
-} from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import type { LogEntry } from "@/core/logger";
 import { LogLevel, LogLevelConfig } from "@/core/logger";
+import { getModuleMeta } from "@/core/logger/moduleMeta.ts";
 
 interface LogEntryItemProps {
     entry: LogEntry;
@@ -58,54 +42,6 @@ const LEVEL_STYLES: Record<LogLevel, { text: string; bg: string }> = {
     [LogLevel.WARN]: { bg: "bg-amber-500/10", text: "text-amber-400" },
     [LogLevel.ERROR]: { bg: "bg-red-500/10", text: "text-red-400" },
 };
-
-/**
- * 模块图标映射
- * 根据模块名前缀匹配对应的图标
- */
-const MODULE_ICONS: Record<string, LucideIcon> = {
-    // 系统核心
-    "System": Terminal,
-    // 集成层
-    "STBridge": Link,
-    "TavernAPI": Server,
-    "Tavern": Server,
-    // 记忆管理
-    "Summarizer": Brain,
-    "Memory": Brain,
-    // RAG 系统
-    "RAG": Search,
-    // 设置与配置
-    "SettingsManager": Settings,
-    "ThemeManager": Palette,
-    // 宏处理
-    "MacroService": FileCode,
-    // 数据层
-    "Data": Database,
-    // 预处理
-    "Preprocess": Cpu,
-    // 批处理
-    "Batch": Zap,
-    // LLM
-    "LLM": CloudCog,
-};
-
-/**
- * 根据模块名获取对应图标
- */
-function getModuleIcon(module: string): LucideIcon {
-    // 精确匹配
-    if (MODULE_ICONS[module]) {
-        return MODULE_ICONS[module];
-    }
-    // 前缀匹配（例如 RAG/Inject -> RAG）
-    const prefix = module.split("/")[0];
-    if (MODULE_ICONS[prefix]) {
-        return MODULE_ICONS[prefix];
-    }
-    // 默认图标
-    return Layers;
-}
 
 /**
  * 单条日志项
@@ -254,7 +190,7 @@ export const LogGroup: React.FC<LogGroupProps> = ({
                 </span>
 
                 {/* 分组图标 - 根据模块显示对应图标 */}
-                {React.createElement(getModuleIcon(groupModule), {
+                {React.createElement(getModuleMeta(groupModule).icon, {
                     className: `shrink-0 ${levelStyle.text}`,
                     size: 13,
                 })}
