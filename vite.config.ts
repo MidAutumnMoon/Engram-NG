@@ -40,7 +40,7 @@ export default defineConfig(({ mode }) => ({
             // 模式转型：移除 build.lib 后的新入口定义依赖于 index.html
             // 这里我们配置输出，确保尽管是 App 模式，最终产物名仍为 index.js
             output: {
-                inlineDynamicImports: true,
+                codeSplitting: false,
                 entryFileNames: "index.js",
                 chunkFileNames: "[name].js",
                 assetFileNames: (assetInfo) => {
@@ -54,11 +54,6 @@ export default defineConfig(({ mode }) => ({
 
         minify: mode === "production",
         sourcemap: true,
-    },
-
-    // 定义环境变量，避免浏览器 process is not defined 错误
-    define: {
-        "process.env.NODE_ENV": JSON.stringify(mode),
     },
 
     resolve: {
