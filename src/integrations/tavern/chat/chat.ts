@@ -17,9 +17,7 @@ export async function hideMessageRange(
         const command = `/hide ${start}-${end}`;
 
         // 优先使用官方扩展支持的斜杠指令触发器（高兼容性）
-        // @ts-expect-error
         if (typeof window.TavernHelper?.triggerSlash === "function") {
-            // @ts-expect-error
             window.TavernHelper.triggerSlash(command);
             Logger.debug(MODULE, `Slash command execution: ${command}`);
         } else {

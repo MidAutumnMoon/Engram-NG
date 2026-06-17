@@ -206,7 +206,7 @@ export class ChatHistoryHelper {
      */
     static getCurrentMessageCount(): number {
         try {
-            const context = globalThis.SillyTavern?.getContext?.();
+            const context = window.SillyTavern?.getContext?.();
             if (context?.chat && Array.isArray(context.chat)) {
                 return context.chat.length;
             }
