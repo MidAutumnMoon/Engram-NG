@@ -35,10 +35,6 @@
     },
     "imports": {
         "@/": "./src/",
-        "@core/": "./src/core/",
-        "@infrastructure/": "./src/infrastructure/",
-        "@hooks/": "./src/hooks/",
-        "@components/": "./src/components/",
 
         "@deno/vite-plugin": "npm:@deno/vite-plugin@^2.0.2",
         "@mdx-js/rollup": "npm:@mdx-js/rollup@^3.1.1",

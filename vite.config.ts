@@ -67,12 +67,6 @@ export default defineConfig(({ mode }) => ({
     resolve: {
         alias: {
             "@": new URL("./src", import.meta.url).pathname,
-            "@core": new URL("./src/core", import.meta.url).pathname,
-            "@infrastructure":
-                new URL("./src/infrastructure", import.meta.url).pathname,
-            "@hooks": new URL("./src/hooks", import.meta.url).pathname,
-            "@components":
-                new URL("./src/components", import.meta.url).pathname,
         },
     },
 }));

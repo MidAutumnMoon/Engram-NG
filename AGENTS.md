@@ -9,7 +9,7 @@ A SillyTavern third-party extension. Graph RAG memory system — extracts entiti
 - Use `deno task <name>` for all scripts. There is no `package.json` — tasks live in `deno.jsonc`.
 - Don't run `deno task build` unless asked — it rewrites `dist/`. CI (`.github/workflows/release.yml`) only runs `build` and force-pushes the result to the `release` branch as an orphan commit; there is no separate `ci` task.
 - When editing TS/TSX, match existing style: 4-space indent, double quotes, trailing commas, semicolons.
-- Use the `@/` alias for everything under `src/`. Other path aliases (`@core/`, `@infrastructure/`, `@hooks/`, `@components/`) are stale — don't use them.
+- Use the `@/` alias for everything under `src/`.
 - This is a fork mid-refactor. Version strings and license fields are known-stale. Don't "fix" them unless asked.
 - Do not read files in `dist/` — it's generated build output, and on the `master` branch it is gitignored (untracked). Run `deno task build` to (re)generate it locally.
 - Take care when reading `vendor/` — third-party source may contain very large files. Check size first.
