@@ -7,13 +7,15 @@ import {
     initializeEngram,
     setGlobalRenderer,
     setReactRenderer,
-} from "@/integrations/tavern";
-import { setQuickPanelCallback } from "@/integrations/tavern";
-import { QuickPanel } from "@/ui/views/quick-panel";
-import { ReviewContainer } from "@/ui/views/review/ReviewContainer";
+} from "@/integrations/tavern/index.ts";
+
+import { setQuickPanelCallback } from "@/integrations/tavern/index.ts";
+import { QuickPanel } from "@/ui/views/quick-panel/index.ts";
+import { ReviewContainer } from "@/ui/views/review/ReviewContainer.tsx";
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App";
+import App from "./App.tsx";
+
 import "./ui/styles/main.css";
 
 // 全局 QuickPanel 状态

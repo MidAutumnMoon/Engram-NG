@@ -4,10 +4,15 @@
  * 在酒馆 #leftSendForm 中，#extensionsMenuButton 左边注入 Engram 快捷面板按钮
  */
 
-import { DOM_IDS, ENGRAM_DRAWER_ID, ENGRAM_GLOBAL_OVERLAY_ID, ENGRAM_PANEL_ID } from '@/constants';
-import { Logger } from '@/core/logger';
+import {
+    DOM_IDS,
+    ENGRAM_DRAWER_ID,
+    ENGRAM_GLOBAL_OVERLAY_ID,
+    ENGRAM_PANEL_ID,
+} from "@/constants";
+import { Logger } from "@/core/logger";
 
-const MODULE = 'QuickPanelButton';
+const MODULE = "QuickPanelButton";
 
 /** 按钮注入状态 */
 let isInjected = false;
@@ -19,11 +24,11 @@ let onOpenQuickPanel: (() => void) | null = null;
 const handleQuickPanelClick = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    Logger.debug(MODULE, '点击打开快捷面板');
+    Logger.debug(MODULE, "点击打开快捷面板");
     if (onOpenQuickPanel) {
         onOpenQuickPanel();
     } else {
-        Logger.warn(MODULE, '未设置面板回调');
+        Logger.warn(MODULE, "未设置面板回调");
     }
 };
 
@@ -40,27 +45,29 @@ export function setQuickPanelCallback(callback: () => void) {
  */
 function injectQuickPanelButton(): boolean {
     if (isInjected) {
-        Logger.debug(MODULE, '按钮已存在，跳过注入');
+        Logger.debug(MODULE, "按钮已存在，跳过注入");
         return true;
     }
 
     // 找到 leftSendForm 容器
-    const leftSendForm = document.querySelector(DOM_IDS.LEFT_SEND_FORM) as HTMLElement;
+    const leftSendForm = document.querySelector(
+        DOM_IDS.LEFT_SEND_FORM,
+    ) as HTMLElement;
     if (!leftSendForm) {
         Logger.debug(MODULE, `${DOM_IDS.LEFT_SEND_FORM} 未找到，延迟重试`);
         return false;
     }
 
     // 创建 Engram 快捷面板按钮 - 使用 Font Awesome 图标
-    const button = document.createElement('div');
+    const button = document.createElement("div");
     button.id = DOM_IDS.QUICK_PANEL_TRIGGER;
-    button.className = 'fa-solid fa-layer-group interactable';
+    button.className = "fa-solid fa-layer-group interactable";
     button.tabIndex = 0;
-    button.title = 'Engram 快捷面板';
-    button.dataset.i18n = '[title]Engram Quick Panel';
+    button.title = "Engram 快捷面板";
+    button.dataset.i18n = "[title]Engram Quick Panel";
 
     // 点击打开快捷面板
-    button.addEventListener('click', handleQuickPanelClick);
+    button.addEventListener("click", handleQuickPanelClick);
 
     // 修正样式：
     // 1. 设置 order > 4 (magic wand 是 4)，确保显示在最右侧
@@ -79,7 +86,7 @@ function injectQuickPanelButton(): boolean {
 
     isInjected = true;
 
-    Logger.info(MODULE, '按钮注入成功 (#leftSendForm)');
+    Logger.info(MODULE, "按钮注入成功 (#leftSendForm)");
     return true;
 }
 
@@ -89,10 +96,13 @@ function injectQuickPanelButton(): boolean {
 function removeQuickPanelButton(): void {
     const button = document.querySelector(`#${DOM_IDS.QUICK_PANEL_TRIGGER}`);
     if (button) {
-        button.removeEventListener('click', handleQuickPanelClick as EventListener);
+        button.removeEventListener(
+            "click",
+            handleQuickPanelClick as EventListener,
+        );
         button.remove();
         isInjected = false;
-        Logger.debug(MODULE, '按钮已移除');
+        Logger.debug(MODULE, "按钮已移除");
     }
 }
 
@@ -118,14 +128,17 @@ export function initQuickPanelButton(): void {
         if (retryCount < maxRetries) {
             setTimeout(retryInjection, retryInterval);
         } else {
-            Logger.warn(MODULE, '注入超时，已达到最大重试次数');
+            Logger.warn(MODULE, "注入超时，已达到最大重试次数");
         }
     };
 
     // 使用 MutationObserver 监听 DOM 变化，对抗酒馆的不定向重绘
     const observer = new MutationObserver(() => {
         const leftSendForm = document.querySelector(DOM_IDS.LEFT_SEND_FORM);
-        if (leftSendForm && !document.getElementById(DOM_IDS.QUICK_PANEL_TRIGGER)) {
+        if (
+            leftSendForm &&
+            !document.getElementById(DOM_IDS.QUICK_PANEL_TRIGGER)
+        ) {
             isInjected = false; // 重置允许注入
             injectQuickPanelButton();
         }
@@ -143,7 +156,11 @@ export function initQuickPanelButton(): void {
 // ==================== 以下为从 bridge.ts 拆分过来的 UI 管理部分 ====================
 
 // React 渲染器类型
-export type ReactRenderer = (container: HTMLElement, onClose: () => void) => any;
+export type ReactRenderer = (
+    container: HTMLElement,
+    onClose: () => void,
+) => any;
+
 let reactRenderer: ReactRenderer | null = null;
 let globalRenderer: ReactRenderer | null = null;
 let globalRoot: any = null;
@@ -178,9 +195,10 @@ export function mountGlobalOverlay(): void {
 
     // 如果已存在但未挂载，则复用
     if (!overlay) {
-        overlay = document.createElement('div');
+        overlay = document.createElement("div");
         overlay.id = overlayId;
-        overlay.className = 'pointer-events-none fixed inset-0 z-[11000] engram-app-root'; // 极高层级，不妨碍交互
+        overlay.className =
+            "pointer-events-none fixed inset-0 z-[11000] engram-app-root"; // 极高层级，不妨碍交互
         document.body.append(overlay);
     }
 
@@ -201,19 +219,19 @@ export function createTopBarButton(): void {
         return;
     }
 
-    const drawer = document.createElement('div');
+    const drawer = document.createElement("div");
     drawer.id = ENGRAM_DRAWER_ID;
-    drawer.className = 'drawer';
+    drawer.className = "drawer";
 
-    const toggle = document.createElement('div');
-    toggle.className = 'drawer-toggle drawer-header';
+    const toggle = document.createElement("div");
+    toggle.className = "drawer-toggle drawer-header";
 
-    const icon = document.createElement('div');
-    icon.id = 'engram-drawer-icon';
-    icon.className = 'drawer-icon fa-solid fa-e fa-fw closedIcon';
-    icon.title = 'Engram - 记忆操作系统';
-    icon.dataset.i18n = '[title]Engram - Memory OS';
-    icon.addEventListener('click', toggleMainPanel);
+    const icon = document.createElement("div");
+    icon.id = "engram-drawer-icon";
+    icon.className = "drawer-icon fa-solid fa-e fa-fw closedIcon";
+    icon.title = "Engram - 记忆操作系统";
+    icon.dataset.i18n = "[title]Engram - Memory OS";
+    icon.addEventListener("click", toggleMainPanel);
 
     toggle.append(icon);
     drawer.append(toggle);
@@ -270,36 +288,37 @@ export function toggleMainPanel(): void {
  * 创建主面板（使用注入的 React 渲染器）
  */
 function createMainPanel(): HTMLElement {
-    const panel = document.createElement('div');
-    panel.className = 'fixed inset-0 w-full h-full z-[10000] flex flex-col bg-background text-foreground overflow-hidden engram-app-root';
-    panel.style.backgroundColor = 'var(--background)';
-    panel.style.color = 'var(--foreground)';
-    panel.style.height = '100dvh';
-    panel.style.width = '100vw';
-    panel.style.top = '0';
-    panel.style.left = '0';
+    const panel = document.createElement("div");
+    panel.className =
+        "fixed inset-0 w-full h-full z-[10000] flex flex-col bg-background text-foreground overflow-hidden engram-app-root";
+    panel.style.backgroundColor = "var(--background)";
+    panel.style.color = "var(--foreground)";
+    panel.style.height = "100dvh";
+    panel.style.width = "100vw";
+    panel.style.top = "0";
+    panel.style.left = "0";
     panel.id = ENGRAM_PANEL_ID;
 
-    const header = document.createElement('div');
+    const header = document.createElement("div");
     header.id = `${ENGRAM_PANEL_ID}-header`;
-    header.className = 'engram-panel-header';
+    header.className = "engram-panel-header";
 
-    const title = document.createElement('h3');
-    title.textContent = 'Engram 记忆管理';
+    const title = document.createElement("h3");
+    title.textContent = "Engram 记忆管理";
 
-    const closeBtn = document.createElement('button');
-    closeBtn.title = '关闭 (Ctrl+Shift+E)';
-    const closeIcon = document.createElement('i');
-    closeIcon.className = 'fa-solid fa-times';
+    const closeBtn = document.createElement("button");
+    closeBtn.title = "关闭 (Ctrl+Shift+E)";
+    const closeIcon = document.createElement("i");
+    closeIcon.className = "fa-solid fa-times";
     closeBtn.append(closeIcon);
-    closeBtn.addEventListener('click', toggleMainPanel);
+    closeBtn.addEventListener("click", toggleMainPanel);
 
     header.append(title);
     header.append(closeBtn);
 
-    const content = document.createElement('div');
+    const content = document.createElement("div");
     content.id = `${ENGRAM_PANEL_ID}-content`;
-    content.className = 'flex-1 overflow-auto p-5';
+    content.className = "flex-1 overflow-auto p-5";
 
     panel.append(header);
     panel.append(content);
@@ -316,7 +335,10 @@ function createMainPanel(): HTMLElement {
                 <p style="color: #94a3b8;">React 渲染器未加载，请检查配置。</p>
             </div>
         `;
-        panel.querySelector('button')?.addEventListener('click', toggleMainPanel);
+        panel.querySelector("button")?.addEventListener(
+            "click",
+            toggleMainPanel,
+        );
     }
 
     return panel;
@@ -328,12 +350,16 @@ function createMainPanel(): HTMLElement {
  * @param type 弹窗类型 ('text', 'confirm', 'input')
  * @param inputValue 输入框默认值
  */
-export async function callPopup(content: string, type: 'text' | 'confirm' | 'input' = 'text', inputValue: string = ''): Promise<any> {
+export async function callPopup(
+    content: string,
+    type: "text" | "confirm" | "input" = "text",
+    inputValue: string = "",
+): Promise<any> {
     // @ts-expect-error
     if (window.callPopup) {
         // @ts-expect-error
         return window.callPopup(content, type, inputValue);
     }
-    console.warn('[Engram] callPopup not available');
-    return type === 'confirm' ? true : null;
+    console.warn("[Engram] callPopup not available");
+    return type === "confirm" ? true : null;
 }
