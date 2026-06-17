@@ -129,8 +129,7 @@ export function getCurrentCharacter(): { name: string; id: number } | null {
  */
 export function getCurrentModel(): string | undefined {
     try {
-        // @ts-expect-error selected_model exists but failed to be typed somehow, fix it later.
-        return globalThis.selected_model || undefined;
+        return window.selected_model || undefined;
     } catch {
         return undefined;
     }

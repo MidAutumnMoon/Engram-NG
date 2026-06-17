@@ -1,8 +1,8 @@
-import { SettingsManager } from "@/config/settings";
-import { Logger } from "@/core/logger";
-import type { SummarizerConfig } from "@/modules/memory/types";
-import { regexProcessor } from "@/modules/workflow/steps";
-import { useMemoryStore } from "@/state/memoryStore";
+import { SettingsManager } from "@/config/settings.ts";
+import { Logger } from "@/core/logger/index.ts";
+import type { SummarizerConfig } from "@/modules/memory/types.ts";
+import { regexProcessor } from "@/modules/workflow/steps/index.ts";
+import { useMemoryStore } from "@/state/memoryStore.ts";
 
 export class ChatHistoryHelper {
     /**
@@ -13,7 +13,6 @@ export class ChatHistoryHelper {
     static getChatHistory(floorRange?: [number, number]): string {
         try {
             const context = globalThis.SillyTavern?.getContext?.();
-            // @ts-expect-error
             const { TavernHelper } = window;
 
             if (context?.chat && Array.isArray(context.chat)) {
