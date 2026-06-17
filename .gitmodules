@@ -1,3 +1,6 @@
 [submodule "vendor/SillyTavern"]
 	path = vendor/SillyTavern
 	url = https://github.com/SillyTavern/SillyTavern.git
+[submodule "vendor/JS-Slash-Runner"]
+	path = vendor/JS-Slash-Runner
+	url = https://github.com/N0VI028/JS-Slash-Runner.git
