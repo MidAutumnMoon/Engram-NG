@@ -1,15 +1,14 @@
-import { Logger } from '@/core/logger';
-import { getSTContext } from '../core/context';
-import { getTavernHelper } from './adapter';
+import { Logger } from "@/core/logger";
+import { getSTContext } from "../context.ts";
+import { getTavernHelper } from "./adapter";
 
-const MODULE = 'Worldbook';
+const MODULE = "Worldbook";
 
 /**
  * WorldbookEngramService - Engram 特定的业务逻辑
  * (绑定、摘要获取、分隔符等)
  */
 export class WorldbookEngramService {
-
     static findExistingWorldbook(): string | null {
         try {
             const helper = getTavernHelper();
@@ -18,8 +17,8 @@ export class WorldbookEngramService {
             }
 
             const globalBooks = helper.getGlobalWorldbookNames();
-            if (globalBooks.includes('[Engram] Global')) {
-                return '[Engram] Global';
+            if (globalBooks.includes("[Engram] Global")) {
+                return "[Engram] Global";
             }
             return null;
         } catch {
@@ -36,7 +35,7 @@ export class WorldbookEngramService {
 
             const helper = getTavernHelper();
             if (!helper) {
-                Logger.warn(MODULE, 'TavernHelper 不可用');
+                Logger.warn(MODULE, "TavernHelper 不可用");
                 return null;
             }
 
@@ -45,7 +44,7 @@ export class WorldbookEngramService {
             // 先检查是否已经存在该名字的实体世界书
             const allInstalled = helper.getWorldbookNames?.() || [];
             if (!allInstalled.includes(worldbookName)) {
-                Logger.debug(MODULE, '创建新全局世界书', worldbookName);
+                Logger.debug(MODULE, "创建新全局世界书", worldbookName);
                 if (helper.createWorldbook) {
                     await helper.createWorldbook(worldbookName);
                 } else {
@@ -54,20 +53,22 @@ export class WorldbookEngramService {
             }
 
             // 绑定到全局
-            if (helper.getGlobalWorldbookNames && helper.rebindGlobalWorldbooks) {
+            if (
+                helper.getGlobalWorldbookNames && helper.rebindGlobalWorldbooks
+            ) {
                 const currentGlobal = helper.getGlobalWorldbookNames();
                 if (!currentGlobal.includes(worldbookName)) {
                     currentGlobal.push(worldbookName);
                     await helper.rebindGlobalWorldbooks(currentGlobal);
-                    Logger.info(MODULE, '世界书已绑定到全局配置', {
-                        worldbook: worldbookName
+                    Logger.info(MODULE, "世界书已绑定到全局配置", {
+                        worldbook: worldbookName,
                     });
                 }
             }
 
             return worldbookName;
         } catch (error) {
-            Logger.error(MODULE, '获取/创建全局世界书失败', error);
+            Logger.error(MODULE, "获取/创建全局世界书失败", error);
             return null;
         }
     }
@@ -76,13 +77,14 @@ export class WorldbookEngramService {
      * 获取所有 Engram 摘要条目（按 order 排序）
      */
 
-
-
-
     /**
      * 获取世界书的作用域分类 (全局/角色/所有)
      */
-    static getScopes(): { global: string[]; chat: string[]; installed: string[] } {
+    static getScopes(): {
+        global: string[];
+        chat: string[];
+        installed: string[];
+    } {
         const helper = getTavernHelper();
         const global = helper?.getGlobalWorldbookNames?.() || [];
         const installed = helper?.getWorldbookNames?.() || [];
@@ -91,12 +93,15 @@ export class WorldbookEngramService {
         if (helper?.getCharWorldbookNames) {
             // V1.4.6 Fix: 只有在已选择角色时才尝试获取角色世界书，防止酒馆在首页报错
             const stContext = getSTContext();
-            const hasCharacter = stContext && stContext.characterId !== undefined && stContext.characterId !== -1;
-            
+            const hasCharacter = stContext &&
+                stContext.characterId !== undefined &&
+                stContext.characterId !== -1;
+
             if (hasCharacter) {
-                const charBooks = helper.getCharWorldbookNames('current');
+                const charBooks = helper.getCharWorldbookNames("current");
                 if (charBooks) {
-                    chat = [...(charBooks.additional || []), charBooks.primary].filter(Boolean) as string[];
+                    chat = [...(charBooks.additional || []), charBooks.primary]
+                        .filter(Boolean) as string[];
                 }
             }
         }

@@ -5,9 +5,9 @@
  * 负责从 window.SillyTavern 对象中安全地提取状态。
  */
 
-import { Logger } from '@/core/logger';
+import { Logger } from "@/core/logger";
 
-const MODULE = 'STContext';
+const MODULE = "STContext";
 
 // SillyTavern 全局类型声明已移至 @types/global.d.ts
 
@@ -29,14 +29,20 @@ export interface STContext {
     };
     event_types?: Record<string, string>;
     // 工具函数
-    getRequestHeaders?: (options?: { omitContentType?: boolean }) => Record<string, string>;
+    getRequestHeaders?: (
+        options?: { omitContentType?: boolean },
+    ) => Record<string, string>;
     // Token 计数
     getTokenCountAsync?: (text: string) => Promise<number>;
     // 生成控制
     stopGeneration?: () => void;
 
     // 宏系统
-    registerMacro?: (key: string, callback: () => string | Promise<string>, description?: string) => void;
+    registerMacro?: (
+        key: string,
+        callback: () => string | Promise<string>,
+        description?: string,
+    ) => void;
     macros?: {
         register: (name: string, options: {
             handler: (context?: any) => string | Promise<string>;
@@ -76,13 +82,16 @@ interface STCharacter {
 /**
  * 获取 SillyTavern 上下文
  * @returns ST 上下文对象，或 null（如果不可用）
+ * TODO: STContext type is legacy, the shape of STContext and the return
+ * value of getContext is roughly the same. Fix it later.
  */
 export function getSTContext(): STContext | null {
     try {
-        const ctx = window.SillyTavern?.getContext?.();
+        const ctx = globalThis.SillyTavern?.getContext?.();
+        // @ts-expect-error STContext type is legacy but has the same shape as the return value of getContext
         return ctx || null;
     } catch (error) {
-        Logger.warn(MODULE, '无法获取 ST 上下文', error);
+        Logger.warn(MODULE, "无法获取 ST 上下文", error);
         return null;
     }
 }
@@ -108,7 +117,7 @@ export function getCurrentChatId(): string | null {
  */
 export function getCurrentCharacter(): { name: string; id: number } | null {
     const ctx = getSTContext();
-    if (!ctx) {return null;}
+    if (!ctx) return null;
     return {
         id: ctx.characterId,
         name: ctx.name2,
@@ -120,7 +129,8 @@ export function getCurrentCharacter(): { name: string; id: number } | null {
  */
 export function getCurrentModel(): string | undefined {
     try {
-        return window.selected_model || undefined;
+        // @ts-expect-error selected_model exists but failed to be typed somehow, fix it later.
+        return globalThis.selected_model || undefined;
     } catch {
         return undefined;
     }
@@ -136,11 +146,13 @@ export function isSTAvailable(): boolean {
 /**
  * 获取请求头 (包含 CSRF Token)
  */
-export function getRequestHeaders(options?: { omitContentType?: boolean }): Record<string, string> {
+export function getRequestHeaders(
+    options?: { omitContentType?: boolean },
+): Record<string, string> {
     const ctx = getSTContext();
     if (ctx?.getRequestHeaders) {
         return ctx.getRequestHeaders(options);
     }
     // Fallback: 如果拿不到 context，至少返回 Content-Type
-    return { 'Content-Type': 'application/json' };
+    return { "Content-Type": "application/json" };
 }

@@ -1,23 +1,10 @@
 /**
- * STBridge - SillyTavern API 桥接层
+ * Engram 启动序列
  *
- * 这是唯一与 SillyTavern 直接交互的模块。
- * 所有 window.SillyTavern、jQuery、eventSource 的调用都在这里统一管理。
+ * 仅负责协调各子系统的加载与启动。对 SillyTavern 的接入由本目录其它模块
+ * (context.ts / events.ts / chat/ / api/ / worldbook/ / prompt/ / ui/) 负责，
+ * 统一通过 `@/integrations/tavern` barrel 暴露给外部消费。
  */
-
-// 使用统一的 STContext 模块
-export { getSTContext, type STMessage } from "./context.ts";
-// 从专门化的 Adapter 中导出方法
-export { hideMessageRange, injectMessage } from "../chat/chat.ts";
-export {
-    callPopup,
-    closeMainPanel,
-    createTopBarButton,
-    initQuickPanelButton,
-    mountGlobalOverlay,
-    openMainPanel,
-    toggleMainPanel,
-} from "../ui/ui.tsx";
 
 import { Logger } from "@/core/logger/index.ts";
 import { SettingsManager } from "@/config/settings.ts";
@@ -30,7 +17,7 @@ import {
     initQuickPanelButton,
     mountGlobalOverlay,
     toggleMainPanel,
-} from "../ui/ui.tsx";
+} from "./ui/ui.tsx";
 
 /**
  * 初始化 Engram 插件
