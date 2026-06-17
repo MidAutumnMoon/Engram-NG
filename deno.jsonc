@@ -6,12 +6,6 @@
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "lib": ["DOM", "DOM.Iterable", "ESNext", "deno.ns"],
-    "skipLibCheck": true,
-    "types": [
-      "npm:@types/jquery@^3.5.32",
-      "npm:@types/react@^19.0.0",
-      "npm:@types/react-dom@^19.0.0",
-    ],
   },
   "tasks": {
     "dev": "deno run -A npm:vite",
@@ -31,6 +25,7 @@
     "ci": "deno task type-check && deno task test && deno task knip",
   },
   "nodeModulesDir": "auto",
+  "exclude": ["docs", "vendor"],
   "fmt": {
     "indentWidth": 4,
     "useTabs": false,

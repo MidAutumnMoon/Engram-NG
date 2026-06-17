@@ -3,14 +3,18 @@
  * 入口文件
  */
 
-import { initializeEngram, setGlobalRenderer, setReactRenderer } from '@/integrations/tavern';
-import { setQuickPanelCallback } from '@/integrations/tavern';
-import { QuickPanel } from '@/ui/views/quick-panel';
-import { ReviewContainer } from '@/ui/views/review/ReviewContainer';
-import React, { useEffect, useState } from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import './ui/styles/main.css';
+import {
+    initializeEngram,
+    setGlobalRenderer,
+    setReactRenderer,
+} from "@/integrations/tavern";
+import { setQuickPanelCallback } from "@/integrations/tavern";
+import { QuickPanel } from "@/ui/views/quick-panel";
+import { ReviewContainer } from "@/ui/views/review/ReviewContainer";
+import React, { useEffect, useState } from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import "./ui/styles/main.css";
 
 // 全局 QuickPanel 状态
 let quickPanelOpen = false;
@@ -92,15 +96,13 @@ setQuickPanelCallback(() => {
 // 等待 DOM 加载完成后初始化
 const initEngramOnLoad = () => {
     initializeEngram();
-    document.removeEventListener('DOMContentLoaded', initEngramOnLoad);
+    document.removeEventListener("DOMContentLoaded", initEngramOnLoad);
 };
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initEngramOnLoad);
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initEngramOnLoad);
 } else {
     initializeEngram();
 }
 
 // Engram initialization handled in STBridge
-
-

@@ -4,29 +4,9 @@
  * 扩展 Window 接口，为 SillyTavern 全局 API 提供类型提示
  */
 
-// 导入 ST 类型定义
-/// <reference path="./st-types/index.d.ts" />
 
 declare global {
     interface Window {
-        /**
-         * SillyTavern 核心 API
-         */
-        SillyTavern?: {
-            getContext(): {
-                chat: unknown[];
-                chatId: string;
-                characterId: number;
-                characters: unknown[];
-                groups: unknown[];
-                name1: string;
-                name2: string;
-                onlineStatus: string;
-                maxContext: number;
-                // 更多字段可按需从 st-types 中扩展
-            };
-        };
-
         /**
          * 当前选择的模型名称
          */
@@ -65,18 +45,4 @@ declare global {
             ) => string;
         };
     }
-}
-
-// 确保这是一个模块
-
-
-// Vite ?raw 导入声明
-declare module '*.md?raw' {
-    const content: string;
-    export default content;
-}
-
-declare module '*.txt?raw' {
-    const content: string;
-    export default content;
 }
