@@ -6,11 +6,11 @@ A SillyTavern third-party extension. Graph RAG memory system — extracts entiti
 
 ## Rules
 
-- Use `deno task <name>`, not `pnpm run`. The `package.json` scripts just forward to Deno.
-- Don't run `deno task build` or `deno task ci` unless asked. Build rewrites `dist/`; CI runs type-check + tests + knip.
-- When editing TS/TSX, match existing style: 4-space indent, double quotes, trailing commas, semicolons. `deno fmt` owns formatting.
+- Use `deno task <name>` for all scripts. There is no `package.json` — tasks live in `deno.jsonc`.
+- Don't run `deno task build` or `deno task ci` unless asked. Build rewrites `dist/`; CI runs type-check + tests.
+- When editing TS/TSX, match existing style: 4-space indent, double quotes, trailing commas, semicolons.
 - Use the `@/` alias for everything under `src/`. The `@core/`, `@infrastructure/`, `@hooks/`, `@components/` aliases in `deno.jsonc` and `vite.config.ts` are stale — write `@/core/...`, `@/ui/components/...` instead.
-- This is a fork mid-refactor. Version strings, license fields, and the README's `pnpm` references are known-stale. Don't "fix" them unless asked.
+- This is a fork mid-refactor. Version strings and license fields are known-stale. Don't "fix" them unless asked.
 - Do not read files in `dist/` — it's generated build output.
 - Take care when reading `vendor/` — third-party source may contain very large files. Check size first.
 
@@ -18,8 +18,7 @@ A SillyTavern third-party extension. Graph RAG memory system — extracts entiti
 
 - Entry point: `src/index.tsx` boots the extension and registers renderers with SillyTavern. `src/App.tsx` is the UI shell with tab routing.
 - All SillyTavern API access goes through `src/integrations/tavern/` — don't call ST globals directly from modules or UI. LLM and embedding calls live under `src/integrations/`. SillyTavern's own source is vendored at `vendor/SillyTavern/` for reference.
-- The memory/RAG pipeline is in `src/modules/`. Storage (Dexie/IndexedDB) in `src/data/`. State (Zustand) in `src/state/`. UI in `src/ui/`. Core infra in `src/core/`. Config and constants in `src/config/` and `src/constants/`.
-- Tests in `test/` (Vitest, node env; `test/setup.ts` installs `fake-indexeddb`). Architecture docs (Chinese) in `docs/architecture/` — read these before large structural changes.
+- The memory/RAG pipeline is in `src/modules/`. Storage (Dexie/IndexedDB) in `src/data/`. State (Zustand) in `src/state/`. UI in `src/ui/`. Core infra in `src/core/`. Config and constants in `src/config/` and `src/constants/`. Tests in `test/` (Vitest, node env; `test/setup.ts` installs `fake-indexeddb`). Architecture docs (Chinese) in `docs/architecture/` — read these before large structural changes.
 
 ## Look Things Up
 
