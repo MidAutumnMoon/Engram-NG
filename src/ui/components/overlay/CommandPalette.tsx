@@ -1,17 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
-import ReactDOM from 'react-dom';
-import { Command, CornerDownLeft, Search } from 'lucide-react';
-import type { SearchResult } from '@/modules/search/SearchService';
-import { searchService } from '@/modules/search/SearchService';
+import React, { useEffect, useRef, useState } from "react";
+import ReactDOM from "react-dom";
+import { Command, CornerDownLeft, Search } from "lucide-react";
+import type { SearchResult } from "@/modules/search/SearchService";
+import { searchService } from "@/modules/search/SearchService";
 // Register adapters (ensure they are registered once)
-import { CommandAdapter } from '@/modules/search/adapters/CommandAdapter';
-import { SettingAdapter } from '@/modules/search/adapters/SettingAdapter';
-import { LogAdapter } from '@/modules/search/adapters/LogAdapter';
-import { MemoryAdapter } from '@/modules/search/adapters/MemoryAdapter';
-import { PresetAdapter } from '@/modules/search/adapters/PresetAdapter';
+import { CommandAdapter } from "@/modules/search/adapters/CommandAdapter";
+import { SettingAdapter } from "@/modules/search/adapters/SettingAdapter";
+import { LogAdapter } from "@/modules/search/adapters/LogAdapter";
+import { MemoryAdapter } from "@/modules/search/adapters/MemoryAdapter";
+import { PresetAdapter } from "@/modules/search/adapters/PresetAdapter";
 
 // Singleton registration (simple check)
-// @ts-expect-error
 // @ts-expect-error
 if (!window.__ENGRAM_SEARCH_INIT__) {
     searchService.registerAdapter(new CommandAdapter());
@@ -27,8 +26,10 @@ interface CommandPaletteProps {
     onNavigate: (path: string) => void;
 }
 
-export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) => {
-    const [query, setQuery] = useState('');
+export const CommandPalette: React.FC<CommandPaletteProps> = (
+    { onNavigate },
+) => {
+    const [query, setQuery] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [results, setResults] = useState<SearchResult[]>([]);
@@ -45,7 +46,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
 
             if (!query.trim()) {
                 // Empty query: show default recommended commands
-                const defaultResults = await new CommandAdapter().search('');
+                const defaultResults = await new CommandAdapter().search("");
                 // Filter to only navigation/action types generally useful
                 setResults(defaultResults);
                 return;
@@ -61,13 +62,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
     // Keyboard Shortcuts (Open)
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
                 e.preventDefault();
                 setIsOpen(true);
             }
         };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        globalThis.addEventListener("keydown", handleKeyDown);
+        return () => globalThis.removeEventListener("keydown", handleKeyDown);
     }, []);
 
     // Auto Focus
@@ -80,7 +81,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
     // 注册外部打开回调（供键盘快捷键调用）
     useEffect(() => {
         // 动态导入避免循环依赖
-        import('@/index').then(({ setCommandPaletteCallback }) => {
+        import("@/index").then(({ setCommandPaletteCallback }) => {
             setCommandPaletteCallback(() => setIsOpen(true));
         }).catch(() => {
             // 忽略导入失败
@@ -92,22 +93,24 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
         const totalItems = results.length + (query ? 1 : 0); // +1 for "Search Memory"
 
         switch (e.key) {
-            case 'ArrowDown': {
+            case "ArrowDown": {
                 e.preventDefault();
                 setSelectedIndex((prev) => (prev + 1) % totalItems);
                 break;
             }
-            case 'ArrowUp': {
+            case "ArrowUp": {
                 e.preventDefault();
-                setSelectedIndex((prev) => (prev - 1 + totalItems) % totalItems);
+                setSelectedIndex((prev) =>
+                    (prev - 1 + totalItems) % totalItems
+                );
                 break;
             }
-            case 'Enter': {
+            case "Enter": {
                 e.preventDefault();
                 executeSelected();
                 break;
             }
-            case 'Escape': {
+            case "Escape": {
                 setIsOpen(false);
                 break;
             }
@@ -120,41 +123,44 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
             item.action(onNavigate);
         } else if (query) {
             // "Search Memory" fallback
-            console.log('Searching memory for:', query);
-            onNavigate('/memory');
+            console.log("Searching memory for:", query);
+            onNavigate("/memory");
         }
         setIsOpen(false);
-        setQuery('');
+        setQuery("");
     };
 
     // Modal Content
     const modalContent = (
-        <div className="engram-app-root" style={{ display: 'contents' }}>
+        <div className="engram-app-root" style={{ display: "contents" }}>
             <div
                 className="fixed inset-0 flex items-start justify-center pt-[15vh] px-4"
                 style={{
-                    height: '100dvh',
-                    width: '100vw',
-                    backgroundColor: 'rgba(0,0,0,0.4)', // Slightly more transparent to not feel too heavy
-                    backdropFilter: 'var(--glass-backdrop-filter, blur(4px))',
+                    height: "100dvh",
+                    width: "100vw",
+                    backgroundColor: "rgba(0,0,0,0.4)", // Slightly more transparent to not feel too heavy
+                    backdropFilter: "var(--glass-backdrop-filter, blur(4px))",
                     zIndex: 2_147_483_647, // Max safe integer to ensure it's on top of SillyTavern UI
                 }}
                 onClick={(e) => {
-                    if (e.target === e.currentTarget) {setIsOpen(false);}
+                    if (e.target === e.currentTarget) setIsOpen(false);
                 }}
             >
                 <div
                     className="w-full max-w-xl border border-border rounded-xl shadow-2xl overflow-hidden flex flex-col"
                     style={{
-                        backdropFilter: 'var(--glass-backdrop-filter)',
-                        backgroundColor: 'var(--popover)',
-                        color: 'var(--popover-foreground)',
-                        maxHeight: '70vh'
+                        backdropFilter: "var(--glass-backdrop-filter)",
+                        backgroundColor: "var(--popover)",
+                        color: "var(--popover-foreground)",
+                        maxHeight: "70vh",
                     }}
                 >
                     {/* Input Area */}
                     <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50">
-                        <Search size={20} className="text-muted-foreground shrink-0" />
+                        <Search
+                            size={20}
+                            className="text-muted-foreground shrink-0"
+                        />
                         <input
                             ref={inputRef}
                             type="text"
@@ -164,7 +170,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyDown={handleKeyDown}
                         />
-                        <div className="text-[10px] text-muted-foreground border border-border px-1.5 py-0.5 rounded bg-muted/50 hidden sm:block">ESC</div>
+                        <div className="text-[10px] text-muted-foreground border border-border px-1.5 py-0.5 rounded bg-muted/50 hidden sm:block">
+                            ESC
+                        </div>
                     </div>
 
                     {/* Results List */}
@@ -175,40 +183,58 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
                                 {results.map((item, index) => (
                                     <div
                                         key={item.id}
-                                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-[var(--duration-fast)] ${index === selectedIndex
-                                            ? 'bg-primary/10 text-primary'
-                                            : 'text-foreground hover:bg-muted/50'
-                                            }`}
+                                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-[var(--duration-fast)] ${
+                                            index === selectedIndex
+                                                ? "bg-primary/10 text-primary"
+                                                : "text-foreground hover:bg-muted/50"
+                                        }`}
                                         onClick={() => {
                                             item.action(onNavigate);
                                             setIsOpen(false);
-                                            setQuery('');
+                                            setQuery("");
                                         }}
-                                        onMouseEnter={() => setSelectedIndex(index)}
+                                        onMouseEnter={() =>
+                                            setSelectedIndex(index)}
                                     >
                                         {/* Icon Box */}
-                                        <div className={`
+                                        <div
+                                            className={`
                                         w-8 h-8 rounded-md flex items-center justify-center shrink-0
-                                        ${index === selectedIndex ? 'bg-primary/20' : 'bg-muted/50 text-muted-foreground'}
-                                    `}>
-                                            {item.icon ? <item.icon size={16} /> : <Command size={16} />}
+                                        ${
+                                                index === selectedIndex
+                                                    ? "bg-primary/20"
+                                                    : "bg-muted/50 text-muted-foreground"
+                                            }
+                                    `}
+                                        >
+                                            {item.icon
+                                                ? <item.icon size={16} />
+                                                : <Command size={16} />}
                                         </div>
 
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-sm font-medium">{item.title}</span>
-                                                {item.type !== 'command' && (
+                                                <span className="text-sm font-medium">
+                                                    {item.title}
+                                                </span>
+                                                {item.type !== "command" && (
                                                     <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground uppercase">
                                                         {item.type}
                                                     </span>
                                                 )}
                                             </div>
                                             {item.description && (
-                                                <div className="text-xs text-muted-foreground/80 truncate">{item.description}</div>
+                                                <div className="text-xs text-muted-foreground/80 truncate">
+                                                    {item.description}
+                                                </div>
                                             )}
                                         </div>
 
-                                        {index === selectedIndex && <CornerDownLeft size={16} className="text-muted-foreground/50" />}
+                                        {index === selectedIndex &&
+                                            <CornerDownLeft
+                                                size={16}
+                                                className="text-muted-foreground/50"
+                                            />}
                                     </div>
                                 ))}
                             </div>
@@ -216,29 +242,55 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
 
                         {/* Fallback: Search Memory */}
                         {query && (
-                            <div className={`
+                            <div
+                                className={`
                             mt-2 pt-2 border-t border-border/50
                             flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors
-                            ${selectedIndex === results.length ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted/50'}
+                            ${
+                                    selectedIndex === results.length
+                                        ? "bg-primary/10 text-primary"
+                                        : "text-foreground hover:bg-muted/50"
+                                }
                         `}
                                 onClick={() => executeSelected()}
-                                onMouseEnter={() => setSelectedIndex(results.length)}
+                                onMouseEnter={() =>
+                                    setSelectedIndex(results.length)}
                             >
-                                <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${selectedIndex === results.length ? 'bg-primary/20' : 'bg-muted/50 text-muted-foreground'}`}>
+                                <div
+                                    className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${
+                                        selectedIndex === results.length
+                                            ? "bg-primary/20"
+                                            : "bg-muted/50 text-muted-foreground"
+                                    }`}
+                                >
                                     <Search size={16} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium">全站搜索: "<span className="text-primary">{query}</span>"</div>
-                                    <div className="text-xs text-muted-foreground/80">在记忆和知识图谱中查找...</div>
+                                    <div className="text-sm font-medium">
+                                        全站搜索:
+                                        "<span className="text-primary">
+                                            {query}
+                                        </span>"
+                                    </div>
+                                    <div className="text-xs text-muted-foreground/80">
+                                        在记忆和知识图谱中查找...
+                                    </div>
                                 </div>
-                                {selectedIndex === results.length && <CornerDownLeft size={16} className="text-muted-foreground/50" />}
+                                {selectedIndex === results.length &&
+                                    <CornerDownLeft
+                                        size={16}
+                                        className="text-muted-foreground/50"
+                                    />}
                             </div>
                         )}
 
                         {/* Empty State */}
                         {results.length === 0 && !query && (
                             <div className="px-4 py-8 text-center text-muted-foreground text-sm">
-                                <Command size={32} className="mx-auto mb-2 opacity-20" />
+                                <Command
+                                    size={32}
+                                    className="mx-auto mb-2 opacity-20"
+                                />
                                 <p>随时随地，想搜就搜 (Cmd+K)</p>
                             </div>
                         )}

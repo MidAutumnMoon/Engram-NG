@@ -1,39 +1,7 @@
 import { useEffect } from "react";
 
-/**
- * 优化的字体加载 - 使用 preload 替代阻塞的 @import
- */
-const injectFontLinks = () => {
-    // 检查是否已注入
-    if (document.querySelector("#engram-font-preload")) return;
-
-    const fonts = [
-        "https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap",
-        "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap",
-    ];
-
-    fonts.forEach((href, index) => {
-        // 创建 preload link
-        const preload = document.createElement("link");
-        preload.rel = "preload";
-        preload.as = "style";
-        preload.href = href;
-        if (index === 0) preload.id = "engram-font-preload";
-        document.head.append(preload);
-
-        // 创建实际的 stylesheet link
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.href = href;
-        document.head.append(link);
-    });
-};
-
 export const GlobalStyles = () => {
     useEffect(() => {
-        // 注入字体
-        injectFontLinks();
-
         // Phase 3 Fix: 清理函数，防止重复挂载或热重载时无限累积
         return () => {
             const preload = document.querySelector("#engram-font-preload");
@@ -48,8 +16,8 @@ export const GlobalStyles = () => {
         <style>
             {`
     :root {
-      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --font-sans: sans-serif;
+      --font-mono: monospace;
     }
 
     .engram-app-root {
