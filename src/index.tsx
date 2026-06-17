@@ -104,5 +104,3 @@ if (document.readyState === "loading") {
 } else {
     initializeEngram();
 }
-
-// Engram initialization handled in STBridge
