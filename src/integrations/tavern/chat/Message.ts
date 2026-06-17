@@ -1,14 +1,14 @@
 /**
  * MessageService - SillyTavern 消息服务封装
- * 
+ *
  * 提供聊天消息获取、楼层计数等功能
  */
 
-import { getSTContext, isSTAvailable } from '@/integrations/tavern';
-import type { STMessage } from '@/integrations/tavern';
+import { getSTContext, isSTAvailable } from "@/integrations/tavern";
+import type { STMessage } from "@/integrations/tavern";
 
 /** 消息角色类型 */
-type MessageRole = 'user' | 'assistant' | 'system';
+type MessageRole = "user" | "assistant" | "system";
 
 /** 酒馆消息结构 */
 export interface TavernMessage {
@@ -38,18 +38,18 @@ export interface GetMessagesOptions {
  * 将酒馆原始消息转换为统一格式
  */
 function convertMessage(msg: STMessage, index: number): TavernMessage {
-    let role: MessageRole = 'assistant';
+    let role: MessageRole = "assistant";
     if (msg.is_user) {
-        role = 'user';
+        role = "user";
     } else if (msg.is_system) {
-        role = 'system';
+        role = "system";
     }
 
     return {
-        content: msg.mes || '',
+        content: msg.mes || "",
         id: index,
         isHidden: msg.is_hidden ?? false,
-        name: msg.name || '',
+        name: msg.name || "",
         raw: msg,
         role,
     };
@@ -70,17 +70,21 @@ export class MessageService {
             return [];
         }
 
-        let messages = context.chat.map((msg, index) => convertMessage(msg, index));
+        let messages = context.chat.map((msg, index) =>
+            convertMessage(msg, index)
+        );
 
         // 过滤隐藏消息
         if (!options.includeHidden) {
-            messages = messages.filter(m => !m.isHidden);
+            messages = messages.filter((m) => !m.isHidden);
         }
 
         // 角色过滤
         if (options.role) {
-            const roles = Array.isArray(options.role) ? options.role : [options.role];
-            messages = messages.filter(m => roles.includes(m.role));
+            const roles = Array.isArray(options.role)
+                ? options.role
+                : [options.role];
+            messages = messages.filter((m) => roles.includes(m.role));
         }
 
         return messages;
@@ -91,7 +95,10 @@ export class MessageService {
      * @param count 消息数量
      * @param options 查询选项
      */
-    static getRecentMessages(count: number, options: GetMessagesOptions = {}): TavernMessage[] {
+    static getRecentMessages(
+        count: number,
+        options: GetMessagesOptions = {},
+    ): TavernMessage[] {
         const messages = this.getAllMessages(options);
         return messages.slice(-count);
     }
@@ -102,7 +109,11 @@ export class MessageService {
      * @param end 结束索引（不包含）
      * @param options 查询选项
      */
-    static getMessages(start: number, end?: number, options: GetMessagesOptions = {}): TavernMessage[] {
+    static getMessages(
+        start: number,
+        end?: number,
+        options: GetMessagesOptions = {},
+    ): TavernMessage[] {
         const messages = this.getAllMessages(options);
         return messages.slice(start, end);
     }
@@ -119,7 +130,9 @@ export class MessageService {
      * 获取最后一条消息
      * @param options 查询选项
      */
-    static getLastMessage(options: GetMessagesOptions = {}): TavernMessage | null {
+    static getLastMessage(
+        options: GetMessagesOptions = {},
+    ): TavernMessage | null {
         const messages = this.getAllMessages(options);
         return messages.length > 0 ? messages.at(-1) : null;
     }
@@ -142,17 +155,17 @@ export class MessageService {
      */
     static formatMessagesAsText(
         messages: TavernMessage[],
-        format: 'simple' | 'detailed' = 'simple'
+        format: "simple" | "detailed" = "simple",
     ): string {
-        if (format === 'simple') {
+        if (format === "simple") {
             return messages
-                .map(m => `${m.name}: ${m.content}`)
-                .join('\n\n');
+                .map((m) => `${m.name}: ${m.content}`)
+                .join("\n\n");
         }
 
         return messages
-            .map(m => `[${m.role.toUpperCase()}] ${m.name}:\n${m.content}`)
-            .join('\n\n---\n\n');
+            .map((m) => `[${m.role.toUpperCase()}] ${m.name}:\n${m.content}`)
+            .join("\n\n---\n\n");
     }
 
     /**
@@ -162,4 +175,3 @@ export class MessageService {
         return isSTAvailable();
     }
 }
-
