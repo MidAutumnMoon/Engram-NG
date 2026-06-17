@@ -19,12 +19,12 @@ export {
     toggleMainPanel,
 } from "../ui/ui.tsx";
 
-import { Logger } from "@/core/logger";
-import { SettingsManager } from "@/config/settings";
-import { setupKeyboardShortcuts } from "@/core/KeyboardManager";
-import { regexProcessor } from "@/modules/workflow/steps/processing/RegexProcessor";
-import { ThemeManager } from "@/ui/services/ThemeManager";
-import { useUiStore } from "@/state/uiStore";
+import { Logger } from "@/core/logger/index.ts";
+import { SettingsManager } from "@/config/settings.ts";
+import { setupKeyboardShortcuts } from "@/core/KeyboardManager.ts";
+import { regexProcessor } from "@/modules/workflow/steps/processing/RegexProcessor.ts";
+import { ThemeManager } from "@/ui/services/ThemeManager.ts";
+import { useUiStore } from "@/state/uiStore.ts";
 import {
     createTopBarButton,
     initQuickPanelButton,
@@ -37,7 +37,7 @@ import {
  */
 export async function initializeEngram(): Promise<void> {
     // 1. 核心基础设施
-    await Logger.init();
+    Logger.init();
     Logger.info("STBridge", "Engram 插件正在初始化...");
 
     SettingsManager.initSettings();
@@ -61,23 +61,23 @@ export async function initializeEngram(): Promise<void> {
         worldbookMod,
         cleanupMod,
     ] = await Promise.all([
-        import("@/modules/memory/Summarizer").catch((e) => {
+        import("@/modules/memory/Summarizer.ts").catch((e) => {
             Logger.warn("Summarizer", "模块加载失败", { error: String(e) });
             return null;
         }),
-        import("@/modules/memory/EntityExtractor").catch((e) => {
+        import("@/modules/memory/EntityExtractor.ts").catch((e) => {
             Logger.warn("EntityBuilder", "模块加载失败", { error: String(e) });
             return null;
         }),
-        import("@/modules/rag/injection/Injector").catch((e) => {
+        import("@/modules/rag/injection/Injector.ts").catch((e) => {
             Logger.warn("Injector", "模块加载失败", { error: String(e) });
             return null;
         }),
-        import("@/integrations/tavern/worldbook").catch((e) => {
+        import("@/integrations/tavern/worldbook/index.ts").catch((e) => {
             Logger.warn("Worldbook", "模块加载失败", { error: String(e) });
             return null;
         }),
-        import("@/data/cleanup/CharacterCleanup").catch((e) => {
+        import("@/data/cleanup/CharacterCleanup.ts").catch((e) => {
             Logger.warn("CharacterCleanup", "模块加载失败", {
                 error: String(e),
             });
@@ -162,7 +162,7 @@ export async function initializeEngram(): Promise<void> {
     if (worldbookReady) {
         try {
             const { MacroService } = await import(
-                "@/integrations/tavern/prompt/macros"
+                "@/integrations/tavern/prompt/macros.ts"
             );
             await MacroService.init();
         } catch (error) {

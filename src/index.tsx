@@ -7,7 +7,7 @@
  */
 
 import "@/ui/styles/main.css";
-import { initializeEngram } from "@/integrations/tavern";
+import { initializeEngram } from "@/integrations/tavern/index.ts";
 
 initializeEngram().catch((err) => {
     console.error("[Engram] 初始化失败", err);
