@@ -11,19 +11,32 @@ export function getTavernHelper(): {
     // 世界书操作
     createWorldbook?: (name: string) => Promise<void>;
     getWorldbook?: (name: string) => Promise<unknown[]>;
-    createWorldbookEntries?: (name: string, entries: unknown[]) => Promise<void>;
-    updateWorldbookWith?: (name: string, updater: (entries: unknown[]) => unknown[]) => Promise<void>;
-    deleteWorldbookEntries?: (name: string, filter: (entry: unknown) => boolean) => Promise<void>;
+    createWorldbookEntries?: (
+        name: string,
+        entries: unknown[],
+    ) => Promise<void>;
+    updateWorldbookWith?: (
+        name: string,
+        updater: (entries: unknown[]) => unknown[],
+    ) => Promise<void>;
+    deleteWorldbookEntries?: (
+        name: string,
+        filter: (entry: unknown) => boolean,
+    ) => Promise<void>;
     getWorldbookNames?: () => string[];
     getGlobalWorldbookNames?: () => string[];
     rebindGlobalWorldbooks?: (worldbook_names: string[]) => Promise<void>;
     deleteWorldbook?: (name: string) => Promise<boolean>;
     // 角色世界书绑定
-    getCharWorldbookNames?: (mode: 'current' | 'all') => { primary?: string; additional: string[] } | null;
-    rebindCharWorldbooks?: (mode: 'current', books: { primary?: string; additional: string[] }) => Promise<void>;
+    getCharWorldbookNames?: (
+        mode: "current" | "all",
+    ) => { primary?: string; additional: string[] } | null;
+    rebindCharWorldbooks?: (
+        mode: "current",
+        books: { primary?: string; additional: string[] },
+    ) => Promise<void>;
 } | null {
     try {
-        // @ts-expect-error - TavernHelper 全局对象
         return window.TavernHelper || null;
     } catch {
         return null;

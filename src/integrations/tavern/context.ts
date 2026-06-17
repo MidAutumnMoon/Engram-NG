@@ -5,11 +5,9 @@
  * 负责从 window.SillyTavern 对象中安全地提取状态。
  */
 
-import { Logger } from "@/core/logger";
+import { Logger } from "@/core/logger/index.ts";
 
 const MODULE = "STContext";
-
-// SillyTavern 全局类型声明已移至 @types/global.d.ts
 
 /** ST 上下文类型 */
 export interface STContext {

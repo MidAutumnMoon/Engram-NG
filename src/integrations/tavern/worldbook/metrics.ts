@@ -1,16 +1,15 @@
-import { Logger } from '@/core/logger';
-import { getEntries } from '@/integrations/tavern/worldbook/crud';
-import type { WorldInfoEntry, WorldInfoTokenStats } from './types';
+import { Logger } from "@/core/logger/index.ts";
+import { getEntries } from "@/integrations/tavern/worldbook/crud.ts";
+import type { WorldInfoEntry, WorldInfoTokenStats } from "./types.ts";
 
-const MODULE = 'Worldbook';
+const MODULE = "Worldbook";
 
 /**
  * 获取 SillyTavern 的 tokenizers 模块
  */
 async function getTokenCountAsync(text: string): Promise<number> {
     try {
-        // @ts-expect-error - SillyTavern 全局对象
-        const {SillyTavern} = window;
+        const { SillyTavern } = window;
         if (SillyTavern?.getContext) {
             const context = SillyTavern.getContext() as any;
             if (context?.getTokenCountAsync) {
@@ -21,7 +20,7 @@ async function getTokenCountAsync(text: string): Promise<number> {
         // Fallback: 字符估算 (约 4 字符 = 1 token)
         return Math.ceil(text.length / 4);
     } catch {
-        Logger.warn(MODULE, '无法使用酒馆 Token 计数，使用估算');
+        Logger.warn(MODULE, "无法使用酒馆 Token 计数，使用估算");
         return Math.ceil(text.length / 4);
     }
 }
@@ -43,24 +42,29 @@ export class WorldbookMetricsService {
      * @param texts 文本数组
      */
     static async countTokensBatch(texts: string[]): Promise<number[]> {
-        return Promise.all(texts.map(t => getTokenCountAsync(t)));
+        return Promise.all(texts.map((t) => getTokenCountAsync(t)));
     }
 
     /**
      * 获取世界书的 Token 统计
      * @param worldbookName 世界书名称
      */
-    static async getWorldbookTokenStats(worldbookName: string): Promise<WorldInfoTokenStats> {
+    static async getWorldbookTokenStats(
+        worldbookName: string,
+    ): Promise<WorldInfoTokenStats> {
         const entries = await getEntries(worldbookName);
 
         const entriesWithTokens = await Promise.all(
             entries.map(async (e: WorldInfoEntry) => ({
                 name: e.name,
                 tokens: await this.countTokens(e.content),
-            }))
+            })),
         );
 
-        const totalTokens = entriesWithTokens.reduce((sum: number, e: { tokens: number }) => sum + e.tokens, 0);
+        const totalTokens = entriesWithTokens.reduce(
+            (sum: number, e: { tokens: number }) => sum + e.tokens,
+            0,
+        );
 
         return {
             entries: entriesWithTokens,
@@ -74,11 +78,10 @@ export class WorldbookMetricsService {
      */
     static async isNativeTokenCountAvailable(): Promise<boolean> {
         try {
-            // @ts-expect-error
-            const {SillyTavern} = window;
+            const { SillyTavern } = window;
             if (SillyTavern?.getContext) {
                 const context = SillyTavern.getContext();
-                return typeof context?.getTokenCountAsync === 'function';
+                return typeof context?.getTokenCountAsync === "function";
             }
             return false;
         } catch {
