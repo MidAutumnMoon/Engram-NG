@@ -15,7 +15,7 @@ import type { AgenticRecall } from '@/modules/preprocessing/types';
 import { retriever } from '@/modules/rag/retrieval/Retriever';
 import { useMemoryStore } from '@/state/memoryStore';
 import { notificationService } from '@/ui/services/NotificationService';
-import { RecallDecisionModal } from '@/ui/views/review/RecallDecisionModal';
+import { RecallDecisionModal } from '@/ui/panels/review/RecallDecisionModal.tsx';
 import { BrainCircuit, Database, History, Loader2, Play, Search, Zap } from 'lucide-react';
 
 export const RecallPanel: React.FC<RecallPanelProps> = ({

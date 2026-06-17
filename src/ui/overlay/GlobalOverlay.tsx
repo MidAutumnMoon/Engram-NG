@@ -5,8 +5,8 @@
  * 通过 uiStore 与外部触发源（键盘快捷键、ST 按钮）通信，无需 callback 注册。
  */
 import { useUiStore } from "@/state/uiStore";
-import { QuickPanel } from "@/ui/views/quick-panel";
-import { ReviewContainer } from "@/ui/views/review/ReviewContainer";
+import { QuickPanel } from "@/ui/panels/quick-panel";
+import { ReviewContainer } from "@/ui/panels/review/ReviewContainer.tsx";
 import React from "react";
 
 export const GlobalOverlay: React.FC = () => {

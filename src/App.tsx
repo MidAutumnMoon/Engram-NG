@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { MainLayout } from "@/ui/components/layout/MainLayout.tsx";
+import { MainLayout } from "@/ui/shell/MainLayout.tsx";
 import { SettingsManager } from "@/config/settings.ts";
 import { EventBus } from "@/core/events/types.ts";
 

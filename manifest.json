@@ -4,7 +4,6 @@
     "optional": ["embeddings"],
     "js": "dist/index.js",
     "css": "dist/style.css",
-    "html": "dist/index.html",
     "author": "MidAutumnMoon",
     "version": "1.5.2",
     "homePage": "https://github.com/shiyue137mh-netizen/Engram.git",

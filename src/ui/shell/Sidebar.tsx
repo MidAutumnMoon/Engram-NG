@@ -7,7 +7,7 @@ import { NAV_ITEMS } from "@/constants/navigation";
 import { EngramTextLogo } from "@/ui/assets/icons/EngramTextLogo";
 import { Github, X } from "lucide-react";
 import React from "react";
-import manifest from "../../../../manifest.json" with { type: "json" };
+import manifest from "../../../manifest.json" with { type: "json" };
 
 interface SidebarProps {
     /** 当前激活的标签 ID */
