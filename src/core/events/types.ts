@@ -1,12 +1,8 @@
 /**
  * EventBus - 事件总线
  *
- * 基于 RxJS Subject 实现的发布/订阅模式
- * 用于模块间的松耦合通信
+ * 基础发布/订阅模式，用于模块间松耦合通信。
  */
-
-import type { Observable } from "rxjs";
-import { filter, Subject } from "rxjs";
 
 // 事件类型定义
 export type EngramEventType =
@@ -28,8 +24,10 @@ export interface EngramEvent<T = unknown> {
     timestamp?: number;
 }
 
-// 全局事件流
-const eventSubject = new Subject<EngramEvent>();
+type Subscriber = (event: EngramEvent) => void;
+
+// 全局订阅者集合
+const subscribers = new Set<Subscriber>();
 
 /**
  * 事件总线
@@ -39,22 +37,28 @@ export const EventBus = {
      * 发布事件
      */
     emit<T>(event: EngramEvent<T>): void {
-        eventSubject.next({
+        const stamped: EngramEvent = {
             ...event,
             timestamp: Date.now(),
-        });
+        };
+        // 快照迭代：回调内 subscribe/unsubscribe 不影响本轮派发
+        for (const cb of [...subscribers]) {
+            try {
+                cb(stamped);
+            } catch (err) {
+                console.error("[EventBus] subscriber threw:", err);
+            }
+        }
     },
 
     /**
      * 订阅所有事件
      */
     subscribe(
-        callback: (event: EngramEvent) => void,
+        callback: Subscriber,
     ): { unsubscribe: () => void } {
-        const subscription = eventSubject.subscribe(callback);
-        return {
-            unsubscribe: () => subscription.unsubscribe(),
-        };
+        subscribers.add(callback);
+        return { unsubscribe: () => subscribers.delete(callback) };
     },
 
     /**
@@ -64,18 +68,10 @@ export const EventBus = {
         type: EngramEventType,
         callback: (payload: T) => void,
     ): { unsubscribe: () => void } {
-        const subscription = eventSubject
-            .pipe(filter((e) => e.type === type))
-            .subscribe((e) => callback(e.payload as T));
-        return {
-            unsubscribe: () => subscription.unsubscribe(),
+        const wrapper: Subscriber = (e) => {
+            if (e.type === type) callback(e.payload as T);
         };
-    },
-
-    /**
-     * 获取事件流（用于 RxJS 操作符）
-     */
-    asObservable(): Observable<EngramEvent> {
-        return eventSubject.asObservable();
+        subscribers.add(wrapper);
+        return { unsubscribe: () => subscribers.delete(wrapper) };
     },
 };

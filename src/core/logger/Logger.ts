@@ -7,14 +7,13 @@
  */
 
 import { generateShortUUID } from "@/core/utils";
-import { Subject } from "rxjs";
 import type { LogModule } from "./LogModule.ts";
 import type { LogCategory, LogEntry } from "./types.ts";
 import { LogLevel } from "./types.ts";
 
-// 日志流 Subject (RxJS)
-// 保留 RxJS：EventBus 等其他子系统也用 RxJS，统一技术栈。
-const logSubject = new Subject<LogEntry>();
+// 订阅者集合。回调中若抛异常，会被 pushEntry 中的 try/catch 隔离，
+// 不会影响其他订阅者。
+const subscribers = new Set<(entry: LogEntry) => void>();
 
 // 内存中的日志缓存（用于快速访问和 UI 展示）
 // 注意：模块级变量在 HMR 时可能被保留，但完整页面刷新会重置。
@@ -37,7 +36,15 @@ function pushEntry(entry: LogEntry): void {
         logCache.splice(0, logCache.length - MAX_LOG_ENTRIES);
     }
 
-    logSubject.next(entry);
+    // 快照迭代：避免回调内 subscribe/unsubscribe 破坏迭代；逐个 try/catch 隔离异常
+    for (const cb of [...subscribers]) {
+        try {
+            cb(entry);
+        } catch (err) {
+            // 不能用 Logger.error——会重新进入 pushEntry 导致重入
+            console.error("[Logger] subscriber threw:", err);
+        }
+    }
 }
 
 /**
@@ -139,8 +146,8 @@ export const Logger = {
      * @returns 取消订阅函数
      */
     subscribe(callback: (entry: LogEntry) => void): () => void {
-        const subscription = logSubject.subscribe(callback);
-        return () => subscription.unsubscribe();
+        subscribers.add(callback);
+        return () => subscribers.delete(callback);
     },
 
     /**
