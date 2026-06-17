@@ -1,7 +1,11 @@
 /**
- * QuickPanelButton - V1.0 快捷面板按钮
+ * Tavern UI Mounting
  *
- * 在酒馆 #leftSendForm 中，#extensionsMenuButton 左边注入 Engram 快捷面板按钮
+ * 在酒馆 DOM 中注入 Engram 入口（顶栏按钮、QR 栏快捷面板按钮），
+ * 并通过动态 import 懒挂载 React 主面板与全局悬浮层。
+ *
+ * 历史上此文件通过 setReactRenderer / setGlobalRenderer 由 index.tsx 注入回调，
+ * 现已改为直接动态 import React 组件，消除了循环依赖与渲染器注入抽象。
  */
 
 import {
@@ -11,33 +15,23 @@ import {
     ENGRAM_PANEL_ID,
 } from "@/constants";
 import { Logger } from "@/core/logger";
+import { useUiStore } from "@/state/uiStore";
+import { createRoot } from "react-dom/client";
 
-const MODULE = "QuickPanelButton";
+const MODULE = "TavernUI";
+
+// ==================== QR 栏快捷面板按钮 ====================
 
 /** 按钮注入状态 */
 let isInjected = false;
-
-/** 全局回调：打开快捷面板 */
-let onOpenQuickPanel: (() => void) | null = null;
 
 /** 处理快捷面板点击事件 */
 const handleQuickPanelClick = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     Logger.debug(MODULE, "点击打开快捷面板");
-    if (onOpenQuickPanel) {
-        onOpenQuickPanel();
-    } else {
-        Logger.warn(MODULE, "未设置面板回调");
-    }
+    useUiStore.getState().openQuickPanel();
 };
-
-/**
- * 设置打开面板的回调
- */
-export function setQuickPanelCallback(callback: () => void) {
-    onOpenQuickPanel = callback;
-}
 
 /**
  * 注入快捷面板按钮
@@ -49,29 +43,21 @@ function injectQuickPanelButton(): boolean {
         return true;
     }
 
-    // 找到 leftSendForm 容器
     const leftSendForm = document.querySelector(
         DOM_IDS.LEFT_SEND_FORM,
-    ) as HTMLElement;
+    ) as HTMLElement | null;
     if (!leftSendForm) {
         Logger.debug(MODULE, `${DOM_IDS.LEFT_SEND_FORM} 未找到，延迟重试`);
         return false;
     }
 
-    // 创建 Engram 快捷面板按钮 - 使用 Font Awesome 图标
     const button = document.createElement("div");
     button.id = DOM_IDS.QUICK_PANEL_TRIGGER;
     button.className = "fa-solid fa-layer-group interactable";
     button.tabIndex = 0;
     button.title = "Engram 快捷面板";
     button.dataset.i18n = "[title]Engram Quick Panel";
-
-    // 点击打开快捷面板
     button.addEventListener("click", handleQuickPanelClick);
-
-    // 修正样式：
-    // 1. 设置 order > 4 (magic wand 是 4)，确保显示在最右侧
-    // 2. 显式设置 display: flex 以防 CSS 没正确应用
     button.style.cssText = `
         order: 10;
         display: flex;
@@ -80,10 +66,7 @@ function injectQuickPanelButton(): boolean {
         align-items: center;
         justify-content: center;
     `;
-
-    // 直接 append 到 leftSendForm
     leftSendForm.append(button);
-
     isInjected = true;
 
     Logger.info(MODULE, "按钮注入成功 (#leftSendForm)");
@@ -107,15 +90,13 @@ function removeQuickPanelButton(): void {
 }
 
 /**
- * 初始化：等待 DOM 就绪后注入
+ * 初始化：等待 DOM 就绪后注入，对抗酒馆的不定向重绘
  */
 export function initQuickPanelButton(): void {
-    // 尝试立即注入
     if (injectQuickPanelButton()) {
         return;
     }
 
-    // 重试计数
     let retryCount = 0;
     const maxRetries = 20;
     const retryInterval = 500;
@@ -132,14 +113,13 @@ export function initQuickPanelButton(): void {
         }
     };
 
-    // 使用 MutationObserver 监听 DOM 变化，对抗酒馆的不定向重绘
     const observer = new MutationObserver(() => {
         const leftSendForm = document.querySelector(DOM_IDS.LEFT_SEND_FORM);
         if (
             leftSendForm &&
             !document.getElementById(DOM_IDS.QUICK_PANEL_TRIGGER)
         ) {
-            isInjected = false; // 重置允许注入
+            isInjected = false;
             injectQuickPanelButton();
         }
     });
@@ -149,63 +129,39 @@ export function initQuickPanelButton(): void {
         subtree: true,
     });
 
-    // 同时启动定时重试
     setTimeout(retryInjection, retryInterval);
 }
 
-// ==================== 以下为从 bridge.ts 拆分过来的 UI 管理部分 ====================
+// ==================== React 挂载 ====================
 
-// React 渲染器类型
-export type ReactRenderer = (
-    container: HTMLElement,
-    onClose: () => void,
-) => any;
-
-let reactRenderer: ReactRenderer | null = null;
-let globalRenderer: ReactRenderer | null = null;
-let globalRoot: any = null;
+let globalRoot: ReturnType<typeof createRoot> | null = null;
 let panelVisible = false;
 let panelElement: HTMLElement | null = null;
-let reactRoot: any = null;
+let reactRoot: ReturnType<typeof createRoot> | null = null;
 
 /**
- * 设置 React 渲染器（从 index.tsx 注入）
+ * 挂载全局悬浮层（QuickPanel + ReviewContainer）
+ * 通过动态 import 懒加载 GlobalOverlay，避免在扩展启动时拉起整个 React UI。
  */
-export function setReactRenderer(renderer: ReactRenderer): void {
-    reactRenderer = renderer;
-}
-
-/**
- * 设置全局渲染器（用于悬浮窗等）
- */
-export function setGlobalRenderer(renderer: ReactRenderer): void {
-    globalRenderer = renderer;
-}
-
-/**
- * 挂载全局悬浮层
- */
-export function mountGlobalOverlay(): void {
-    if (!globalRenderer) {
-        return;
-    }
-
+export async function mountGlobalOverlay(): Promise<void> {
     const overlayId = ENGRAM_GLOBAL_OVERLAY_ID;
-    let overlay = document.querySelector(`#${overlayId}`);
+    let overlay = document.querySelector(`#${overlayId}`) as HTMLElement | null;
 
-    // 如果已存在但未挂载，则复用
     if (!overlay) {
         overlay = document.createElement("div");
         overlay.id = overlayId;
         overlay.className =
-            "pointer-events-none fixed inset-0 z-[11000] engram-app-root"; // 极高层级，不妨碍交互
+            "pointer-events-none fixed inset-0 z-[11000] engram-app-root";
         document.body.append(overlay);
     }
 
-    // 挂载
-    if (!globalRoot) {
-        globalRoot = globalRenderer(overlay, () => {}); // global overlay usually doesn't need onClose
+    if (globalRoot) {
+        return;
     }
+
+    const { GlobalOverlay } = await import("@/ui/overlay/GlobalOverlay.tsx");
+    globalRoot = createRoot(overlay);
+    globalRoot.render(<GlobalOverlay />);
 }
 
 /**
@@ -244,14 +200,13 @@ export function createTopBarButton(): void {
 }
 
 /**
- * 打开主面板（若已打开则不重复创建）
+ * 打开主面板（懒加载 App）
  */
-export function openMainPanel(): void {
+export async function openMainPanel(): Promise<void> {
     if (panelVisible && panelElement) {
         return;
     }
-
-    panelElement = createMainPanel();
+    panelElement = await createMainPanel();
     document.body.append(panelElement);
     panelVisible = true;
 }
@@ -263,7 +218,6 @@ export function closeMainPanel(): void {
     if (!panelVisible || !panelElement) {
         return;
     }
-
     if (reactRoot) {
         reactRoot.unmount();
         reactRoot = null;
@@ -279,15 +233,17 @@ export function closeMainPanel(): void {
 export function toggleMainPanel(): void {
     if (panelVisible && panelElement) {
         closeMainPanel();
-    } else {
-        openMainPanel();
+        return;
     }
+    openMainPanel().catch((err) => {
+        Logger.error(MODULE, "打开主面板失败", err);
+    });
 }
 
 /**
- * 创建主面板（使用注入的 React 渲染器）
+ * 创建主面板（懒加载 App）
  */
-function createMainPanel(): HTMLElement {
+async function createMainPanel(): Promise<HTMLElement> {
     const panel = document.createElement("div");
     panel.className =
         "fixed inset-0 w-full h-full z-[10000] flex flex-col bg-background text-foreground overflow-hidden engram-app-root";
@@ -323,23 +279,11 @@ function createMainPanel(): HTMLElement {
     panel.append(header);
     panel.append(content);
 
-    if (reactRenderer) {
-        reactRoot = reactRenderer(panel, toggleMainPanel);
-    } else {
-        panel.innerHTML = `
-            <div class="flex items-center justify-between p-4 border-b border-slate-400/20">
-                <h2 class="m-0 text-lg text-slate-200 flex items-center gap-2">Engram</h2>
-                <button class="bg-transparent border-none text-slate-400 text-2xl cursor-pointer p-1 hover:text-slate-200">&times;</button>
-            </div>
-            <div class="flex-1 overflow-auto p-5">
-                <p style="color: #94a3b8;">React 渲染器未加载，请检查配置。</p>
-            </div>
-        `;
-        panel.querySelector("button")?.addEventListener(
-            "click",
-            toggleMainPanel,
-        );
-    }
+    const [{ default: App }] = await Promise.all([
+        import("@/App"),
+    ]);
+    reactRoot = createRoot(panel);
+    reactRoot.render(<App onClose={toggleMainPanel} />);
 
     return panel;
 }
@@ -355,9 +299,9 @@ export async function callPopup(
     type: "text" | "confirm" | "input" = "text",
     inputValue: string = "",
 ): Promise<any> {
-    // @ts-expect-error
+    // @ts-expect-error - SillyTavern global
     if (window.callPopup) {
-        // @ts-expect-error
+        // @ts-expect-error - SillyTavern global
         return window.callPopup(content, type, inputValue);
     }
     console.warn("[Engram] callPopup not available");

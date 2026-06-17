@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import { Command, CornerDownLeft, Search } from "lucide-react";
 import type { SearchResult } from "@/modules/search/SearchService";
 import { searchService } from "@/modules/search/SearchService";
+import { useUiStore } from "@/state/uiStore";
 // Register adapters (ensure they are registered once)
 import { CommandAdapter } from "@/modules/search/adapters/CommandAdapter";
 import { SettingAdapter } from "@/modules/search/adapters/SettingAdapter";
@@ -30,7 +31,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = (
     { onNavigate },
 ) => {
     const [query, setQuery] = useState("");
-    const [isOpen, setIsOpen] = useState(false);
+    const isOpen = useUiStore((s) => s.commandPaletteOpen);
+    const openCommandPalette = useUiStore((s) => s.openCommandPalette);
+    const closeCommandPalette = useUiStore((s) => s.closeCommandPalette);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [results, setResults] = useState<SearchResult[]>([]);
 
@@ -59,34 +62,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = (
         doSearch();
     }, [query, isOpen]);
 
-    // Keyboard Shortcuts (Open)
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-                e.preventDefault();
-                setIsOpen(true);
-            }
-        };
-        globalThis.addEventListener("keydown", handleKeyDown);
-        return () => globalThis.removeEventListener("keydown", handleKeyDown);
-    }, []);
-
     // Auto Focus
     useEffect(() => {
         if (isOpen) {
             setTimeout(() => inputRef.current?.focus(), 50);
         }
     }, [isOpen]);
-
-    // 注册外部打开回调（供键盘快捷键调用）
-    useEffect(() => {
-        // 动态导入避免循环依赖
-        import("@/index").then(({ setCommandPaletteCallback }) => {
-            setCommandPaletteCallback(() => setIsOpen(true));
-        }).catch(() => {
-            // 忽略导入失败
-        });
-    }, []);
 
     // Navigation
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -111,7 +92,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = (
                 break;
             }
             case "Escape": {
-                setIsOpen(false);
+                closeCommandPalette();
                 break;
             }
         }
@@ -126,7 +107,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = (
             console.log("Searching memory for:", query);
             onNavigate("/memory");
         }
-        setIsOpen(false);
+        closeCommandPalette();
         setQuery("");
     };
 
@@ -143,7 +124,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = (
                     zIndex: 2_147_483_647, // Max safe integer to ensure it's on top of SillyTavern UI
                 }}
                 onClick={(e) => {
-                    if (e.target === e.currentTarget) setIsOpen(false);
+                    if (e.target === e.currentTarget) closeCommandPalette();
                 }}
             >
                 <div
@@ -190,7 +171,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = (
                                         }`}
                                         onClick={() => {
                                             item.action(onNavigate);
-                                            setIsOpen(false);
+                                            closeCommandPalette();
                                             setQuery("");
                                         }}
                                         onMouseEnter={() =>
@@ -303,7 +284,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = (
     return (
         <>
             <button
-                onClick={() => setIsOpen(true)}
+                onClick={openCommandPalette}
                 className="p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-all duration-[var(--duration-fast)] text-muted-foreground hover:scale-110 active:scale-95"
                 title="搜索 (Cmd+K)"
             >

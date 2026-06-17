@@ -11,13 +11,13 @@ export { getSTContext, type STMessage } from "./context.ts";
 export { hideMessageRange, injectMessage } from "../chat/chat.ts";
 export {
     callPopup,
+    closeMainPanel,
     createTopBarButton,
+    initQuickPanelButton,
     mountGlobalOverlay,
     openMainPanel,
-    setGlobalRenderer,
-    setReactRenderer,
     toggleMainPanel,
-} from "../ui/ui.ts";
+} from "../ui/ui.tsx";
 
 /**
  * 初始化 Engram 插件
@@ -144,15 +144,14 @@ export async function initializeEngram(): Promise<void> {
         const { setupKeyboardShortcuts } = await import(
             "@/core/KeyboardManager"
         );
-        const { toggleQuickPanel, openCommandPalette } = await import(
-            "@/index"
-        );
+        const { useUiStore } = await import("@/state/uiStore");
         const { toggleMainPanel } = await import("@/integrations/tavern");
 
+        const ui = useUiStore.getState();
         setupKeyboardShortcuts({
             toggleMainPanel,
-            toggleQuickPanel,
-            openCommandPalette,
+            toggleQuickPanel: ui.toggleQuickPanel,
+            openCommandPalette: ui.openCommandPalette,
         });
         Logger.info("STBridge", "键盘快捷键初始化完成");
     } catch (error) {
