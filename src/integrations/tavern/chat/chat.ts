@@ -1,5 +1,5 @@
 import { Logger } from "@/core/logger";
-import type { STMessage } from "../context.ts";
+import type { TavernChatMessage } from "../context.ts";
 import { getSTContext } from "../context.ts";
 
 const MODULE = "TavernChat";
@@ -92,7 +92,7 @@ export async function injectMessage(
 
         if (!ctx.chat) throw new Error("Chat array unavailable");
 
-        const newMessage: STMessage = {
+        const newMessage: TavernChatMessage = {
             name: senderName,
             is_user: role === "user",
             is_system: false,

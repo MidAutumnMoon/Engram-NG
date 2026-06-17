@@ -5,13 +5,13 @@
  */
 
 import { getSTContext, isSTAvailable } from "@/integrations/tavern";
-import type { STMessage } from "@/integrations/tavern";
+import type { TavernChatMessage } from "@/integrations/tavern";
 
 /** 消息角色类型 */
 type MessageRole = "user" | "assistant" | "system";
 
-/** 酒馆消息结构 */
-export interface TavernMessage {
+/** 酒馆消息结构 (Engram 规范化视图) */
+export interface ChatMessage {
     /** 消息 ID (楼层号) */
     id: number;
     /** 发送者角色 */
@@ -37,7 +37,7 @@ export interface GetMessagesOptions {
 /**
  * 将酒馆原始消息转换为统一格式
  */
-function convertMessage(msg: STMessage, index: number): TavernMessage {
+function convertMessage(msg: TavernChatMessage, index: number): ChatMessage {
     let role: MessageRole = "assistant";
     if (msg.is_user) {
         role = "user";
@@ -64,7 +64,7 @@ export class MessageService {
      * 获取当前聊天的所有消息
      * @param options 查询选项
      */
-    static getAllMessages(options: GetMessagesOptions = {}): TavernMessage[] {
+    static getAllMessages(options: GetMessagesOptions = {}): ChatMessage[] {
         const context = getSTContext();
         if (!context?.chat) {
             return [];
@@ -98,7 +98,7 @@ export class MessageService {
     static getRecentMessages(
         count: number,
         options: GetMessagesOptions = {},
-    ): TavernMessage[] {
+    ): ChatMessage[] {
         const messages = this.getAllMessages(options);
         return messages.slice(-count);
     }
@@ -113,7 +113,7 @@ export class MessageService {
         start: number,
         end?: number,
         options: GetMessagesOptions = {},
-    ): TavernMessage[] {
+    ): ChatMessage[] {
         const messages = this.getAllMessages(options);
         return messages.slice(start, end);
     }
@@ -132,7 +132,7 @@ export class MessageService {
      */
     static getLastMessage(
         options: GetMessagesOptions = {},
-    ): TavernMessage | null {
+    ): ChatMessage | null {
         const messages = this.getAllMessages(options);
         return messages.length > 0 ? messages.at(-1) : null;
     }
@@ -154,7 +154,7 @@ export class MessageService {
      * @param format 格式化模板
      */
     static formatMessagesAsText(
-        messages: TavernMessage[],
+        messages: ChatMessage[],
         format: "simple" | "detailed" = "simple",
     ): string {
         if (format === "simple") {

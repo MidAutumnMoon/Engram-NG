@@ -1,5 +1,5 @@
 /**
- * STContext - SillyTavern 上下文获取模块
+ * TavernContext - SillyTavern 上下文获取模块
  *
  * 统一的上下文获取入口，消除各模块重复定义。
  * 负责从 window.SillyTavern 对象中安全地提取状态。
@@ -7,86 +7,26 @@
 
 import { Logger } from "@/core/logger/index.ts";
 
-const MODULE = "STContext";
+const MODULE = "TavernContext";
 
-/** ST 上下文类型 */
-export interface STContext {
-    chat: STMessage[];
-    characters: STCharacter[];
-    name1: string; // 用户名
-    name2: string; // 角色名
-    characterId: number;
-    chatId: string;
-    // 事件系统
-    eventSource?: {
-        on: (event: string, callback: (data: any) => void) => void;
-        once: (event: string, callback: (data: any) => void) => void;
-        off: (event: string, callback: (data: any) => void) => void;
-        emit: (event: string, data: any) => void;
-        removeListener: (event: string, callback: (data: any) => void) => void;
-    };
-    event_types?: Record<string, string>;
-    // 工具函数
-    getRequestHeaders?: (
-        options?: { omitContentType?: boolean },
-    ) => Record<string, string>;
-    // Token 计数
-    getTokenCountAsync?: (text: string) => Promise<number>;
-    // 生成控制
-    stopGeneration?: () => void;
+/**
+ * SillyTavern getContext() 的返回类型。
+ * 类型由 vendor/SillyTavern 的声明驱动，通过 global.d.ts 暴露。
+ */
+export type TavernContext = ReturnType<typeof window.SillyTavern.getContext>;
 
-    // 宏系统
-    registerMacro?: (
-        key: string,
-        callback: () => string | Promise<string>,
-        description?: string,
-    ) => void;
-    macros?: {
-        register: (name: string, options: {
-            handler: (context?: any) => string | Promise<string>;
-            description?: string;
-            category?: string;
-            returnType?: string;
-            strictArgs?: boolean;
-            [key: string]: any;
-        }) => void;
-    };
-
-    // 聊天元数据
-    chat_metadata?: Record<string, any>;
-    // 扩展配置
-    extensionSettings?: Record<string, any>;
-}
-
-/** ST 消息类型 */
-export interface STMessage {
-    mes: string;
-    is_user: boolean;
-    is_system?: boolean;
-    is_hidden?: boolean;
-    name: string;
-    send_date?: number;
-    extra?: Record<string, unknown>;
-    force_avatar?: string; // 有时用于强制显示特定头像
-}
-
-/** ST 角色类型 */
-interface STCharacter {
-    name: string;
-    avatar: string;
-    description: string;
-}
+/**
+ * SillyTavern 原始聊天消息类型（context.chat 数组元素）。
+ */
+export type TavernChatMessage = TavernContext["chat"][number];
 
 /**
  * 获取 SillyTavern 上下文
  * @returns ST 上下文对象，或 null（如果不可用）
- * TODO: STContext type is legacy, the shape of STContext and the return
- * value of getContext is roughly the same. Fix it later.
  */
-export function getSTContext(): STContext | null {
+export function getSTContext(): TavernContext | null {
     try {
         const ctx = globalThis.SillyTavern?.getContext?.();
-        // @ts-expect-error STContext type is legacy but has the same shape as the return value of getContext
         return ctx || null;
     } catch (error) {
         Logger.warn(MODULE, "无法获取 ST 上下文", error);
@@ -97,7 +37,7 @@ export function getSTContext(): STContext | null {
 /**
  * 获取当前聊天记录
  */
-export function getCurrentChat(): STMessage[] {
+export function getCurrentChat(): TavernChatMessage[] {
     const ctx = getSTContext();
     return ctx?.chat || [];
 }
