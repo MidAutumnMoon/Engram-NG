@@ -1,15 +1,12 @@
 {
     "display_name": "Engram",
     "loading_order": 500,
-    "requires": [],
-    "optional": [
-        "embeddings"
-    ],
+    "optional": ["embeddings"],
     "js": "dist/index.js",
     "css": "dist/style.css",
     "html": "dist/index.html",
-    "author": "shiyue137",
-    "version": "1.5.1",
+    "author": "MidAutumnMoon",
+    "version": "1.5.2",
     "homePage": "https://github.com/shiyue137mh-netizen/Engram.git",
     "description": "Graph RAG 记忆操作系统 - Where memories leave their trace."
 }
