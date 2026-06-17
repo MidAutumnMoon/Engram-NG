@@ -1,0 +1,71 @@
+name: release
+
+# 在源码分支推送时构建 dist，并以 orphan 分支形式发布到 release 分支。
+# release 分支只包含 ST 安装所需的产物 (manifest.json + dist/)，
+# 从而让源码分支保持干净、不污染 agent 上下文与代码搜索。
+#
+# 使用方法：
+#   1. 首次推送 master 触发本工作流，自动创建 release 分支。
+#   2. 在 GitHub 仓库 Settings -> General -> Default branch 中
+#      把默认分支切换为 release。这样 ST 用裸 URL 安装时会克隆到
+#      预构建产物，安装体验不变。
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Build
+        run: deno task build
+
+      - name: Stage installable payload
+        run: |
+          set -e
+          stage="$(mktemp -d)"
+          cp manifest.json "$stage/"
+          # 复制产物，但丢弃 sourcemap（ST 不需要，且会显著拖大克隆体积）
+          cp -r dist "$stage/dist"
+          rm -f "$stage/dist"/*.map
+
+          cat > "$stage/README.md" <<'EOF'
+          # Engram — release branch
+
+          此分支由 `.github/workflows/release.yml` 自动构建，**仅包含
+          SillyTavern 安装所需的产物**：`manifest.json` 与 `dist/`。
+
+          - 源码、开发与议题请前往 `master` 分支。
+          - 请勿在此分支上直接提交；任何改动都会被下次构建覆盖。
+          EOF
+
+          # 暴露给后续步骤
+          echo "STAGE_DIR=$stage" >> "$GITHUB_ENV"
+
+      - name: Publish to release branch (orphan, force)
+        run: |
+          set -e
+          cd "$STAGE_DIR"
+          git init -b release
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "release: ${GITHUB_SHA::7}"
+          git push --force \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

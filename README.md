@@ -41,6 +41,15 @@
 
 ## 📦 安装 (Installation)
 
+### 分支模型
+
+仓库分为两个分支：
+
+- **`release`（默认分支）**：由 CI 自动构建，仅包含 ST 安装所需的产物
+  (`manifest.json` + `dist/`)。SillyTavern 用裸 URL 安装时克隆的就是它。
+- **`master`（源码分支）**：开发、议题、PR 的去处。**不含 `dist/`**，
+  保持搜索与 agent 上下文干净。
+
 ### 方式一：扩展管理 (推荐)
 
 直接在 **SillyTavern** 的扩展管理界面安装：
@@ -53,16 +62,17 @@
 3. 点击 **获取 (Get)** 或 **安装 (Install)**。
 4. 安装完成后，刷新酒馆页面即可。
 
-> **注意**: 我们已将构建好的 `dist/`
-> 目录上传至仓库，因此无需手动构建即可直接使用。
+> ST 会克隆默认分支 `release`，里面已经是预构建产物，无需手动构建。
 
 ### 方式二：Git 克隆 (开发者)
 
 ```bash
 cd SillyTavern/public/scripts/extensions/third-party/
-git clone https://github.com/shiyue137mh-netizen/Engram.git
+# 想直接使用：克隆默认分支 release
+# 想参与开发：加 -b master 拿到源码
+# 克隆源码后需运行 deno task build 才会生成 dist/
+git clone -b master https://github.com/shiyue137mh-netizen/Engram.git
 cd Engram
-# 如果仅使用，无需安装/构建
 ```
 
 ---

@@ -1,7 +1,7 @@
 # 依赖
 node_modules/
-# 构建产物
-dist/*.map
+# 构建产物 - dist 仅存在于 release 分支，源码分支不跟踪
+dist/
 
 # 日志
 *.log

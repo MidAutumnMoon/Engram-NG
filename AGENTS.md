@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A SillyTavern third-party extension. Graph RAG memory system — extracts entities/events from chat, stores them in IndexedDB, summarizes arcs, and re-injects relevant memories into the prompt so characters stay coherent over long conversations. Built with Deno + Vite + React 19 + TypeScript. Ships as `dist/index.js` + `dist/style.css` + `dist/index.html` per `manifest.json`.
+A SillyTavern third-party extension. Graph RAG memory system — extracts entities/events from chat, stores them in IndexedDB, summarizes arcs, and re-injects relevant memories into the prompt so characters stay coherent over long conversations. Built with Deno + Vite + React 19 + TypeScript. Ships as `dist/index.js` + `dist/style.css` + `dist/index.html` per `manifest.json`. The `dist/` payload lives only on the `release` branch (built by `.github/workflows/release.yml`); the `master` (source) branch does **not** track `dist/`, so the minified blob never pollutes search or agent context.
 
 ## Rules
 
@@ -11,7 +11,7 @@ A SillyTavern third-party extension. Graph RAG memory system — extracts entiti
 - When editing TS/TSX, match existing style: 4-space indent, double quotes, trailing commas, semicolons.
 - Use the `@/` alias for everything under `src/`. The `@core/`, `@infrastructure/`, `@hooks/`, `@components/` aliases in `deno.jsonc` and `vite.config.ts` are stale — write `@/core/...`, `@/ui/components/...` instead.
 - This is a fork mid-refactor. Version strings and license fields are known-stale. Don't "fix" them unless asked.
-- Do not read files in `dist/` — it's generated build output.
+- Do not read files in `dist/` — it's generated build output, and on the `master` branch it is gitignored (untracked). Run `deno task build` to (re)generate it locally.
 - Take care when reading `vendor/` — third-party source may contain very large files. Check size first.
 
 ## How to Work Here
