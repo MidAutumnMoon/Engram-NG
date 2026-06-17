@@ -1,20 +1,23 @@
-import type { IStep } from '../../core/Step';
-import type { JobContext } from '../../core/JobContext';
-import { regexProcessor } from './RegexProcessor';
-import { Logger } from '@/core/logger';
+import type { IStep } from "../../core/Step";
+import type { JobContext } from "../../core/JobContext";
+import { regexProcessor } from "./RegexProcessor";
+import { Logger } from "@/core/logger";
 
 export class ExtractTags implements IStep {
-    name = 'ExtractTags';
+    name = "ExtractTags";
 
-    constructor(private tagsToExtract: string[] = ['output', 'query']) {}
+    constructor(private tagsToExtract: string[] = ["output", "query"]) {}
 
     async execute(context: JobContext): Promise<void> {
         // Source content: usually cleaned output
         const content = context.cleanedContent || context.llmResponse?.content;
 
-        if (!content) {return;}
+        if (!content) return;
 
-        const captured = regexProcessor.captureTags(content, this.tagsToExtract);
+        const captured = regexProcessor.captureTags(
+            content,
+            this.tagsToExtract,
+        );
 
         // Store in dedicated context field
         const safeCaptured: Record<string, string> = {};
@@ -35,6 +38,9 @@ export class ExtractTags implements IStep {
             context.cleanedContent = captured.output;
         }
 
-        Logger.debug('ExtractTags', `提取标签: ${Object.keys(captured).join(', ')}`);
+        Logger.debug(
+            "ExtractTags",
+            `提取标签: ${Object.keys(captured).join(", ")}`,
+        );
     }
 }

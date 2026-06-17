@@ -1,26 +1,26 @@
-import type { SearchAdapter, SearchResult } from '../SearchService';
-import { SettingsManager } from '@/config/settings';
-import { Book, FileText } from 'lucide-react';
+import type { SearchAdapter, SearchResult } from "../SearchService";
+import { SettingsManager } from "@/config/settings";
+import { Book, FileText } from "lucide-react";
 
 export class PresetAdapter implements SearchAdapter {
     async search(query: string): Promise<SearchResult[]> {
         const lowerQuery = query.toLowerCase().trim();
-        if (!lowerQuery) {return [];}
+        if (!lowerQuery) return [];
 
         const results: SearchResult[] = [];
 
         // 1. Search Prompt Templates
-        const templates = SettingsManager.get('promptTemplates') || [];
-        templates.forEach(t => {
+        const templates = SettingsManager.get("promptTemplates") || [];
+        templates.forEach((t) => {
             if (t.name.toLowerCase().includes(lowerQuery)) {
                 results.push({
                     id: `template-${t.id}`,
-                    type: 'setting', // Or 'template'
+                    type: "setting", // Or 'template'
                     title: `模板: ${t.name}`,
                     description: `Prompt Template (${t.category})`,
                     icon: FileText,
-                    action: (nav) => nav('presets:prompt'), // Ideally navigates to specific template
-                    score: 7
+                    action: (nav) => nav("presets:prompt"), // Ideally navigates to specific template
+                    score: 7,
                 });
             }
         });

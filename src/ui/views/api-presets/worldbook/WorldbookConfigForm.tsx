@@ -313,7 +313,7 @@ export const WorldbookConfigForm: React.FC<WorldbookConfigFormProps> = ({
                                                                                                             >
                                                                                                                 {key}
                                                                                                             </span>
-                                                                                                        )
+                                                                                                        ),
                                                                                                     )}
                                                                                                 {entry
                                                                                                             .keys

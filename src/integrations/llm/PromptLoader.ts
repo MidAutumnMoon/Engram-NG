@@ -1,8 +1,11 @@
-import { LogModule, Logger } from '@/core/logger';
-import type { PromptTemplate } from '@/config/types/prompt';
+import { Logger, LogModule } from "@/core/logger";
+import type { PromptTemplate } from "@/config/types/prompt";
 // @ts-expect-error
-const promptFiles = import.meta.glob('./prompts/*.yaml', { eager: true, query: '?raw' });
-import loadYaml from 'js-yaml';
+const promptFiles = import.meta.glob("./prompts/*.yaml", {
+    eager: true,
+    query: "?raw",
+});
+import loadYaml from "js-yaml";
 
 /**
  * PromptLoader - 提示词加载器
@@ -16,7 +19,7 @@ export class PromptLoader {
      * 初始化加载
      */
     public static init() {
-        if (this.initialized) {return;}
+        if (this.initialized) return;
 
         const loadedTemplates: PromptTemplate[] = [];
 
@@ -28,30 +31,40 @@ export class PromptLoader {
 
                 // Validate required fields
                 if (!parsed.id || !parsed.name) {
-                    Logger.warn(LogModule.LLM, `Skipping invalid prompt template in ${path}: missing id or name`);
+                    Logger.warn(
+                        LogModule.LLM,
+                        `Skipping invalid prompt template in ${path}: missing id or name`,
+                    );
                     continue;
                 }
 
                 loadedTemplates.push({
                     boundPresetId: null,
-                    category: parsed.category || 'other',
+                    category: parsed.category || "other",
                     createdAt: Date.now(),
                     enabled: parsed.enabled ?? false,
                     id: parsed.id,
                     injectionMode: parsed.injectionMode,
                     isBuiltIn: true,
                     name: parsed.name,
-                    systemPrompt: parsed.systemPrompt || '',
+                    systemPrompt: parsed.systemPrompt || "",
                     updatedAt: Date.now(),
-                    userPromptTemplate: parsed.userPromptTemplate || '',
+                    userPromptTemplate: parsed.userPromptTemplate || "",
                 });
             } catch (error) {
-                Logger.error(LogModule.LLM, `Failed to load prompt template from ${path}`, error);
+                Logger.error(
+                    LogModule.LLM,
+                    `Failed to load prompt template from ${path}`,
+                    error,
+                );
             }
         }
 
         this.templates = loadedTemplates;
-        Logger.info(LogModule.LLM, `Loaded ${this.templates.length} built-in prompt templates from YAML`);
+        Logger.info(
+            LogModule.LLM,
+            `Loaded ${this.templates.length} built-in prompt templates from YAML`,
+        );
         this.initialized = true;
     }
 

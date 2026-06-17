@@ -4,13 +4,13 @@
  * V0.6: 直接调用 llmAdapter，不再依赖 Extractor
  */
 
-import { SettingsManager } from '@/config/settings';
-import { DEFAULT_TRIM_CONFIG } from '@/config/types/defaults';
-import type { TrimConfig } from '@/config/types/memory';
-import { LogModule, Logger } from '@/core/logger';
-import type { EventNode } from '@/data/types/graph';
-import { useMemoryStore } from '@/state/memoryStore';
-import { notificationService } from '@/ui/services/NotificationService';
+import { SettingsManager } from "@/config/settings";
+import { DEFAULT_TRIM_CONFIG } from "@/config/types/defaults";
+import type { TrimConfig } from "@/config/types/memory";
+import { Logger, LogModule } from "@/core/logger";
+import type { EventNode } from "@/data/types/graph";
+import { useMemoryStore } from "@/state/memoryStore";
+import { notificationService } from "@/ui/services/NotificationService";
 
 interface TrimResult {
     /** 精简后的事件 */
@@ -42,7 +42,7 @@ interface TrimResponse {
  */
 export interface TrimmerStatus {
     triggered: boolean;
-    triggerType: 'token' | 'count';
+    triggerType: "token" | "count";
     currentValue: number;
     threshold: number;
     pendingEntryCount: number;
@@ -84,16 +84,20 @@ class EventTrimmer {
      * 检查是否可以触发精简
      * V1.0.5: 使用 getEventsToMerge 而非 getAllEvents，确保只统计活跃事件
      */
-    async canTrim(): Promise<{ canTrim: boolean; eventCount: number; pendingCount: number }> {
+    async canTrim(): Promise<
+        { canTrim: boolean; eventCount: number; pendingCount: number }
+    > {
         const config = this.getEffectiveConfig();
         const store = useMemoryStore.getState();
-        const eventsToMerge = await store.getEventsToMerge(config.keepRecentCount);
+        const eventsToMerge = await store.getEventsToMerge(
+            config.keepRecentCount,
+        );
         const { activeEventCount } = await store.countEventTokens();
 
         return {
-            canTrim: eventsToMerge.length >= 2,  // 至少需要 2 条才能合并
+            canTrim: eventsToMerge.length >= 2, // 至少需要 2 条才能合并
             eventCount: activeEventCount,
-            pendingCount: eventsToMerge.length
+            pendingCount: eventsToMerge.length,
         };
     }
 
@@ -103,7 +107,7 @@ class EventTrimmer {
      */
     async trim(manual = false): Promise<TrimResult | null> {
         if (this.isTrimming) {
-            Logger.warn(LogModule.MEMORY_TRIM, '正在执行精简，跳过本次触发');
+            Logger.warn(LogModule.MEMORY_TRIM, "正在执行精简，跳过本次触发");
             return null;
         }
 
@@ -111,18 +115,24 @@ class EventTrimmer {
 
         try {
             // Lazy import
-            const { WorkflowEngine } = await import('@/modules/workflow/core/WorkflowEngine');
-            const { createTrimmerWorkflow } = await import('@/modules/workflow/definitions/TrimmerWorkflow');
+            const { WorkflowEngine } = await import(
+                "@/modules/workflow/core/WorkflowEngine"
+            );
+            const { createTrimmerWorkflow } = await import(
+                "@/modules/workflow/definitions/TrimmerWorkflow"
+            );
 
             const config = this.getEffectiveConfig();
             const context = await WorkflowEngine.run(createTrimmerWorkflow(), {
                 config: {
                     keepRecentCount: config.keepRecentCount,
-                    previewEnabled: (SettingsManager.get('globalPreviewEnabled') ?? true) && (config.previewEnabled ?? true),
-                    templateId: 'builtin_trim', // Hardcoded for now, matches BuildPrompt category mapping potentially
-                    logType: 'trimming'
+                    previewEnabled:
+                        (SettingsManager.get("globalPreviewEnabled") ?? true) &&
+                        (config.previewEnabled ?? true),
+                    templateId: "builtin_trim", // Hardcoded for now, matches BuildPrompt category mapping potentially
+                    logType: "trimming",
                 },
-                trigger: manual ? 'manual' : 'auto'
+                trigger: manual ? "manual" : "auto",
             });
 
             if (context.data?.skipTrimming) {
@@ -131,16 +141,22 @@ class EventTrimmer {
             }
 
             return context.output as TrimResult;
-
         } catch (error) {
-            const errorMsg = error instanceof Error ? error.message : String(error);
-            if (errorMsg === 'UserCancelled') {
-                Logger.info(LogModule.MEMORY_TRIM, '精简被用户取消');
+            const errorMsg = error instanceof Error
+                ? error.message
+                : String(error);
+            if (errorMsg === "UserCancelled") {
+                Logger.info(LogModule.MEMORY_TRIM, "精简被用户取消");
                 return null;
             }
-            Logger.error(LogModule.MEMORY_TRIM, '精简流程异常', { error: errorMsg });
+            Logger.error(LogModule.MEMORY_TRIM, "精简流程异常", {
+                error: errorMsg,
+            });
             if (manual) {
-                notificationService.error(`精简异常: ${errorMsg}`, 'Engram 错误');
+                notificationService.error(
+                    `精简异常: ${errorMsg}`,
+                    "Engram 错误",
+                );
             }
             return null;
         } finally {
@@ -160,10 +176,11 @@ class EventTrimmer {
      */
     async getStatus() {
         // 动态导入以避免循环依赖
-        const { useMemoryStore } = await import('@/state/memoryStore');
+        const { useMemoryStore } = await import("@/state/memoryStore");
         const store = useMemoryStore.getState();
         // V1.0.5: 使用 activeEventCount 而非 eventCount
-        const { totalTokens, activeEventCount } = await store.countEventTokens();
+        const { totalTokens, activeEventCount } = await store
+            .countEventTokens();
 
         // 触发检测
         let triggered = false;
@@ -172,10 +189,10 @@ class EventTrimmer {
 
         const config = this.getEffectiveConfig();
         const triggerType = config.trigger;
-        const {tokenLimit} = config;
-        const {countLimit} = config;
+        const { tokenLimit } = config;
+        const { countLimit } = config;
 
-        if (triggerType === 'token') {
+        if (triggerType === "token") {
             currentValue = totalTokens;
             threshold = tokenLimit;
         } else {
@@ -187,11 +204,13 @@ class EventTrimmer {
         triggered = currentValue >= threshold;
 
         // 待合并条目 —— 复用 getEventsToMerge 确保口径一致（仅统计 level 0 未归档事件）
-        const eventsToMerge = await store.getEventsToMerge(config.keepRecentCount);
+        const eventsToMerge = await store.getEventsToMerge(
+            config.keepRecentCount,
+        );
         const pendingEntryCount = eventsToMerge.length;
         triggered = triggered && pendingEntryCount >= 2;
 
-        Logger.debug(LogModule.MEMORY_TRIM, '精简状态检查', {
+        Logger.debug(LogModule.MEMORY_TRIM, "精简状态检查", {
             currentValue,
             enabled: config.enabled,
             keepRecentCount: config.keepRecentCount,
@@ -207,7 +226,7 @@ class EventTrimmer {
             pendingEntryCount,
             threshold,
             triggerType,
-            triggered
+            triggered,
         };
     }
 }

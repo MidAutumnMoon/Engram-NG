@@ -1,18 +1,18 @@
-import { getBuiltInTemplateByCategory } from '@/config/types/defaults';
-import { Logger } from '@/core/logger';
-import { PromptLoader } from '@/integrations/llm/PromptLoader';
-import { getCurrentChatId } from '@/integrations/tavern';
-import type { JobContext } from '../../core/JobContext';
-import type { IStep } from '../../core/Step';
+import { getBuiltInTemplateByCategory } from "@/config/types/defaults";
+import { Logger } from "@/core/logger";
+import { PromptLoader } from "@/integrations/llm/PromptLoader";
+import { getCurrentChatId } from "@/integrations/tavern";
+import type { JobContext } from "../../core/JobContext";
+import type { IStep } from "../../core/Step";
 
 interface BuildPromptConfig {
-    templateId?: string;       // 指定模板 ID
-    category?: string;         // 指定分类 (用于 fallback)
+    templateId?: string; // 指定模板 ID
+    category?: string; // 指定分类 (用于 fallback)
     vars?: Record<string, string>; // 额外的变量
 }
 
 export class BuildPrompt implements IStep {
-    name = 'BuildPrompt';
+    name = "BuildPrompt";
 
     constructor(private config: BuildPromptConfig) {}
 
@@ -24,8 +24,9 @@ export class BuildPrompt implements IStep {
 
         // V0.9.11: Use SettingsManager as Source of Truth to include User Custom Templates
         // PromptLoader only has built-ins.
-        const { SettingsManager } = await import('@/config/settings');
-        const allTemplates = SettingsManager.get('apiSettings')?.promptTemplates || [];
+        const { SettingsManager } = await import("@/config/settings");
+        const allTemplates =
+            SettingsManager.get("apiSettings")?.promptTemplates || [];
 
         // Ensure built-ins are loaded and merged with user settings
         PromptLoader.init();
@@ -35,10 +36,10 @@ export class BuildPrompt implements IStep {
         const templateMap = new Map<string, any>();
 
         // 1. Add built-ins first
-        builtInTemplates.forEach(t => templateMap.set(t.id, t));
+        builtInTemplates.forEach((t) => templateMap.set(t.id, t));
 
         // 2. Override with user templates
-        allTemplates.forEach(t => templateMap.set(t.id, t));
+        allTemplates.forEach((t) => templateMap.set(t.id, t));
 
         // 3. Convert back to array
         const mergedTemplates = [...templateMap.values()];
@@ -46,11 +47,13 @@ export class BuildPrompt implements IStep {
         let template;
         if (templateId) {
             // Priority 1: Use explicit templateId
-            template = mergedTemplates.find(t => t.id === templateId);
+            template = mergedTemplates.find((t) => t.id === templateId);
         } else if (category) {
             // Priority 2: Use Enabled template in category
-            const templates = mergedTemplates.filter(t => t.category === category && t.enabled);
-            const customEnabled = templates.find(t => !t.isBuiltIn);
+            const templates = mergedTemplates.filter((t) =>
+                t.category === category && t.enabled
+            );
+            const customEnabled = templates.find((t) => !t.isBuiltIn);
             if (customEnabled) {
                 template = customEnabled;
             } else {
@@ -58,18 +61,26 @@ export class BuildPrompt implements IStep {
             }
 
             if (template) {
-                Logger.debug('BuildPrompt', `Using auto-detected enabled template: ${template.name}`);
+                Logger.debug(
+                    "BuildPrompt",
+                    `Using auto-detected enabled template: ${template.name}`,
+                );
             }
         }
 
         if (!template && category) {
             // Priority 3: Fallback to builtin default
             template = getBuiltInTemplateByCategory(category as any);
-            Logger.debug('BuildPrompt', `Fallback to builtin template: ${template?.name}`);
+            Logger.debug(
+                "BuildPrompt",
+                `Fallback to builtin template: ${template?.name}`,
+            );
         }
 
         if (!template) {
-            throw new Error(`BuildPrompt: 未找到可用模板 (ID: ${templateId}, Category: ${category})`);
+            throw new Error(
+                `BuildPrompt: 未找到可用模板 (ID: ${templateId}, Category: ${category})`,
+            );
         }
 
         // 2. 准备变量
@@ -77,15 +88,15 @@ export class BuildPrompt implements IStep {
         const variables: Record<string, string> = {
             ...this.config.vars,
             // 常见的映射
-            '{{userInput}}': context.input.text || '',
-            '{{chatHistory}}': context.input.chatHistory || '',
-            '{{previousOutput}}': context.input.previousOutput || '',
-            '{{feedback}}': context.input.feedback || '',
+            "{{userInput}}": context.input.text || "",
+            "{{chatHistory}}": context.input.chatHistory || "",
+            "{{previousOutput}}": context.input.previousOutput || "",
+            "{{feedback}}": context.input.feedback || "",
             // ... 其他变量交由 MacroService 全局处理 (如 {{worldbookContext}})
         };
 
         // 3. 初始替换 (处理 input 相关的本地变量)
-        let {systemPrompt} = template;
+        let { systemPrompt } = template;
         let userPrompt = template.userPromptTemplate;
 
         // V0.9.x: 动态附加反馈模板 (硬编码)
@@ -100,13 +111,16 @@ export class BuildPrompt implements IStep {
 {{feedback}}
 `;
             userPrompt += feedbackTemplate;
-            Logger.debug('BuildPrompt', '检测到反馈，已自动附加反馈模板');
+            Logger.debug("BuildPrompt", "检测到反馈，已自动附加反馈模板");
         }
 
         for (const [key, value] of Object.entries(variables)) {
             // 简单字符串替换 (全局)
             // 注意: key 应该包含 {{}}，或者我们在 replace 时加上
-            const regex = new RegExp(key.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`), 'g');
+            const regex = new RegExp(
+                key.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`),
+                "g",
+            );
             systemPrompt = systemPrompt.replace(regex, value);
             userPrompt = userPrompt.replace(regex, value);
         }
@@ -120,33 +134,36 @@ export class BuildPrompt implements IStep {
         // V1.2.1: 只映射 Context 中存在的变量，如果是空值则跳过，
         // 从而允许后续的酒馆全局宏 (substituteParams) 进行回退处理 (例如 {{engramSummaries}})
         // 映射命中实体 (V1.4.1 NEW)
-        let hitEntitiesSummary = '无';
-        if (context.data?.keywordEntityIds && Array.isArray(context.data.keywordEntityIds)) {
+        let hitEntitiesSummary = "无";
+        if (
+            context.data?.keywordEntityIds &&
+            Array.isArray(context.data.keywordEntityIds)
+        ) {
             // 这里我们只需要名称
             const chatId = getCurrentChatId();
-            const { tryGetDbForChat } = await import('@/data/db');
+            const { tryGetDbForChat } = await import("@/data/db");
             const db = chatId ? tryGetDbForChat(chatId) : null;
             if (db) {
                 const names: string[] = [];
                 for (const ke of context.data.keywordEntityIds) {
                     const ent = await db.entities.get(ke.id);
-                    if (ent) {names.push(ent.name);}
+                    if (ent) names.push(ent.name);
                 }
-                if (names.length > 0) {hitEntitiesSummary = names.join(', ');}
+                if (names.length > 0) hitEntitiesSummary = names.join(", ");
             }
         }
 
         const potentialMacros: Record<string, string | undefined> = {
-            '{{chatHistory}}': contextData.chatHistory,
-            '{{engramSummaries}}': contextData.engramSummaries,
-            '{{engramEntityStates}}': contextData.engramEntityStates, // V1.0.0: 实体状态
-            '{{targetSummaries}}': contextData.targetSummaries, // V1.2.1 New Trigger Variable
-            '{{worldbookContext}}': contextData.worldbookContext,
-            '{{context}}': contextData.context || contextData.worldbookContext,
-            '{{userPersona}}': contextData.userPersona,
-            '{{hitEntities}}': hitEntitiesSummary, // V1.4.1: 新增硬匹配提示
-            '{{char}}': contextData.charName,
-            '{{user}}': contextData.userName,
+            "{{chatHistory}}": contextData.chatHistory,
+            "{{engramSummaries}}": contextData.engramSummaries,
+            "{{engramEntityStates}}": contextData.engramEntityStates, // V1.0.0: 实体状态
+            "{{targetSummaries}}": contextData.targetSummaries, // V1.2.1 New Trigger Variable
+            "{{worldbookContext}}": contextData.worldbookContext,
+            "{{context}}": contextData.context || contextData.worldbookContext,
+            "{{userPersona}}": contextData.userPersona,
+            "{{hitEntities}}": hitEntitiesSummary, // V1.4.1: 新增硬匹配提示
+            "{{char}}": contextData.charName,
+            "{{user}}": contextData.userName,
         };
 
         // 执行替换
@@ -167,12 +184,12 @@ export class BuildPrompt implements IStep {
             // @ts-expect-error
             const stContext = window.SillyTavern?.getContext?.() as any;
             const substituteParams = stContext?.substituteParams;
-            if (typeof substituteParams === 'function') {
+            if (typeof substituteParams === "function") {
                 systemPrompt = substituteParams(systemPrompt);
                 userPrompt = substituteParams(userPrompt);
             }
         } catch (error) {
-            Logger.warn('BuildPrompt', '酒馆原生宏替换失败', error);
+            Logger.warn("BuildPrompt", "酒馆原生宏替换失败", error);
         }
 
         // 保存结果到 Context
@@ -180,12 +197,16 @@ export class BuildPrompt implements IStep {
             presetId: template.boundPresetId,
             system: systemPrompt,
             templateId: template.id,
-            user: userPrompt
+            user: userPrompt,
         };
 
-        Logger.debug('BuildPrompt', `Prompt 构建完成 (Template: ${template.name})`, {
-            systemLen: systemPrompt.length,
-            userLen: userPrompt.length
-        });
+        Logger.debug(
+            "BuildPrompt",
+            `Prompt 构建完成 (Template: ${template.name})`,
+            {
+                systemLen: systemPrompt.length,
+                userLen: userPrompt.length,
+            },
+        );
     }
 }

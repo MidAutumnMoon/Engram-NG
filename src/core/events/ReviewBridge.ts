@@ -1,17 +1,23 @@
 import { EventBus, TavernEventType } from "@/integrations/tavern";
 
-
-export type ReviewAction = 'confirm' | 'fill' | 'reject' | 'reroll' | 'cancel';
+export type ReviewAction = "confirm" | "fill" | "reject" | "reroll" | "cancel";
 
 export interface ReviewRequest {
     id: string; // V1.3.1: Unique ID for multi-tab support
     title: string;
     description: string;
     content: string; // Fallback text
-    type?: 'text' | 'json' | 'entity' | 'summary'; // V1.2
+    type?: "text" | "json" | "entity" | "summary"; // V1.2
     data?: any; // Structured data for specialized views
     actions?: ReviewAction[];
-    onResult: (result: { action: ReviewAction; content: string; feedback?: string; data?: any }) => void;
+    onResult: (
+        result: {
+            action: ReviewAction;
+            content: string;
+            feedback?: string;
+            data?: any;
+        },
+    ) => void;
 }
 
 /**
@@ -28,12 +34,15 @@ class ReviewService {
         title: string,
         description: string,
         content: string,
-        actions: ReviewAction[] = ['confirm'],
-        type: 'text' | 'json' | 'entity' | 'summary' = 'text',
-        data?: any
-    ): Promise<{ action: ReviewAction; content: string; feedback?: string; data?: any }> {
+        actions: ReviewAction[] = ["confirm"],
+        type: "text" | "json" | "entity" | "summary" = "text",
+        data?: any,
+    ): Promise<
+        { action: ReviewAction; content: string; feedback?: string; data?: any }
+    > {
         return new Promise((resolve) => {
-            const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+            const id = Date.now().toString(36) +
+                Math.random().toString(36).slice(2, 5);
             EventBus.emit(TavernEventType.ENGRAM_REQUEST_REVIEW, {
                 actions,
                 content,

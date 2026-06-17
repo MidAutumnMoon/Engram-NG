@@ -12,9 +12,15 @@ export interface ModelLogEntry {
     /** 时间戳 */
     timestamp: number;
     /** 调用类型 */
-    type: 'summarize' | 'trim' | 'vectorize' | 'query' | 'entity_extraction' | 'other';
+    type:
+        | "summarize"
+        | "trim"
+        | "vectorize"
+        | "query"
+        | "entity_extraction"
+        | "other";
     /** 方向：发送/接收 */
-    direction: 'sent' | 'received';
+    direction: "sent" | "received";
 
     // 发送信息
     /** 系统提示词 */
@@ -32,7 +38,7 @@ export interface ModelLogEntry {
 
     // 状态
     /** 状态 */
-    status: 'pending' | 'success' | 'error' | 'cancelled';
+    status: "pending" | "success" | "error" | "cancelled";
     /** 错误信息 */
     error?: string;
     /** 耗时 (ms) */
@@ -62,7 +68,7 @@ class ModelLoggerClass {
      * 创建新的日志条目（发送阶段）
      */
     logSend(data: {
-        type: ModelLogEntry['type'];
+        type: ModelLogEntry["type"];
         systemPrompt?: string;
         userPrompt?: string;
         tokensSent?: number;
@@ -70,15 +76,17 @@ class ModelLoggerClass {
         character?: string;
         floorRange?: [number, number];
     }): string {
-        const id = `log_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const id = `log_${Date.now()}_${
+            Math.random().toString(36).slice(2, 8)
+        }`;
 
         const entry: ModelLogEntry = {
             character: data.character,
-            direction: 'sent',
+            direction: "sent",
             floorRange: data.floorRange,
             id,
             model: data.model,
-            status: 'pending',
+            status: "pending",
             systemPrompt: data.systemPrompt,
             timestamp: Date.now(),
             tokensSent: data.tokensSent,
@@ -99,17 +107,17 @@ class ModelLoggerClass {
     logReceive(id: string, data: {
         response?: string;
         tokensReceived?: number;
-        status: 'success' | 'error' | 'cancelled';
+        status: "success" | "error" | "cancelled";
         error?: string;
         duration?: number;
     }): void {
-        const entry = this.entries.find(e => e.id === id);
-        if (!entry) {return;}
+        const entry = this.entries.find((e) => e.id === id);
+        if (!entry) return;
 
         // 添加接收条目
         const receiveEntry: ModelLogEntry = {
             character: entry.character,
-            direction: 'received',
+            direction: "received",
             duration: data.duration,
             error: data.error,
             floorRange: entry.floorRange,
@@ -127,7 +135,7 @@ class ModelLoggerClass {
         entry.duration = data.duration;
 
         // 在发送条目后插入接收条目
-        const index = this.entries.findIndex(e => e.id === id);
+        const index = this.entries.findIndex((e) => e.id === id);
         if (index !== -1) {
             this.entries.splice(index, 0, receiveEntry);
         } else {
@@ -143,7 +151,7 @@ class ModelLoggerClass {
      */
     async logCall<T>(
         data: {
-            type: ModelLogEntry['type'];
+            type: ModelLogEntry["type"];
             systemPrompt?: string;
             userPrompt?: string;
             tokensSent?: number;
@@ -151,7 +159,7 @@ class ModelLoggerClass {
             character?: string;
             floorRange?: [number, number];
         },
-        action: () => Promise<T>
+        action: () => Promise<T>,
     ): Promise<T> {
         const id = this.logSend(data);
         const startTime = Date.now();
@@ -160,13 +168,15 @@ class ModelLoggerClass {
             const result = await action();
             this.logReceive(id, {
                 duration: Date.now() - startTime,
-                response: typeof result === 'string' ? result : JSON.stringify(result),
-                status: 'success',
+                response: typeof result === "string"
+                    ? result
+                    : JSON.stringify(result),
+                status: "success",
             });
             return result;
         } catch (error) {
             this.logReceive(id, {
-                status: 'error',
+                status: "error",
                 error: error instanceof Error ? error.message : String(error),
                 duration: Date.now() - startTime,
             });
@@ -186,11 +196,11 @@ class ModelLoggerClass {
      */
     getPaired(): { sent: ModelLogEntry; received?: ModelLogEntry }[] {
         const result: { sent: ModelLogEntry; received?: ModelLogEntry }[] = [];
-        const sentEntries = this.entries.filter(e => e.direction === 'sent');
+        const sentEntries = this.entries.filter((e) => e.direction === "sent");
 
         for (const sent of sentEntries) {
             const received = this.entries.find(
-                e => e.id === `${sent.id}_recv` && e.direction === 'received'
+                (e) => e.id === `${sent.id}_recv` && e.direction === "received",
             );
             result.push({ received, sent });
         }
@@ -218,7 +228,7 @@ class ModelLoggerClass {
      * 获取日志数量
      */
     getCount(): number {
-        return this.entries.filter(e => e.direction === 'sent').length;
+        return this.entries.filter((e) => e.direction === "sent").length;
     }
 
     /**
@@ -242,4 +252,3 @@ class ModelLoggerClass {
 
 /** 单例实例 */
 export const ModelLogger = new ModelLoggerClass();
-

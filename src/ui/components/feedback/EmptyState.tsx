@@ -1,6 +1,6 @@
-import React from 'react';
-import type { LucideIcon } from 'lucide-react';
-import { PackageOpen } from 'lucide-react';
+import React from "react";
+import type { LucideIcon } from "lucide-react";
+import { PackageOpen } from "lucide-react";
 
 interface EmptyStateProps {
     /** 显示的图标组件 */
@@ -25,24 +25,26 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     title,
     description,
     action,
-    className = '',
+    className = "",
 }) => (
-        <div className={`flex flex-col items-center justify-center p-8 text-muted-foreground gap-4 h-full min-h-[200px] ${className}`}>
-            <div className="p-4 bg-muted/30 rounded-full">
-                <Icon size={48} className="opacity-20 text-foreground" />
-            </div>
-            <div className="text-center space-y-1 max-w-[280px]">
-                <h3 className="text-sm font-medium text-foreground">{title}</h3>
-                {description && (
-                    <p className="text-xs text-muted-foreground/80 leading-relaxed">
-                        {description}
-                    </p>
-                )}
-            </div>
-            {action && (
-                <div className="mt-2">
-                    {action}
-                </div>
+    <div
+        className={`flex flex-col items-center justify-center p-8 text-muted-foreground gap-4 h-full min-h-[200px] ${className}`}
+    >
+        <div className="p-4 bg-muted/30 rounded-full">
+            <Icon size={48} className="opacity-20 text-foreground" />
+        </div>
+        <div className="text-center space-y-1 max-w-[280px]">
+            <h3 className="text-sm font-medium text-foreground">{title}</h3>
+            {description && (
+                <p className="text-xs text-muted-foreground/80 leading-relaxed">
+                    {description}
+                </p>
             )}
         </div>
-    );
+        {action && (
+            <div className="mt-2">
+                {action}
+            </div>
+        )}
+    </div>
+);

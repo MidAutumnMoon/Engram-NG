@@ -2,10 +2,18 @@
  * UseLLMPresets - LLM 预设与提示词模板管理
  */
 
-import { SettingsManager } from '@/config/settings';
-import type { EngramAPISettings, LLMPreset, PromptTemplate } from '@/config/types/defaults';
-import { createDefaultLLMPreset, getBuiltInPromptTemplates, getDefaultAPISettings } from '@/config/types/defaults';
-import { useCallback, useEffect, useState } from 'react';
+import { SettingsManager } from "@/config/settings";
+import type {
+    EngramAPISettings,
+    LLMPreset,
+    PromptTemplate,
+} from "@/config/types/defaults";
+import {
+    createDefaultLLMPreset,
+    getBuiltInPromptTemplates,
+    getDefaultAPISettings,
+} from "@/config/types/defaults";
+import { useCallback, useEffect, useState } from "react";
 
 export interface UseLLMPresetsReturn {
     llmPresets: LLMPreset[];
@@ -39,14 +47,18 @@ export interface UseLLMPresetsReturn {
  */
 function mergePromptTemplates(
     defaultTemplates: PromptTemplate[],
-    savedTemplates: PromptTemplate[]
+    savedTemplates: PromptTemplate[],
 ): PromptTemplate[] {
     const result: PromptTemplate[] = [];
-    for (const defaultTemplate of defaultTemplates.filter(t => t.isBuiltIn)) {
-        let savedBuiltIn = savedTemplates.find(t => t.id === defaultTemplate.id);
+    for (const defaultTemplate of defaultTemplates.filter((t) => t.isBuiltIn)) {
+        let savedBuiltIn = savedTemplates.find((t) =>
+            t.id === defaultTemplate.id
+        );
         if (!savedBuiltIn) {
             savedBuiltIn = savedTemplates.find(
-                t => t.isBuiltIn && t.category === defaultTemplate.category && t.name === defaultTemplate.name
+                (t) =>
+                    t.isBuiltIn && t.category === defaultTemplate.category &&
+                    t.name === defaultTemplate.name,
             );
         }
         if (savedBuiltIn) {
@@ -55,20 +67,24 @@ function mergePromptTemplates(
             result.push(defaultTemplate);
         }
     }
-    const customTemplates = savedTemplates.filter(t => !t.isBuiltIn);
+    const customTemplates = savedTemplates.filter((t) => !t.isBuiltIn);
     result.push(...customTemplates);
     return result;
 }
 
 export function useLLMPresets(): UseLLMPresetsReturn {
-    const [settings, setSettings] = useState<EngramAPISettings>(getDefaultAPISettings);
+    const [settings, setSettings] = useState<EngramAPISettings>(
+        getDefaultAPISettings,
+    );
     const [editingPreset, setEditingPreset] = useState<LLMPreset | null>(null);
-    const [editingTemplate, setEditingTemplate] = useState<PromptTemplate | null>(null);
+    const [editingTemplate, setEditingTemplate] = useState<
+        PromptTemplate | null
+    >(null);
     const [hasChanges, setHasChanges] = useState(false);
 
     // 加载配置
     useEffect(() => {
-        const savedAPISettings = SettingsManager.get('apiSettings');
+        const savedAPISettings = SettingsManager.get("apiSettings");
         if (savedAPISettings) {
             const defaultSettings = getDefaultAPISettings();
             setSettings({
@@ -79,23 +95,26 @@ export function useLLMPresets(): UseLLMPresetsReturn {
                     : defaultSettings.llmPresets,
                 promptTemplates: mergePromptTemplates(
                     defaultSettings.promptTemplates,
-                    savedAPISettings.promptTemplates || []
+                    savedAPISettings.promptTemplates || [],
                 ),
-                selectedPresetId: savedAPISettings.selectedPresetId || defaultSettings.selectedPresetId,
+                selectedPresetId: savedAPISettings.selectedPresetId ||
+                    defaultSettings.selectedPresetId,
             });
         }
     }, []);
 
     const selectPreset = useCallback((preset: LLMPreset) => {
-        setSettings(prev => ({ ...prev, selectedPresetId: preset.id }));
+        setSettings((prev) => ({ ...prev, selectedPresetId: preset.id }));
         setEditingPreset(preset);
         setHasChanges(true);
     }, []);
 
     const addPreset = useCallback(() => {
-        const newPreset = createDefaultLLMPreset(`预设 ${settings.llmPresets.length + 1}`);
+        const newPreset = createDefaultLLMPreset(
+            `预设 ${settings.llmPresets.length + 1}`,
+        );
         newPreset.isDefault = false;
-        setSettings(prev => ({
+        setSettings((prev) => ({
             ...prev,
             llmPresets: [...prev.llmPresets, newPreset],
             selectedPresetId: newPreset.id,
@@ -105,9 +124,11 @@ export function useLLMPresets(): UseLLMPresetsReturn {
     }, [settings.llmPresets.length]);
 
     const updatePreset = useCallback((updated: LLMPreset) => {
-        setSettings(prev => ({
+        setSettings((prev) => ({
             ...prev,
-            llmPresets: prev.llmPresets.map(p => p.id === updated.id ? updated : p),
+            llmPresets: prev.llmPresets.map((p) =>
+                p.id === updated.id ? updated : p
+            ),
         }));
         setEditingPreset(updated);
         setHasChanges(true);
@@ -122,18 +143,25 @@ export function useLLMPresets(): UseLLMPresetsReturn {
             name: `${preset.name} (副本)`,
             updatedAt: Date.now(),
         };
-        setSettings(prev => ({ ...prev, llmPresets: [...prev.llmPresets, copy] }));
+        setSettings((prev) => ({
+            ...prev,
+            llmPresets: [...prev.llmPresets, copy],
+        }));
         setHasChanges(true);
     }, []);
 
     const deletePreset = useCallback((preset: LLMPreset) => {
-        if (preset.isDefault) {return;}
-        setSettings(prev => ({
+        if (preset.isDefault) return;
+        setSettings((prev) => ({
             ...prev,
-            llmPresets: prev.llmPresets.filter(p => p.id !== preset.id),
-            selectedPresetId: prev.selectedPresetId === preset.id ? null : prev.selectedPresetId,
+            llmPresets: prev.llmPresets.filter((p) => p.id !== preset.id),
+            selectedPresetId: prev.selectedPresetId === preset.id
+                ? null
+                : prev.selectedPresetId,
         }));
-        setEditingPreset(current => current?.id === preset.id ? null : current);
+        setEditingPreset((current) =>
+            current?.id === preset.id ? null : current
+        );
         setHasChanges(true);
     }, []);
 
@@ -142,7 +170,7 @@ export function useLLMPresets(): UseLLMPresetsReturn {
     }, []);
 
     const addTemplate = useCallback((template: PromptTemplate) => {
-        setSettings(prev => ({
+        setSettings((prev) => ({
             ...prev,
             promptTemplates: [...prev.promptTemplates, template],
         }));
@@ -150,21 +178,27 @@ export function useLLMPresets(): UseLLMPresetsReturn {
     }, []);
 
     const updateTemplate = useCallback((updated: PromptTemplate) => {
-        setSettings(prev => ({
+        setSettings((prev) => ({
             ...prev,
-            promptTemplates: prev.promptTemplates.map(t => t.id === updated.id ? updated : t),
+            promptTemplates: prev.promptTemplates.map((t) =>
+                t.id === updated.id ? updated : t
+            ),
         }));
         setEditingTemplate(updated);
         setHasChanges(true);
     }, []);
 
     const deleteTemplate = useCallback((template: PromptTemplate) => {
-        if (template.isBuiltIn) {return;}
-        setSettings(prev => ({
+        if (template.isBuiltIn) return;
+        setSettings((prev) => ({
             ...prev,
-            promptTemplates: prev.promptTemplates.filter(t => t.id !== template.id),
+            promptTemplates: prev.promptTemplates.filter((t) =>
+                t.id !== template.id
+            ),
         }));
-        setEditingTemplate(current => current?.id === template.id ? null : current);
+        setEditingTemplate((current) =>
+            current?.id === template.id ? null : current
+        );
         setHasChanges(true);
     }, []);
 
@@ -176,13 +210,17 @@ export function useLLMPresets(): UseLLMPresetsReturn {
      */
     const resetAllTemplates = useCallback(() => {
         const builtInDefaults = getBuiltInPromptTemplates();
-        setSettings(prev => {
+        setSettings((prev) => {
             // 保留自定义模板
-            const customTemplates = prev.promptTemplates.filter(t => !t.isBuiltIn);
+            const customTemplates = prev.promptTemplates.filter((t) =>
+                !t.isBuiltIn
+            );
 
             // 合并默认值与当前状态 (保留 enabled 和 extraWorldbooks)
-            const mergedDefaults = builtInDefaults.map(def => {
-                const current = prev.promptTemplates.find(t => t.id === def.id);
+            const mergedDefaults = builtInDefaults.map((def) => {
+                const current = prev.promptTemplates.find((t) =>
+                    t.id === def.id
+                );
                 if (current) {
                     return {
                         ...def,
@@ -204,8 +242,8 @@ export function useLLMPresets(): UseLLMPresetsReturn {
 
     const saveLLMSettings = useCallback(() => {
         // 仅保存 LLM 相关设置，保留其他设置
-        const currentSettings = SettingsManager.get('apiSettings') || {};
-        SettingsManager.set('apiSettings', {
+        const currentSettings = SettingsManager.get("apiSettings") || {};
+        SettingsManager.set("apiSettings", {
             ...currentSettings,
             llmPresets: settings.llmPresets,
             promptTemplates: settings.promptTemplates,

@@ -5,22 +5,22 @@
  * 用于模块间的松耦合通信
  */
 
-import type { Observable} from 'rxjs';
-import { Subject, filter } from 'rxjs';
+import type { Observable } from "rxjs";
+import { filter, Subject } from "rxjs";
 
 // 事件类型定义
 export type EngramEventType =
-    | 'CHAT_CHANGED'
-    | 'MESSAGE_RECEIVED'
-    | 'INGESTION_START'
-    | 'INGESTION_COMPLETE'
-    | 'ENTITY_CREATED'
-    | 'MEMORY_STORED'
-    | 'RETRIEVAL_START'
-    | 'RETRIEVAL_COMPLETE'
-    | 'ENTITY_ARCHIVED' // V1.4.3: 自动/手动归档完成
-    | 'UI_NAVIGATE_REQUEST' // V0.9.10: 通知系统触发 UI 跳转
-    | 'WORKFLOW_FAILED';
+    | "CHAT_CHANGED"
+    | "MESSAGE_RECEIVED"
+    | "INGESTION_START"
+    | "INGESTION_COMPLETE"
+    | "ENTITY_CREATED"
+    | "MEMORY_STORED"
+    | "RETRIEVAL_START"
+    | "RETRIEVAL_COMPLETE"
+    | "ENTITY_ARCHIVED" // V1.4.3: 自动/手动归档完成
+    | "UI_NAVIGATE_REQUEST" // V0.9.10: 通知系统触发 UI 跳转
+    | "WORKFLOW_FAILED";
 
 export interface EngramEvent<T = unknown> {
     type: EngramEventType;
@@ -48,7 +48,9 @@ export const EventBus = {
     /**
      * 订阅所有事件
      */
-    subscribe(callback: (event: EngramEvent) => void): { unsubscribe: () => void } {
+    subscribe(
+        callback: (event: EngramEvent) => void,
+    ): { unsubscribe: () => void } {
         const subscription = eventSubject.subscribe(callback);
         return {
             unsubscribe: () => subscription.unsubscribe(),
@@ -58,7 +60,10 @@ export const EventBus = {
     /**
      * 订阅特定类型的事件
      */
-    on<T>(type: EngramEventType, callback: (payload: T) => void): { unsubscribe: () => void } {
+    on<T>(
+        type: EngramEventType,
+        callback: (payload: T) => void,
+    ): { unsubscribe: () => void } {
         const subscription = eventSubject
             .pipe(filter((e) => e.type === type))
             .subscribe((e) => callback(e.payload as T));

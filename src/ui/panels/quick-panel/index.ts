@@ -1,1 +1,1 @@
-export { QuickPanel } from './QuickPanel';
+export { QuickPanel } from "./QuickPanel";

@@ -3,20 +3,18 @@
  */
 
 import { SettingsManager } from "@/config/settings";
-import { eventWatcher } from '@/core/events/EventWatcher';
-import { useMemoryStore } from '@/state/memoryStore'; // Used for setLastSummarizedFloor
-import { notificationService } from '@/ui/services/NotificationService';
+import { eventWatcher } from "@/core/events/EventWatcher";
+import { useMemoryStore } from "@/state/memoryStore"; // Used for setLastSummarizedFloor
+import { notificationService } from "@/ui/services/NotificationService";
 import type {
     SummarizerConfig,
     SummarizerStatus,
     SummaryResult,
-} from './types';
-import { DEFAULT_SUMMARIZER_CONFIG } from './types';
+} from "./types";
+import { DEFAULT_SUMMARIZER_CONFIG } from "./types";
 
 /** 元数据 key */
-const METADATA_KEY = 'engram';
-
-
+const METADATA_KEY = "engram";
 
 /**
  * 获取 chat_metadata
@@ -44,7 +42,7 @@ function saveChatDebounced(): void {
         // @ts-expect-error - SillyTavern 全局函数
         window.saveChatDebounced?.();
     } catch {
-        console.warn('[Engram] saveChatDebounced 不可用');
+        console.warn("[Engram] saveChatDebounced 不可用");
     }
 }
 
@@ -67,11 +65,17 @@ class SummarizerService {
     private _lastSummarizedFloor: number = 0;
 
     constructor(
-        config?: Partial<SummarizerConfig>
+        config?: Partial<SummarizerConfig>,
     ) {
         // 优先使用传入配置，其次加载持久化配置，最后使用默认配置
-        const savedConfig = SettingsManager.get('summarizerConfig') as Partial<SummarizerConfig>;
-        this.config = { ...DEFAULT_SUMMARIZER_CONFIG, ...savedConfig, ...config };
+        const savedConfig = SettingsManager.get("summarizerConfig") as Partial<
+            SummarizerConfig
+        >;
+        this.config = {
+            ...DEFAULT_SUMMARIZER_CONFIG,
+            ...savedConfig,
+            ...config,
+        };
     }
 
     // ==================== 元数据操作 ====================
@@ -86,9 +90,11 @@ class SummarizerService {
         if (!metadata) {
             return undefined;
         }
-        if (!metadata.extensions) {metadata.extensions = {};}
+        if (!metadata.extensions) metadata.extensions = {};
         // @ts-expect-error - 动态访问
-        if (!metadata.extensions[METADATA_KEY]) {metadata.extensions[METADATA_KEY] = {};}
+        if (!metadata.extensions[METADATA_KEY]) {
+            metadata.extensions[METADATA_KEY] = {};
+        }
         // @ts-expect-error - 动态访问
         return metadata.extensions[METADATA_KEY][key];
     }
@@ -98,16 +104,18 @@ class SummarizerService {
      */
     private saveToChatMetadata(key: string, value: unknown): void {
         const metadata = getChatMetadata();
-        if (!metadata) {return;}
+        if (!metadata) return;
 
-        if (!metadata.extensions) {metadata.extensions = {};}
+        if (!metadata.extensions) metadata.extensions = {};
         // @ts-expect-error - 动态访问
-        if (!metadata.extensions[METADATA_KEY]) {metadata.extensions[METADATA_KEY] = {};}
+        if (!metadata.extensions[METADATA_KEY]) {
+            metadata.extensions[METADATA_KEY] = {};
+        }
 
         // @ts-expect-error - 动态访问
         metadata.extensions[METADATA_KEY][key] = value;
 
-        this.log('debug', `已保存到 chat_metadata: ${key} = ${value}`);
+        this.log("debug", `已保存到 chat_metadata: ${key} = ${value}`);
         saveChatDebounced();
     }
 
@@ -118,17 +126,23 @@ class SummarizerService {
      */
     private async getLastSummarizedFloor(): Promise<number> {
         // 如果缓存有值且不是刚被清零，直接返回
-        if (this._lastSummarizedFloor > 0) {return this._lastSummarizedFloor;}
+        if (this._lastSummarizedFloor > 0) return this._lastSummarizedFloor;
 
         // 直接从 IndexedDB 读取，避免 memoryStore 缓存未初始化的问题
         try {
-            const { chatManager } = await import('@/data/ChatManager');
+            const { chatManager } = await import("@/data/ChatManager");
             const state = await chatManager.getState();
             this._lastSummarizedFloor = state.last_summarized_floor;
-            this.log('debug', '从 DB 读取 lastSummarizedFloor', { value: this._lastSummarizedFloor });
+            this.log("debug", "从 DB 读取 lastSummarizedFloor", {
+                value: this._lastSummarizedFloor,
+            });
             return this._lastSummarizedFloor;
         } catch (error) {
-            this.log('warn', '读取 lastSummarizedFloor 失败，使用默认值 0', error);
+            this.log(
+                "warn",
+                "读取 lastSummarizedFloor 失败，使用默认值 0",
+                error,
+            );
             return 0;
         }
     }
@@ -144,7 +158,6 @@ class SummarizerService {
         const store = useMemoryStore.getState();
         await store.setLastSummarizedFloor(floor);
     }
-
 
     // ==================== 楼层计算 ====================
 
@@ -178,7 +191,7 @@ class SummarizerService {
      */
     start(): void {
         if (this.isRunning) {
-            this.log('warn', '服务已在运行');
+            this.log("warn", "服务已在运行");
             return;
         }
 
@@ -191,21 +204,21 @@ class SummarizerService {
         // 注册回调
         // V0.9.11: Always subscribe to messages to support Entity Extraction even if Summary is Manual
         this.unsubscribeMessage = eventWatcher.on(
-            'onMessageReceived',
-            this.handleMessageReceived.bind(this)
+            "onMessageReceived",
+            this.handleMessageReceived.bind(this),
         );
-        this.log('debug', '已通过 EventWatcher 订阅消息事件');
+        this.log("debug", "已通过 EventWatcher 订阅消息事件");
 
         this.unsubscribeChat = eventWatcher.on(
-            'onChatChanged',
-            this.handleChatChanged.bind(this)
+            "onChatChanged",
+            this.handleChatChanged.bind(this),
         );
-        this.log('debug', '已通过 EventWatcher 订阅聊天切换事件');
+        this.log("debug", "已通过 EventWatcher 订阅聊天切换事件");
 
         this.isRunning = true;
 
         const status = this.getStatus();
-        this.log('info', '服务已启动', status);
+        this.log("info", "服务已启动", status);
     }
 
     /**
@@ -213,7 +226,7 @@ class SummarizerService {
      */
     public async resetProgress(): Promise<void> {
         await this.setLastSummarizedFloor(0);
-        this.log('info', '进度已重置');
+        this.log("info", "进度已重置");
     }
 
     /**
@@ -229,7 +242,7 @@ class SummarizerService {
             this.unsubscribeChat = null;
         }
         this.isRunning = false;
-        this.log('info', '服务已停止');
+        this.log("info", "服务已停止");
     }
 
     /**
@@ -246,7 +259,7 @@ class SummarizerService {
 
         const lastSummarized = await this.getLastSummarizedFloor(); // 这会更新 _lastSummarizedFloor
 
-        this.log('info', '初始化当前聊天状态', {
+        this.log("info", "初始化当前聊天状态", {
             chatId,
             currentFloor,
             lastSummarizedFloor: lastSummarized,
@@ -271,7 +284,7 @@ class SummarizerService {
         const lastSummarized = await this.getLastSummarizedFloor();
         const pendingFloors = currentFloor - lastSummarized;
 
-        this.log('debug', '收到新消息', {
+        this.log("debug", "收到新消息", {
             currentFloor,
             lastSummarized,
             pendingFloors,
@@ -284,7 +297,7 @@ class SummarizerService {
 
         // 检查是否达到 Summary 触发条件
         if (pendingFloors >= this.config.floorInterval) {
-            this.log('info', '达到触发条件，准备总结', {
+            this.log("info", "达到触发条件，准备总结", {
                 interval: this.config.floorInterval,
                 pendingFloors,
             });
@@ -298,27 +311,31 @@ class SummarizerService {
      */
     private async checkEntityExtraction(currentFloor: number): Promise<void> {
         try {
-            const { entityBuilder } = await import('@/modules/memory/EntityExtractor');
+            const { entityBuilder } = await import(
+                "@/modules/memory/EntityExtractor"
+            );
             // 动态导入 ChatManager 以避免循环依赖
-            const { chatManager } = await import('@/data/ChatManager');
+            const { chatManager } = await import("@/data/ChatManager");
 
             // 计算范围：上次提取楼层+1 到 当前楼层
             const state = await chatManager.getState();
             const lastExtracted = state.last_extracted_floor || 0;
 
-            if (entityBuilder.shouldTriggerOnFloor(currentFloor, lastExtracted)) {
+            if (
+                entityBuilder.shouldTriggerOnFloor(currentFloor, lastExtracted)
+            ) {
                 const startFloor = lastExtracted + 1;
                 const range: [number, number] = [startFloor, currentFloor];
 
-                this.log('debug', '实体提取范围', { range });
+                this.log("debug", "实体提取范围", { range });
 
                 // 异步执行，不阻塞 Summary
-                entityBuilder.extractByRange(range, false).catch(error => {
-                    this.log('warn', '实体提取失败', { error: error });
+                entityBuilder.extractByRange(range, false).catch((error) => {
+                    this.log("warn", "实体提取失败", { error: error });
                 });
             }
         } catch (error) {
-            this.log('warn', '实体提取检查失败', { error: error });
+            this.log("warn", "实体提取检查失败", { error: error });
         }
     }
 
@@ -328,7 +345,7 @@ class SummarizerService {
     private handleChatChanged(): void {
         const newChatId = this.getCurrentChatId();
 
-        this.log('info', '聊天已切换', {
+        this.log("info", "聊天已切换", {
             from: this.currentChatId,
             to: newChatId,
         });
@@ -342,14 +359,17 @@ class SummarizerService {
     /**
      * 手动/自动触发总结
      */
-    async triggerSummary(manual = false, rangeOverride?: [number, number]): Promise<SummaryResult | null> {
+    async triggerSummary(
+        manual = false,
+        rangeOverride?: [number, number],
+    ): Promise<SummaryResult | null> {
         if (this.isSummarizing) {
-            this.log('warn', '正在执行总结，跳过本次触发');
+            this.log("warn", "正在执行总结，跳过本次触发");
             return null;
         }
 
         if (!this.config.enabled && !manual) {
-            this.log('debug', '自动总结已禁用');
+            this.log("debug", "自动总结已禁用");
             return null;
         }
 
@@ -362,12 +382,16 @@ class SummarizerService {
         const cancelSignal = { cancelled: false };
 
         // 显示运行中通知
-        const runningToast = notificationService.running('总结运行中...', 'Engram', () => {
-            cancelSignal.cancelled = true;
-            this.cancelRequested = true;
-            this.log('info', '用户请求取消总结');
-            notificationService.warning('正在取消总结...', 'Engram');
-        });
+        const runningToast = notificationService.running(
+            "总结运行中...",
+            "Engram",
+            () => {
+                cancelSignal.cancelled = true;
+                this.cancelRequested = true;
+                this.log("info", "用户请求取消总结");
+                notificationService.warning("正在取消总结...", "Engram");
+            },
+        );
 
         try {
             // 1. Calculate Range
@@ -380,12 +404,18 @@ class SummarizerService {
                 startFloor = this._lastSummarizedFloor + 1;
                 const buffer = Math.max(0, this.config.bufferSize || 0);
                 const interval = Math.max(1, this.config.floorInterval || 10);
-                const pendingFloors = Math.max(0, currentFloor - this._lastSummarizedFloor);
+                const pendingFloors = Math.max(
+                    0,
+                    currentFloor - this._lastSummarizedFloor,
+                );
                 const maxProcessableFloor = currentFloor - buffer;
 
                 if (startFloor > maxProcessableFloor) {
                     if (manual) {
-                        notificationService.info('暂无足够的新内容需要总结 (缓冲期内)', 'Engram');
+                        notificationService.info(
+                            "暂无足够的新内容需要总结 (缓冲期内)",
+                            "Engram",
+                        );
                     }
                     return null;
                 }
@@ -393,12 +423,22 @@ class SummarizerService {
                 // 稳定策略：无论自动还是手动触发，只要没有显式传入 rangeOverride，
                 // 默认都按「楼层间隔 - 缓冲层」处理一个固定窗口，避免手动触发时把所有未处理楼层一次性吞掉。
                 const targetProcessCount = Math.max(1, interval - buffer);
-                const availableProcessCount = Math.max(0, maxProcessableFloor - startFloor + 1);
-                const processCount = Math.min(targetProcessCount, availableProcessCount, pendingFloors);
+                const availableProcessCount = Math.max(
+                    0,
+                    maxProcessableFloor - startFloor + 1,
+                );
+                const processCount = Math.min(
+                    targetProcessCount,
+                    availableProcessCount,
+                    pendingFloors,
+                );
 
                 if (processCount <= 0) {
                     if (manual) {
-                        notificationService.info('暂无足够的新内容需要总结 (缓冲期内)', 'Engram');
+                        notificationService.info(
+                            "暂无足够的新内容需要总结 (缓冲期内)",
+                            "Engram",
+                        );
                     }
                     return null;
                 }
@@ -406,42 +446,52 @@ class SummarizerService {
                 endFloor = startFloor + processCount - 1;
             }
 
-            if (startFloor > endFloor) {return null;}
+            if (startFloor > endFloor) return null;
 
             const range: [number, number] = [startFloor, endFloor];
-            this.log('info', '准备总结', {
+            this.log("info", "准备总结", {
                 autoHide: this.config.autoHide,
                 bufferSize: this.config.bufferSize,
                 currentFloor,
                 floorInterval: this.config.floorInterval,
                 lastSummarizedFloor: this._lastSummarizedFloor,
                 manual,
-                maxProcessableFloor: rangeOverride ? endFloor : currentFloor - (this.config.bufferSize || 0),
+                maxProcessableFloor: rangeOverride
+                    ? endFloor
+                    : currentFloor - (this.config.bufferSize || 0),
                 range,
                 rangeOverride: rangeOverride ?? null,
             });
 
             // 2. Run Workflow
-            const { WorkflowEngine } = await import('@/modules/workflow/core/WorkflowEngine');
-            const { createSummaryWorkflow } = await import('@/modules/workflow/definitions/SummaryWorkflow');
-            const { WorldBookSlotService } = await import('@/integrations/tavern/worldbook');
+            const { WorkflowEngine } = await import(
+                "@/modules/workflow/core/WorkflowEngine"
+            );
+            const { createSummaryWorkflow } = await import(
+                "@/modules/workflow/definitions/SummaryWorkflow"
+            );
+            const { WorldBookSlotService } = await import(
+                "@/integrations/tavern/worldbook"
+            );
             await WorldBookSlotService.init();
 
-            const globalPreviewEnabled = SettingsManager.get('globalPreviewEnabled') ?? true;
-            const previewEnabled = globalPreviewEnabled && (this.config.previewEnabled ?? true);
+            const globalPreviewEnabled =
+                SettingsManager.get("globalPreviewEnabled") ?? true;
+            const previewEnabled = globalPreviewEnabled &&
+                (this.config.previewEnabled ?? true);
 
             const context = await WorkflowEngine.run(createSummaryWorkflow(), {
                 config: {
                     autoHide: this.config.autoHide,
-                    logType: 'summarize',
+                    logType: "summarize",
                     previewEnabled: previewEnabled,
-                    templateId: this.config.promptTemplateId
+                    templateId: this.config.promptTemplateId,
                 },
                 input: {
-                    range: range
+                    range: range,
                 },
                 signal: cancelSignal,
-                trigger: manual ? 'manual' : 'auto'
+                trigger: manual ? "manual" : "auto",
             });
 
             // 3. Construct Result (Backward Compatibility)
@@ -456,15 +506,18 @@ class SummarizerService {
             // If we have parsed multiple events, the "content" might            // The raw text
             const result: SummaryResult = {
                 id: Date.now().toString(),
-                content: context.cleanedContent || '', // The raw text
+                content: context.cleanedContent || "", // The raw text
                 sourceFloors: range,
                 timestamp: Date.now(),
                 tokenCount: 0, // TODO: Get from context or re-measure
-                writtenToWorldbook: true
+                writtenToWorldbook: true,
             };
 
             if (Array.isArray(savedEvents) && savedEvents.length > 0) {
-                SettingsManager.incrementStatistic('totalEvents', savedEvents.length);
+                SettingsManager.incrementStatistic(
+                    "totalEvents",
+                    savedEvents.length,
+                );
             }
 
             // Update local state (redundant if SaveEvent updated store, but safe)
@@ -473,12 +526,14 @@ class SummarizerService {
 
             // V1.0.5: 联动触发精简 - 总结完成后检查是否需要精简
             try {
-                const { eventTrimmer } = await import('@/modules/memory/EventTrimmer');
+                const { eventTrimmer } = await import(
+                    "@/modules/memory/EventTrimmer"
+                );
                 const trimStatus = await eventTrimmer.getStatus();
                 const trimConfig = eventTrimmer.getConfig();
                 const trimAvailability = await eventTrimmer.canTrim();
 
-                this.log('debug', '自动精简触发检查', {
+                this.log("debug", "自动精简触发检查", {
                     canTrim: trimAvailability.canTrim,
                     currentValue: trimStatus.currentValue,
                     enabled: trimConfig.enabled,
@@ -488,8 +543,11 @@ class SummarizerService {
                 });
 
                 // 只有在精简已启用、达到阈值且存在足够待合并事件时才自动执行
-                if (trimConfig.enabled && trimStatus.triggered && trimAvailability.canTrim) {
-                    this.log('info', '联动触发精简', {
+                if (
+                    trimConfig.enabled && trimStatus.triggered &&
+                    trimAvailability.canTrim
+                ) {
+                    this.log("info", "联动触发精简", {
                         currentValue: trimStatus.currentValue,
                         pendingEntryCount: trimStatus.pendingEntryCount,
                         threshold: trimStatus.threshold,
@@ -498,7 +556,7 @@ class SummarizerService {
                     // 使用 manual=false 表示自动触发
                     await eventTrimmer.trim(false);
                 } else {
-                    this.log('debug', '跳过自动精简', {
+                    this.log("debug", "跳过自动精简", {
                         canTrim: trimAvailability.canTrim,
                         enabled: trimConfig.enabled,
                         pendingEntryCount: trimStatus.pendingEntryCount,
@@ -507,21 +565,22 @@ class SummarizerService {
                 }
             } catch (trimError) {
                 // 精简失败不应影响总结结果
-                this.log('warn', '联动精简失败', { error: trimError });
+                this.log("warn", "联动精简失败", { error: trimError });
             }
 
             return result;
-
         } catch (error) {
-            const errorMsg = error instanceof Error ? error.message : String(error);
+            const errorMsg = error instanceof Error
+                ? error.message
+                : String(error);
 
-            if (errorMsg === 'UserCancelled') {
-                this.log('info', '总结已被用户取消');
+            if (errorMsg === "UserCancelled") {
+                this.log("info", "总结已被用户取消");
                 return null;
             }
 
-            this.log('error', '总结执行异常', { error: errorMsg });
-            notificationService.error(`总结异常: ${errorMsg}`, 'Engram 错误');
+            this.log("error", "总结执行异常", { error: errorMsg });
+            notificationService.error(`总结异常: ${errorMsg}`, "Engram 错误");
             return null;
         } finally {
             notificationService.remove(runningToast);
@@ -571,8 +630,8 @@ class SummarizerService {
     updateConfig(config: Partial<SummarizerConfig>): void {
         this.config = { ...this.config, ...config };
         // 持久化保存
-        SettingsManager.set('summarizerConfig', this.config);
-        this.log('debug', '配置已更新并保存', this.config);
+        SettingsManager.set("summarizerConfig", this.config);
+        this.log("debug", "配置已更新并保存", this.config);
     }
 
     /**
@@ -588,7 +647,7 @@ class SummarizerService {
     async resetBaseFloor(): Promise<void> {
         const currentFloor = this.getCurrentFloor();
         await this.setLastSummarizedFloor(currentFloor);
-        this.log('info', '已重置基准楼层', { currentFloor });
+        this.log("info", "已重置基准楼层", { currentFloor });
     }
 
     // ==================== 工具方法 ====================
@@ -597,13 +656,13 @@ class SummarizerService {
      * 记录日志
      */
     private async log(
-        level: 'debug' | 'info' | 'success' | 'warn' | 'error',
+        level: "debug" | "info" | "success" | "warn" | "error",
         message: string,
-        data?: unknown
+        data?: unknown,
     ): Promise<void> {
         try {
-            const { Logger } = await import('@/core/logger');
-            Logger[level]('Summarizer', message, data);
+            const { Logger } = await import("@/core/logger");
+            Logger[level]("Summarizer", message, data);
         } catch {
             console.log(`[Summarizer] ${level}: ${message}`, data);
         }
@@ -612,4 +671,3 @@ class SummarizerService {
 
 /** 默认实例 */
 export const summarizerService = new SummarizerService();
-

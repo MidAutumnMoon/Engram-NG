@@ -14,7 +14,7 @@ import { SettingsManager } from "@/config/settings";
 import type { LLMPreset } from "@/config/types/llm";
 import { Logger } from "@/core/logger";
 
-const MODULE = 'LLMAdapter';
+const MODULE = "LLMAdapter";
 
 /** LLM 生成请求 */
 interface LLMRequest {
@@ -65,8 +65,6 @@ function getTavernHelper(): {
         return null;
     }
 }
-
-
 
 /**
  * LLMAdapter 类
@@ -121,8 +119,8 @@ class LLMAdapter {
 
         if (!helper?.generateRaw && !helper?.generate) {
             return {
-                content: '',
-                error: 'TavernHelper 不可用',
+                content: "",
+                error: "TavernHelper 不可用",
                 success: false,
             };
         }
@@ -133,31 +131,41 @@ class LLMAdapter {
             let preset: LLMPreset | undefined;
 
             if (request.presetId) {
-                preset = settings.apiSettings?.llmPresets?.find(p => p.id === request.presetId);
+                preset = settings.apiSettings?.llmPresets?.find((p) =>
+                    p.id === request.presetId
+                );
             }
 
             if (!preset && settings.apiSettings?.selectedPresetId) {
-                preset = settings.apiSettings?.llmPresets?.find(p => p.id === settings.apiSettings?.selectedPresetId);
+                preset = settings.apiSettings?.llmPresets?.find((p) =>
+                    p.id === settings.apiSettings?.selectedPresetId
+                );
             }
 
             // 统一提取预设中的参数配置
-            const customApiConfig = preset ? this.extractPresetParameters(preset) : undefined;
+            const customApiConfig = preset
+                ? this.extractPresetParameters(preset)
+                : undefined;
 
-            return await this.callTavernHelper(request, helper, customApiConfig, preset);
-
+            return await this.callTavernHelper(
+                request,
+                helper,
+                customApiConfig,
+                preset,
+            );
         } catch (error) {
-            const errorMsg = error instanceof Error ? error.message : String(error);
-            Logger.error(MODULE, '调用失败', error);
+            const errorMsg = error instanceof Error
+                ? error.message
+                : String(error);
+            Logger.error(MODULE, "调用失败", error);
 
             return {
-                content: '',
+                content: "",
                 error: errorMsg,
                 success: false,
             };
         }
     }
-
-
 
     // =========================================================================
     // 执行路径：custom (自定义 API)
@@ -180,14 +188,16 @@ class LLMAdapter {
         };
 
         // 移除 undefined 项，避免覆盖酒馆默认值
-        Object.keys(config).forEach(key => config[key] === undefined && delete config[key]);
+        Object.keys(config).forEach((key) =>
+            config[key] === undefined && delete config[key]
+        );
 
         // 如果是 custom，额外添加连接信息
-        if (preset.source === 'custom' && preset.custom) {
+        if (preset.source === "custom" && preset.custom) {
             config.apiurl = preset.custom.apiUrl;
             config.key = preset.custom.apiKey;
             config.model = preset.custom.model;
-            config.source = 'openai';
+            config.source = "openai";
             config.stream = preset.stream ?? false;
         } else if (preset.modelOverride) {
             // 如果是非 custom 预设但指定了模型名，也强制覆盖
@@ -205,18 +215,20 @@ class LLMAdapter {
         request: LLMRequest,
         helper: NonNullable<ReturnType<typeof getTavernHelper>>,
         customApiConfig?: Record<string, any>,
-        currentPreset?: LLMPreset
+        currentPreset?: LLMPreset,
     ): Promise<LLMResponse> {
         // =========================================================================
         // Prompt Pre-processing (V1.0 Fix)
         // =========================================================================
-        const finalSystemPrompt = request.systemPrompt || '';
-        let finalUserPrompt = request.userPrompt || '';
+        const finalSystemPrompt = request.systemPrompt || "";
+        let finalUserPrompt = request.userPrompt || "";
 
         // Engram Pipeline (RegexProcessor)
         // Fix P1: 移除导致循环依赖的 @/modules/workflow/steps 导入，改为直接导入
-        const { regexProcessor } = await import('@/modules/workflow/steps/processing/RegexProcessor');
-        finalUserPrompt = regexProcessor.process(finalUserPrompt, 'input');
+        const { regexProcessor } = await import(
+            "@/modules/workflow/steps/processing/RegexProcessor"
+        );
+        finalUserPrompt = regexProcessor.process(finalUserPrompt, "input");
 
         // =========================================================================
         // 调用 TavernHelper
@@ -226,8 +238,12 @@ class LLMAdapter {
         if (!currentPreset) {
             const settings = SettingsManager.getSettings();
             currentPreset = request.presetId
-                ? settings.apiSettings?.llmPresets?.find(p => p.id === request.presetId)
-                : settings.apiSettings?.llmPresets?.find(p => p.id === settings.apiSettings?.selectedPresetId);
+                ? settings.apiSettings?.llmPresets?.find((p) =>
+                    p.id === request.presetId
+                )
+                : settings.apiSettings?.llmPresets?.find((p) =>
+                    p.id === settings.apiSettings?.selectedPresetId
+                );
         }
 
         const generationOptions = {
@@ -240,15 +256,15 @@ class LLMAdapter {
 
         if (helper.generateRaw) {
             const prompts: any[] = [];
-            
+
             // 严格遵循：System -> User 顺序
             if (finalSystemPrompt) {
-                prompts.push({ content: finalSystemPrompt, role: 'system' });
+                prompts.push({ content: finalSystemPrompt, role: "system" });
             }
-            
+
             // 直接将用户内容作为 user 角色推入，不再使用 'user_input' 占位符
             // 这样酒馆就不会在末尾自动追加多余的内容
-            prompts.push({ content: finalUserPrompt, role: 'user' });
+            prompts.push({ content: finalUserPrompt, role: "user" });
 
             content = await helper.generateRaw({
                 custom_api: customApiConfig,
@@ -264,23 +280,28 @@ class LLMAdapter {
                 ...generationOptions,
             });
         } else {
-            throw new Error('无可用的生成 API');
+            throw new Error("无可用的生成 API");
         }
 
         // --- 全局数据遥测 (Telemetry) ---
-        SettingsManager.incrementStatistic('totalLlmCalls', 1);
-        const estimatedPromptTokens = this.estimateTokens(finalSystemPrompt + finalUserPrompt);
-        const estimatedCompletionTokens = this.estimateTokens(content || '');
-        SettingsManager.incrementStatistic('totalTokens', estimatedPromptTokens + estimatedCompletionTokens);
+        SettingsManager.incrementStatistic("totalLlmCalls", 1);
+        const estimatedPromptTokens = this.estimateTokens(
+            finalSystemPrompt + finalUserPrompt,
+        );
+        const estimatedCompletionTokens = this.estimateTokens(content || "");
+        SettingsManager.incrementStatistic(
+            "totalTokens",
+            estimatedPromptTokens + estimatedCompletionTokens,
+        );
 
         return {
-            content: content || '',
+            content: content || "",
             success: true,
             tokenUsage: {
                 completion: estimatedCompletionTokens,
                 prompt: estimatedPromptTokens,
-                total: estimatedPromptTokens + estimatedCompletionTokens
-            }
+                total: estimatedPromptTokens + estimatedCompletionTokens,
+            },
         };
     }
 
@@ -317,4 +338,3 @@ class LLMAdapter {
 
 /** 默认实例 */
 export const llmAdapter = new LLMAdapter();
-

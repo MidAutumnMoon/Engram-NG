@@ -4,11 +4,11 @@
  * 支持水平和垂直方向，可配置长度百分比
  * 遵循「无框流体」设计语言
  */
-import React from 'react';
+import React from "react";
 
 interface DividerProps {
     /** 分割线方向 */
-    orientation?: 'horizontal' | 'vertical';
+    orientation?: "horizontal" | "vertical";
     /** 长度百分比 (1-100，默认 100) */
     length?: number;
     /** 自定义 className */
@@ -16,14 +16,14 @@ interface DividerProps {
     /** 响应式：移动端水平，桌面端垂直 */
     responsive?: boolean;
     /** 上下间距 (用于水平分割线) */
-    spacing?: 'none' | 'sm' | 'md' | 'lg';
+    spacing?: "none" | "sm" | "md" | "lg";
 }
 
 const spacingClasses = {
-    lg: 'my-6',
-    md: 'my-4',
-    none: '',
-    sm: 'my-2',
+    lg: "my-6",
+    md: "my-4",
+    none: "",
+    sm: "my-2",
 };
 
 /**
@@ -41,11 +41,11 @@ const spacingClasses = {
  * <Divider responsive length={30} />
  */
 export const Divider: React.FC<DividerProps> = ({
-    orientation = 'horizontal',
+    orientation = "horizontal",
     length = 100,
-    className = '',
+    className = "",
     responsive = false,
-    spacing = 'none',
+    spacing = "none",
 }) => {
     const spacingClass = spacingClasses[spacing];
 
@@ -68,7 +68,7 @@ export const Divider: React.FC<DividerProps> = ({
     }
 
     // 非响应式模式 - 垂直分割线
-    if (orientation === 'vertical') {
+    if (orientation === "vertical") {
         return (
             <div
                 className={`border-l border-border/30 mx-auto ${className}`}
@@ -85,4 +85,3 @@ export const Divider: React.FC<DividerProps> = ({
         />
     );
 };
-

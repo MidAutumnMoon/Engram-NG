@@ -3,8 +3,8 @@
  * V0.9.11
  */
 
-import type { LucideIcon } from 'lucide-react';
-import type { ComponentType } from 'react';
+import type { LucideIcon } from "lucide-react";
+import type { ComponentType } from "react";
 
 /** 文档分类 */
 export interface DocCategory {

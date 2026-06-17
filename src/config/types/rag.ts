@@ -1,5 +1,3 @@
-
-
 export interface VectorConfig {
     /** 向量源 */
     source: VectorSource;
@@ -21,14 +19,14 @@ export interface VectorConfig {
 }
 
 export type VectorSource =
-    | 'transformers'  // 本地 transformers
-    | 'openai'        // OpenAI Embeddings API
-    | 'ollama'        // Ollama
-    | 'vllm'          // VLLM
-    | 'cohere'        // Cohere
-    | 'jina'          // Jina AI
-    | 'voyage'        // Voyage AI
-    | 'custom';       // 自定义 (OpenAI 兼容)
+    | "transformers" // 本地 transformers
+    | "openai" // OpenAI Embeddings API
+    | "ollama" // Ollama
+    | "vllm" // VLLM
+    | "cohere" // Cohere
+    | "jina" // Jina AI
+    | "voyage" // Voyage AI
+    | "custom"; // 自定义 (OpenAI 兼容)
 
 export interface RerankConfig {
     /** 是否启用 */
@@ -93,11 +91,11 @@ export interface BrainRecallConfig {
     // V1.3 进阶参数
     /** 厌倦惩罚与动态衰减 (V1.3) */
     boredomThreshold: number; // 连续进入工作记忆 N 次触发厌倦
-    boredomPenalty: number;   // 厌倦时的额外衰减
+    boredomPenalty: number; // 厌倦时的额外衰减
 
     /** 多样性与冷启动 (V1.3) */
-    mmrThreshold: number;     // MMR 相似度阈值 (>此值为了多样性会降权)
-    newcomerBoost: number;    // 新人红利 (给新条目的其始 boost)
+    mmrThreshold: number; // MMR 相似度阈值 (>此值为了多样性会降权)
+    newcomerBoost: number; // 新人红利 (给新条目的其始 boost)
 }
 
 export interface RecallConfig {
@@ -142,13 +140,11 @@ export interface RecallConfig {
         minScoreThreshold: number;
     };
 
-
-
     /** 类脑召回配置 (V0.9.5 实验性) */
     brainRecall?: BrainRecallConfig;
 }
 
-export type EmbeddingTriggerType = 'with_trim' | 'standalone' | 'manual';
+export type EmbeddingTriggerType = "with_trim" | "standalone" | "manual";
 
 export interface EmbeddingConfig {
     /** 是否启用嵌入 */

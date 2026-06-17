@@ -1,5 +1,5 @@
-import type { ErrorInfo, ReactNode } from 'react';
-import { Component } from 'react';
+import type { ErrorInfo, ReactNode } from "react";
+import { Component } from "react";
 
 interface Props {
     children?: ReactNode;
@@ -15,7 +15,7 @@ interface State {
 export class ErrorBoundary extends Component<Props, State> {
     public state: State = {
         error: null,
-        hasError: false
+        hasError: false,
     };
 
     public static getDerivedStateFromError(error: Error): State {
@@ -23,7 +23,7 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-        console.error('[ErrorBoundary] Uncaught error:', error, errorInfo);
+        console.error("[ErrorBoundary] Uncaught error:", error, errorInfo);
         if (this.props.onError) {
             this.props.onError(error, errorInfo);
         }

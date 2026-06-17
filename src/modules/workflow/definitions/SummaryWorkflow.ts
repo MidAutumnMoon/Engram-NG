@@ -1,4 +1,4 @@
-import type { WorkflowDefinition } from '../core/WorkflowEngine';
+import type { WorkflowDefinition } from "../core/WorkflowEngine";
 import {
     BuildPrompt,
     CleanRegex,
@@ -6,21 +6,21 @@ import {
     LlmRequest,
     SaveEvent,
     StopGeneration,
-    UserReview
-} from '../steps';
+    UserReview,
+} from "../steps";
 
 export const createSummaryWorkflow = (): WorkflowDefinition => ({
-    name: 'SummaryWorkflow',
+    name: "SummaryWorkflow",
     steps: [
         new StopGeneration(),
         new FetchContext(),
-        new BuildPrompt({ category: 'summary' }),
+        new BuildPrompt({ category: "summary" }),
         new LlmRequest(),
-        new CleanRegex('output'),
+        new CleanRegex("output"),
         new UserReview({
-            title: '剧情摘要修订',
-            type: 'summary'
+            title: "剧情摘要修订",
+            type: "summary",
         }),
-        new SaveEvent()
-    ]
+        new SaveEvent(),
+    ],
 });

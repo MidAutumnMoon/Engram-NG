@@ -3,10 +3,21 @@
  */
 
 /** 任务类型 */
-export type BatchTaskType = 'summary' | 'entity' | 'trim' | 'embed' | 'archive' | 'import';
+export type BatchTaskType =
+    | "summary"
+    | "entity"
+    | "trim"
+    | "embed"
+    | "archive"
+    | "import";
 
 /** 任务状态 */
-export type BatchTaskStatus = 'pending' | 'running' | 'done' | 'error' | 'skipped';
+export type BatchTaskStatus =
+    | "pending"
+    | "running"
+    | "done"
+    | "error"
+    | "skipped";
 
 /** 单个批处理子任务描述 （用于进度条和队列展现） */
 export interface BatchTask {
@@ -49,7 +60,7 @@ export interface IBatchTaskHandler {
     execute(
         tasks: BatchTask[],
         checkStopSignal: () => boolean,
-        updateContext: (taskIndex: number, progressCurrent: number) => void
+        updateContext: (taskIndex: number, progressCurrent: number) => void,
     ): AsyncGenerator<void, void, unknown>;
 }
 
@@ -66,4 +77,4 @@ export interface HistoryAnalysis {
 }
 
 /** 外部文本导入模式 */
-export type ImportMode = 'fast' | 'detailed';
+export type ImportMode = "fast" | "detailed";

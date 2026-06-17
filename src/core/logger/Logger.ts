@@ -5,14 +5,14 @@
  * 替代 console.log，确保调试信息可追踪、可导出。
  */
 
-import { generateShortUUID } from '@/core/utils';
-import { Subject } from 'rxjs';
-import manifest from '../../../manifest.json';
-import type { EngramEvent} from '../events';
-import { EventBus } from '../events';
-import type { LogModule } from './LogModule';
-import type { LogEntry, LoggerConfig} from './types';
-import { DEFAULT_LOGGER_CONFIG, LogLevel } from './types';
+import { generateShortUUID } from "@/core/utils";
+import { Subject } from "rxjs";
+import manifest from "../../../manifest.json";
+import type { EngramEvent } from "../events";
+import { EventBus } from "../events";
+import type { LogModule } from "./LogModule";
+import type { LogEntry, LoggerConfig } from "./types";
+import { DEFAULT_LOGGER_CONFIG, LogLevel } from "./types";
 
 // 日志流 Subject (RxJS)
 const logSubject = new Subject<LogEntry>();
@@ -39,12 +39,17 @@ function formatTime(timestamp: number): string {
  * 写入日志条目（内部方法）
  * 执行过滤、缓存和广播
  */
-function writeLog(level: LogLevel, module: string, message: string, data?: unknown): void {
-    if (level < config.minLevel) {return;}
+function writeLog(
+    level: LogLevel,
+    module: string,
+    message: string,
+    data?: unknown,
+): void {
+    if (level < config.minLevel) return;
 
     const entry: LogEntry = {
         data,
-        id: generateShortUUID('log_'),
+        id: generateShortUUID("log_"),
         level,
         message,
         module,
@@ -81,7 +86,7 @@ function setupEventBusListener(): void {
         };
 
         const level = levelMap[event.type] ?? LogLevel.DEBUG;
-        writeLog(level, 'EventBus', `${event.type}`, event.payload);
+        writeLog(level, "EventBus", `${event.type}`, event.payload);
     });
 }
 
@@ -107,7 +112,7 @@ export const Logger = {
             isInitialized = true;
         }
 
-        Logger.info('System', 'Logger 初始化完成');
+        Logger.info("System", "Logger 初始化完成");
     },
 
     /**
@@ -166,7 +171,7 @@ export const Logger = {
      */
     clear(): void {
         logCache = [];
-        Logger.info('Logger', '日志已清空');
+        Logger.info("Logger", "日志已清空");
     },
 
     /**
@@ -177,20 +182,20 @@ export const Logger = {
         const now = new Date();
 
         const levelLabels: Record<LogLevel, string> = {
-            [LogLevel.DEBUG]: 'DEBUG',
-            [LogLevel.INFO]: 'INFO',
-            [LogLevel.SUCCESS]: 'SUCCESS',
-            [LogLevel.WARN]: 'WARN',
-            [LogLevel.ERROR]: 'ERROR',
+            [LogLevel.DEBUG]: "DEBUG",
+            [LogLevel.INFO]: "INFO",
+            [LogLevel.SUCCESS]: "SUCCESS",
+            [LogLevel.WARN]: "WARN",
+            [LogLevel.ERROR]: "ERROR",
         };
 
         let md = `# Engram Debug Log\n\n`;
-        md += `- **导出时间**: ${now.toLocaleString('zh-CN')}\n`;
+        md += `- **导出时间**: ${now.toLocaleString("zh-CN")}\n`;
         md += `- **版本**: ${manifest.version}\n`;
         md += `- **日志条数**: ${logCache.length}\n\n`;
         md += `---\n\n`;
         md += `## 日志记录\n\n`;
-        md += '```m\n';
+        md += "```m\n";
 
         for (const entry of logCache) {
             const time = formatTime(entry.timestamp);
@@ -201,9 +206,9 @@ export const Logger = {
             if (entry.data !== undefined) {
                 try {
                     const dataStr = JSON.stringify(entry.data, null, 2)
-                        .split('\n')
+                        .split("\n")
                         .map((line) => `    ${line}`)
-                        .join('\n');
+                        .join("\n");
                     md += `${dataStr}\n`;
                 } catch {
                     md += `    [Data serialization failed]\n`;
@@ -211,7 +216,7 @@ export const Logger = {
             }
         }
 
-        md += '```\n';
+        md += "```\n";
         return md;
     },
 
@@ -222,7 +227,7 @@ export const Logger = {
     getExportFilename(): string {
         const now = new Date();
         const dateStr = now.toISOString().slice(0, 10);
-        const timeStr = now.toTimeString().slice(0, 8).replaceAll(/:/g, '');
+        const timeStr = now.toTimeString().slice(0, 8).replaceAll(/:/g, "");
         return `engram_log_${dateStr}_${timeStr}.md`;
     },
 };

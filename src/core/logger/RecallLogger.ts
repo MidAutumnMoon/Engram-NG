@@ -4,8 +4,12 @@
  * 集中管理召回日志，供 DevLog 组件使用
  */
 
-import type { RecallLogEntry, RecallResultItem, RecallStats } from '@/ui/views/dev-log/types';
-import { Logger } from '@/core/logger';
+import type {
+    RecallLogEntry,
+    RecallResultItem,
+    RecallStats,
+} from "@/ui/views/dev-log/types";
+import { Logger } from "@/core/logger";
 
 type RecallLogSubscriber = (logs: RecallLogEntry[]) => void;
 
@@ -17,9 +21,11 @@ class RecallLogServiceClass {
     /**
      * 记录一次召回
      */
-    log(entry: Omit<RecallLogEntry, 'id' | 'timestamp'>): void {
+    log(entry: Omit<RecallLogEntry, "id" | "timestamp">): void {
         const newEntry: RecallLogEntry = {
-            id: `recall-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            id: `recall-${Date.now()}-${
+                Math.random().toString(36).slice(2, 8)
+            }`,
             timestamp: Date.now(),
             ...entry,
         };
@@ -31,7 +37,7 @@ class RecallLogServiceClass {
             this.logs = this.logs.slice(0, this.maxLogs);
         }
 
-        Logger.debug('RecallLogService', '记录召回日志', {
+        Logger.debug("RecallLogService", "记录召回日志", {
             query: entry.query.slice(0, 50),
             resultCount: entry.results.length,
         });
@@ -67,25 +73,29 @@ class RecallLogServiceClass {
      */
     private notifySubscribers(): void {
         const logs = this.getLogs();
-        this.subscribers.forEach(cb => cb(logs));
+        this.subscribers.forEach((cb) => cb(logs));
     }
 
     /**
      * 导出日志为 JSON 文件
      */
     exportLogs(): void {
-        const { VERSION } = require('@/constants');
+        const { VERSION } = require("@/constants");
         const exportData = {
             exportedAt: Date.now(),
             logs: this.getLogs(),
             version: VERSION,
         };
 
-        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+            type: "application/json",
+        });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `engram_debug_log_${new Date().toISOString().replaceAll(/[:.]/g, '-')}.json`;
+        a.download = `engram_debug_log_${
+            new Date().toISOString().replaceAll(/[:.]/g, "-")
+        }.json`;
         document.body.append(a);
         a.click();
         document.body.removeChild(a);

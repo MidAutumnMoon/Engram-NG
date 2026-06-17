@@ -7,14 +7,14 @@
  * - 去卡片化，使用细线分割
  * V1.4.2: 增加自动归档与手动清理功能
  */
-import type { EntityExtractConfig } from '@/config/types/memory';
-import { EventBus } from '@/core/events';
+import type { EntityExtractConfig } from "@/config/types/memory";
+import { EventBus } from "@/core/events";
 import { entityBuilder } from "@/modules/memory/EntityExtractor";
-import { SliderField } from '@/ui/components/core/SliderField';
-import { SwitchField } from '@/ui/components/form/FormComponents';
-import { Divider } from '@/ui/components/layout/Divider';
-import { Archive, RefreshCw } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { SliderField } from "@/ui/components/core/SliderField";
+import { SwitchField } from "@/ui/components/form/FormComponents";
+import { Divider } from "@/ui/components/layout/Divider";
+import { Archive, RefreshCw } from "lucide-react";
+import React, { useEffect, useState } from "react";
 
 interface EntityStatus {
     enabled: boolean;
@@ -31,7 +31,9 @@ interface EntityConfigPanelProps {
     onChange: (config: EntityExtractConfig) => void;
 }
 
-export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = ({ config, onChange }) => {
+export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = (
+    { config, onChange },
+) => {
     const [status, setStatus] = useState<EntityStatus | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -41,7 +43,7 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = ({ config, on
             const s = await entityBuilder.getStatus() as EntityStatus;
             setStatus(s);
         } catch (error) {
-            console.error('[EntityConfigPanel] Failed to load status:', error);
+            console.error("[EntityConfigPanel] Failed to load status:", error);
         }
     };
 
@@ -51,7 +53,7 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = ({ config, on
 
     // V1.4.3: Decoupled State Sync via EventBus
     useEffect(() => {
-        const { unsubscribe } = EventBus.on('ENTITY_ARCHIVED', () => {
+        const { unsubscribe } = EventBus.on("ENTITY_ARCHIVED", () => {
             loadStatus();
         });
         return unsubscribe;
@@ -94,7 +96,10 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = ({ config, on
                 await loadStatus();
             }
         } catch (error) {
-            console.error('[EntityConfigPanel] Manual extraction failed:', error);
+            console.error(
+                "[EntityConfigPanel] Manual extraction failed:",
+                error,
+            );
         } finally {
             setIsLoading(false);
         }
@@ -107,7 +112,10 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = ({ config, on
             await entityBuilder.checkAndArchiveEntities();
             // LoadStatus() 已经由 EventBus 监听器处理，不再需要手动调用
         } catch (error) {
-            console.error('[EntityConfigPanel] Manual archiving failed:', error);
+            console.error(
+                "[EntityConfigPanel] Manual archiving failed:",
+                error,
+            );
         } finally {
             setIsLoading(false);
         }
@@ -119,7 +127,9 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = ({ config, on
             <section className="space-y-8">
                 <div>
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">状态监控</h2>
+                        <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                            状态监控
+                        </h2>
                         <button
                             className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
                             onClick={loadStatus}
@@ -129,49 +139,70 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = ({ config, on
                         </button>
                     </div>
 
-                    {status ? (
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                    <span className="text-xs text-muted-foreground block mb-1">活跃实体</span>
-                                    <div className="text-3xl font-light text-value font-mono">
-                                        {status.entityCount - status.archivedCount}
+                    {status
+                        ? (
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <span className="text-xs text-muted-foreground block mb-1">
+                                            活跃实体
+                                        </span>
+                                        <div className="text-3xl font-light text-value font-mono">
+                                            {status.entityCount -
+                                                status.archivedCount}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-xs text-muted-foreground block mb-1">
+                                            已归档
+                                        </span>
+                                        <div className="text-3xl font-light text-muted-foreground/60 font-mono">
+                                            {status.archivedCount}
+                                        </div>
                                     </div>
                                 </div>
-                                <div>
-                                    <span className="text-xs text-muted-foreground block mb-1">已归档</span>
-                                    <div className="text-3xl font-light text-muted-foreground/60 font-mono">
-                                        {status.archivedCount}
+
+                                <Divider length={100} spacing="md" />
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider block mb-1">
+                                            楼层间隔
+                                        </span>
+                                        <div className="text-xl font-mono text-foreground/80">
+                                            {status.floorInterval}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider block mb-1">
+                                            上次提取楼层
+                                        </span>
+                                        <div className="text-xl font-mono text-foreground/80">
+                                            {status.lastExtractedFloor}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-
-                            <Divider length={100} spacing="md" />
-
-                            <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                    <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider block mb-1">楼层间隔</span>
-                                    <div className="text-xl font-mono text-foreground/80">{status.floorInterval}</div>
-                                </div>
-                                <div>
-                                    <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider block mb-1">上次提取楼层</span>
-                                    <div className="text-xl font-mono text-foreground/80">{status.lastExtractedFloor}</div>
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <p className="text-sm text-muted-foreground">加载中...</p>
-                    )}
+                        )
+                        : (
+                            <p className="text-sm text-muted-foreground">
+                                加载中...
+                            </p>
+                        )}
                 </div>
 
                 <div className="flex gap-3">
                     <button
                         onClick={handleManualExtract}
-                        disabled={isLoading || status?.isExtracting || !config.enabled}
+                        disabled={isLoading || status?.isExtracting ||
+                            !config.enabled}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
-                        {isLoading ? '提取中...' : '手动提取'}
+                        <RefreshCw
+                            size={14}
+                            className={isLoading ? "animate-spin" : ""}
+                        />
+                        {isLoading ? "提取中..." : "手动提取"}
                     </button>
 
                     <button
@@ -192,8 +223,12 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = ({ config, on
 
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-sm font-medium text-foreground">实体提取</h2>
-                        <p className="text-xs text-muted-foreground mt-0.5">从对话中提取角色、地点、物品等实体</p>
+                        <h2 className="text-sm font-medium text-foreground">
+                            实体提取
+                        </h2>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                            从对话中提取角色、地点、物品等实体
+                        </p>
                     </div>
                     <SwitchField
                         label=""
@@ -202,10 +237,20 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = ({ config, on
                     />
                 </div>
 
-                <div className={`space-y-6 transition-opacity ${config.enabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+                <div
+                    className={`space-y-6 transition-opacity ${
+                        config.enabled
+                            ? "opacity-100"
+                            : "opacity-40 pointer-events-none"
+                    }`}
+                >
                     <div className="space-y-3">
                         <div className="text-xs text-muted-foreground">
-                            每隔 <span className="text-base font-medium text-foreground mx-0.5">{config.floorInterval}</span> 楼触发一次提取
+                            每隔{" "}
+                            <span className="text-base font-medium text-foreground mx-0.5">
+                                {config.floorInterval}
+                            </span>{" "}
+                            楼触发一次提取
                         </div>
                         <SliderField
                             min={2}
@@ -225,8 +270,12 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = ({ config, on
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h2 className="text-sm font-medium text-foreground">自动归档</h2>
-                                <p className="text-xs text-muted-foreground mt-0.5">当活跃实体数量过多时自动清理</p>
+                                <h2 className="text-sm font-medium text-foreground">
+                                    自动归档
+                                </h2>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                    当活跃实体数量过多时自动清理
+                                </p>
                             </div>
                             <SwitchField
                                 label=""
@@ -235,19 +284,30 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = ({ config, on
                             />
                         </div>
 
-                        <div className={`space-y-3 transition-opacity ${config.autoArchive ?? true ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+                        <div
+                            className={`space-y-3 transition-opacity ${
+                                config.autoArchive ?? true
+                                    ? "opacity-100"
+                                    : "opacity-40 pointer-events-none"
+                            }`}
+                        >
                             <div className="text-xs text-muted-foreground">
-                                活跃实体上限: <span className="text-base font-medium text-foreground mx-0.5">{config.archiveLimit ?? 50}</span>
+                                活跃实体上限:{" "}
+                                <span className="text-base font-medium text-foreground mx-0.5">
+                                    {config.archiveLimit ?? 50}
+                                </span>
                             </div>
                             <SliderField
                                 min={10}
                                 max={200}
                                 step={5}
                                 value={config.archiveLimit ?? 50}
-                                onChange={(val) => handleArchiveLimitChange(val)}
+                                onChange={(val) =>
+                                    handleArchiveLimitChange(val)}
                             />
                             <p className="text-[10px] text-muted-foreground/60 italic">
-                                * 只有未被锁定的实体会被自动归档。归档后的实体将不再参与实时召回。
+                                *
+                                只有未被锁定的实体会被自动归档。归档后的实体将不再参与实时召回。
                             </p>
                         </div>
                     </div>

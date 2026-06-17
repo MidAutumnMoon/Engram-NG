@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface SliderFieldProps {
     min: number;
@@ -19,27 +19,39 @@ export const SliderField: React.FC<SliderFieldProps> = ({
     step = 1,
     value,
     onChange,
-    className = ''
+    className = "",
 }) => {
     const range = max - min;
-    const percentage = range === 0 ? 0 : Math.min(100, Math.max(0, ((value - min) / range) * 100));
+    const percentage = range === 0
+        ? 0
+        : Math.min(100, Math.max(0, ((value - min) / range) * 100));
 
     return (
-        <div className={`relative h-5 flex items-center cursor-pointer group ${className}`}>
+        <div
+            className={`relative h-5 flex items-center cursor-pointer group ${className}`}
+        >
             {/* 轨道底 */}
-            <div className="absolute inset-x-0 top-1/2 h-1 rounded-full bg-border"
-                style={{ transform: 'translateY(-50%)' }}
+            <div
+                className="absolute inset-x-0 top-1/2 h-1 rounded-full bg-border"
+                style={{ transform: "translateY(-50%)" }}
             />
 
             {/* 轨道填充 */}
-            <div className="absolute left-0 top-1/2 h-1 rounded-full bg-primary"
-                style={{ transform: 'translateY(-50%)', width: `${percentage}%` }}
+            <div
+                className="absolute left-0 top-1/2 h-1 rounded-full bg-primary"
+                style={{
+                    transform: "translateY(-50%)",
+                    width: `${percentage}%`,
+                }}
             />
 
             {/* Thumb - 纯 div 渲染 */}
             <div
                 className="absolute top-1/2 w-3 h-3 rounded-full bg-primary shadow-sm pointer-events-none transition-transform duration-100 ease-out group-hover:scale-125"
-                style={{ left: `${percentage}%`, transform: 'translate(-50%, -50%)' }}
+                style={{
+                    left: `${percentage}%`,
+                    transform: "translate(-50%, -50%)",
+                }}
             />
 
             {/* 交互层 - 隐藏原生 input */}
@@ -51,14 +63,14 @@ export const SliderField: React.FC<SliderFieldProps> = ({
                 value={value}
                 onChange={(e) => onChange(Number(e.target.value))}
                 style={{
-                    cursor: 'pointer',
-                    height: '100%',
-                    inset: '0',
+                    cursor: "pointer",
+                    height: "100%",
+                    inset: "0",
                     margin: 0,
                     opacity: 0,
                     padding: 0,
-                    position: 'absolute',
-                    width: '100%',
+                    position: "absolute",
+                    width: "100%",
                     zIndex: 10,
                 }}
             />

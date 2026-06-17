@@ -1,20 +1,34 @@
-import { generateShortUUID } from '@/core/utils';
-import type { EventNode } from '@/data/types/graph';
-import { WorldInfoService } from '@/integrations/tavern';
-import type { StateCreator } from 'zustand';
-import { getCurrentDb, tryGetCurrentDb } from './coreSlice';
+import { generateShortUUID } from "@/core/utils";
+import type { EventNode } from "@/data/types/graph";
+import { WorldInfoService } from "@/integrations/tavern";
+import type { StateCreator } from "zustand";
+import { getCurrentDb, tryGetCurrentDb } from "./coreSlice";
 
 export interface EventState {
-    saveEvent: (event: Omit<EventNode, 'id' | 'timestamp'> & { timestamp?: number }) => Promise<EventNode>;
-    saveEvents: (events: (Omit<EventNode, 'id' | 'timestamp'> & { timestamp?: number })[]) => Promise<EventNode[]>;
-    importDatabase: (sourceDbName: string) => Promise<{ events: number, entities: number }>;
+    saveEvent: (
+        event: Omit<EventNode, "id" | "timestamp"> & { timestamp?: number },
+    ) => Promise<EventNode>;
+    saveEvents: (
+        events:
+            (Omit<EventNode, "id" | "timestamp"> & { timestamp?: number })[],
+    ) => Promise<EventNode[]>;
+    importDatabase: (
+        sourceDbName: string,
+    ) => Promise<{ events: number; entities: number }>;
     getEventSummaries: (recalledIds?: string[]) => Promise<string>;
-    countEventTokens: () => Promise<{ totalTokens: number; eventCount: number; activeEventCount: number }>;
+    countEventTokens: () => Promise<
+        { totalTokens: number; eventCount: number; activeEventCount: number }
+    >;
 
     getEventsToMerge: (keepRecentCount?: number) => Promise<EventNode[]>;
     deleteEvents: (eventIds: string[]) => Promise<void>;
-    updateEvent: (eventId: string, updates: Partial<EventNode>) => Promise<void>;
-    updateEvents: (updates: { id: string, updates: Partial<EventNode> }[]) => Promise<void>;
+    updateEvent: (
+        eventId: string,
+        updates: Partial<EventNode>,
+    ) => Promise<void>;
+    updateEvents: (
+        updates: { id: string; updates: Partial<EventNode> }[],
+    ) => Promise<void>;
     getAllEvents: () => Promise<EventNode[]>;
     archiveEvents: (eventIds: string[]) => Promise<void>;
     markEventsAsEmbedded: (eventIds: string[]) => Promise<void>;
@@ -26,14 +40,17 @@ export interface EventState {
     getPureActiveEvents: () => Promise<string>;
 }
 
-export const createEventSlice: StateCreator<any, [], [], EventState> = (set, get) => ({
+export const createEventSlice: StateCreator<any, [], [], EventState> = (
+    set,
+    get,
+) => ({
     saveEvent: async (eventData) => {
         const db = getCurrentDb();
-        if (!db) {throw new Error('[MemoryStore] No current chat');}
+        if (!db) throw new Error("[MemoryStore] No current chat");
 
         const event: EventNode = {
             ...eventData,
-            id: generateShortUUID('evt_'),
+            id: generateShortUUID("evt_"),
             is_archived: eventData.is_archived ?? false,
             is_embedded: eventData.is_embedded ?? false,
             timestamp: eventData.timestamp ?? Date.now(),
@@ -42,7 +59,7 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (set, get
         await db.events.add(event);
 
         set((state: any) => ({
-            recentEvents: [...state.recentEvents, event].slice(-10)
+            recentEvents: [...state.recentEvents, event].slice(-10),
         }));
 
         return event;
@@ -50,12 +67,12 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (set, get
 
     saveEvents: async (eventsData) => {
         const db = getCurrentDb();
-        if (!db) {throw new Error('[MemoryStore] No current chat');}
-        if (eventsData.length === 0) {return [];}
+        if (!db) throw new Error("[MemoryStore] No current chat");
+        if (eventsData.length === 0) return [];
 
-        const events: EventNode[] = eventsData.map(data => ({
+        const events: EventNode[] = eventsData.map((data) => ({
             ...data,
-            id: generateShortUUID('evt_'),
+            id: generateShortUUID("evt_"),
             is_archived: data.is_archived ?? false,
             is_embedded: data.is_embedded ?? false,
             timestamp: data.timestamp ?? Date.now(),
@@ -64,7 +81,7 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (set, get
         await db.events.bulkAdd(events);
 
         set((state: any) => ({
-            recentEvents: [...state.recentEvents, ...events].slice(-10)
+            recentEvents: [...state.recentEvents, ...events].slice(-10),
         }));
 
         return events;
@@ -72,14 +89,19 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (set, get
 
     importDatabase: async (sourceDbName: string) => {
         const destDb = getCurrentDb();
-        if (!destDb) {throw new Error('[MemoryStore] No current chat context to import into');}
+        if (!destDb) {
+            throw new Error(
+                "[MemoryStore] No current chat context to import into",
+            );
+        }
 
-        const Dexie = (await import('dexie')).default;
+        const Dexie = (await import("dexie")).default;
         const sourceDb = new Dexie(sourceDbName);
         sourceDb.version(3).stores({
-            entities: 'id, name, last_updated_at',
-            events: 'id, timestamp, level, is_archived, [source_range.start_index+source_range.end_index]',
-            meta: 'key'
+            entities: "id, name, last_updated_at",
+            events:
+                "id, timestamp, level, is_archived, [source_range.start_index+source_range.end_index]",
+            meta: "key",
         });
 
         try {
@@ -88,31 +110,33 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (set, get
             }
             await sourceDb.open();
 
-            const allEvents = await sourceDb.table('events').toArray();
-            const allEntities = await sourceDb.table('entities').toArray();
+            const allEvents = await sourceDb.table("events").toArray();
+            const allEntities = await sourceDb.table("entities").toArray();
 
-            if (allEvents.length > 0) {await destDb.events.bulkPut(allEvents);}
-            if (allEntities.length > 0) {await destDb.entities.bulkPut(allEntities);}
+            if (allEvents.length > 0) await destDb.events.bulkPut(allEvents);
+            if (allEntities.length > 0) {
+                await destDb.entities.bulkPut(allEntities);
+            }
 
             return { entities: allEntities.length, events: allEvents.length };
         } finally {
-            if (sourceDb.isOpen()) {sourceDb.close();}
+            if (sourceDb.isOpen()) sourceDb.close();
         }
     },
 
     getEventSummaries: async (recalledIds?: string[]) => {
         const db = tryGetCurrentDb();
-        if (!db) {return '';}
+        if (!db) return "";
 
         try {
             const events = await db.events.toArray();
-            if (events.length === 0) {return '';}
+            if (events.length === 0) return "";
 
             const recalledSet = recalledIds ? new Set(recalledIds) : null;
-            const targetEvents = events.filter(e => {
-                if (e.level >= 1) {return true;}
-                if (!e.is_archived) {return true;}
-                if (e.is_archived && recalledSet?.has(e.id)) {return true;}
+            const targetEvents = events.filter((e) => {
+                if (e.level >= 1) return true;
+                if (!e.is_archived) return true;
+                if (e.is_archived && recalledSet?.has(e.id)) return true;
                 return false;
             });
 
@@ -136,174 +160,213 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (set, get
                 }
             }
 
-            if (lines.length === 0) {return '';}
-            return `<summary>\n${lines.join('\n\n')}\n</summary>`;
+            if (lines.length === 0) return "";
+            return `<summary>\n${lines.join("\n\n")}\n</summary>`;
         } catch (error) {
-            console.error('[MemoryStore] Failed to get event summaries:', error);
-            return '';
+            console.error(
+                "[MemoryStore] Failed to get event summaries:",
+                error,
+            );
+            return "";
         }
     },
 
     countEventTokens: async () => {
         const db = getCurrentDb();
-        if (!db) {return { totalTokens: 0, eventCount: 0, activeEventCount: 0 };}
+        if (!db) return { totalTokens: 0, eventCount: 0, activeEventCount: 0 };
 
         try {
             const events = await db.events.toArray();
-            if (events.length === 0) {return { totalTokens: 0, eventCount: 0, activeEventCount: 0 };}
+            if (events.length === 0) {
+                return { totalTokens: 0, eventCount: 0, activeEventCount: 0 };
+            }
 
             // Trim 触发口径：仅统计新的、未归档的 lv0 细节事件
-            const activeEvents = events.filter(e => e.level === 0 && !e.is_archived);
-            const allSummaries = activeEvents.map(e => e.summary).join('\n\n');
-            const totalTokens = await WorldInfoService.countTokens(allSummaries);
+            const activeEvents = events.filter((e) =>
+                e.level === 0 && !e.is_archived
+            );
+            const allSummaries = activeEvents.map((e) => e.summary).join(
+                "\n\n",
+            );
+            const totalTokens = await WorldInfoService.countTokens(
+                allSummaries,
+            );
 
             return {
                 activeEventCount: activeEvents.length,
                 eventCount: events.length,
-                totalTokens
+                totalTokens,
             };
         } catch (error) {
-            console.error('[MemoryStore] Failed to count event tokens:', error);
+            console.error("[MemoryStore] Failed to count event tokens:", error);
             return { activeEventCount: 0, eventCount: 0, totalTokens: 0 };
         }
     },
 
     archiveEvents: async (eventIds: string[]) => {
-        if (eventIds.length === 0) {return;}
+        if (eventIds.length === 0) return;
         const db = getCurrentDb();
-        if (!db) {return;}
+        if (!db) return;
         try {
-            await db.events.where('id').anyOf(eventIds).modify({ is_archived: true });
+            await db.events.where("id").anyOf(eventIds).modify({
+                is_archived: true,
+            });
             console.log(`[MemoryStore] Archived ${eventIds.length} events`);
         } catch (error) {
-            console.error('[MemoryStore] Failed to archive events:', error);
+            console.error("[MemoryStore] Failed to archive events:", error);
         }
     },
 
     markEventsAsEmbedded: async (eventIds: string[]) => {
-        if (eventIds.length === 0) {return;}
+        if (eventIds.length === 0) return;
         const db = getCurrentDb();
-        if (!db) {return;}
+        if (!db) return;
         try {
-            await db.events.where('id').anyOf(eventIds).modify({ is_embedded: true });
-            console.log(`[MemoryStore] Marked ${eventIds.length} events as embedded`);
+            await db.events.where("id").anyOf(eventIds).modify({
+                is_embedded: true,
+            });
+            console.log(
+                `[MemoryStore] Marked ${eventIds.length} events as embedded`,
+            );
         } catch (error) {
-            console.error('[MemoryStore] Failed to mark events as embedded:', error);
+            console.error(
+                "[MemoryStore] Failed to mark events as embedded:",
+                error,
+            );
         }
     },
 
     getEventsToMerge: async (keepRecentCount = 3) => {
         const db = getCurrentDb();
-        if (!db) {return [];}
+        if (!db) return [];
 
         try {
-            const events = await db.events.orderBy('timestamp').toArray();
+            const events = await db.events.orderBy("timestamp").toArray();
             // V1.4.2: 增加 !e.is_locked 过滤点，锁定事件不参与精简合并
-            const eligibleEvents = events.filter(e => e.level === 0 && !e.is_archived && !e.is_locked);
+            const eligibleEvents = events.filter((e) =>
+                e.level === 0 && !e.is_archived && !e.is_locked
+            );
 
-            if (eligibleEvents.length <= keepRecentCount) {return [];}
-            return eligibleEvents.slice(0, eligibleEvents.length - keepRecentCount);
+            if (eligibleEvents.length <= keepRecentCount) return [];
+            return eligibleEvents.slice(
+                0,
+                eligibleEvents.length - keepRecentCount,
+            );
         } catch (error) {
-            console.error('[MemoryStore] Failed to get events to merge:', error);
+            console.error(
+                "[MemoryStore] Failed to get events to merge:",
+                error,
+            );
             return [];
         }
     },
 
     deleteEvents: async (eventIds: string[]) => {
-        if (eventIds.length === 0) {return;}
+        if (eventIds.length === 0) return;
         const db = getCurrentDb();
-        if (!db) {return;}
+        if (!db) return;
 
         try {
             await db.events.bulkDelete(eventIds);
             console.log(`[MemoryStore] Deleted ${eventIds.length} events`);
         } catch (error) {
-            console.error('[MemoryStore] Failed to delete events:', error);
+            console.error("[MemoryStore] Failed to delete events:", error);
             throw error;
         }
     },
 
     updateEvent: async (eventId: string, updates: Partial<EventNode>) => {
-        if (!eventId) {return;}
+        if (!eventId) return;
         const db = getCurrentDb();
-        if (!db) {return;}
+        if (!db) return;
 
         try {
             const { id: _id, timestamp: _ts, ...safeUpdates } = updates as any;
             await db.events.update(eventId, safeUpdates);
             console.log(`[MemoryStore] Updated event: ${eventId}`, safeUpdates);
         } catch (error) {
-            console.error('[MemoryStore] Failed to update event:', error);
+            console.error("[MemoryStore] Failed to update event:", error);
             throw error;
         }
     },
 
     updateEvents: async (updatesList) => {
-        if (updatesList.length === 0) {return;}
+        if (updatesList.length === 0) return;
         const db = getCurrentDb();
-        if (!db) {return;}
+        if (!db) return;
 
         try {
-            await db.transaction('rw', db.events, async () => {
+            await db.transaction("rw", db.events, async () => {
                 for (const { id, updates } of updatesList) {
-                    const { id: _id, timestamp: _ts, ...safeUpdates } = updates as any;
+                    const { id: _id, timestamp: _ts, ...safeUpdates } =
+                        updates as any;
                     await db.events.update(id, safeUpdates);
                 }
             });
-            console.log(`[MemoryStore] Batch updated ${updatesList.length} events`);
+            console.log(
+                `[MemoryStore] Batch updated ${updatesList.length} events`,
+            );
         } catch (error) {
-            console.error('[MemoryStore] Failed to batch update events:', error);
+            console.error(
+                "[MemoryStore] Failed to batch update events:",
+                error,
+            );
             throw error;
         }
     },
 
     toggleEventLock: async (eventId: string) => {
-        if (!eventId) {return false;}
+        if (!eventId) return false;
         const db = getCurrentDb();
-        if (!db) {return false;}
+        if (!db) return false;
 
         try {
             const existing = await db.events.get(eventId);
-            if (!existing) {return false;}
+            if (!existing) return false;
 
             const newLockState = !existing.is_locked;
             await db.events.update(eventId, { is_locked: newLockState });
-            console.log(`[MemoryStore] Toggled event lock: ${eventId} -> ${newLockState}`);
+            console.log(
+                `[MemoryStore] Toggled event lock: ${eventId} -> ${newLockState}`,
+            );
             return newLockState;
         } catch (error) {
-            console.error('[MemoryStore] Failed to toggle event lock:', error);
+            console.error("[MemoryStore] Failed to toggle event lock:", error);
             return false;
         }
     },
 
     getAllEvents: async () => {
         const db = getCurrentDb();
-        if (!db) {return [];}
+        if (!db) return [];
 
         try {
-            return await db.events.orderBy('timestamp').toArray();
+            return await db.events.orderBy("timestamp").toArray();
         } catch (error) {
-            console.error('[MemoryStore] Failed to get all events:', error);
+            console.error("[MemoryStore] Failed to get all events:", error);
             return [];
         }
     },
 
     getArchivedEventSummaries: async () => {
         const db = tryGetCurrentDb();
-        if (!db) {return '';}
+        if (!db) return "";
 
         try {
             const events = await db.events.toArray();
-            const archivedEvents = events.filter(e => e.is_archived === true);
+            const archivedEvents = events.filter((e) => e.is_archived === true);
 
-            if (archivedEvents.length === 0) {return '';}
+            if (archivedEvents.length === 0) return "";
             archivedEvents.sort((a, b) => a.timestamp - b.timestamp);
 
-            const summaries = archivedEvents.map(e => e.summary).join('\n\n');
+            const summaries = archivedEvents.map((e) => e.summary).join("\n\n");
             return `<archived_summary>\n${summaries}\n</archived_summary>`;
         } catch (error) {
-            console.error('[MemoryStore] Failed to get archived event summaries:', error);
-            return '';
+            console.error(
+                "[MemoryStore] Failed to get archived event summaries:",
+                error,
+            );
+            return "";
         }
     },
 
@@ -311,81 +374,105 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (set, get
 
     getAgenticIndex: async () => {
         const db = tryGetCurrentDb();
-        if (!db) {return '';}
+        if (!db) return "";
 
         try {
             const events = await db.events.toArray();
-            if (events.length === 0) {return '';}
+            if (events.length === 0) return "";
 
             // 分区：蓝灯（活跃）和 绿灯（归档）
-            const activeEvents = events.filter(e => !e.is_archived && e.level === 0);
-            const archivedEvents = events.filter(e => e.is_archived);
+            const activeEvents = events.filter((e) =>
+                !e.is_archived && e.level === 0
+            );
+            const archivedEvents = events.filter((e) => e.is_archived);
 
             // 按时间排序
             activeEvents.sort((a, b) => a.timestamp - b.timestamp);
             archivedEvents.sort((a, b) => a.timestamp - b.timestamp);
 
             // 构建极简 XML record（仅使用 structured_kv，不含 summary 长文本）
-            const escapeXml = (s: string) => s.replaceAll(/&/g, '&amp;').replaceAll(/"/g, '&quot;').replaceAll(/</g, '&lt;').replaceAll(/>/g, '&gt;');
+            const escapeXml = (s: string) =>
+                s.replaceAll(/&/g, "&amp;").replaceAll(/"/g, "&quot;")
+                    .replaceAll(/</g, "&lt;").replaceAll(/>/g, "&gt;");
 
             const buildRecord = (e: EventNode, extraAttrs?: string) => {
                 const kv = e.structured_kv;
                 const attrs = [
                     `id="${e.id}"`,
-                    `event="${escapeXml(kv?.event || '')}"`,
-                    kv?.role?.length ? `role="${escapeXml(kv.role.join(', '))}"` : '',
-                    kv?.location?.length ? `location="${escapeXml(kv.location.join(', '))}"` : '',
-                    kv?.causality ? `causality="${escapeXml(kv.causality)}"` : '',
-                    extraAttrs || '',
-                ].filter(Boolean).join(' ');
+                    `event="${escapeXml(kv?.event || "")}"`,
+                    kv?.role?.length
+                        ? `role="${escapeXml(kv.role.join(", "))}"`
+                        : "",
+                    kv?.location?.length
+                        ? `location="${escapeXml(kv.location.join(", "))}"`
+                        : "",
+                    kv?.causality
+                        ? `causality="${escapeXml(kv.causality)}"`
+                        : "",
+                    extraAttrs || "",
+                ].filter(Boolean).join(" ");
                 return `  <record ${attrs}/>`;
             };
 
-            const lines: string[] = ['<agentic_index>'];
+            const lines: string[] = ["<agentic_index>"];
 
             // 活跃区（蓝灯）
             if (activeEvents.length > 0) {
-                lines.push('  <active_memory>');
+                lines.push("  <active_memory>");
                 for (const e of activeEvents) {
-                    lines.push('  ' + buildRecord(e, `score_status="${e.significance_score.toFixed(2)}"`));
+                    lines.push(
+                        "  " +
+                            buildRecord(
+                                e,
+                                `score_status="${
+                                    e.significance_score.toFixed(2)
+                                }"`,
+                            ),
+                    );
                 }
-                lines.push('  </active_memory>');
+                lines.push("  </active_memory>");
             }
 
             // 归档区（绿灯）
             if (archivedEvents.length > 0) {
-                lines.push('  <archived_summary>');
+                lines.push("  <archived_summary>");
                 for (const e of archivedEvents) {
-                    lines.push('  ' + buildRecord(e));
+                    lines.push("  " + buildRecord(e));
                 }
-                lines.push('  </archived_summary>');
+                lines.push("  </archived_summary>");
             }
 
-            lines.push('</agentic_index>');
-            return lines.join('\n');
+            lines.push("</agentic_index>");
+            return lines.join("\n");
         } catch (error) {
-            console.error('[MemoryStore] Failed to build agentic index:', error);
-            return '';
+            console.error(
+                "[MemoryStore] Failed to build agentic index:",
+                error,
+            );
+            return "";
         }
     },
 
     getPureActiveEvents: async () => {
         const db = tryGetCurrentDb();
-        if (!db) {return '';}
+        if (!db) return "";
 
         try {
             const events = await db.events.toArray();
             // 纯蓝灯：未归档事件（包含 Level>=1 大纲和 Level 0 详情）
-            const activeEvents = events.filter(e => !e.is_archived);
+            const activeEvents = events.filter((e) => !e.is_archived);
 
-            if (activeEvents.length === 0) {return '';}
+            if (activeEvents.length === 0) return "";
             activeEvents.sort((a, b) => a.timestamp - b.timestamp);
 
-            const summaries = activeEvents.map(e => e.summary).join('\n\n');
+            const summaries = activeEvents.map((e) => e.summary).join("\n\n");
             return `<active_events>\n${summaries}\n</active_events>`;
         } catch (error) {
-            console.error('[MemoryStore] Failed to get pure active events:', error);
-            return '';
+            console.error(
+                "[MemoryStore] Failed to get pure active events:",
+                error,
+            );
+            return "";
         }
-    }
+    },
 });

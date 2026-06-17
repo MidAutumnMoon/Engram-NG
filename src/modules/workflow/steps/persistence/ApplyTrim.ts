@@ -1,15 +1,15 @@
-import { SettingsManager } from '@/config/settings';
-import { Logger } from '@/core/logger';
-import type { EventNode } from '@/data/types/graph';
-import { MacroService } from '@/integrations/tavern';
-import { embeddingService } from '@/modules/rag';
-import { useMemoryStore } from '@/state/memoryStore';
-import { notificationService } from '@/ui/services/NotificationService';
-import type { JobContext } from '../../core/JobContext';
-import type { IStep } from '../../core/Step';
+import { SettingsManager } from "@/config/settings";
+import { Logger } from "@/core/logger";
+import type { EventNode } from "@/data/types/graph";
+import { MacroService } from "@/integrations/tavern";
+import { embeddingService } from "@/modules/rag";
+import { useMemoryStore } from "@/state/memoryStore";
+import { notificationService } from "@/ui/services/NotificationService";
+import type { JobContext } from "../../core/JobContext";
+import type { IStep } from "../../core/Step";
 
 export class ApplyTrim implements IStep {
-    name = 'ApplyTrim';
+    name = "ApplyTrim";
 
     async execute(context: JobContext): Promise<void> {
         if (context.data?.skipTrimming) {
@@ -24,7 +24,7 @@ export class ApplyTrim implements IStep {
         const parsed = context.parsedData || context.output;
 
         if (!parsed || !parsed.events || parsed.events.length === 0) {
-            throw new Error('ApplyTrim: 无有效的精简结果');
+            throw new Error("ApplyTrim: 无有效的精简结果");
         }
 
         // 我们假设精简结果只包含 1 个合并后的事件 (或者 LLM 可能返回多个？EventTrimmer 取的是 0)
@@ -33,37 +33,55 @@ export class ApplyTrim implements IStep {
 
         // 1. 保存新的合并事件
         const newEvent = await store.saveEvent({
-            summary: parsed.events.map((e: any) => e.summary).join('\n\n'), // 如果有多个，合并 summary? 或者只取第一个
+            summary: parsed.events.map((e: any) => e.summary).join("\n\n"), // 如果有多个，合并 summary? 或者只取第一个
             structured_kv: {
-                causality: 'Chain',
-                event: '精简合并',
+                causality: "Chain",
+                event: "精简合并",
                 location: Array.isArray(firstParsed.meta.location)
                     ? firstParsed.meta.location as string[]
-                    : [firstParsed.meta.location].filter((x: any) => Boolean(x)),
-                logic: this.mergeArrays(eventsToMerge.map(e => e.structured_kv.logic)),
-                role: this.mergeArrays(eventsToMerge.map(e => e.structured_kv.role)),
-                time_anchor: firstParsed.meta.time_anchor || ''
+                    : [firstParsed.meta.location].filter((x: any) =>
+                        Boolean(x)
+                    ),
+                logic: this.mergeArrays(
+                    eventsToMerge.map((e) => e.structured_kv.logic),
+                ),
+                role: this.mergeArrays(
+                    eventsToMerge.map((e) => e.structured_kv.role),
+                ),
+                time_anchor: firstParsed.meta.time_anchor || "",
             },
-            significance_score: Math.max(...eventsToMerge.map(e => e.significance_score)),
-            level: 1,  // 标记为二层精简
+            significance_score: Math.max(
+                ...eventsToMerge.map((e) => e.significance_score),
+            ),
+            level: 1, // 标记为二层精简
             is_embedded: false,
             is_archived: false,
             // V1.5: 时空归一化核心，抢占它所有子节点中最老的一个时间点并再提前 1 毫秒，确立绝对统领排序位置
-            timestamp: Math.min(...eventsToMerge.map(e => e.timestamp)) - 1,
+            timestamp: Math.min(...eventsToMerge.map((e) => e.timestamp)) - 1,
             source_range: {
-                end_index: Math.max(...eventsToMerge.map(e => e.source_range?.end_index ?? 0)),
-                start_index: Math.min(...eventsToMerge.map(e => e.source_range?.start_index ?? 0))
-            }
+                end_index: Math.max(
+                    ...eventsToMerge.map((e) => e.source_range?.end_index ?? 0),
+                ),
+                start_index: Math.min(
+                    ...eventsToMerge.map((e) =>
+                        e.source_range?.start_index ?? 0
+                    ),
+                ),
+            },
         });
 
         // 2. 联动嵌入 (Trim Linkage)
-        const sourceEventIds = eventsToMerge.map(e => e.id);
-        const settings = SettingsManager.get('apiSettings');
+        const sourceEventIds = eventsToMerge.map((e) => e.id);
+        const settings = SettingsManager.get("apiSettings");
         // @ts-expect-error
         const embeddingConfig = settings?.embeddingConfig;
 
-        if (embeddingConfig?.enabled && embeddingConfig.trigger === 'with_trim') {
-            Logger.info('ApplyTrim', '触发联动嵌入', { count: eventsToMerge.length });
+        if (
+            embeddingConfig?.enabled && embeddingConfig.trigger === "with_trim"
+        ) {
+            Logger.info("ApplyTrim", "触发联动嵌入", {
+                count: eventsToMerge.length,
+            });
             try {
                 // V1.2.2: 初始化 Embedding 服务配置，防止联动时配置丢失
                 const vectorConfig = settings?.vectorConfig;
@@ -74,8 +92,13 @@ export class ApplyTrim implements IStep {
                 await embeddingService.embedEvents(eventsToMerge);
                 await store.markEventsAsEmbedded(sourceEventIds);
             } catch (embedError) {
-                Logger.error('ApplyTrim', '联动嵌入失败', { error: embedError });
-                notificationService.warning('联动嵌入失败，但精简已完成', 'Engram');
+                Logger.error("ApplyTrim", "联动嵌入失败", {
+                    error: embedError,
+                });
+                notificationService.warning(
+                    "联动嵌入失败，但精简已完成",
+                    "Engram",
+                );
             }
         }
 
@@ -85,15 +108,15 @@ export class ApplyTrim implements IStep {
         // 4. 刷新缓存
         await MacroService.refreshCache();
 
-        Logger.success('ApplyTrim', '精简完成', {
+        Logger.success("ApplyTrim", "精简完成", {
             merged: eventsToMerge.length,
-            newEventId: newEvent.id
+            newEventId: newEvent.id,
         });
 
         context.output = {
             deletedCount: 0,
             newEvent,
-            sourceEventIds
+            sourceEventIds,
         };
     }
 

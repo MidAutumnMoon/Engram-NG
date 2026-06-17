@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface SwitchProps {
     checked: boolean;
@@ -19,7 +19,7 @@ export const Switch: React.FC<SwitchProps> = ({
     checked,
     onChange,
     disabled = false,
-    className = '',
+    className = "",
     id,
 }) => {
     const handleClick = (e: React.MouseEvent) => {
@@ -41,11 +41,12 @@ export const Switch: React.FC<SwitchProps> = ({
                 relative inline-flex h-3.5 w-9 shrink-0 cursor-pointer items-center rounded-full border
                 transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)]
                 focus:outline-none active:scale-95
-                ${checked
-                    ? 'bg-primary/20 border-primary/50 shadow-[0_0_10px_rgba(var(--primary),0.2)]'
-                    : 'bg-black/20 border-border shadow-inner'
-                }
-                ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+                ${
+                checked
+                    ? "bg-primary/20 border-primary/50 shadow-[0_0_10px_rgba(var(--primary),0.2)]"
+                    : "bg-black/20 border-border shadow-inner"
+            }
+                ${disabled ? "opacity-50 cursor-not-allowed" : ""}
                 ${className}
             `}
         >
@@ -54,12 +55,15 @@ export const Switch: React.FC<SwitchProps> = ({
                 className={`
                     pointer-events-none inline-block h-2.5 w-2.5 transform rounded-full shadow-sm ring-0
                     transition-all duration-[var(--duration-normal)] ease-[var(--ease-spring)]
-                    ${checked
-                        ? 'bg-primary shadow-[0_0_8px_rgba(var(--primary),0.8)] border border-primary-foreground/20'
-                        : 'bg-muted-foreground border border-transparent opacity-60'
-                    }
+                    ${
+                    checked
+                        ? "bg-primary shadow-[0_0_8px_rgba(var(--primary),0.8)] border border-primary-foreground/20"
+                        : "bg-muted-foreground border border-transparent opacity-60"
+                }
                 `}
-                style={{ transform: checked ? 'translateX(24px)' : 'translateX(2px)' }}
+                style={{
+                    transform: checked ? "translateX(24px)" : "translateX(2px)",
+                }}
             />
         </button>
     );

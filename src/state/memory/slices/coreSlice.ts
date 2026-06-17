@@ -1,8 +1,13 @@
-import { chatManager } from '@/data/ChatManager';
-import { type ChatDatabase, deleteDatabase, getDbForChat, tryGetDbForChat } from '@/data/db';
-import type { EventNode } from '@/data/types/graph';
-import { getCurrentChatId } from '@/integrations/tavern';
-import type { StateCreator } from 'zustand';
+import { chatManager } from "@/data/ChatManager";
+import {
+    type ChatDatabase,
+    deleteDatabase,
+    getDbForChat,
+    tryGetDbForChat,
+} from "@/data/db";
+import type { EventNode } from "@/data/types/graph";
+import { getCurrentChatId } from "@/integrations/tavern";
+import type { StateCreator } from "zustand";
 
 export interface CoreState {
     currentChatId: string | null;
@@ -19,7 +24,10 @@ export interface CoreState {
     deleteChatDatabase: () => Promise<void>;
 
     // V0.6 Compat
-    resolveScope: (chatId: string, characterName?: string) => Promise<{ id: number }>;
+    resolveScope: (
+        chatId: string,
+        characterName?: string,
+    ) => Promise<{ id: number }>;
     currentScope: { id: number } | null;
 }
 
@@ -28,7 +36,7 @@ export interface CoreState {
  */
 export function getCurrentDb(): ChatDatabase | null {
     const chatId = getCurrentChatId();
-    if (!chatId) {return null;}
+    if (!chatId) return null;
     return getDbForChat(chatId);
 }
 
@@ -37,35 +45,44 @@ export function getCurrentDb(): ChatDatabase | null {
  */
 export function tryGetCurrentDb(): ChatDatabase | null {
     const chatId = getCurrentChatId();
-    if (!chatId) {return null;}
+    if (!chatId) return null;
     return tryGetDbForChat(chatId);
 }
 
-export const createCoreSlice: StateCreator<any, [], [], CoreState> = (set, get) => ({
+export const createCoreSlice: StateCreator<any, [], [], CoreState> = (
+    set,
+    get,
+) => ({
     clearChatDatabase: async () => {
         let db = getCurrentDb();
         if (!db) {
             // Try to initialize it if missing
             db = await get().initChat();
             if (!db) {
-                console.warn('[MemoryStore] No database available to clear');
+                console.warn("[MemoryStore] No database available to clear");
                 return;
             }
         }
 
         try {
-            await db.transaction('rw', db.events, db.entities, db.meta, async () => {
-                await db.events.clear();
-                await db.entities.clear();
-                await db.meta.clear();
-            });
+            await db.transaction(
+                "rw",
+                db.events,
+                db.entities,
+                db.meta,
+                async () => {
+                    await db.events.clear();
+                    await db.entities.clear();
+                    await db.meta.clear();
+                },
+            );
             set({
                 lastSummarizedFloor: 0,
-                recentEvents: []
+                recentEvents: [],
             });
-            console.info('[MemoryStore] Database cleared successfully');
+            console.info("[MemoryStore] Database cleared successfully");
         } catch (e) {
-            console.error('[MemoryStore] Failed to clear database:', e);
+            console.error("[MemoryStore] Failed to clear database:", e);
             throw e;
         }
     },
@@ -74,22 +91,22 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (set, get) 
     deleteChatDatabase: async () => {
         const chatId = get().currentChatId || getCurrentChatId();
         if (!chatId) {
-            throw new Error('未连接到聊天，无法删除');
+            throw new Error("未连接到聊天，无法删除");
         }
 
         try {
             await deleteDatabase(chatId);
             get().reset();
-            console.info('[MemoryStore] Database deleted successfully');
+            console.info("[MemoryStore] Database deleted successfully");
         } catch (e) {
-            console.error('[MemoryStore] Failed to delete database:', e);
+            console.error("[MemoryStore] Failed to delete database:", e);
             throw e;
         }
     },
     initChat: async () => {
         const chatId = getCurrentChatId();
         if (!chatId) {
-            console.warn('[MemoryStore] No chat_id available');
+            console.warn("[MemoryStore] No chat_id available");
             return null;
         }
 
@@ -100,7 +117,7 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (set, get) 
                 currentChatId: chatId,
                 currentScope: { id: 1 },
                 lastSummarizedFloor: state.last_summarized_floor,
-                recentEvents: []
+                recentEvents: [],
             });
         }
 
@@ -113,13 +130,14 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (set, get) 
 
     recentEvents: [],
 
-    reset: () => set({
-        currentChatId: null,
-        currentScope: null,
-        lastSummarizedFloor: 0,
-        isProcessing: false,
-        recentEvents: []
-    }),
+    reset: () =>
+        set({
+            currentChatId: null,
+            currentScope: null,
+            lastSummarizedFloor: 0,
+            isProcessing: false,
+            recentEvents: [],
+        }),
 
     resolveScope: async (chatId, _characterName) => {
         set({ currentChatId: chatId, currentScope: { id: 1 } });
@@ -133,5 +151,5 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (set, get) 
         set({ lastSummarizedFloor: floor });
     },
 
-    setProcessing: (isProcessing) => set({ isProcessing })
+    setProcessing: (isProcessing) => set({ isProcessing }),
 });

@@ -1,4 +1,4 @@
-export type TrimTriggerType = 'token' | 'count';
+export type TrimTriggerType = "token" | "count";
 
 export interface TrimConfig {
     /** 是否启用精简 */
@@ -17,7 +17,7 @@ export interface TrimConfig {
     previewEnabled?: boolean;
 }
 
-export type EntityTriggerType = 'floor' | 'manual';
+export type EntityTriggerType = "floor" | "manual";
 
 export interface EntityExtractConfig {
     /** 是否启用自动提取 */

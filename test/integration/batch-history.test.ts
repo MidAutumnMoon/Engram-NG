@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // 1. 全局 Mock
-vi.mock('@/core/logger', () => ({
+vi.mock("@/core/logger", () => ({
     Logger: {
         debug: vi.fn(),
         info: vi.fn(),
@@ -10,8 +10,8 @@ vi.mock('@/core/logger', () => ({
         success: vi.fn(),
     },
     LogModule: {
-        BATCH: 'BATCH',
-        MEMORY: 'MEMORY',
+        BATCH: "BATCH",
+        MEMORY: "MEMORY",
     },
 }));
 
@@ -32,105 +32,122 @@ const mocks = vi.hoisted(() => ({
     },
     mockChatManager: {
         getState: vi.fn().mockResolvedValue({ current_floor: 100 }),
-    }
+    },
 }));
 
-vi.mock('@/modules/memory', () => ({
+vi.mock("@/modules/memory", () => ({
     summarizerService: mocks.mockSummarizer,
 }));
 
-vi.mock('@/modules/memory/EntityBuilder', () => ({
+vi.mock("@/modules/memory/EntityBuilder", () => ({
     entityBuilder: mocks.mockEntityBuilder,
 }));
 
-vi.mock('@/modules/memory/EntityExtractor', () => ({
+vi.mock("@/modules/memory/EntityExtractor", () => ({
     entityBuilder: mocks.mockEntityBuilder,
 }));
 
-vi.mock('@/modules/memory/EventTrimmer', () => ({
+vi.mock("@/modules/memory/EventTrimmer", () => ({
     eventTrimmer: mocks.mockEventTrimmer,
 }));
 
-vi.mock('@/data/ChatManager', () => ({
+vi.mock("@/data/ChatManager", () => ({
     chatManager: mocks.mockChatManager,
 }));
 
 // Mock MacroService
-vi.mock('@/integrations/tavern', () => ({
+vi.mock("@/integrations/tavern", () => ({
     MacroService: {
         getCurrentMessageCount: vi.fn(() => 100),
-    }
+    },
 }));
 
-import { HistoryTask } from '@/modules/batch/tasks/HistoryTask';
+import { HistoryTask } from "@/modules/batch/tasks/HistoryTask";
 
-describe('HistoryTask Integration Tests', () => {
+describe("HistoryTask Integration Tests", () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    describe('estimate', () => {
-        it('should correctly calculate task range and counts', async () => {
-            const task = new HistoryTask(1, 50, ['summary', 'entity']);
+    describe("estimate", () => {
+        it("should correctly calculate task range and counts", async () => {
+            const task = new HistoryTask(1, 50, ["summary", "entity"]);
             const tasks = await task.estimate();
 
-            const summaryTasks = tasks.filter(t => t.type === 'summary');
-            const entityTasks = tasks.filter(t => t.type === 'entity');
+            const summaryTasks = tasks.filter((t) => t.type === "summary");
+            const entityTasks = tasks.filter((t) => t.type === "entity");
 
             expect(summaryTasks.length).toBe(1);
             expect(entityTasks.length).toBe(1);
             expect(summaryTasks[0].progress.total).toBe(3);
         });
 
-        it('should handle zero or negative startFloor by clamping to 1', async () => {
-            const task = new HistoryTask(0, 5, ['summary']);
+        it("should handle zero or negative startFloor by clamping to 1", async () => {
+            const task = new HistoryTask(0, 5, ["summary"]);
             const tasks = await task.estimate();
-            const summaryTask = tasks.find(t => t.type === 'summary');
+            const summaryTask = tasks.find((t) => t.type === "summary");
             expect(summaryTask?.floorRange?.start).toBe(1);
         });
     });
 
-    describe('execute', () => {
-        it('should call services with correct parameters during execution', async () => {
-            const task = new HistoryTask(1, 5, ['summary', 'entity']);
+    describe("execute", () => {
+        it("should call services with correct parameters during execution", async () => {
+            const task = new HistoryTask(1, 5, ["summary", "entity"]);
             const subTasks = await task.estimate();
-            
+
             const checkStopSignal = vi.fn(() => false);
             const updateContext = vi.fn();
 
-            const generator = task.execute(subTasks, checkStopSignal, updateContext);
-            
+            const generator = task.execute(
+                subTasks,
+                checkStopSignal,
+                updateContext,
+            );
+
             for await (const _ of generator) {
                 // ...
             }
 
-            expect(mocks.mockSummarizer.triggerSummary).toHaveBeenCalledWith(true, [1, 5]);
-            expect(mocks.mockEntityBuilder.extractByRange).toHaveBeenCalledWith([1, 5], true);
+            expect(mocks.mockSummarizer.triggerSummary).toHaveBeenCalledWith(
+                true,
+                [1, 5],
+            );
+            expect(mocks.mockEntityBuilder.extractByRange).toHaveBeenCalledWith(
+                [1, 5],
+                true,
+            );
         });
 
-        it('should stop execution when stop signal is triggered', async () => {
-            const task = new HistoryTask(1, 10, ['summary', 'entity']);
+        it("should stop execution when stop signal is triggered", async () => {
+            const task = new HistoryTask(1, 10, ["summary", "entity"]);
             const subTasks = await task.estimate();
-            
+
             let stop = false;
             const checkStopSignal = vi.fn(() => stop);
             const updateContext = vi.fn();
 
             // 在第一个任务调用后立即停止
-            mocks.mockSummarizer.triggerSummary.mockImplementationOnce(async () => {
-                stop = true;
-                return { success: true };
-            });
+            mocks.mockSummarizer.triggerSummary.mockImplementationOnce(
+                async () => {
+                    stop = true;
+                    return { success: true };
+                },
+            );
 
-            const generator = task.execute(subTasks, checkStopSignal, updateContext);
-            
+            const generator = task.execute(
+                subTasks,
+                checkStopSignal,
+                updateContext,
+            );
+
             for await (const _ of generator) {
                 // ...
             }
 
             expect(mocks.mockSummarizer.triggerSummary).toHaveBeenCalled();
             // 因为在 summary 结束后 yield 之前就 checkSignal 了，或者在 main loop 检查了，entity 不该被调
-            expect(mocks.mockEntityBuilder.extractByRange).not.toHaveBeenCalled();
+            expect(mocks.mockEntityBuilder.extractByRange).not
+                .toHaveBeenCalled();
         });
     });
 });

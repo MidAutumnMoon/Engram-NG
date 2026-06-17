@@ -2,21 +2,21 @@
  * WorldInfoPosition - 世界书条目位置类型
  */
 export type WorldInfoPosition =
-    | 'before_character_definition'
-    | 'after_character_definition'
-    | 'before_example_messages'
-    | 'after_example_messages'
-    | 'at_depth';
+    | "before_character_definition"
+    | "after_character_definition"
+    | "before_example_messages"
+    | "after_example_messages"
+    | "at_depth";
 
 /**
  * WorldInfoStrategy - 世界书条目策略类型
  */
-type WorldInfoStrategy = 'constant' | 'selective' | 'vectorized';
+type WorldInfoStrategy = "constant" | "selective" | "vectorized";
 
 /**
  * WorldInfoRole - 世界书条目角色
  */
-export type WorldInfoRole = 'system' | 'assistant' | 'user';
+export type WorldInfoRole = "system" | "assistant" | "user";
 
 /**
  * CreateWorldInfoEntryParams - 创建世界书条目的参数

@@ -1,5 +1,5 @@
-import { EventBus } from '@/core/events/types';
-import { Logger } from '@/core/logger';
+import { EventBus } from "@/core/events/types";
+import { Logger } from "@/core/logger";
 
 /**
  * Toastr 类型定义 (部分)
@@ -73,10 +73,16 @@ class NotificationService {
      * 发送成功通知
      * V0.9.10: 支持 action 跳转
      */
-    public success(message: string, title: string = 'Engram', options: NotificationOptions = {}): void {
+    public success(
+        message: string,
+        title: string = "Engram",
+        options: NotificationOptions = {},
+    ): void {
         const toastr = this.getToastr();
-        const finalOnClick = options.action?.onClick
-            ?? (options.action?.goto ? () => this.navigate(options.action!.goto!) : undefined);
+        const finalOnClick = options.action?.onClick ??
+            (options.action?.goto
+                ? () => this.navigate(options.action!.goto!)
+                : undefined);
 
         if (toastr) {
             toastr.success(message, title, {
@@ -88,17 +94,23 @@ class NotificationService {
         } else {
             console.log(`[Engram] SUCCESS: ${title} - ${message}`);
         }
-        Logger.info('Notification', `Success: ${message}`);
+        Logger.info("Notification", `Success: ${message}`);
     }
 
     /**
      * 发送信息通知
      * V0.9.10: 支持 action 跳转
      */
-    public info(message: string, title: string = 'Engram', options: NotificationOptions = {}): void {
+    public info(
+        message: string,
+        title: string = "Engram",
+        options: NotificationOptions = {},
+    ): void {
         const toastr = this.getToastr();
-        const finalOnClick = options.action?.onClick
-            ?? (options.action?.goto ? () => this.navigate(options.action!.goto!) : undefined);
+        const finalOnClick = options.action?.onClick ??
+            (options.action?.goto
+                ? () => this.navigate(options.action!.goto!)
+                : undefined);
 
         if (toastr) {
             toastr.info(message, title, {
@@ -110,17 +122,23 @@ class NotificationService {
         } else {
             console.log(`[Engram] INFO: ${title} - ${message}`);
         }
-        Logger.info('Notification', `Info: ${message}`);
+        Logger.info("Notification", `Info: ${message}`);
     }
 
     /**
      * 发送警告通知
      * V0.9.10: 支持 action 跳转
      */
-    public warning(message: string, title: string = 'Engram', options: NotificationOptions = {}): void {
+    public warning(
+        message: string,
+        title: string = "Engram",
+        options: NotificationOptions = {},
+    ): void {
         const toastr = this.getToastr();
-        const finalOnClick = options.action?.onClick
-            ?? (options.action?.goto ? () => this.navigate(options.action!.goto!) : undefined);
+        const finalOnClick = options.action?.onClick ??
+            (options.action?.goto
+                ? () => this.navigate(options.action!.goto!)
+                : undefined);
 
         if (toastr) {
             toastr.warning(message, title, {
@@ -132,19 +150,27 @@ class NotificationService {
         } else {
             console.warn(`[Engram] WARNING: ${title} - ${message}`);
         }
-        Logger.warn('Notification', `Warning: ${message}`);
+        Logger.warn("Notification", `Warning: ${message}`);
     }
 
     /**
      * 发送错误通知
      * V0.9.10: 默认点击跳转到日志页面
      */
-    public error(message: string, title: string = 'Engram', options: NotificationOptions = {}): void {
+    public error(
+        message: string,
+        title: string = "Engram",
+        options: NotificationOptions = {},
+    ): void {
         const toastr = this.getToastr();
 
         // 默认跳转到 devlog，除非用户明确指定
-        const defaultAction = options.action ?? { goto: 'devlog' };
-        const finalOnClick = this.buildClickHandler(defaultAction.onClick ?? defaultAction.goto ? () => this.navigate(defaultAction.goto!) : undefined);
+        const defaultAction = options.action ?? { goto: "devlog" };
+        const finalOnClick = this.buildClickHandler(
+            defaultAction.onClick ?? defaultAction.goto
+                ? () => this.navigate(defaultAction.goto!)
+                : undefined,
+        );
 
         if (toastr) {
             toastr.error(message, title, {
@@ -157,27 +183,30 @@ class NotificationService {
         } else {
             console.error(`[Engram] ERROR: ${title} - ${message}`);
         }
-        Logger.error('Notification', `Error: ${message}`);
+        Logger.error("Notification", `Error: ${message}`);
     }
 
     /**
      * 触发 UI 导航事件
      */
     private navigate(path: string): void {
-        Logger.info('Notification', `触发导航: ${path}`);
-        EventBus.emit({ payload: path, type: 'UI_NAVIGATE_REQUEST' });
+        Logger.info("Notification", `触发导航: ${path}`);
+        EventBus.emit({ payload: path, type: "UI_NAVIGATE_REQUEST" });
     }
 
     /**
      * 构建点击处理函数
      */
     private buildClickHandler(handler?: () => void): (() => void) | undefined {
-        if (!handler) {return undefined;}
+        if (!handler) return undefined;
         return () => {
             try {
                 handler();
             } catch (error) {
-                console.error('[Engram] Notification click handler error:', error);
+                console.error(
+                    "[Engram] Notification click handler error:",
+                    error,
+                );
             }
         };
     }
@@ -189,7 +218,11 @@ class NotificationService {
      * @param onCancel 可选的取消回调，如果提供则点击时触发取消
      * @returns toastr 对象，可用于后续手动移除
      */
-    public running(message: string, title: string = 'Engram', onCancel?: () => void): JQuery | null {
+    public running(
+        message: string,
+        title: string = "Engram",
+        onCancel?: () => void,
+    ): JQuery | null {
         const toastr = this.getToastr();
         if (toastr) {
             // 如果有取消回调，在消息末尾添加提示
@@ -198,24 +231,25 @@ class NotificationService {
                 : message;
 
             const toast = toastr.info(displayMessage, title, {
-                timeOut: 20_000,       // 最大显示 20 秒
-                extendedTimeOut: 0,   // 悬停时不延长
-                closeButton: false,   // 不显示关闭按钮
-                progressBar: true,    // 显示进度条（表示倒计时）
-                tapToDismiss: false,  // 禁止点击自动关闭，由 onclick 手动控制
-                onclick: onCancel ? () => {
-                    Logger.info('Notification', '用户取消操作');
-                    // 先手动关闭 toast，再执行取消回调
-                    this.remove(toast);
-                    onCancel();
-                } : undefined,
-                escapeHtml: false,    // 允许 HTML
+                timeOut: 20_000, // 最大显示 20 秒
+                extendedTimeOut: 0, // 悬停时不延长
+                closeButton: false, // 不显示关闭按钮
+                progressBar: true, // 显示进度条（表示倒计时）
+                tapToDismiss: false, // 禁止点击自动关闭，由 onclick 手动控制
+                onclick: onCancel
+                    ? () => {
+                        Logger.info("Notification", "用户取消操作");
+                        // 先手动关闭 toast，再执行取消回调
+                        this.remove(toast);
+                        onCancel();
+                    }
+                    : undefined,
+                escapeHtml: false, // 允许 HTML
             });
             return toast;
         }
-            console.log(`[Engram] RUNNING: ${title} - ${message}`);
-            return null;
-        
+        console.log(`[Engram] RUNNING: ${title} - ${message}`);
+        return null;
     }
 
     /**

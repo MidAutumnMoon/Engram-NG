@@ -16,12 +16,15 @@ export enum LogLevel {
 /**
  * 日志级别显示配置
  */
-export const LogLevelConfig: Record<LogLevel, { label: string; icon: string; color: string }> = {
-    [LogLevel.DEBUG]: { color: '#6c757d', icon: '●', label: 'DEBUG' },
-    [LogLevel.INFO]: { color: '#17a2b8', icon: '●', label: 'INFO' },
-    [LogLevel.SUCCESS]: { color: '#28a745', icon: '●', label: 'OK' },
-    [LogLevel.WARN]: { color: '#ffc107', icon: '▲', label: 'WARN' },
-    [LogLevel.ERROR]: { color: '#dc3545', icon: '✕', label: 'ERROR' },
+export const LogLevelConfig: Record<
+    LogLevel,
+    { label: string; icon: string; color: string }
+> = {
+    [LogLevel.DEBUG]: { color: "#6c757d", icon: "●", label: "DEBUG" },
+    [LogLevel.INFO]: { color: "#17a2b8", icon: "●", label: "INFO" },
+    [LogLevel.SUCCESS]: { color: "#28a745", icon: "●", label: "OK" },
+    [LogLevel.WARN]: { color: "#ffc107", icon: "▲", label: "WARN" },
+    [LogLevel.ERROR]: { color: "#dc3545", icon: "✕", label: "ERROR" },
 };
 
 /**

@@ -8,7 +8,7 @@ export interface JobContext {
     id: string;
 
     /** 触发方式 */
-    trigger: 'auto' | 'manual' | 'batch';
+    trigger: "auto" | "manual" | "batch";
 
     /** 任务配置 (通常对应各模块的 Config) */
     config: Record<string, any>;
@@ -18,9 +18,9 @@ export interface JobContext {
      * 不同类型的任务可能有不同的输入字段
      */
     input: {
-        text?: string;               // 原始文本输入 (Preprocessor)
-        range?: [number, number];    // 楼层范围 (Summary/Entity)
-        chatHistory?: string;        // 原始聊天记录 (Entity)
+        text?: string; // 原始文本输入 (Preprocessor)
+        range?: [number, number]; // 楼层范围 (Summary/Entity)
+        chatHistory?: string; // 原始聊天记录 (Entity)
         [key: string]: any;
     };
 

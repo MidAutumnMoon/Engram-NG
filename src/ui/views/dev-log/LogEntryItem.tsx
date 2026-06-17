@@ -6,7 +6,7 @@
  * - 支持默认展开/折叠
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from "react";
 import {
     Brain,
     ChevronDown,
@@ -24,8 +24,8 @@ import {
     Settings,
     Terminal,
     Zap,
-} from 'lucide-react';
-import type { LogEntry} from "@/core/logger";
+} from "lucide-react";
+import type { LogEntry } from "@/core/logger";
 import { LogLevel, LogLevelConfig } from "@/core/logger";
 
 interface LogEntryItemProps {
@@ -52,11 +52,11 @@ function formatTime(timestamp: number): string {
 
 // 级别样式映射 - 简洁配色（加深 DEBUG 颜色）
 const LEVEL_STYLES: Record<LogLevel, { text: string; bg: string }> = {
-    [LogLevel.DEBUG]: { bg: 'bg-zinc-500/15', text: 'text-zinc-400' },
-    [LogLevel.INFO]: { bg: 'bg-blue-500/10', text: 'text-blue-400' },
-    [LogLevel.SUCCESS]: { bg: 'bg-emerald-500/10', text: 'text-emerald-400' },
-    [LogLevel.WARN]: { bg: 'bg-amber-500/10', text: 'text-amber-400' },
-    [LogLevel.ERROR]: { bg: 'bg-red-500/10', text: 'text-red-400' },
+    [LogLevel.DEBUG]: { bg: "bg-zinc-500/15", text: "text-zinc-400" },
+    [LogLevel.INFO]: { bg: "bg-blue-500/10", text: "text-blue-400" },
+    [LogLevel.SUCCESS]: { bg: "bg-emerald-500/10", text: "text-emerald-400" },
+    [LogLevel.WARN]: { bg: "bg-amber-500/10", text: "text-amber-400" },
+    [LogLevel.ERROR]: { bg: "bg-red-500/10", text: "text-red-400" },
 };
 
 /**
@@ -65,29 +65,29 @@ const LEVEL_STYLES: Record<LogLevel, { text: string; bg: string }> = {
  */
 const MODULE_ICONS: Record<string, LucideIcon> = {
     // 系统核心
-    'System': Terminal,
+    "System": Terminal,
     // 集成层
-    'STBridge': Link,
-    'TavernAPI': Server,
-    'Tavern': Server,
+    "STBridge": Link,
+    "TavernAPI": Server,
+    "Tavern": Server,
     // 记忆管理
-    'Summarizer': Brain,
-    'Memory': Brain,
+    "Summarizer": Brain,
+    "Memory": Brain,
     // RAG 系统
-    'RAG': Search,
+    "RAG": Search,
     // 设置与配置
-    'SettingsManager': Settings,
-    'ThemeManager': Palette,
+    "SettingsManager": Settings,
+    "ThemeManager": Palette,
     // 宏处理
-    'MacroService': FileCode,
+    "MacroService": FileCode,
     // 数据层
-    'Data': Database,
+    "Data": Database,
     // 预处理
-    'Preprocess': Cpu,
+    "Preprocess": Cpu,
     // 批处理
-    'Batch': Zap,
+    "Batch": Zap,
     // LLM
-    'LLM': CloudCog,
+    "LLM": CloudCog,
 };
 
 /**
@@ -99,7 +99,7 @@ function getModuleIcon(module: string): LucideIcon {
         return MODULE_ICONS[module];
     }
     // 前缀匹配（例如 RAG/Inject -> RAG）
-    const prefix = module.split('/')[0];
+    const prefix = module.split("/")[0];
     if (MODULE_ICONS[prefix]) {
         return MODULE_ICONS[prefix];
     }
@@ -110,9 +110,12 @@ function getModuleIcon(module: string): LucideIcon {
 /**
  * 单条日志项
  */
-export const LogEntryItem: React.FC<LogEntryItemProps> = ({ entry, defaultExpanded = false }) => {
+export const LogEntryItem: React.FC<LogEntryItemProps> = (
+    { entry, defaultExpanded = false },
+) => {
     // 自动展开错误和警告
-    const autoExpand = entry.level === LogLevel.WARN || entry.level === LogLevel.ERROR;
+    const autoExpand = entry.level === LogLevel.WARN ||
+        entry.level === LogLevel.ERROR;
     const [expanded, setExpanded] = useState(defaultExpanded || autoExpand);
     const hasData = entry.data !== undefined;
     const levelConfig = LogLevelConfig[entry.level];
@@ -131,19 +134,23 @@ export const LogEntryItem: React.FC<LogEntryItemProps> = ({ entry, defaultExpand
                 className={`
                     flex items-start gap-3 px-2 py-1 rounded-sm transition-colors
                     hover:bg-white/[0.02]
-                    ${hasData ? 'cursor-pointer' : ''}
+                    ${hasData ? "cursor-pointer" : ""}
                 `}
                 onClick={() => hasData && setExpanded(!expanded)}
             >
                 {/* 展开箭头 */}
                 <span className="flex items-center text-zinc-600 shrink-0 mt-0.5 w-3">
-                    {hasData ? (
-                        expanded ? (
-                            <ChevronDown size={12} />
-                        ) : (
-                            <ChevronRight size={12} />
+                    {hasData
+                        ? (
+                            expanded
+                                ? (
+                                    <ChevronDown size={12} />
+                                )
+                                : (
+                                    <ChevronRight size={12} />
+                                )
                         )
-                    ) : null}
+                        : null}
                 </span>
 
                 {/* 时间戳 - 加深颜色 */}
@@ -152,10 +159,12 @@ export const LogEntryItem: React.FC<LogEntryItemProps> = ({ entry, defaultExpand
                 </span>
 
                 {/* 级别标签 - 紧凑样式 */}
-                <span className={`
+                <span
+                    className={`
                     shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded
                     ${levelStyle.text} ${levelStyle.bg}
-                `}>
+                `}
+                >
                     {levelConfig.label}
                 </span>
 
@@ -199,23 +208,35 @@ export const LogGroup: React.FC<LogGroupProps> = ({
     }, [defaultExpanded]);
 
     // 分组信息
-    const groupModule = entries[0]?.module || 'Unknown';
+    const groupModule = entries[0]?.module || "Unknown";
     const entryCount = entries.length;
     const firstEntry = entries[0];
     const lastEntry = entries.at(-1);
 
     // 获取最高级别（用于显示颜色）
-    const highestLevel = useMemo(() => entries.reduce((max, e) => Math.max(max, e.level), LogLevel.DEBUG) as LogLevel, [entries]);
+    const highestLevel = useMemo(
+        () =>
+            entries.reduce(
+                (max, e) => Math.max(max, e.level),
+                LogLevel.DEBUG,
+            ) as LogLevel,
+        [entries],
+    );
     const levelStyle = LEVEL_STYLES[highestLevel];
 
     // 时间范围
     const timeRange = firstEntry && lastEntry
-        ? `${formatTime(firstEntry.timestamp)} - ${formatTime(lastEntry.timestamp)}`
-        : '';
+        ? `${formatTime(firstEntry.timestamp)} - ${
+            formatTime(lastEntry.timestamp)
+        }`
+        : "";
 
     // 单条日志不需要分组头
     if (entryCount === 1) {
-        return <LogEntryItem entry={entries[0]} defaultExpanded={defaultDataExpanded} />;
+        return <LogEntryItem
+            entry={entries[0]}
+            defaultExpanded={defaultDataExpanded}
+        />;
     }
 
     return (
@@ -227,7 +248,9 @@ export const LogGroup: React.FC<LogGroupProps> = ({
             >
                 {/* 展开箭头 */}
                 <span className="text-zinc-500 shrink-0">
-                    {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                    {expanded
+                        ? <ChevronDown size={12} />
+                        : <ChevronRight size={12} />}
                 </span>
 
                 {/* 分组图标 - 根据模块显示对应图标 */}
@@ -242,7 +265,9 @@ export const LogGroup: React.FC<LogGroupProps> = ({
                 </span>
 
                 {/* 计数标签 */}
-                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${levelStyle.bg} ${levelStyle.text}`}>
+                <span
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${levelStyle.bg} ${levelStyle.text}`}
+                >
                     {entryCount} 条
                 </span>
 
@@ -273,7 +298,7 @@ export const LogGroup: React.FC<LogGroupProps> = ({
  * 连续相同模块的日志会被合并到一个组里
  */
 export function groupLogsByModule(logs: LogEntry[]): LogEntry[][] {
-    if (logs.length === 0) {return [];}
+    if (logs.length === 0) return [];
 
     const groups: LogEntry[][] = [];
     let currentGroup: LogEntry[] = [];
@@ -300,4 +325,3 @@ export function groupLogsByModule(logs: LogEntry[]): LogEntry[][] {
 
     return groups;
 }
-

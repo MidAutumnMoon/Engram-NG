@@ -5,7 +5,7 @@
  * 采用双重监听策略，确保在酒馆主界面和插件窗口内均可触发。
  */
 
-import { Logger } from '@/core/logger';
+import { Logger } from "@/core/logger";
 
 interface ShortcutConfig {
     key: string;
@@ -25,7 +25,7 @@ interface RegisteredShortcut {
     description: string;
 }
 
-const MODULE = 'KeyboardManager';
+const MODULE = "KeyboardManager";
 
 class KeyboardManager {
     private shortcuts = new Map<string, RegisteredShortcut>();
@@ -43,7 +43,7 @@ class KeyboardManager {
      */
     start(): void {
         if (this.isEnabled) {
-            Logger.debug(MODULE, '键盘监听已处于活动状态');
+            Logger.debug(MODULE, "键盘监听已处于活动状态");
             return;
         }
 
@@ -51,23 +51,35 @@ class KeyboardManager {
         try {
             const parentDoc = window.parent?.document;
             if (parentDoc && parentDoc !== document) {
-                parentDoc.addEventListener('keydown', this.boundKeydownHandler, true);
-                Logger.debug(MODULE, '已挂载父窗口监听器');
+                parentDoc.addEventListener(
+                    "keydown",
+                    this.boundKeydownHandler,
+                    true,
+                );
+                Logger.debug(MODULE, "已挂载父窗口监听器");
             }
         } catch (error) {
-            Logger.warn(MODULE, '无法访问父窗口，这在独立开发环境是正常的', error);
+            Logger.warn(
+                MODULE,
+                "无法访问父窗口，这在独立开发环境是正常的",
+                error,
+            );
         }
 
         // 策略 2: 监听当前窗口（备用策略 - 插件内焦点）
         try {
-            document.addEventListener('keydown', this.boundKeydownHandler, true);
-            Logger.debug(MODULE, '已挂载本地窗口监听器');
+            document.addEventListener(
+                "keydown",
+                this.boundKeydownHandler,
+                true,
+            );
+            Logger.debug(MODULE, "已挂载本地窗口监听器");
         } catch (error) {
-            Logger.warn(MODULE, '挂载本地监听器失败', error);
+            Logger.warn(MODULE, "挂载本地监听器失败", error);
         }
 
         this.isEnabled = true;
-        Logger.info(MODULE, '键盘快捷键系统启动');
+        Logger.info(MODULE, "键盘快捷键系统启动");
     }
 
     /**
@@ -75,25 +87,33 @@ class KeyboardManager {
      * 移除所有挂载的事件监听器
      */
     stop(): void {
-        if (!this.isEnabled) {return;}
+        if (!this.isEnabled) return;
 
         try {
             const parentDoc = window.parent?.document;
             if (parentDoc && parentDoc !== document) {
-                parentDoc.removeEventListener('keydown', this.boundKeydownHandler, true);
+                parentDoc.removeEventListener(
+                    "keydown",
+                    this.boundKeydownHandler,
+                    true,
+                );
             }
         } catch {
             // 忽略访问错误
         }
 
         try {
-            document.removeEventListener('keydown', this.boundKeydownHandler, true);
+            document.removeEventListener(
+                "keydown",
+                this.boundKeydownHandler,
+                true,
+            );
         } catch {
             // 忽略错误
         }
 
         this.isEnabled = false;
-        Logger.debug(MODULE, '键盘监听已停止');
+        Logger.debug(MODULE, "键盘监听已停止");
     }
 
     /**
@@ -115,13 +135,19 @@ class KeyboardManager {
             shift: config.shift || false,
         });
 
-        Logger.debug(MODULE, `已注册快捷键: ${shortcutKey} (${config.description})`);
+        Logger.debug(
+            MODULE,
+            `已注册快捷键: ${shortcutKey} (${config.description})`,
+        );
     }
 
     /**
      * 注销快捷键
      */
-    unregister(key: string, options: { ctrl?: boolean; shift?: boolean; alt?: boolean } = {}): void {
+    unregister(
+        key: string,
+        options: { ctrl?: boolean; shift?: boolean; alt?: boolean } = {},
+    ): void {
         const shortcutKey = this.generateShortcutKey(key, options);
         if (this.shortcuts.has(shortcutKey)) {
             this.shortcuts.delete(shortcutKey);
@@ -143,13 +169,16 @@ class KeyboardManager {
      * 生成标准化的快捷键标识字符串
      * 顺序：ctrl -> shift -> alt -> key
      */
-    private generateShortcutKey(key: string, options: { ctrl?: boolean; shift?: boolean; alt?: boolean }): string {
+    private generateShortcutKey(
+        key: string,
+        options: { ctrl?: boolean; shift?: boolean; alt?: boolean },
+    ): string {
         const parts: string[] = [];
-        if (options.ctrl) {parts.push('ctrl');}
-        if (options.shift) {parts.push('shift');}
-        if (options.alt) {parts.push('alt');}
+        if (options.ctrl) parts.push("ctrl");
+        if (options.shift) parts.push("shift");
+        if (options.alt) parts.push("alt");
         parts.push(key.toLowerCase());
-        return parts.join('+');
+        return parts.join("+");
     }
 
     /**
@@ -191,7 +220,11 @@ class KeyboardManager {
             try {
                 shortcut.callback();
             } catch (error) {
-                Logger.error(MODULE, `快捷键回调执行异常: ${currentKey}`, error);
+                Logger.error(
+                    MODULE,
+                    `快捷键回调执行异常: ${currentKey}`,
+                    error,
+                );
             }
         }
     }
@@ -200,12 +233,12 @@ class KeyboardManager {
      * 检测焦点是否在输入控件上
      */
     private isTyping(element: Element | null): boolean {
-        if (!element) {return false;}
+        if (!element) return false;
 
-        const {tagName} = element;
+        const { tagName } = element;
 
         // 标准输入元素
-        if (tagName === 'INPUT' || tagName === 'TEXTAREA') {
+        if (tagName === "INPUT" || tagName === "TEXTAREA") {
             return true;
         }
 
@@ -215,8 +248,8 @@ class KeyboardManager {
         }
 
         // SillyTavern 特定的输入区域
-        const {id} = element;
-        if (id === 'send_textarea' || id === 'prompt-input') {
+        const { id } = element;
+        if (id === "send_textarea" || id === "prompt-input") {
             return true;
         }
 
@@ -229,7 +262,7 @@ class KeyboardManager {
     destroy(): void {
         this.stop();
         this.shortcuts.clear();
-        Logger.debug(MODULE, '键盘管理器资源已释放');
+        Logger.debug(MODULE, "键盘管理器资源已释放");
     }
 }
 
@@ -246,13 +279,15 @@ export interface KeyboardShortcutCallbacks {
 /**
  * 设置全局快捷键的辅助函数
  */
-export function setupKeyboardShortcuts(callbacks: KeyboardShortcutCallbacks): void {
+export function setupKeyboardShortcuts(
+    callbacks: KeyboardShortcutCallbacks,
+): void {
     // Ctrl+Shift+E: 切换主面板
     keyboardManager.register({
         callback: callbacks.toggleMainPanel,
         ctrl: true,
-        description: 'Ctrl+Shift+E - 切换主面板',
-        key: 'e',
+        description: "Ctrl+Shift+E - 切换主面板",
+        key: "e",
         shift: true,
     });
 
@@ -260,22 +295,26 @@ export function setupKeyboardShortcuts(callbacks: KeyboardShortcutCallbacks): vo
     keyboardManager.register({
         callback: callbacks.toggleQuickPanel,
         ctrl: true,
-        description: 'Ctrl+Q - 切换快捷面板',
-        key: 'q',
+        description: "Ctrl+Q - 切换快捷面板",
+        key: "q",
     });
 
     // Ctrl+K: 打开命令面板 (Command Palette)
     keyboardManager.register({
         callback: callbacks.openCommandPalette,
         ctrl: true,
-        description: 'Ctrl+K - 打开命令面板',
-        key: 'k',
+        description: "Ctrl+K - 打开命令面板",
+        key: "k",
     });
 
     // 启动服务
     keyboardManager.start();
 
-    Logger.info(MODULE, '快捷键已注册', keyboardManager.getRegisteredShortcuts());
+    Logger.info(
+        MODULE,
+        "快捷键已注册",
+        keyboardManager.getRegisteredShortcuts(),
+    );
 }
 
 if ((import.meta as any).hot) {

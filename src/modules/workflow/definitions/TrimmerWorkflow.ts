@@ -1,4 +1,4 @@
-import type { WorkflowDefinition } from '../core/WorkflowEngine';
+import type { WorkflowDefinition } from "../core/WorkflowEngine";
 import {
     ApplyTrim,
     BuildPrompt,
@@ -7,11 +7,11 @@ import {
     FormatTrimInput,
     LlmRequest,
     ParseJson,
-    StopGeneration
-} from '../steps';
+    StopGeneration,
+} from "../steps";
 
 export const createTrimmerWorkflow = (): WorkflowDefinition => ({
-    name: 'TrimmerWorkflow',
+    name: "TrimmerWorkflow",
     steps: [
         new StopGeneration(),
         new FetchEventsToTrim(),
@@ -21,11 +21,10 @@ export const createTrimmerWorkflow = (): WorkflowDefinition => ({
         // 实际上 `LlmRequest` 会拿 prompt。`BuildPrompt` 负责把 input 里的变量塞进 template。
         // 我们需要在 BuildPrompt 增加 {{eventsText}} 的支持 (如果不在 contextMapping 里的话)。
         // V0.9.1 Preprocessor 使用 input.text. 这里我们用 FormatTrimInput 将结果放在 input.eventsText
-        new BuildPrompt({ category: 'trimming' }), // 会找 'builtin_trim'
+        new BuildPrompt({ category: "trimming" }), // 会找 'builtin_trim'
         new LlmRequest(), // 返回 JSON string
-        new CleanRegex('output'),  // V0.9.1: 清洗思维链等标签
-        new ParseJson(),  // 解析为 Object
-        new ApplyTrim()
-    ]
+        new CleanRegex("output"), // V0.9.1: 清洗思维链等标签
+        new ParseJson(), // 解析为 Object
+        new ApplyTrim(),
+    ],
 });
-

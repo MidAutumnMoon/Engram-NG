@@ -5,13 +5,20 @@
  * - KV 自动烧录进 summary（始终开启）
  * - 编辑即时反馈到父组件
  */
-import type { EventNode } from '@/data/types/graph';
-import { TextField } from '@/ui/components/form/FormComponents';
-import { Divider } from '@/ui/components/layout/Divider';
-import { useResponsive } from '@/ui/hooks/useResponsive';
-import { debounce } from 'lodash';
-import { Archive, ArrowLeft, Lock, LockOpen, Trash2 } from 'lucide-react';
-import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import type { EventNode } from "@/data/types/graph";
+import { TextField } from "@/ui/components/form/FormComponents";
+import { Divider } from "@/ui/components/layout/Divider";
+import { useResponsive } from "@/ui/hooks/useResponsive";
+import { debounce } from "lodash";
+import { Archive, ArrowLeft, Lock, LockOpen, Trash2 } from "lucide-react";
+import React, {
+    useCallback,
+    useEffect,
+    useImperativeHandle,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 
 // ==================== 类型定义 ====================
 
@@ -37,7 +44,7 @@ interface FieldOverrides {
     roleText?: string;
     logicText?: string;
     score?: number;
-    summary?: string;  // V1.2.9: Add summary to avoid stale closure
+    summary?: string; // V1.2.9: Add summary to avoid stale closure
     isArchived?: boolean;
     isLocked?: boolean;
 }
@@ -45,23 +52,23 @@ interface FieldOverrides {
 // ==================== 样式 ====================
 
 const inputStyle: React.CSSProperties = {
-    background: 'transparent',
-    backgroundColor: 'transparent',
-    border: 'none',
-    borderBottom: '1px solid var(--border)',
+    background: "transparent",
+    backgroundColor: "transparent",
+    border: "none",
+    borderBottom: "1px solid var(--border)",
     borderRadius: 0,
-    boxShadow: 'none',
-    color: 'var(--foreground, inherit)',
-    fontSize: '14px',
-    outline: 'none',
-    padding: '8px 0',
-    width: '100%',
+    boxShadow: "none",
+    color: "var(--foreground, inherit)",
+    fontSize: "14px",
+    outline: "none",
+    padding: "8px 0",
+    width: "100%",
 };
 
 const textareaStyle: React.CSSProperties = {
     ...inputStyle,
-    minHeight: '80px',
-    resize: 'vertical',
+    minHeight: "80px",
+    resize: "vertical",
 };
 
 // ==================== KV 烧录函数 ====================
@@ -69,13 +76,17 @@ const textareaStyle: React.CSSProperties = {
 /**
  * 根据 KV 字段自动生成 summary
  */
-function generateSummaryFromKV(kv: Partial<EventNode['structured_kv']> | null | undefined): string {
-    if (!kv) {return '';}
+function generateSummaryFromKV(
+    kv: Partial<EventNode["structured_kv"]> | null | undefined,
+): string {
+    if (!kv) return "";
 
     const parts: string[] = [];
 
     // 时间和地点
-    const locationStr = Array.isArray(kv.location) ? kv.location.join(', ') : (kv.location || '');
+    const locationStr = Array.isArray(kv.location)
+        ? kv.location.join(", ")
+        : (kv.location || "");
     if (kv.time_anchor && locationStr) {
         parts.push(`【${kv.time_anchor}·${locationStr}】`);
     } else if (kv.time_anchor) {
@@ -86,7 +97,7 @@ function generateSummaryFromKV(kv: Partial<EventNode['structured_kv']> | null | 
 
     // 人物
     if (Array.isArray(kv.role) && kv.role.length > 0) {
-        parts.push(kv.role.join('、'));
+        parts.push(kv.role.join("、"));
     }
 
     // 事件
@@ -96,10 +107,10 @@ function generateSummaryFromKV(kv: Partial<EventNode['structured_kv']> | null | 
 
     // 逻辑标签
     if (Array.isArray(kv.logic) && kv.logic.length > 0) {
-        parts.push(`(${kv.logic.join('/')})`);
+        parts.push(`(${kv.logic.join("/")})`);
     }
 
-    return parts.join(' ').trim();
+    return parts.join(" ").trim();
 }
 
 // ==================== 组件 ====================
@@ -114,12 +125,12 @@ export const EventEditor = ({
 }: EventEditorProps & { ref?: React.Ref<EventEditorHandle> }) => {
     const { isMobile } = useResponsive();
     // 编辑状态
-    const [summary, setSummary] = useState('');
-    const [eventType, setEventType] = useState('');
-    const [timeAnchor, setTimeAnchor] = useState('');
-    const [location, setLocation] = useState('');
-    const [roleText, setRoleText] = useState('');
-    const [logicText, setLogicText] = useState('');
+    const [summary, setSummary] = useState("");
+    const [eventType, setEventType] = useState("");
+    const [timeAnchor, setTimeAnchor] = useState("");
+    const [location, setLocation] = useState("");
+    const [roleText, setRoleText] = useState("");
+    const [logicText, setLogicText] = useState("");
     const [score, setScore] = useState(0.5);
     const [isArchived, setIsArchived] = useState(false);
     const [isLocked, setIsLocked] = useState(false);
@@ -131,21 +142,25 @@ export const EventEditor = ({
     const blurTimeoutRef = useRef<number | null>(null);
 
     useEffect(() => () => {
-            isMountedRef.current = false;
-            if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
-        }, []);
+        isMountedRef.current = false;
+        if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+    }, []);
 
     // 同步事件数据到表单
     useEffect(() => {
         if (event && event.id !== lastEventId) {
             setSummary(event.summary);
-            setEventType(event.structured_kv?.event || '');
-            setTimeAnchor(event.structured_kv?.time_anchor || '');
+            setEventType(event.structured_kv?.event || "");
+            setTimeAnchor(event.structured_kv?.time_anchor || "");
             // V1.0.2: location 现在是数组，显示为逗号分隔
             const locArray = event.structured_kv?.location || [];
-            setLocation(Array.isArray(locArray) ? locArray.join(', ') : String(locArray || ''));
-            setRoleText(event.structured_kv?.role?.join(', ') || '');
-            setLogicText(event.structured_kv?.logic?.join(', ') || '');
+            setLocation(
+                Array.isArray(locArray)
+                    ? locArray.join(", ")
+                    : String(locArray || ""),
+            );
+            setRoleText(event.structured_kv?.role?.join(", ") || "");
+            setLogicText(event.structured_kv?.logic?.join(", ") || "");
             setScore(event.significance_score);
             setIsArchived(Boolean(event.is_archived));
             setIsLocked(Boolean(event.is_locked));
@@ -155,7 +170,7 @@ export const EventEditor = ({
     }, [event, lastEventId]);
 
     const handleDelete = () => {
-        if (confirm('确定删除这个事件吗？此操作不可撤销。')) {
+        if (confirm("确定删除这个事件吗？此操作不可撤销。")) {
             onDelete?.(event!.id);
         }
     };
@@ -163,58 +178,77 @@ export const EventEditor = ({
     // V1.2.9: Use overrides.summary if provided, else auto-generate, else use state
     // Phase 1 Performance Fix: Debounce sync to avoid excessive re-renders in parent
     const syncToParentDebounced = useMemo(
-        () => debounce((id: string, updates: Partial<EventNode>) => {
-            onSave?.(id, updates);
-        }, 500),
-        [onSave]
+        () =>
+            debounce((id: string, updates: Partial<EventNode>) => {
+                onSave?.(id, updates);
+            }, 500),
+        [onSave],
     );
 
-    useEffect(() => () => syncToParentDebounced.cancel(), [syncToParentDebounced]);
+    useEffect(() => () => syncToParentDebounced.cancel(), [
+        syncToParentDebounced,
+    ]);
 
-    const syncToParent = useCallback((overrides: FieldOverrides = {}, immediate = false) => {
-        if (!event) {return;}
+    const syncToParent = useCallback(
+        (overrides: FieldOverrides = {}, immediate = false) => {
+            if (!event) return;
 
-        const fields = {
-            eventType: overrides.eventType ?? eventType,
-            isArchived: overrides.isArchived ?? isArchived,
-            isLocked: overrides.isLocked ?? isLocked,
-            location: overrides.location ?? location,
-            logicText: overrides.logicText ?? logicText,
-            roleText: overrides.roleText ?? roleText,
-            score: overrides.score ?? score,
-            timeAnchor: overrides.timeAnchor ?? timeAnchor,
-        };
+            const fields = {
+                eventType: overrides.eventType ?? eventType,
+                isArchived: overrides.isArchived ?? isArchived,
+                isLocked: overrides.isLocked ?? isLocked,
+                location: overrides.location ?? location,
+                logicText: overrides.logicText ?? logicText,
+                roleText: overrides.roleText ?? roleText,
+                score: overrides.score ?? score,
+                timeAnchor: overrides.timeAnchor ?? timeAnchor,
+            };
 
-        const splitTrim = (s: string) => s.split(',').map(v => v.trim()).filter(Boolean);
+            const splitTrim = (s: string) =>
+                s.split(",").map((v) => v.trim()).filter(Boolean);
 
-        const kv = {
-            causality: event.structured_kv?.causality || '',
-            event: fields.eventType,
-            location: splitTrim(fields.location),
-            logic: splitTrim(fields.logicText),
-            role: splitTrim(fields.roleText),
-            time_anchor: fields.timeAnchor,
-        };
+            const kv = {
+                causality: event.structured_kv?.causality || "",
+                event: fields.eventType,
+                location: splitTrim(fields.location),
+                logic: splitTrim(fields.logicText),
+                role: splitTrim(fields.roleText),
+                time_anchor: fields.timeAnchor,
+            };
 
-        const autoSummary = generateSummaryFromKV(kv);
-        // V1.4.3 Fix: 优先使用覆盖值，其次是当前手填/暂存的 summary，然后是 KV 生成的，最后兜底用数据库里的
-        const finalSummary = overrides.summary ?? summary ?? autoSummary ?? event.summary;
+            const autoSummary = generateSummaryFromKV(kv);
+            // V1.4.3 Fix: 优先使用覆盖值，其次是当前手填/暂存的 summary，然后是 KV 生成的，最后兜底用数据库里的
+            const finalSummary = overrides.summary ?? summary ?? autoSummary ??
+                event.summary;
 
-        const updates = {
-            is_archived: fields.isArchived,
-            is_locked: fields.isLocked,
-            significance_score: fields.score,
-            structured_kv: { ...event.structured_kv, ...kv },
-            summary: finalSummary,
-        };
+            const updates = {
+                is_archived: fields.isArchived,
+                is_locked: fields.isLocked,
+                significance_score: fields.score,
+                structured_kv: { ...event.structured_kv, ...kv },
+                summary: finalSummary,
+            };
 
-        if (immediate) {
-            syncToParentDebounced.cancel();
-            onSave?.(event.id, updates);
-        } else {
-            syncToParentDebounced(event.id, updates);
-        }
-    }, [event, eventType, timeAnchor, location, roleText, logicText, score, summary, onSave, syncToParentDebounced]);
+            if (immediate) {
+                syncToParentDebounced.cancel();
+                onSave?.(event.id, updates);
+            } else {
+                syncToParentDebounced(event.id, updates);
+            }
+        },
+        [
+            event,
+            eventType,
+            timeAnchor,
+            location,
+            roleText,
+            logicText,
+            score,
+            summary,
+            onSave,
+            syncToParentDebounced,
+        ],
+    );
 
     // 暴露方法给父组件
     useImperativeHandle(ref, () => ({
@@ -229,27 +263,31 @@ export const EventEditor = ({
     const handleCompositionEnd = (
         e: React.CompositionEvent<HTMLInputElement>,
         setter: (v: string) => void,
-        fieldName: keyof FieldOverrides
+        fieldName: keyof FieldOverrides,
     ) => {
         isComposingRef.current = false;
-        if (!isMountedRef.current) {return;}
+        if (!isMountedRef.current) return;
 
-        const {value} = e.currentTarget;
+        const { value } = e.currentTarget;
         setter(value);
         setIsDirty(true);
         syncToParent({ [fieldName]: value });
     };
 
-    const updateField = (setter: (v: string) => void, value: string, fieldName: keyof FieldOverrides) => {
+    const updateField = (
+        setter: (v: string) => void,
+        value: string,
+        fieldName: keyof FieldOverrides,
+    ) => {
         setter(value);
         setIsDirty(true);
-        if (!isComposingRef.current) {syncToParent({ [fieldName]: value });}
+        if (!isComposingRef.current) syncToParent({ [fieldName]: value });
     };
 
     const handleBlur = () => {
-        if (blurTimeoutRef.current) {clearTimeout(blurTimeoutRef.current);}
+        if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
         blurTimeoutRef.current = window.setTimeout(() => {
-            if (isMountedRef.current && isDirty) {syncToParent({}, true);}
+            if (isMountedRef.current && isDirty) syncToParent({}, true);
         }, 50);
     };
 
@@ -272,9 +310,11 @@ export const EventEditor = ({
                 <input
                     type="text"
                     value={eventType}
-                    onChange={(e) => updateField(setEventType, e.target.value, 'eventType')}
+                    onChange={(e) =>
+                        updateField(setEventType, e.target.value, "eventType")}
                     onCompositionStart={handleCompositionStart}
-                    onCompositionEnd={(e) => handleCompositionEnd(e, setEventType, 'eventType')}
+                    onCompositionEnd={(e) =>
+                        handleCompositionEnd(e, setEventType, "eventType")}
                     onBlur={handleBlur}
                     style={inputStyle}
                     className="placeholder:text-meta/40 focus:border-primary transition-colors text-heading"
@@ -290,9 +330,13 @@ export const EventEditor = ({
                         onClick={() => {
                             const autoSummary = generateSummaryFromKV({
                                 event: eventType,
-                                location: location.split(',').map(s => s.trim()).filter(Boolean),
-                                logic: logicText.split(',').map(s => s.trim()).filter(Boolean),
-                                role: roleText.split(',').map(s => s.trim()).filter(Boolean),
+                                location: location.split(",").map((s) =>
+                                    s.trim()
+                                ).filter(Boolean),
+                                logic: logicText.split(",").map((s) => s.trim())
+                                    .filter(Boolean),
+                                role: roleText.split(",").map((s) => s.trim())
+                                    .filter(Boolean),
                                 time_anchor: timeAnchor,
                             });
                             setSummary(autoSummary);
@@ -327,9 +371,15 @@ export const EventEditor = ({
                 <input
                     type="text"
                     value={timeAnchor}
-                    onChange={(e) => updateField(setTimeAnchor, e.target.value, 'timeAnchor')}
+                    onChange={(e) =>
+                        updateField(
+                            setTimeAnchor,
+                            e.target.value,
+                            "timeAnchor",
+                        )}
                     onCompositionStart={handleCompositionStart}
-                    onCompositionEnd={(e) => handleCompositionEnd(e, setTimeAnchor, 'timeAnchor')}
+                    onCompositionEnd={(e) =>
+                        handleCompositionEnd(e, setTimeAnchor, "timeAnchor")}
                     onBlur={handleBlur}
                     style={inputStyle}
                     className="placeholder:text-meta/40 focus:border-primary transition-colors"
@@ -343,9 +393,11 @@ export const EventEditor = ({
                 <input
                     type="text"
                     value={location}
-                    onChange={(e) => updateField(setLocation, e.target.value, 'location')}
+                    onChange={(e) =>
+                        updateField(setLocation, e.target.value, "location")}
                     onCompositionStart={handleCompositionStart}
-                    onCompositionEnd={(e) => handleCompositionEnd(e, setLocation, 'location')}
+                    onCompositionEnd={(e) =>
+                        handleCompositionEnd(e, setLocation, "location")}
                     onBlur={handleBlur}
                     style={inputStyle}
                     className="placeholder:text-meta/40 focus:border-primary transition-colors text-value"
@@ -359,9 +411,11 @@ export const EventEditor = ({
                 <input
                     type="text"
                     value={roleText}
-                    onChange={(e) => updateField(setRoleText, e.target.value, 'roleText')}
+                    onChange={(e) =>
+                        updateField(setRoleText, e.target.value, "roleText")}
                     onCompositionStart={handleCompositionStart}
-                    onCompositionEnd={(e) => handleCompositionEnd(e, setRoleText, 'roleText')}
+                    onCompositionEnd={(e) =>
+                        handleCompositionEnd(e, setRoleText, "roleText")}
                     onBlur={handleBlur}
                     style={inputStyle}
                     className="placeholder:text-meta/40 focus:border-primary transition-colors text-emphasis"
@@ -371,13 +425,17 @@ export const EventEditor = ({
 
             {/* 逻辑标签 */}
             <div className="flex flex-col gap-1">
-                <label className="text-xs text-meta">逻辑标签（逗号分隔）</label>
+                <label className="text-xs text-meta">
+                    逻辑标签（逗号分隔）
+                </label>
                 <input
                     type="text"
                     value={logicText}
-                    onChange={(e) => updateField(setLogicText, e.target.value, 'logicText')}
+                    onChange={(e) =>
+                        updateField(setLogicText, e.target.value, "logicText")}
                     onCompositionStart={handleCompositionStart}
-                    onCompositionEnd={(e) => handleCompositionEnd(e, setLogicText, 'logicText')}
+                    onCompositionEnd={(e) =>
+                        handleCompositionEnd(e, setLogicText, "logicText")}
                     onBlur={handleBlur}
                     style={inputStyle}
                     className="placeholder:text-meta/40 focus:border-primary transition-colors text-label"
@@ -389,19 +447,31 @@ export const EventEditor = ({
             <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
                     <label className="text-xs text-meta">重要性分数</label>
-                    <span className={`text-xs font-mono ${score >= 0.8 ? 'text-emphasis' : (score >= 0.5 ? 'text-value' : 'text-label')}`}>
+                    <span
+                        className={`text-xs font-mono ${
+                            score >= 0.8
+                                ? "text-emphasis"
+                                : (score >= 0.5 ? "text-value" : "text-label")
+                        }`}
+                    >
                         {score.toFixed(2)}
                     </span>
                 </div>
                 <div className="relative h-4 flex items-center group cursor-pointer">
                     <div
                         className="absolute inset-x-0 h-px"
-                        style={{ backgroundColor: 'var(--border)' }}
+                        style={{ backgroundColor: "var(--border)" }}
                     />
                     <div
-                        className={`absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full shadow-sm pointer-events-none transition-transform duration-75 ease-out group-hover:scale-125 ${score >= 0.8 ? 'bg-emphasis' : (score >= 0.5 ? 'bg-value' : 'bg-label')
-                            }`}
-                        style={{ left: `${score * 100}%`, transform: `translate(-50%, -50%)` }}
+                        className={`absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full shadow-sm pointer-events-none transition-transform duration-75 ease-out group-hover:scale-125 ${
+                            score >= 0.8
+                                ? "bg-emphasis"
+                                : (score >= 0.5 ? "bg-value" : "bg-label")
+                        }`}
+                        style={{
+                            left: `${score * 100}%`,
+                            transform: `translate(-50%, -50%)`,
+                        }}
                     />
                     <input
                         type="range"
@@ -418,7 +488,7 @@ export const EventEditor = ({
                         onTouchEnd={() => syncToParent({ score })}
                         onKeyUp={() => syncToParent({ score })}
                         className="absolute inset-x-0 w-full h-full opacity-0 cursor-pointer z-10 m-0"
-                        style={{ WebkitAppearance: 'none', appearance: 'none' }}
+                        style={{ WebkitAppearance: "none", appearance: "none" }}
                     />
                 </div>
             </div>
@@ -428,9 +498,13 @@ export const EventEditor = ({
                 <div className="flex flex-col">
                     <div className="flex items-center gap-1.5">
                         <span className="text-xs text-meta">锁定此事件</span>
-                        {isLocked ? <Lock size={12} className="text-emphasis" /> : <LockOpen size={12} className="text-meta/60" />}
+                        {isLocked
+                            ? <Lock size={12} className="text-emphasis" />
+                            : <LockOpen size={12} className="text-meta/60" />}
                     </div>
-                    <span className="text-[10px] text-meta/60">锁定后将防止该记忆在自动精简或清理时被删除</span>
+                    <span className="text-[10px] text-meta/60">
+                        锁定后将防止该记忆在自动精简或清理时被删除
+                    </span>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -444,7 +518,8 @@ export const EventEditor = ({
                             syncToParent({ isLocked: val });
                         }}
                     />
-                    <div className="w-9 h-5 bg-border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emphasis transition-colors"></div>
+                    <div className="w-9 h-5 bg-border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emphasis transition-colors">
+                    </div>
                 </label>
             </div>
 
@@ -453,9 +528,16 @@ export const EventEditor = ({
                 <div className="flex flex-col">
                     <div className="flex items-center gap-1.5">
                         <span className="text-xs text-meta">归档此事件</span>
-                        <Archive size={12} className={isArchived ? "text-primary" : "text-meta/60"} />
+                        <Archive
+                            size={12}
+                            className={isArchived
+                                ? "text-primary"
+                                : "text-meta/60"}
+                        />
                     </div>
-                    <span className="text-[10px] text-meta/60">归档后将不再参与自动摘要生成和实时上下文</span>
+                    <span className="text-[10px] text-meta/60">
+                        归档后将不再参与自动摘要生成和实时上下文
+                    </span>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -469,7 +551,8 @@ export const EventEditor = ({
                             syncToParent({ isArchived: val });
                         }}
                     />
-                    <div className="w-9 h-5 bg-border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary transition-colors"></div>
+                    <div className="w-9 h-5 bg-border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary transition-colors">
+                    </div>
                 </label>
             </div>
 
@@ -477,17 +560,32 @@ export const EventEditor = ({
 
             {/* 只读信息 */}
             <div className="space-y-1 text-xs text-meta">
-                <p>ID: <span className="font-mono">{event.id.slice(0, 8)}...</span></p>
-                <p>Level: <span className="text-value font-medium">{event.level}</span></p>
+                <p>
+                    ID:{" "}
+                    <span className="font-mono">{event.id.slice(0, 8)}...</span>
+                </p>
+                <p>
+                    Level:{" "}
+                    <span className="text-value font-medium">
+                        {event.level}
+                    </span>
+                </p>
                 {event.source_range && (
-                    <p>来源: {event.source_range.start_index}-{event.source_range.end_index}楼</p>
+                    <p>
+                        来源:{" "}
+                        {event.source_range.start_index}-{event.source_range
+                            .end_index}楼
+                    </p>
                 )}
                 <p>创建时间: {new Date(event.timestamp).toLocaleString()}</p>
                 <p>
                     状态:
-                    {event.is_archived && <span className="ml-1 text-emphasis">已归档</span>}
-                    {event.is_embedded && <span className="ml-1 text-value">已嵌入</span>}
-                    {!event.is_archived && !event.is_embedded && <span className="ml-1">活跃</span>}
+                    {event.is_archived &&
+                        <span className="ml-1 text-emphasis">已归档</span>}
+                    {event.is_embedded &&
+                        <span className="ml-1 text-value">已嵌入</span>}
+                    {!event.is_archived && !event.is_embedded &&
+                        <span className="ml-1">活跃</span>}
                 </p>
             </div>
         </>
@@ -505,7 +603,9 @@ export const EventEditor = ({
                     >
                         <ArrowLeft size={18} />
                     </button>
-                    <h2 className="text-sm font-medium text-foreground flex-1">编辑事件</h2>
+                    <h2 className="text-sm font-medium text-foreground flex-1">
+                        编辑事件
+                    </h2>
                     <div className="flex items-center gap-1">
                         <button
                             onClick={() => {
@@ -514,10 +614,17 @@ export const EventEditor = ({
                                 setIsDirty(true);
                                 syncToParent({ isArchived: val }, true);
                             }}
-                            className={`p-1.5 rounded transition-colors ${isArchived ? 'text-primary bg-primary/10' : 'text-meta hover:bg-muted/50'}`}
+                            className={`p-1.5 rounded transition-colors ${
+                                isArchived
+                                    ? "text-primary bg-primary/10"
+                                    : "text-meta hover:bg-muted/50"
+                            }`}
                             title={isArchived ? "取消归档" : "归档"}
                         >
-                            <Archive size={16} className={isArchived ? 'fill-current' : ''} />
+                            <Archive
+                                size={16}
+                                className={isArchived ? "fill-current" : ""}
+                            />
                         </button>
                         <button
                             onClick={() => {
@@ -526,10 +633,16 @@ export const EventEditor = ({
                                 setIsDirty(true);
                                 syncToParent({ isLocked: val }, true);
                             }}
-                            className={`p-1.5 rounded transition-colors ${isLocked ? 'text-emphasis bg-emphasis/10' : 'text-meta hover:bg-muted/50'}`}
+                            className={`p-1.5 rounded transition-colors ${
+                                isLocked
+                                    ? "text-emphasis bg-emphasis/10"
+                                    : "text-meta hover:bg-muted/50"
+                            }`}
                             title={isLocked ? "解锁" : "锁定"}
                         >
-                            {isLocked ? <Lock size={16} /> : <LockOpen size={16} />}
+                            {isLocked
+                                ? <Lock size={16} />
+                                : <LockOpen size={16} />}
                         </button>
                         <button
                             onClick={handleDelete}
@@ -571,7 +684,9 @@ export const EventEditor = ({
                     >
                         <ArrowLeft size={18} />
                     </button>
-                    <h3 className="text-sm font-medium text-primary flex-1">编辑事件</h3>
+                    <h3 className="text-sm font-medium text-primary flex-1">
+                        编辑事件
+                    </h3>
                     <div className="flex items-center gap-1">
                         <button
                             onClick={() => {
@@ -580,10 +695,17 @@ export const EventEditor = ({
                                 setIsDirty(true);
                                 syncToParent({ isArchived: val }, true);
                             }}
-                            className={`p-1.5 rounded transition-colors ${isArchived ? 'text-primary bg-primary/10' : 'text-meta hover:bg-muted/50'}`}
+                            className={`p-1.5 rounded transition-colors ${
+                                isArchived
+                                    ? "text-primary bg-primary/10"
+                                    : "text-meta hover:bg-muted/50"
+                            }`}
                             title={isArchived ? "取消归档" : "归档"}
                         >
-                            <Archive size={16} className={isArchived ? 'fill-current' : ''} />
+                            <Archive
+                                size={16}
+                                className={isArchived ? "fill-current" : ""}
+                            />
                         </button>
                         <button
                             onClick={() => {
@@ -592,10 +714,16 @@ export const EventEditor = ({
                                 setIsDirty(true);
                                 syncToParent({ isLocked: val }, true);
                             }}
-                            className={`p-1.5 rounded transition-colors ${isLocked ? 'text-emphasis bg-emphasis/10' : 'text-meta hover:bg-muted/50'}`}
+                            className={`p-1.5 rounded transition-colors ${
+                                isLocked
+                                    ? "text-emphasis bg-emphasis/10"
+                                    : "text-meta hover:bg-muted/50"
+                            }`}
                             title={isLocked ? "解锁" : "锁定"}
                         >
-                            {isLocked ? <Lock size={16} /> : <LockOpen size={16} />}
+                            {isLocked
+                                ? <Lock size={16} />
+                                : <LockOpen size={16} />}
                         </button>
                         <button
                             onClick={handleDelete}
@@ -616,5 +744,4 @@ export const EventEditor = ({
     );
 };
 
-EventEditor.displayName = 'EventEditor';
-
+EventEditor.displayName = "EventEditor";

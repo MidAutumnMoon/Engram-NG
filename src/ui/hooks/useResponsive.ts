@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 const DESKTOP_BREAKPOINT = 768;
 
@@ -43,13 +43,13 @@ export function useResponsive(): ResponsiveState {
         };
 
         // 监听 resize
-        window.addEventListener('resize', debouncedResize);
+        window.addEventListener("resize", debouncedResize);
 
         // 初始检测（立即执行，不走防抖）
         handleResize();
 
         return () => {
-            window.removeEventListener('resize', debouncedResize);
+            window.removeEventListener("resize", debouncedResize);
             clearTimeout(debounceTimer);
         };
     }, []);

@@ -3,8 +3,8 @@
  * 输入预处理系统类型定义
  */
 
-import type { PreprocessingConfig } from '@/config/types/data_processing';
-import { DEFAULT_PREPROCESSING_CONFIG } from '@/config/types/data_processing';
+import type { PreprocessingConfig } from "@/config/types/data_processing";
+import { DEFAULT_PREPROCESSING_CONFIG } from "@/config/types/data_processing";
 
 // 重新导出以便模块内其他文件使用
 export { DEFAULT_PREPROCESSING_CONFIG };
@@ -12,10 +12,10 @@ export type { PreprocessingConfig };
 
 /** 预处理模式 */
 type PreprocessingMode =
-    | 'query_enhance'    // RAG Query 增强
-    | 'plot_director'    // 剧情构思
-    | 'description'      // 描写增强
-    | 'custom';          // 自定义
+    | "query_enhance" // RAG Query 增强
+    | "plot_director" // 剧情构思
+    | "description" // 描写增强
+    | "custom"; // 自定义
 
 /** Agentic RAG 召回条目 */
 export interface AgenticRecall {

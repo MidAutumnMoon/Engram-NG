@@ -1,4 +1,4 @@
-import type { JobContext } from './JobContext';
+import type { JobContext } from "./JobContext";
 
 /**
  * IStep - 步骤接口
@@ -6,10 +6,10 @@ import type { JobContext } from './JobContext';
  * Workflow 中的最小执行单元。
  */
 export type StepAction =
-    | { action: 'next' }
-    | { action: 'finish' }
-    | { action: 'jump'; targetStep: string; reason?: string }
-    | { action: 'abort'; reason?: string };
+    | { action: "next" }
+    | { action: "finish" }
+    | { action: "jump"; targetStep: string; reason?: string }
+    | { action: "abort"; reason?: string };
 
 /**
  * StepResult - 步骤执行结果
@@ -27,9 +27,9 @@ export interface RetryConfig {
      * linear: 延迟固定
      * exponential: 延迟翻倍
      */
-    backoff?: 'linear' | 'exponential';
-    /** 
-     * 判定某个 Error 是否值得重试 
+    backoff?: "linear" | "exponential";
+    /**
+     * 判定某个 Error 是否值得重试
      * 如果未提供，则所有 Error 都进行重试
      */
     retryIf?: (error: any) => boolean;

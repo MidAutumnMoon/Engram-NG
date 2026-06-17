@@ -8,15 +8,11 @@
  * 4. 返回处理结果供注入
  */
 
-import { SettingsManager } from '@/config/settings';
-import { LogModule, Logger } from '@/core/logger';
-import { notificationService } from '@/ui/services/NotificationService';
-import type { PreprocessingConfig, PreprocessingResult } from './types';
-import { DEFAULT_PREPROCESSING_CONFIG } from './types';
-
-
-
-
+import { SettingsManager } from "@/config/settings";
+import { Logger, LogModule } from "@/core/logger";
+import { notificationService } from "@/ui/services/NotificationService";
+import type { PreprocessingConfig, PreprocessingResult } from "./types";
+import { DEFAULT_PREPROCESSING_CONFIG } from "./types";
 
 // Helper functions to get context info safely
 
@@ -27,8 +23,6 @@ class Preprocessor {
     private constructor() {}
 
     // ... (rest of class)
-
-
 
     static getInstance(): Preprocessor {
         if (!Preprocessor.instance) {
@@ -41,7 +35,9 @@ class Preprocessor {
      * 请求停止生成
      */
     private async requestStopGeneration(): Promise<void> {
-        const { StopGeneration } = await import('@/modules/workflow/steps/execution/StopGeneration');
+        const { StopGeneration } = await import(
+            "@/modules/workflow/steps/execution/StopGeneration"
+        );
         await StopGeneration.abort();
     }
 
@@ -60,51 +56,74 @@ class Preprocessor {
                 output: null,
                 processingTime: 0,
                 query: null,
-                rawOutput: '',
+                rawOutput: "",
                 success: true,
             };
         }
 
-        Logger.info(LogModule.PREPROCESS, '开始预处理', { inputLength: userInput.length });
+        Logger.info(LogModule.PREPROCESS, "开始预处理", {
+            inputLength: userInput.length,
+        });
 
         // 重置取消标志
         this.cancelRequested = false;
 
         // 显示运行中通知（支持点击取消）
-        const runningToast = notificationService.running('预处理中...', 'Engram', () => {
-            this.cancelRequested = true;
-            Logger.debug(LogModule.PREPROCESS, '用户请求取消');
-            this.requestStopGeneration();
-            notificationService.warning('正在取消预处理...', 'Engram');
-        });
+        const runningToast = notificationService.running(
+            "预处理中...",
+            "Engram",
+            () => {
+                this.cancelRequested = true;
+                Logger.debug(LogModule.PREPROCESS, "用户请求取消");
+                this.requestStopGeneration();
+                notificationService.warning("正在取消预处理...", "Engram");
+            },
+        );
 
         try {
             // Lazy import
-            const { WorkflowEngine } = await import('@/modules/workflow/core/WorkflowEngine');
-            const { createPreprocessWorkflow } = await import('@/modules/workflow/definitions/PreprocessWorkflow');
+            const { WorkflowEngine } = await import(
+                "@/modules/workflow/core/WorkflowEngine"
+            );
+            const { createPreprocessWorkflow } = await import(
+                "@/modules/workflow/definitions/PreprocessWorkflow"
+            );
 
-            const context = await WorkflowEngine.run(createPreprocessWorkflow(), {
-                config: {
-                    logType: 'query',
-                    previewEnabled: (SettingsManager.get('globalPreviewEnabled') ?? true) && (config.preview ?? true),
-                    templateId: config.templateId // Log as 'query' type for ModelLogger
+            const context = await WorkflowEngine.run(
+                createPreprocessWorkflow(),
+                {
+                    config: {
+                        logType: "query",
+                        previewEnabled:
+                            (SettingsManager.get("globalPreviewEnabled") ??
+                                true) && (config.preview ?? true),
+                        templateId: config.templateId, // Log as 'query' type for ModelLogger
+                    },
+                    input: {
+                        text: userInput,
+                    },
+                    trigger: "auto",
                 },
-                input: {
-                    text: userInput
-                },
-                trigger: 'auto'
-            });
+            );
 
             // Handle Skip to Injection
             if (context.metadata.skipToInjection) {
-                Logger.info(LogModule.PREPROCESS, '检测到跳过标记，执行 AI 消息注入');
+                Logger.info(
+                    LogModule.PREPROCESS,
+                    "检测到跳过标记，执行 AI 消息注入",
+                );
                 const contentToInject = context.output;
-                if (typeof contentToInject === 'string') {
-                    const { injectMessage } = await import('@/integrations/tavern');
-                    await injectMessage('char', contentToInject);
-                    notificationService.success('已作为 AI 消息注入', 'Engram');
+                if (typeof contentToInject === "string") {
+                    const { injectMessage } = await import(
+                        "@/integrations/tavern"
+                    );
+                    await injectMessage("char", contentToInject);
+                    notificationService.success("已作为 AI 消息注入", "Engram");
                 } else {
-                    Logger.warn(LogModule.PREPROCESS, '跳过注入失败：内容不是字符串');
+                    Logger.warn(
+                        LogModule.PREPROCESS,
+                        "跳过注入失败：内容不是字符串",
+                    );
                 }
 
                 // Return failed to prevent original flow from using this as user input replacement
@@ -121,38 +140,48 @@ class Preprocessor {
 
                 return {
                     success: true,
-                    output: '', // Clear user input
+                    output: "", // Clear user input
                     query: null,
-                    rawOutput: context.llmResponse?.content || '',
+                    rawOutput: context.llmResponse?.content || "",
                     processingTime: Date.now() - startTime,
                 };
             }
 
             // Construct Result (Normal Flow)
-            const {output} = context; // From UserReview -> ExtractTags -> output tag
+            const { output } = context; // From UserReview -> ExtractTags -> output tag
             const query = context.extractedTags?.query || null;
-            const rawOutput = context.llmResponse?.content || '';
+            const rawOutput = context.llmResponse?.content || "";
 
             // Agentic RAG: 解析 <recall_decision> JSON
-            let agenticRecalls: import('./types').AgenticRecall[] | undefined;
+            let agenticRecalls: import("./types").AgenticRecall[] | undefined;
             const recallDecisionRaw = context.extractedTags?.recall_decision;
             if (recallDecisionRaw) {
                 try {
-                    const { RobustJsonParser } = await import('@/core/utils/JsonParser');
+                    const { RobustJsonParser } = await import(
+                        "@/core/utils/JsonParser"
+                    );
                     const parsed = RobustJsonParser.parse(recallDecisionRaw);
                     if (parsed?.recalls && Array.isArray(parsed.recalls)) {
                         agenticRecalls = parsed.recalls;
-                        Logger.info(LogModule.PREPROCESS, 'Agentic RAG 召回决策已解析', {
-                            count: agenticRecalls!.length,
-                        });
+                        Logger.info(
+                            LogModule.PREPROCESS,
+                            "Agentic RAG 召回决策已解析",
+                            {
+                                count: agenticRecalls!.length,
+                            },
+                        );
                     }
                 } catch (error) {
-                    Logger.warn(LogModule.PREPROCESS, 'recall_decision JSON 解析失败', error);
+                    Logger.warn(
+                        LogModule.PREPROCESS,
+                        "recall_decision JSON 解析失败",
+                        error,
+                    );
                 }
             }
 
             const processingTime = Date.now() - startTime;
-            Logger.success(LogModule.PREPROCESS, '预处理完成', {
+            Logger.success(LogModule.PREPROCESS, "预处理完成", {
                 outputLength: output?.length || 0,
                 processingTime,
             });
@@ -167,30 +196,33 @@ class Preprocessor {
                 rawOutput: rawOutput,
                 success: true,
             };
-
         } catch (error) {
-            const errorMsg = error instanceof Error ? error.message : '未知错误';
+            const errorMsg = error instanceof Error
+                ? error.message
+                : "未知错误";
 
-            if (errorMsg === 'UserCancelled' || this.cancelRequested) {
-                Logger.debug(LogModule.PREPROCESS, '预处理已取消');
+            if (errorMsg === "UserCancelled" || this.cancelRequested) {
+                Logger.debug(LogModule.PREPROCESS, "预处理已取消");
                 return {
-                    error: '用户取消',
+                    error: "用户取消",
                     output: null,
                     processingTime: Date.now() - startTime,
                     query: null,
-                    rawOutput: '',
+                    rawOutput: "",
                     success: false,
                 };
             }
 
-            Logger.error(LogModule.PREPROCESS, '预处理失败', { error: errorMsg });
-            notificationService.error(`预处理失败: ${errorMsg}`, 'Engram');
+            Logger.error(LogModule.PREPROCESS, "预处理失败", {
+                error: errorMsg,
+            });
+            notificationService.error(`预处理失败: ${errorMsg}`, "Engram");
             return {
                 error: errorMsg,
                 output: null,
                 processingTime: Date.now() - startTime,
                 query: null,
-                rawOutput: '',
+                rawOutput: "",
                 success: false,
             };
         } finally {
@@ -203,7 +235,7 @@ class Preprocessor {
      * 获取预处理配置
      */
     getConfig(): PreprocessingConfig {
-        const config = SettingsManager.get('preprocessingConfig');
+        const config = SettingsManager.get("preprocessingConfig");
         return config || DEFAULT_PREPROCESSING_CONFIG;
     }
 
@@ -211,8 +243,8 @@ class Preprocessor {
      * 保存预处理配置
      */
     saveConfig(config: PreprocessingConfig): void {
-        Logger.debug(LogModule.PREPROCESS, '保存配置', config);
-        SettingsManager.set('preprocessingConfig', config);
+        Logger.debug(LogModule.PREPROCESS, "保存配置", config);
+        SettingsManager.set("preprocessingConfig", config);
     }
 
     /**
@@ -222,7 +254,10 @@ class Preprocessor {
         const config = this.getConfig();
         config.enabled = !config.enabled;
         this.saveConfig(config);
-        Logger.info(LogModule.PREPROCESS, config.enabled ? '预处理已启用' : '预处理已禁用');
+        Logger.info(
+            LogModule.PREPROCESS,
+            config.enabled ? "预处理已启用" : "预处理已禁用",
+        );
         return config.enabled;
     }
 }

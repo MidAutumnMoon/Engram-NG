@@ -4,8 +4,8 @@
  * 提供统一的列表布局：标题栏 + 添加按钮 + 列表项 + 空状态
  * 支持分组展示
  */
-import React from 'react';
-import { Plus } from 'lucide-react';
+import React from "react";
+import { Plus } from "lucide-react";
 
 // 分组配置
 interface ItemGroup<T> {
@@ -50,13 +50,13 @@ export function ItemList<T>({
     onAdd,
     addLabel,
     emptyIcon,
-    emptyText = '暂无数据',
+    emptyText = "暂无数据",
     headerActions,
-    className = '',
+    className = "",
 }: ItemListProps<T>) {
     // 判断是否有数据
     const hasData = groups
-        ? groups.some(g => g.items.length > 0)
+        ? groups.some((g) => g.items.length > 0)
         : (items?.length || 0) > 0;
 
     return (
@@ -72,7 +72,7 @@ export function ItemList<T>({
                         <button
                             className="text-muted-foreground hover:text-foreground transition-all duration-[var(--duration-fast)] p-1 hover:scale-110 active:scale-95"
                             onClick={onAdd}
-                            title={addLabel || '添加'}
+                            title={addLabel || "添加"}
                         >
                             <Plus size={16} />
                         </button>
@@ -85,7 +85,10 @@ export function ItemList<T>({
                 {/* 分组模式 */}
                 {groups && groups.map((group) => (
                     group.items.length > 0 && (
-                        <div key={group.key} className="flex flex-col gap-1 mb-4">
+                        <div
+                            key={group.key}
+                            className="flex flex-col gap-1 mb-4"
+                        >
                             {/* 分组标题 */}
                             <div className="flex items-center gap-2 text-[10px] text-muted-foreground/70 font-medium px-1 uppercase tracking-wider mb-1">
                                 <span>{group.label}</span>

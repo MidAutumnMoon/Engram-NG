@@ -6,35 +6,42 @@
  * 2. 编辑 Profile JSON (核心)
  * 3. 自动同步/手动修改 Description (YAML from Profile)
  */
-import type { EntityNode, EntityType } from '@/data/types/graph';
-import { Divider } from '@/ui/components/layout/Divider';
-import { useResponsive } from '@/ui/hooks/useResponsive';
-import yaml from 'js-yaml'; // 需要确认项目是否已安装 js-yaml，如果没有则需要简单实现或引入
-import { debounce } from 'lodash'; // Phase 3 Performance Add: 引入防抖
-import { AlertTriangle, ArrowLeft, RefreshCw, Trash2 } from 'lucide-react';
-import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import type { EntityNode, EntityType } from "@/data/types/graph";
+import { Divider } from "@/ui/components/layout/Divider";
+import { useResponsive } from "@/ui/hooks/useResponsive";
+import yaml from "js-yaml"; // 需要确认项目是否已安装 js-yaml，如果没有则需要简单实现或引入
+import { debounce } from "lodash"; // Phase 3 Performance Add: 引入防抖
+import { AlertTriangle, ArrowLeft, RefreshCw, Trash2 } from "lucide-react";
+import React, {
+    useCallback,
+    useEffect,
+    useImperativeHandle,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 
 /**
  * 根据实体类型获取对应的文字颜色类名
  */
 function getEntityTextTypeColor(type: string): string {
     switch (type.toLowerCase()) {
-        case 'char':
-        case 'character': {
-            return 'text-emphasis';
+        case "char":
+        case "character": {
+            return "text-emphasis";
         }
-        case 'loc':
-        case 'location': {
-            return 'text-value';
+        case "loc":
+        case "location": {
+            return "text-value";
         }
-        case 'item': {
-            return 'text-label';
+        case "item": {
+            return "text-label";
         }
-        case 'concept': {
-            return 'text-heading';
+        case "concept": {
+            return "text-heading";
         }
         default: {
-            return 'text-foreground';
+            return "text-foreground";
         }
     }
 }
@@ -54,23 +61,23 @@ interface EntityEditorProps {
 }
 
 const ENTITY_TYPES: { value: string; label: string }[] = [
-    { label: '角色 (Character)', value: 'char' },
-    { label: '地点 (Location)', value: 'loc' },
-    { label: '物品 (Item)', value: 'item' },
-    { label: '概念 (Concept)', value: 'concept' },
-    { label: '其他 (Unknown)', value: 'unknown' },
+    { label: "角色 (Character)", value: "char" },
+    { label: "地点 (Location)", value: "loc" },
+    { label: "物品 (Item)", value: "item" },
+    { label: "概念 (Concept)", value: "concept" },
+    { label: "其他 (Unknown)", value: "unknown" },
 ];
 
 const inputStyle: React.CSSProperties = {
-    background: 'transparent',
-    border: 'none',
-    borderBottom: '1px solid var(--border)',
+    background: "transparent",
+    border: "none",
+    borderBottom: "1px solid var(--border)",
     borderRadius: 0,
-    color: 'var(--foreground, inherit)',
-    fontSize: '14px',
-    outline: 'none',
-    padding: '8px 0',
-    width: '100%',
+    color: "var(--foreground, inherit)",
+    fontSize: "14px",
+    outline: "none",
+    padding: "8px 0",
+    width: "100%",
 };
 
 export const EntityEditor = ({
@@ -83,11 +90,11 @@ export const EntityEditor = ({
 }: EntityEditorProps & { ref?: React.Ref<EntityEditorHandle> }) => {
     const { isMobile } = useResponsive();
     // Local State
-    const [name, setName] = useState('');
-    const [type, setType] = useState<EntityType | string>('unknown');
-    const [aliases, setAliases] = useState('');
-    const [description, setDescription] = useState('');
-    const [profileJson, setProfileJson] = useState('');
+    const [name, setName] = useState("");
+    const [type, setType] = useState<EntityType | string>("unknown");
+    const [aliases, setAliases] = useState("");
+    const [description, setDescription] = useState("");
+    const [profileJson, setProfileJson] = useState("");
     const [jsonError, setJsonError] = useState<string | null>(null);
     const [isDirty, setIsDirty] = useState(false);
     const [lastEntityId, setLastEntityId] = useState<string | null>(null);
@@ -96,15 +103,17 @@ export const EntityEditor = ({
     const isMountedRef = useRef(true);
     const timeoutRef = useRef<number | null>(null);
 
-    useEffect(() => () => { isMountedRef.current = false; }, []);
+    useEffect(() => () => {
+        isMountedRef.current = false;
+    }, []);
 
     // Load data
     useEffect(() => {
         if (entity && entity.id !== lastEntityId) {
             setName(entity.name);
             setType(entity.type);
-            setAliases(entity.aliases ? entity.aliases.join(', ') : '');
-            setDescription(entity.description || '');
+            setAliases(entity.aliases ? entity.aliases.join(", ") : "");
+            setDescription(entity.description || "");
             setProfileJson(JSON.stringify(entity.profile || {}, null, 2));
             setJsonError(null);
             setIsDirty(false);
@@ -114,13 +123,13 @@ export const EntityEditor = ({
 
     // Sync Helper
     const syncToParent = useCallback(() => {
-        if (!entity || jsonError) {return;}
+        if (!entity || jsonError) return;
 
         let parsedProfile = {};
         try {
             parsedProfile = JSON.parse(profileJson);
         } catch (error) {
-            console.error('JSON Parse Error during sync', error);
+            console.error("JSON Parse Error during sync", error);
             // 🐛 P0 Bugfix: 如果 JSON 有语法错误，直接阻断提交，绝不使用 `{}` 覆盖原数据
             return;
         }
@@ -128,18 +137,29 @@ export const EntityEditor = ({
         const updates: Partial<EntityNode> = {
             name,
             type: type as EntityType,
-            aliases: aliases.split(/[,，]/).map(s => s.trim()).filter(Boolean),
+            aliases: aliases.split(/[,，]/).map((s) => s.trim()).filter(
+                Boolean,
+            ),
             description, // Allow manual override, or auto-generated
             profile: parsedProfile,
         };
 
         onSave?.(entity.id, updates);
-    }, [entity, name, type, aliases, description, profileJson, jsonError, onSave]);
+    }, [
+        entity,
+        name,
+        type,
+        aliases,
+        description,
+        profileJson,
+        jsonError,
+        onSave,
+    ]);
 
     // Expose Handle
     useImperativeHandle(ref, () => ({
         isDirty: () => isDirty,
-        save: syncToParent
+        save: syncToParent,
     }), [syncToParent, isDirty]);
 
     // Handlers
@@ -156,13 +176,13 @@ export const EntityEditor = ({
                     setJsonError(error.message);
                 }
             }, 300),
-        []
+        [],
     );
 
     // 清理防抖
     useEffect(() => () => {
-            handleJsonChangeDebounced.cancel();
-        }, [handleJsonChangeDebounced]);
+        handleJsonChangeDebounced.cancel();
+    }, [handleJsonChangeDebounced]);
 
     const handleJsonChange = (val: string) => {
         // 先局部更新 UI 输入框视图（可以用非受控或直接存一个 immediate state）
@@ -174,7 +194,7 @@ export const EntityEditor = ({
     };
 
     const handleBlur = () => {
-        if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = window.setTimeout(() => {
             if (isMountedRef.current && isDirty && !jsonError) {
                 syncToParent();
@@ -183,7 +203,7 @@ export const EntityEditor = ({
     };
 
     const handleGenerateDesc = () => {
-        if (jsonError || !entity) {return;}
+        if (jsonError || !entity) return;
         try {
             const profileObj = JSON.parse(profileJson);
 
@@ -212,9 +232,8 @@ export const EntityEditor = ({
 
             // V1.2.9 FIX: Only send incremental updates to avoid stale closure overwriting
             onSave?.(entity.id, { description: newDesc, profile: profileObj });
-
         } catch {
-            alert('Profile JSON 格式错误，无法生成描述');
+            alert("Profile JSON 格式错误，无法生成描述");
         }
     };
 
@@ -255,10 +274,16 @@ export const EntityEditor = ({
                                 setIsDirty(true);
                                 handleBlur(); // Trigger sync
                             }}
-                            className={`w-full py-2 bg-transparent border-b border-border outline-none text-sm appearance-none cursor-pointer transition-colors ${getEntityTextTypeColor(type)}`}
+                            className={`w-full py-2 bg-transparent border-b border-border outline-none text-sm appearance-none cursor-pointer transition-colors ${
+                                getEntityTextTypeColor(type)
+                            }`}
                         >
-                            {ENTITY_TYPES.map(t => (
-                                <option key={t.value} value={t.value} className="bg-popover text-foreground">
+                            {ENTITY_TYPES.map((t) => (
+                                <option
+                                    key={t.value}
+                                    value={t.value}
+                                    className="bg-popover text-foreground"
+                                >
                                     {t.label}
                                 </option>
                             ))}
@@ -305,7 +330,11 @@ export const EntityEditor = ({
                         flex-1 w-full p-4 font-mono text-xs leading-relaxed
                         bg-muted/50 border rounded-md resize-none outline-none
                         transition-colors
-                        ${jsonError ? 'border-destructive focus:border-destructive' : 'border-border focus:border-value'}
+                        ${
+                        jsonError
+                            ? "border-destructive focus:border-destructive"
+                            : "border-border focus:border-value"
+                    }
                     `}
                     spellCheck={false}
                 />
@@ -353,11 +382,17 @@ export const EntityEditor = ({
         return (
             <div className="h-full flex flex-col bg-transparent">
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50 shrink-0">
-                    <button onClick={onClose} className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded transition-colors">
+                    <button
+                        onClick={onClose}
+                        className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded transition-colors"
+                    >
                         <ArrowLeft size={18} />
                     </button>
                     <h2 className="text-sm font-medium flex-1">编辑实体</h2>
-                    <button onClick={() => isFullScreen && onDelete?.(entity.id)} className="p-1.5 text-destructive hover:bg-destructive/10 rounded">
+                    <button
+                        onClick={() => isFullScreen && onDelete?.(entity.id)}
+                        className="p-1.5 text-destructive hover:bg-destructive/10 rounded"
+                    >
                         <Trash2 size={16} />
                     </button>
                 </div>
@@ -380,7 +415,9 @@ export const EntityEditor = ({
                     >
                         <ArrowLeft size={18} />
                     </button>
-                    <h3 className="text-sm font-medium text-primary flex-1">编辑实体</h3>
+                    <h3 className="text-sm font-medium text-primary flex-1">
+                        编辑实体
+                    </h3>
                     <button
                         onClick={() => onDelete?.(entity.id)}
                         className="p-1.5 text-destructive hover:bg-destructive/10 rounded"
@@ -396,4 +433,4 @@ export const EntityEditor = ({
     );
 };
 
-EntityEditor.displayName = 'EntityEditor';
+EntityEditor.displayName = "EntityEditor";

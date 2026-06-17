@@ -5,9 +5,9 @@
  * Each chat_id gets its own isolated IndexedDB database.
  */
 
-import type { Table } from 'dexie';
-import Dexie from 'dexie';
-import type { EntityNode, EventNode } from './types/graph';
+import type { Table } from "dexie";
+import Dexie from "dexie";
+import type { EntityNode, EventNode } from "./types/graph";
 
 /**
  * 每个聊天的元数据存储
@@ -17,10 +17,10 @@ export interface ChatMeta {
     value: unknown;
 }
 
-import { Logger } from '../core/logger';
-import { syncService } from './sync/SyncService';
+import { Logger } from "../core/logger";
+import { syncService } from "./sync/SyncService";
 
-const MODULE = 'Database';
+const MODULE = "Database";
 
 /**
  * ChatDatabase - 单个聊天的数据库类
@@ -41,23 +41,24 @@ export class ChatDatabase extends Dexie {
         // V1.5.0: Schema 升级 - 添加 is_archived, is_embedded 索引支持 Dashboard 高效统计
         this.version(3).stores({
             // Events: 核心记忆单元
-            events: 'id, timestamp, significance_score, level, is_archived, is_embedded',
+            events:
+                "id, timestamp, significance_score, level, is_archived, is_embedded",
             // Entities: 图谱实体 (添加 is_archived 索引)
-            entities: 'id, type, name, *aliases, is_archived',
+            entities: "id, type, name, *aliases, is_archived",
             // Meta: 状态存储 (lastSummarizedFloor 等)
-            meta: 'key'
+            meta: "key",
         });
 
         // 注册数据变动监听钩子
         const handleChange = () => this.updateLastModified();
 
-        this.events.hook('creating', handleChange);
-        this.entities.hook('updating', handleChange);
-        this.events.hook('deleting', handleChange);
+        this.events.hook("creating", handleChange);
+        this.entities.hook("updating", handleChange);
+        this.events.hook("deleting", handleChange);
 
-        this.entities.hook('creating', handleChange);
-        this.entities.hook('updating', handleChange);
-        this.entities.hook('deleting', handleChange);
+        this.entities.hook("creating", handleChange);
+        this.entities.hook("updating", handleChange);
+        this.entities.hook("deleting", handleChange);
     }
 
     private lastUpdateTimer: any = null;
@@ -74,11 +75,11 @@ export class ChatDatabase extends Dexie {
         }
 
         // 如果已经有一个在排队了，直接跳过 (500ms 窗口防抖)
-        if (this.lastUpdateTimer) {return;}
+        if (this.lastUpdateTimer) return;
 
         this.lastUpdateTimer = setTimeout(() => {
             this.lastUpdateTimer = null;
-            
+
             // 再次检查导入状态（防止在延时期间状态变化）
             if (syncService.isImportingState) {
                 return;
@@ -88,11 +89,14 @@ export class ChatDatabase extends Dexie {
             // 防止在只读或特定表的事务中试图写入 meta 表导致 DEXIE 报错喵~
             Dexie.ignoreTransaction(async () => {
                 try {
-                    await this.meta.put({ key: 'lastModified', value: Date.now() });
+                    await this.meta.put({
+                        key: "lastModified",
+                        value: Date.now(),
+                    });
                     // 调度同步 (SyncService 内部已有防抖)
                     syncService.scheduleUpload(this.chatId);
                 } catch (error) {
-                    Logger.error(MODULE, '异步更新 lastModified 失败', error);
+                    Logger.error(MODULE, "异步更新 lastModified 失败", error);
                 }
             });
         }, 500);
@@ -115,8 +119,11 @@ export async function exportChatData(db: ChatDatabase): Promise<ChatDataDump> {
     const events = await db.events.toArray();
     const entities = await db.entities.toArray();
     const metaArr = await db.meta.toArray();
-    const meta = metaArr.reduce((acc, cur) => ({ ...acc, [cur.key]: cur.value }), {});
-    
+    const meta = metaArr.reduce(
+        (acc, cur) => ({ ...acc, [cur.key]: cur.value }),
+        {},
+    );
+
     // V1.4.6 Optimization: 将 meta 放在最前面，这样 JSON.stringify 出来的字符串中，
     // 元数据会出现在文件头部。这让 SyncService 的流式正则解析能瞬间命中并切断连接，节省 99% 的带宽喵！
     return { entities, events, meta };
@@ -125,8 +132,11 @@ export async function exportChatData(db: ChatDatabase): Promise<ChatDataDump> {
 /**
  * 导入数据到数据库（覆盖）
  */
-export async function importChatData(db: ChatDatabase, data: ChatDataDump): Promise<void> {
-    await db.transaction('rw', db.events, db.entities, db.meta, async () => {
+export async function importChatData(
+    db: ChatDatabase,
+    data: ChatDataDump,
+): Promise<void> {
+    await db.transaction("rw", db.events, db.entities, db.meta, async () => {
         // 清空
         await db.events.clear();
         await db.entities.clear();
@@ -137,7 +147,9 @@ export async function importChatData(db: ChatDatabase, data: ChatDataDump): Prom
         await db.entities.bulkAdd(data.entities);
 
         // 转换 meta 因为它是一个 KV 表
-        const metaEntries = Object.entries(data.meta || {}).map(([key, value]) => ({ key, value }));
+        const metaEntries = Object.entries(data.meta || {}).map((
+            [key, value],
+        ) => ({ key, value }));
         await db.meta.bulkAdd(metaEntries);
     });
 }
@@ -150,7 +162,7 @@ const dbCache = new Map<string, ChatDatabase>();
  */
 export function getDbForChat(chatId: string): ChatDatabase {
     if (!chatId) {
-        throw new Error('[Engram DB] chatId is required');
+        throw new Error("[Engram DB] chatId is required");
     }
 
     if (!dbCache.has(chatId)) {
@@ -200,7 +212,7 @@ export async function deleteDatabase(chatId: string): Promise<void> {
  */
 export async function listAllDatabases(): Promise<string[]> {
     const allDbs = await Dexie.getDatabaseNames();
-    return allDbs.filter(name => name.startsWith('Engram_'));
+    return allDbs.filter((name) => name.startsWith("Engram_"));
 }
 
 /**
@@ -208,7 +220,7 @@ export async function listAllDatabases(): Promise<string[]> {
  */
 export async function listAllChatIds(): Promise<string[]> {
     const dbNames = await listAllDatabases();
-    return dbNames.map(name => name.replace('Engram_', ''));
+    return dbNames.map((name) => name.replace("Engram_", ""));
 }
 
 /**
@@ -237,17 +249,19 @@ export async function getDatabaseStats(chatId: string): Promise<DatabaseStats> {
         // 使用单独的实例，查询完毕后迅速关闭
         const tempDb = new ChatDatabase(chatId);
         if (!await Dexie.exists(tempDb.name)) {
-             tempDb.close();
-             return { chatId, lastUpdateTime: 0 };
+            tempDb.close();
+            return { chatId, lastUpdateTime: 0 };
         }
-        
+
         // 快速读取 meta 设置
-        const lastModifiedMeta = await tempDb.meta.get('lastModified');
+        const lastModifiedMeta = await tempDb.meta.get("lastModified");
         tempDb.close();
-        
+
         return {
             chatId,
-            lastUpdateTime: lastModifiedMeta ? Number(lastModifiedMeta.value) : 0
+            lastUpdateTime: lastModifiedMeta
+                ? Number(lastModifiedMeta.value)
+                : 0,
         };
     } catch (error) {
         Logger.error(MODULE, `Failed to get stats for chat ${chatId}`, error);

@@ -1,5 +1,9 @@
-import type { BatchProgressCallback, BatchQueue, IBatchTaskHandler } from '../types';
-import { Logger } from '@/core/logger';
+import type {
+    BatchProgressCallback,
+    BatchQueue,
+    IBatchTaskHandler,
+} from "../types";
+import { Logger } from "@/core/logger";
 /**
  * 核心调度引擎
  * 负责管理任务队列，并发锁，控制起停以及 UI 进度节流更新。
@@ -68,8 +72,11 @@ export class BatchEngine {
     /**
      * 暴露给任务的进度更新接口
      */
-    public updateTaskProgress(taskIndex: number, currentProgress: number): void {
-        if (taskIndex < 0 || taskIndex >= this.queue.tasks.length) {return;}
+    public updateTaskProgress(
+        taskIndex: number,
+        currentProgress: number,
+    ): void {
+        if (taskIndex < 0 || taskIndex >= this.queue.tasks.length) return;
 
         // 同步当前的活动任务下标，以便内部抛出异常时能够正确打标
         this.queue.currentTaskIndex = taskIndex;
@@ -79,9 +86,9 @@ export class BatchEngine {
             ...this.queue.tasks[taskIndex],
             progress: {
                 ...this.queue.tasks[taskIndex].progress,
-                current: currentProgress
+                current: currentProgress,
             },
-            status: 'running'
+            status: "running",
         };
         // P1 Fix: 更新数组引用，确保 React 能检测到变化
         this.queue.tasks = [...this.queue.tasks];
@@ -95,7 +102,10 @@ export class BatchEngine {
     }
 
     private calculateOverallProgress(): number {
-        return this.queue.tasks.reduce((sum, task) => sum + task.progress.current, 0);
+        return this.queue.tasks.reduce(
+            (sum, task) => sum + task.progress.current,
+            0,
+        );
     }
 
     /**
@@ -133,7 +143,7 @@ export class BatchEngine {
      */
     async execute(handler: IBatchTaskHandler): Promise<void> {
         if (this.queue.isRunning) {
-            console.warn('[BatchEngine] 任务仍在运行中!');
+            console.warn("[BatchEngine] 任务仍在运行中!");
             return;
         }
 
@@ -153,7 +163,10 @@ export class BatchEngine {
 
             // P0 Fix: 中断死锁保护。如果在 estimate 期间触发了 stop，直接放弃队列覆盖
             if (this.stopSignal) {
-                Logger.info('BatchEngine', '收到中止信号，正在放弃估计出的新任务');
+                Logger.info(
+                    "BatchEngine",
+                    "收到中止信号，正在放弃估计出的新任务",
+                );
                 return;
             }
 
@@ -166,7 +179,10 @@ export class BatchEngine {
             this.queue.currentTaskIndex = 0;
             this.queue.overallProgress = {
                 current: 0,
-                total: tasks.reduce((sum, task) => sum + task.progress.total, 0)
+                total: tasks.reduce(
+                    (sum, task) => sum + task.progress.total,
+                    0,
+                ),
             };
             this.notifyProgress(true);
 
@@ -175,18 +191,20 @@ export class BatchEngine {
                 this.queue.tasks,
                 this.checkStopSignal,
                 // Context helper function to easily update self
-                this.updateTaskProgress.bind(this)
+                this.updateTaskProgress.bind(this),
             );
 
             // 消费每一个循环
             for await (const _ of generator) {
                 // 等待取消暂停 (软暂停模式：利用 Promise Lock 挂起事件循环)
-                if (this.queue.isPaused && !this.stopSignal && this.pausePromise) {
+                if (
+                    this.queue.isPaused && !this.stopSignal && this.pausePromise
+                ) {
                     await this.pausePromise;
                 }
 
                 if (this.stopSignal) {
-                    console.info('[BatchEngine] 收到中止信号，正在结束迭代');
+                    console.info("[BatchEngine] 收到中止信号，正在结束迭代");
                     break;
                 }
             }
@@ -194,25 +212,32 @@ export class BatchEngine {
             // 执行成功收尾
             if (!this.stopSignal) {
                 // 标记所有未出错的任务为 done
-                this.queue.tasks.forEach(task => {
-                    if (task.status !== 'error') {task.status = 'done';}
+                this.queue.tasks.forEach((task) => {
+                    if (task.status !== "error") task.status = "done";
                 });
             }
         } catch (error) {
-            Logger.error('BatchEngine', '执行过程发生异常:', error);
+            Logger.error("BatchEngine", "执行过程发生异常:", error);
             // 将当前执行中的任务标记为 Error
             if (this.queue.tasks[this.queue.currentTaskIndex]) {
-                const currentTask = this.queue.tasks[this.queue.currentTaskIndex];
-                currentTask.status = 'error';
-                currentTask.error = error instanceof Error ? error.message : String(error);
-                
+                const currentTask =
+                    this.queue.tasks[this.queue.currentTaskIndex];
+                currentTask.status = "error";
+                currentTask.error = error instanceof Error
+                    ? error.message
+                    : String(error);
+
                 // 显式捕获 Error cause 附加到日志，方便 Debug 追踪深层调用链
                 if (error instanceof Error) {
-                    Logger.error('BatchEngine', `[${currentTask.id}] 任务失败链路追踪:`, {
-                         cause: error.cause,
-                         message: error.message,
-                         stack: error.stack
-                    });
+                    Logger.error(
+                        "BatchEngine",
+                        `[${currentTask.id}] 任务失败链路追踪:`,
+                        {
+                            cause: error.cause,
+                            message: error.message,
+                            stack: error.stack,
+                        },
+                    );
                 }
             }
         } finally {
@@ -229,9 +254,9 @@ export class BatchEngine {
      * 暂停任务
      */
     pause(): void {
-        if (!this.queue.isRunning || this.queue.isPaused) {return;}
+        if (!this.queue.isRunning || this.queue.isPaused) return;
         this.queue.isPaused = true;
-        this.pausePromise = new Promise<void>(resolve => {
+        this.pausePromise = new Promise<void>((resolve) => {
             this.pauseResolve = resolve;
         });
         this.notifyProgress(true);
@@ -241,7 +266,7 @@ export class BatchEngine {
      * 恢复/继续任务
      */
     resume(): void {
-        if (!this.queue.isRunning || !this.queue.isPaused) {return;}
+        if (!this.queue.isRunning || !this.queue.isPaused) return;
         this.queue.isPaused = false;
         if (this.pauseResolve) {
             this.pauseResolve();
@@ -268,9 +293,9 @@ export class BatchEngine {
         }
 
         // Mark remaining running tasks as skipped
-        this.queue.tasks.forEach(task => {
-            if (task.status === 'pending' || task.status === 'running') {
-                task.status = 'skipped';
+        this.queue.tasks.forEach((task) => {
+            if (task.status === "pending" || task.status === "running") {
+                task.status = "skipped";
             }
         });
 

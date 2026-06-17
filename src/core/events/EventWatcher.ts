@@ -9,7 +9,11 @@
  * 基于 tavern/TavernEvents.ts 的 EventBus 进行封装
  */
 
-import { EventBus, TavernEventType, type Unsubscribe } from '@/integrations/tavern';
+import {
+    EventBus,
+    TavernEventType,
+    type Unsubscribe,
+} from "@/integrations/tavern";
 
 /** 监听回调类型 */
 interface WatcherCallbacks {
@@ -52,28 +56,40 @@ class EventWatcher {
      */
     start(): void {
         if (this.unsubscribers.length > 0) {
-            console.log('[EventWatcher] Already started.');
+            console.log("[EventWatcher] Already started.");
             return;
         }
 
         // 订阅核心事件
         this.unsubscribers.push(
-            EventBus.on(TavernEventType.MESSAGE_RECEIVED, () => this.emit('messageReceived')),
-            EventBus.on(TavernEventType.CHAT_CHANGED, () => this.emit('chatChanged')),
-            EventBus.on(TavernEventType.GENERATION_STARTED, () => this.emit('generationStarted')),
-            EventBus.on(TavernEventType.GENERATION_ENDED, () => this.emit('generationEnded'))
+            EventBus.on(
+                TavernEventType.MESSAGE_RECEIVED,
+                () => this.emit("messageReceived"),
+            ),
+            EventBus.on(
+                TavernEventType.CHAT_CHANGED,
+                () => this.emit("chatChanged"),
+            ),
+            EventBus.on(
+                TavernEventType.GENERATION_STARTED,
+                () => this.emit("generationStarted"),
+            ),
+            EventBus.on(
+                TavernEventType.GENERATION_ENDED,
+                () => this.emit("generationEnded"),
+            ),
         );
 
-        console.log('[EventWatcher] Started, listening to core events.');
+        console.log("[EventWatcher] Started, listening to core events.");
     }
 
     /**
      * 停止监听
      */
     stop(): void {
-        this.unsubscribers.forEach(unsub => unsub());
+        this.unsubscribers.forEach((unsub) => unsub());
         this.unsubscribers = [];
-        console.log('[EventWatcher] Stopped.');
+        console.log("[EventWatcher] Stopped.");
     }
 
     /**
@@ -82,7 +98,10 @@ class EventWatcher {
      * @param callback 回调函数
      * @returns 取消注册函数
      */
-    on(event: keyof WatcherCallbacks, callback: () => void | Promise<void>): Unsubscribe {
+    on(
+        event: keyof WatcherCallbacks,
+        callback: () => void | Promise<void>,
+    ): Unsubscribe {
         const eventKey = this.mapEventKey(event);
 
         if (!this.callbacks.has(eventKey)) {
@@ -102,11 +121,14 @@ class EventWatcher {
     private emit(eventKey: string): void {
         const callbacks = this.callbacks.get(eventKey);
         if (callbacks) {
-            callbacks.forEach(cb => {
+            callbacks.forEach((cb) => {
                 try {
                     cb();
                 } catch (error) {
-                    console.error(`[EventWatcher] Callback error for ${eventKey}:`, error);
+                    console.error(
+                        `[EventWatcher] Callback error for ${eventKey}:`,
+                        error,
+                    );
                 }
             });
         }
@@ -117,10 +139,10 @@ class EventWatcher {
      */
     private mapEventKey(event: keyof WatcherCallbacks): string {
         const map: Record<keyof WatcherCallbacks, string> = {
-            onChatChanged: 'chatChanged',
-            onGenerationEnded: 'generationEnded',
-            onGenerationStarted: 'generationStarted',
-            onMessageReceived: 'messageReceived'
+            onChatChanged: "chatChanged",
+            onGenerationEnded: "generationEnded",
+            onGenerationStarted: "generationStarted",
+            onMessageReceived: "messageReceived",
         };
         return map[event];
     }

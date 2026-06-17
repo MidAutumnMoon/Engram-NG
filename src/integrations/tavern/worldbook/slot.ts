@@ -5,16 +5,16 @@
  * 这是 WorldBook 在新架构中的唯一用途：作为宏注入的载体
  */
 
-import { Logger } from '@/core/logger';
-import { createEntry, findEntryByKey } from './crud';
-import { WorldbookEngramService } from './engram';
+import { Logger } from "@/core/logger";
+import { createEntry, findEntryByKey } from "./crud";
+import { WorldbookEngramService } from "./engram";
 
 /** 槽位条目 Key */
-export const SLOT_ENTRY_KEY = 'engram_macro_slot';
+export const SLOT_ENTRY_KEY = "engram_macro_slot";
 /** 槽位条目外部展示名称 */
-export const SLOT_ENTRY_NAME = 'Engram Memory Context';
+export const SLOT_ENTRY_NAME = "Engram Memory Context";
 
-const MODULE = 'Worldbook';
+const MODULE = "Worldbook";
 
 /**
  * WorldBookSlotService 类
@@ -27,22 +27,26 @@ export class WorldBookSlotService {
      * 确保存在唯一的宏槽位条目
      */
     static async init(): Promise<void> {
-        if (this.isInitialized) {return;}
+        if (this.isInitialized) return;
 
         try {
-            const worldbookName = await WorldbookEngramService.getOrCreateWorldbook();
+            const worldbookName = await WorldbookEngramService
+                .getOrCreateWorldbook();
             if (!worldbookName) {
-                Logger.warn(MODULE, '无法获取或创建世界书');
+                Logger.warn(MODULE, "无法获取或创建世界书");
                 return;
             }
 
             // 检查槽位条目是否存在
-            const existingEntry = await findEntryByKey(worldbookName, SLOT_ENTRY_KEY);
+            const existingEntry = await findEntryByKey(
+                worldbookName,
+                SLOT_ENTRY_KEY,
+            );
 
             if (existingEntry) {
-                Logger.debug(MODULE, '宏槽位条目已存在', {
+                Logger.debug(MODULE, "宏槽位条目已存在", {
                     name: existingEntry.name,
-                    uid: existingEntry.uid
+                    uid: existingEntry.uid,
                 });
                 this.isInitialized = true;
                 return;
@@ -58,28 +62,27 @@ export class WorldBookSlotService {
              */
             const success = await createEntry(worldbookName, {
                 constant: true,
-                content: '{{engramEntityStates}}\n{{engramSummaries}}',
+                content: "{{engramEntityStates}}\n{{engramSummaries}}",
                 depth: 999,
                 enabled: true,
                 keys: [SLOT_ENTRY_KEY],
                 name: SLOT_ENTRY_NAME,
                 order: 9000,
-                position: 'at_depth',
-                role: 'system',  // 固定 order
+                position: "at_depth",
+                role: "system", // 固定 order
             });
 
             if (success) {
-                Logger.success(MODULE, '宏槽位条目已创建', {
+                Logger.success(MODULE, "宏槽位条目已创建", {
                     name: SLOT_ENTRY_NAME,
-                    worldbook: worldbookName
+                    worldbook: worldbookName,
                 });
                 this.isInitialized = true;
             } else {
-                Logger.error(MODULE, '创建宏槽位条目失败');
+                Logger.error(MODULE, "创建宏槽位条目失败");
             }
-
         } catch (error) {
-            Logger.error(MODULE, '初始化失败', error);
+            Logger.error(MODULE, "初始化失败", error);
         }
     }
 

@@ -1,5 +1,5 @@
-import { X } from 'lucide-react';
-import React from 'react';
+import { X } from "lucide-react";
+import React from "react";
 
 interface SimpleModalProps {
     isOpen: boolean;
@@ -22,13 +22,15 @@ export const SimpleModal: React.FC<SimpleModalProps> = ({
     icon,
     children,
     footer,
-    maxWidth = 'max-w-md'
+    maxWidth = "max-w-md",
 }) => {
-    if (!isOpen) {return null;}
+    if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className={`w-full ${maxWidth} bg-background border border-border rounded-lg shadow-xl flex flex-col max-h-[90vh]`}>
+            <div
+                className={`w-full ${maxWidth} bg-background border border-border rounded-lg shadow-xl flex flex-col max-h-[90vh]`}
+            >
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
                     <h3 className="text-sm font-medium flex items-center gap-2 text-foreground">

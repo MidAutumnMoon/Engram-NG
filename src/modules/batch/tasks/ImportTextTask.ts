@@ -1,15 +1,15 @@
-import { SettingsManager } from '@/config/settings';
-import { LogModule, Logger } from '@/core/logger';
-import { generateShortUUID } from '@/core/utils';
-import { embeddingService } from '@/modules/rag/embedding/EmbeddingService';
-import { WorkflowEngine } from '@/modules/workflow/core/WorkflowEngine';
-import { SaveEvent } from '@/modules/workflow/steps/persistence/SaveEvent';
-import { ParseJson } from '@/modules/workflow/steps/processing/ParseJson';
-import type { BatchTask, IBatchTaskHandler } from '../types';
-import { BatchUtils } from '@/modules/batch/utils/BatchUtils';
+import { SettingsManager } from "@/config/settings";
+import { Logger, LogModule } from "@/core/logger";
+import { generateShortUUID } from "@/core/utils";
+import { embeddingService } from "@/modules/rag/embedding/EmbeddingService";
+import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine";
+import { SaveEvent } from "@/modules/workflow/steps/persistence/SaveEvent";
+import { ParseJson } from "@/modules/workflow/steps/processing/ParseJson";
+import type { BatchTask, IBatchTaskHandler } from "../types";
+import { BatchUtils } from "@/modules/batch/utils/BatchUtils";
 
 /** 外部导入模式 */
-export type ImportMode = 'fast' | 'detailed';
+export type ImportMode = "fast" | "detailed";
 
 /** 外部导入配置 */
 export interface ImportConfig {
@@ -23,27 +23,31 @@ export interface ImportConfig {
  * 负责分片小说/生肉、送去大模型摘要并通过 Workflow 落地
  */
 export class ImportTextTask implements IBatchTaskHandler {
-    readonly type = 'import';
+    readonly type = "import";
 
     constructor(
         private text: string,
-        private config: ImportConfig
+        private config: ImportConfig,
     ) {}
 
     /**
      * 第一步：分片并预估需要创建的 Task 数
      */
     async estimate(): Promise<BatchTask[]> {
-        const chunks = BatchUtils.chunkText(this.text, this.config.chunkSize, this.config.overlapSize);
-        if (chunks.length === 0) {return [];}
+        const chunks = BatchUtils.chunkText(
+            this.text,
+            this.config.chunkSize,
+            this.config.overlapSize,
+        );
+        if (chunks.length === 0) return [];
 
         // 我们对于 Import 这个行为，就只构建一个宏观级的任务单元
         const mainTask: BatchTask = {
-            id: generateShortUUID('imp_'),
+            id: generateShortUUID("imp_"),
             name: `导入外部文本 (${chunks.length} 个片段)`,
             progress: { current: 0, total: chunks.length },
-            status: 'pending',
-            type: 'import',
+            status: "pending",
+            type: "import",
         };
 
         return [mainTask];
@@ -55,18 +59,21 @@ export class ImportTextTask implements IBatchTaskHandler {
     async *execute(
         tasks: BatchTask[],
         checkStopSignal: () => boolean,
-        updateContext: (taskIndex: number, progressCurrent: number) => void
+        updateContext: (taskIndex: number, progressCurrent: number) => void,
     ): AsyncGenerator<void, void, unknown> {
-
         // ImportText 只有一个宏观任务定义在 tasks[0]
         const mainTask = tasks[0];
-        const chunks = BatchUtils.chunkText(this.text, this.config.chunkSize, this.config.overlapSize);
+        const chunks = BatchUtils.chunkText(
+            this.text,
+            this.config.chunkSize,
+            this.config.overlapSize,
+        );
         let success = 0;
 
         for (let i = 0; i < chunks.length; i++) {
             // Engine 防治机制：外部随时可能要求中断
             if (checkStopSignal()) {
-                mainTask.status = 'skipped';
+                mainTask.status = "skipped";
                 // Trigger an exit loop.
                 return;
             }
@@ -74,37 +81,41 @@ export class ImportTextTask implements IBatchTaskHandler {
             let chunk = chunks[i];
 
             try {
-                if (this.config.mode === 'detailed') {
+                if (this.config.mode === "detailed") {
                     // V0.9.7: 调用 LLM 生成结构化摘要
                     const llmResult = await BatchUtils.summarizeChunk(chunk, i);
-                    if (checkStopSignal()) {return;}
+                    if (checkStopSignal()) return;
 
                     if (llmResult) {
                         // 使用 Workflow Engine 解析 JSON 并存储
                         const savedEvents = await WorkflowEngine.run(
                             {
-                                name: 'ImportFlow',
-                                steps: [new ParseJson(), new SaveEvent()]
+                                name: "ImportFlow",
+                                steps: [new ParseJson(), new SaveEvent()],
                             },
                             {
                                 input: {
                                     isImport: true, // 增加标识放在 input 里
                                     // 模拟 range，用于 SaveEvent 记录 source_range
-                                    range: [i, i]
+                                    range: [i, i],
                                 },
                                 llmResponse: {
                                     content: llmResult,
                                     success: true,
-                                    tokenUsage: 0
-                                }
-                            }
+                                    tokenUsage: 0,
+                                },
+                            },
                         );
-                        if (checkStopSignal()) {return;}
+                        if (checkStopSignal()) return;
 
-                        if (Array.isArray(savedEvents) && savedEvents.length > 0) {
+                        if (
+                            Array.isArray(savedEvents) && savedEvents.length > 0
+                        ) {
                             // Pipeline 已处理存储，只需嵌入
                             // V1.2.2: 联动嵌入前确保配置已加载
-                            const vectorConfig = SettingsManager.get('apiSettings')?.vectorConfig;
+                            const vectorConfig = SettingsManager.get(
+                                "apiSettings",
+                            )?.vectorConfig;
                             if (vectorConfig) {
                                 embeddingService.setConfig(vectorConfig);
                             }
@@ -115,39 +126,53 @@ export class ImportTextTask implements IBatchTaskHandler {
 
                             // V1.0.8: 外部导入文本复用执行实体提取 (由于 FetchContext 已经旁路了，这里可以直接塞原文进去让它以为是聊天记录)
                             try {
-                                const { createEntityWorkflow } = await import('@/modules/workflow/definitions/EntityWorkflow');
-                                await WorkflowEngine.run(createEntityWorkflow(), {
-                                    config: {
-                                        category: 'entity_extraction',
-                                        dryRun: false,
-                                        logType: 'entity_extraction',
-                                        previewEnabled: false
+                                const { createEntityWorkflow } = await import(
+                                    "@/modules/workflow/definitions/EntityWorkflow"
+                                );
+                                await WorkflowEngine.run(
+                                    createEntityWorkflow(),
+                                    {
+                                        config: {
+                                            category: "entity_extraction",
+                                            dryRun: false,
+                                            logType: "entity_extraction",
+                                            previewEnabled: false,
+                                        },
+                                        input: {
+                                            isImport: true,
+                                            chatHistory: chunk, // 原文分块
+                                            range: [i, i],
+                                        },
+                                        trigger: "auto",
                                     },
-                                    input: {
-                                        isImport: true,
-                                        chatHistory: chunk, // 原文分块
-                                        range: [i, i]
-                                    },
-                                    trigger: 'auto'
-                                });
+                                );
                             } catch (entError: any) {
-                                Logger.error(LogModule.BATCH, `分块 ${i} 实体提取异常`, { error: entError.message });
+                                Logger.error(
+                                    LogModule.BATCH,
+                                    `分块 ${i} 实体提取异常`,
+                                    { error: entError.message },
+                                );
                             }
 
                             success++;
                             updateContext(0, i + 1);
                             yield; // 通知 Engine 我们可以推进进度
-                            continue;  // 跳过后续的直接存储逻辑
+                            continue; // 跳过后续的直接存储逻辑
                         }
                     }
 
                     // Fix P3: 降级保护：如果 LLM 返回了数据，尝试抢救 partial summary 复用
                     let fallbackSummary = chunk;
-                    if (llmResult && typeof llmResult === 'string') {
-                        const summaryMatch = llmResult.match(/"summary"\s*:\s*"(.*?[^\\])"/);
+                    if (llmResult && typeof llmResult === "string") {
+                        const summaryMatch = llmResult.match(
+                            /"summary"\s*:\s*"(.*?[^\\])"/,
+                        );
                         if (summaryMatch && summaryMatch[1]) {
                             fallbackSummary = summaryMatch[1];
-                            Logger.info(LogModule.BATCH, `分块 ${i} 抢救提取了部分 summary 字段成功`);
+                            Logger.info(
+                                LogModule.BATCH,
+                                `分块 ${i} 抢救提取了部分 summary 字段成功`,
+                            );
                         }
                     }
 
@@ -159,33 +184,36 @@ export class ImportTextTask implements IBatchTaskHandler {
                 // 快速模式 或 降级：直接存储原文/抢救文
                 const fallbackEvents = await WorkflowEngine.run(
                     {
-                        name: 'ImportFastFlow',
-                        steps: [new SaveEvent()]
+                        name: "ImportFastFlow",
+                        steps: [new SaveEvent()],
                     },
                     {
                         input: {
                             isImport: true, // 增加标识放在 input 里
-                            range: [i, i]
+                            range: [i, i],
                         },
                         parsedData: {
                             events: [
                                 {
-                                    causality: '',
-                                    event: '(import)',
-                                    location: ['(import)'],
+                                    causality: "",
+                                    event: "(import)",
+                                    location: ["(import)"],
                                     logic: [],
-                                    role: ['(import)'],
+                                    role: ["(import)"],
                                     summary: chunk,
-                                    time_anchor: new Date().toISOString()
-                                }
-                            ]
-                        }
-                    }
+                                    time_anchor: new Date().toISOString(),
+                                },
+                            ],
+                        },
+                    },
                 );
-                if (checkStopSignal()) {return;}
+                if (checkStopSignal()) return;
 
-                if (Array.isArray(fallbackEvents) && fallbackEvents.length > 0) {
-                    const vectorConfig = SettingsManager.get('apiSettings')?.vectorConfig;
+                if (
+                    Array.isArray(fallbackEvents) && fallbackEvents.length > 0
+                ) {
+                    const vectorConfig = SettingsManager.get("apiSettings")
+                        ?.vectorConfig;
                     if (vectorConfig) {
                         embeddingService.setConfig(vectorConfig);
                     }
@@ -194,9 +222,10 @@ export class ImportTextTask implements IBatchTaskHandler {
                     }
                     success++;
                 }
-
             } catch (error: any) {
-                Logger.error(LogModule.BATCH, `处理分块 ${i} 失败`, { error: error.message });
+                Logger.error(LogModule.BATCH, `处理分块 ${i} 失败`, {
+                    error: error.message,
+                });
                 // We keep moving even if a chunk falls through, but we update UI
             }
 
@@ -205,6 +234,9 @@ export class ImportTextTask implements IBatchTaskHandler {
             yield;
         }
 
-        Logger.info(LogModule.BATCH, `外部导入结束: ${success}/${chunks.length} 成功`);
+        Logger.info(
+            LogModule.BATCH,
+            `外部导入结束: ${success}/${chunks.length} 成功`,
+        );
     }
 }

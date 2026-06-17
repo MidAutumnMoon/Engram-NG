@@ -16,14 +16,18 @@ export interface TrimRule {
 /** 默认清洗规则 */
 const DEFAULT_TRIM_RULES: TrimRule[] = [
     // 移除多余空行
-    { description: '多余空行', pattern: /\n{3,}/g, replacement: '\n\n' },
+    { description: "多余空行", pattern: /\n{3,}/g, replacement: "\n\n" },
     // 移除行首行尾空白
-    { description: '行首尾空白', pattern: /^[ \t]+|[ \t]+$/gm, replacement: '' },
+    {
+        description: "行首尾空白",
+        pattern: /^[ \t]+|[ \t]+$/gm,
+        replacement: "",
+    },
     // 移除 Markdown 代码块标记（保留内容）
-    { description: 'Markdown代码块', pattern: /```\w*\n?/g, replacement: '' },
+    { description: "Markdown代码块", pattern: /```\w*\n?/g, replacement: "" },
     // 统一中文引号
-    { description: '中文引号', pattern: /[""]/g, replacement: '"' },
-    { description: '中文单引号', pattern: /['']/g, replacement: "'" },
+    { description: "中文引号", pattern: /[""]/g, replacement: '"' },
+    { description: "中文单引号", pattern: /['']/g, replacement: "'" },
 ];
 
 /**
@@ -63,7 +67,7 @@ export class TextProcessor {
             floorRange: [number, number];
             timestamp: number;
             characterName?: string;
-        }
+        },
     ): string {
         const floorStr = `${metadata.floorRange[0]}-${metadata.floorRange[1]}`;
 
@@ -80,10 +84,10 @@ export class TextProcessor {
      */
     extractPlainText(text: string): string {
         return text
-            .replaceAll(/```[\s\S]*?```/g, '') // 移除代码块
-            .replaceAll(/\[([^\]]+)\]\([^)]+\)/g, '$1') // 移除链接
-            .replaceAll(/[*_~`#]/g, '') // 移除 Markdown 标记
-            .replaceAll(/\n{2,}/g, '\n')
+            .replaceAll(/```[\s\S]*?```/g, "") // 移除代码块
+            .replaceAll(/\[([^\]]+)\]\([^)]+\)/g, "$1") // 移除链接
+            .replaceAll(/[*_~`#]/g, "") // 移除 Markdown 标记
+            .replaceAll(/\n{2,}/g, "\n")
             .trim();
     }
 
@@ -93,7 +97,7 @@ export class TextProcessor {
      * @param maxLength 最大长度
      * @param suffix 截断后缀
      */
-    truncate(text: string, maxLength: number, suffix = '...'): string {
+    truncate(text: string, maxLength: number, suffix = "..."): string {
         if (text.length <= maxLength) {
             return text;
         }

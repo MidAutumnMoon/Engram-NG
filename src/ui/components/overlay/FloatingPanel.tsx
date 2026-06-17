@@ -8,9 +8,9 @@
  * - 独立于 Modal 组件
  */
 
-import { GripVertical, X } from 'lucide-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import ReactDOM from 'react-dom';
+import { GripVertical, X } from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import ReactDOM from "react-dom";
 
 interface FloatingPanelProps {
     isOpen: boolean;
@@ -44,8 +44,13 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
     resizable = true,
 }) => {
     const panelRef = useRef<HTMLDivElement>(null);
-    const [position, setPosition] = useState(initialPosition || { x: 100, y: 100 });
-    const [size, setSize] = useState({ height: 'auto' as number | 'auto', width: initialWidth });
+    const [position, setPosition] = useState(
+        initialPosition || { x: 100, y: 100 },
+    );
+    const [size, setSize] = useState({
+        height: "auto" as number | "auto",
+        width: initialWidth,
+    });
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
     const dragOffset = useRef({ x: 0, y: 0 });
@@ -68,10 +73,15 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
 
     useEffect(() => {
         const handleWindowResize = () => {
-            if (!panelRef.current) {return;}
-            const currentWidth = typeof size.width === 'number' ? size.width : 300;
+            if (!panelRef.current) return;
+            const currentWidth = typeof size.width === "number"
+                ? size.width
+                : 300;
             const pos = positionRef.current;
-            const newX = Math.max(0, Math.min(window.innerWidth - currentWidth, pos.x));
+            const newX = Math.max(
+                0,
+                Math.min(window.innerWidth - currentWidth, pos.x),
+            );
             const newY = Math.max(0, Math.min(window.innerHeight - 100, pos.y));
 
             if (newX !== pos.x || newY !== pos.y) {
@@ -79,13 +89,13 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
             }
         };
 
-        window.addEventListener('resize', handleWindowResize);
-        return () => window.removeEventListener('resize', handleWindowResize);
+        window.addEventListener("resize", handleWindowResize);
+        return () => window.removeEventListener("resize", handleWindowResize);
     }, [size.width]);
 
     // 拖拽处理
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
-        if (!panelRef.current) {return;}
+        if (!panelRef.current) return;
 
         const rect = panelRef.current.getBoundingClientRect();
         dragOffset.current = {
@@ -97,14 +107,33 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
 
     const handleMouseMove = useCallback((e: MouseEvent) => {
         if (isDragging) {
-            const newX = Math.max(0, Math.min(window.innerWidth - (typeof size.width === 'number' ? size.width : 300), e.clientX - dragOffset.current.x));
-            const newY = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - dragOffset.current.y));
+            const newX = Math.max(
+                0,
+                Math.min(
+                    window.innerWidth -
+                        (typeof size.width === "number" ? size.width : 300),
+                    e.clientX - dragOffset.current.x,
+                ),
+            );
+            const newY = Math.max(
+                0,
+                Math.min(
+                    window.innerHeight - 100,
+                    e.clientY - dragOffset.current.y,
+                ),
+            );
             setPosition({ x: newX, y: newY });
         } else if (isResizing && panelRef.current) {
             const deltaX = e.clientX - resizeStart.current.x;
             const deltaY = e.clientY - resizeStart.current.y;
-            const newWidth = Math.max(minWidth, Math.min(maxWidth, resizeStart.current.width + deltaX));
-            const newHeight = Math.max(minHeight, resizeStart.current.height + deltaY);
+            const newWidth = Math.max(
+                minWidth,
+                Math.min(maxWidth, resizeStart.current.width + deltaX),
+            );
+            const newHeight = Math.max(
+                minHeight,
+                resizeStart.current.height + deltaY,
+            );
             setSize({ height: newHeight, width: newWidth });
         }
     }, [isDragging, isResizing, size.width, minWidth, maxWidth, minHeight]);
@@ -118,7 +147,7 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
     const handleResizeStart = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!panelRef.current) {return;}
+        if (!panelRef.current) return;
 
         const rect = panelRef.current.getBoundingClientRect();
         resizeStart.current = {
@@ -132,27 +161,27 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
 
     useEffect(() => {
         if (isDragging || isResizing) {
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp);
+            window.addEventListener("mousemove", handleMouseMove);
+            window.addEventListener("mouseup", handleMouseUp);
             return () => {
-                window.removeEventListener('mousemove', handleMouseMove);
-                window.removeEventListener('mouseup', handleMouseUp);
+                window.removeEventListener("mousemove", handleMouseMove);
+                window.removeEventListener("mouseup", handleMouseUp);
             };
         }
     }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
 
-    if (!isOpen) {return null;}
+    if (!isOpen) return null;
 
     return ReactDOM.createPortal(
-        <div className="engram-app-root" style={{ display: 'contents' }}>
+        <div className="engram-app-root" style={{ display: "contents" }}>
             <div
                 ref={panelRef}
                 className="fixed z-[11000] flex flex-col rounded-lg shadow-2xl border border-border overflow-hidden"
                 style={{
-                    WebkitBackdropFilter: 'blur(20px)',
-                    backdropFilter: 'blur(20px)',
-                    backgroundColor: 'var(--popover, #1a1a2e)',
-                    height: size.height === 'auto' ? 'auto' : size.height,
+                    WebkitBackdropFilter: "blur(20px)",
+                    backdropFilter: "blur(20px)",
+                    backgroundColor: "var(--popover, #1a1a2e)",
+                    height: size.height === "auto" ? "auto" : size.height,
                     left: position.x,
                     minHeight: minHeight,
                     top: position.y,
@@ -164,18 +193,24 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
                     className="flex items-center justify-between px-3 py-2 border-b border-border select-none"
                     onMouseDown={handleMouseDown}
                     style={{
-                        backgroundColor: 'var(--surface, rgba(255,255,255,0.05))',
-                        cursor: isDragging ? 'grabbing' : 'grab',
+                        backgroundColor:
+                            "var(--surface, rgba(255,255,255,0.05))",
+                        cursor: isDragging ? "grabbing" : "grab",
                     }}
                 >
                     <div className="flex items-center gap-2">
-                        <GripVertical size={14} className="text-muted-foreground" />
-                        <span className="text-sm font-medium text-foreground">{title}</span>
+                        <GripVertical
+                            size={14}
+                            className="text-muted-foreground"
+                        />
+                        <span className="text-sm font-medium text-foreground">
+                            {title}
+                        </span>
                     </div>
                     <button
                         onClick={onClose}
                         className="p-1 text-muted-foreground hover:text-foreground rounded transition-all duration-[var(--duration-fast)] hover:rotate-90 hover:bg-accent"
-                        style={{ backgroundColor: 'transparent' }}
+                        style={{ backgroundColor: "transparent" }}
                         aria-label="关闭"
                         onMouseDown={(e) => e.stopPropagation()}
                     >
@@ -194,13 +229,13 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
                         className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
                         onMouseDown={handleResizeStart}
                         style={{
-                            background: 'linear-gradient(135deg, transparent 50%, var(--border, #333) 50%)',
+                            background:
+                                "linear-gradient(135deg, transparent 50%, var(--border, #333) 50%)",
                         }}
                     />
                 )}
             </div>
         </div>,
-        document.body
+        document.body,
     );
 };
-

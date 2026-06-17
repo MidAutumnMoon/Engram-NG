@@ -4,9 +4,9 @@
  * 替换原有的 ThemeContext，提供更简洁的状态管理
  */
 
-import { ThemeManager } from '@/ui/services/ThemeManager';
-import type { ThemeName } from '@/ui/styles/themes';
-import { create } from 'zustand';
+import { ThemeManager } from "@/ui/services/ThemeManager";
+import type { ThemeName } from "@/ui/styles/themes";
+import { create } from "zustand";
 
 interface ThemeState {
     /** 当前主题名称 */
@@ -32,12 +32,14 @@ interface ThemeState {
  * ```
  */
 export const useThemeStore = create<ThemeState>((set) => ({
-    isDarkMode: !['tokyoLight', 'catppuccinLatte'].includes(ThemeManager.getTheme()),
+    isDarkMode: !["tokyoLight", "catppuccinLatte"].includes(
+        ThemeManager.getTheme(),
+    ),
     setTheme: (theme) => {
         ThemeManager.setTheme(theme);
         set({
             theme,
-            isDarkMode: !['tokyoLight', 'catppuccinLatte'].includes(theme)
+            isDarkMode: !["tokyoLight", "catppuccinLatte"].includes(theme),
         });
     },
 

@@ -1,6 +1,6 @@
-import type { AgenticRecall } from '@/modules/preprocessing/types';
-import { BrainCircuit, FileText, Search } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import type { AgenticRecall } from "@/modules/preprocessing/types";
+import { BrainCircuit, FileText, Search } from "lucide-react";
+import React, { useEffect, useState } from "react";
 
 interface MessageReviewProps {
     content: string;
@@ -24,17 +24,17 @@ export const MessageReview: React.FC<MessageReviewProps> = ({
     onQueryChange,
     agenticRecalls,
     onAgenticRecallsChange,
-    onOpenRecallModal
+    onOpenRecallModal,
 }) => {
     const [text, setText] = useState(content);
-    const [queryText, setQueryText] = useState(query || '');
+    const [queryText, setQueryText] = useState(query || "");
 
     useEffect(() => {
         setText(content);
     }, [content]);
 
     useEffect(() => {
-        setQueryText(query || '');
+        setQueryText(query || "");
     }, [query]);
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -50,7 +50,8 @@ export const MessageReview: React.FC<MessageReviewProps> = ({
     };
 
     const showQuery = query !== undefined && onQueryChange !== undefined;
-    const showAgentic = agenticRecalls !== undefined && onAgenticRecallsChange !== undefined;
+    const showAgentic = agenticRecalls !== undefined &&
+        onAgenticRecallsChange !== undefined;
 
     return (
         <div className="flex flex-col h-full gap-4 min-h-0">
@@ -84,7 +85,9 @@ export const MessageReview: React.FC<MessageReviewProps> = ({
                     <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                         <Search size={16} className="text-accent-foreground" />
                         <span>检索关键词 (Query)</span>
-                        <span className="text-xs text-muted-foreground font-normal">用于 RAG 召回</span>
+                        <span className="text-xs text-muted-foreground font-normal">
+                            用于 RAG 召回
+                        </span>
                     </div>
                     <div className="relative">
                         <textarea
@@ -108,7 +111,9 @@ export const MessageReview: React.FC<MessageReviewProps> = ({
                         <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                             <BrainCircuit size={16} className="text-primary" />
                             <span>Agentic 召回决策</span>
-                            <span className="text-xs text-muted-foreground font-normal">基于用户意图的智能检索</span>
+                            <span className="text-xs text-muted-foreground font-normal">
+                                基于用户意图的智能检索
+                            </span>
                         </div>
                         {onOpenRecallModal && (
                             <button
@@ -119,25 +124,37 @@ export const MessageReview: React.FC<MessageReviewProps> = ({
                             </button>
                         )}
                     </div>
-                    {agenticRecalls && agenticRecalls.length > 0 ? (
-                        <div className="flex flex-col gap-1 p-2 bg-accent/10 border border-accent/20 rounded-md max-h-[150px] overflow-y-auto custom-scrollbar">
-                            {agenticRecalls.map((r, i) => (
-                                <div key={i} className="flex flex-col gap-0.5 p-1.5 rounded hover:bg-muted/30">
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="font-mono text-muted-foreground text-xs">{r.id}</span>
-                                        <span className="text-value font-mono text-xs">Score: {r.score}</span>
+                    {agenticRecalls && agenticRecalls.length > 0
+                        ? (
+                            <div className="flex flex-col gap-1 p-2 bg-accent/10 border border-accent/20 rounded-md max-h-[150px] overflow-y-auto custom-scrollbar">
+                                {agenticRecalls.map((r, i) => (
+                                    <div
+                                        key={i}
+                                        className="flex flex-col gap-0.5 p-1.5 rounded hover:bg-muted/30"
+                                    >
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="font-mono text-muted-foreground text-xs">
+                                                {r.id}
+                                            </span>
+                                            <span className="text-value font-mono text-xs">
+                                                Score: {r.score}
+                                            </span>
+                                        </div>
+                                        <p
+                                            className="text-xs text-emphasis line-clamp-1"
+                                            title={r.reason}
+                                        >
+                                            {r.reason}
+                                        </p>
                                     </div>
-                                    <p className="text-xs text-emphasis line-clamp-1" title={r.reason}>
-                                        {r.reason}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="p-3 text-xs text-muted-foreground text-center bg-muted/20 border border-border/50 rounded-md">
-                            本次无召回决策
-                        </div>
-                    )}
+                                ))}
+                            </div>
+                        )
+                        : (
+                            <div className="p-3 text-xs text-muted-foreground text-center bg-muted/20 border border-border/50 rounded-md">
+                                本次无召回决策
+                            </div>
+                        )}
                 </div>
             )}
         </div>

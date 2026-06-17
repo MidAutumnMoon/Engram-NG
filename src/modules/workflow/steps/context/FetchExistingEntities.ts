@@ -1,20 +1,20 @@
-import type { IStep } from '../../core/Step';
-import type { JobContext } from '../../core/JobContext';
-import { useMemoryStore } from '@/state/memoryStore';
-import { Logger } from '@/core/logger';
+import type { IStep } from "../../core/Step";
+import type { JobContext } from "../../core/JobContext";
+import { useMemoryStore } from "@/state/memoryStore";
+import { Logger } from "@/core/logger";
 
 export class FetchExistingEntities implements IStep {
-    name = 'FetchExistingEntities';
+    name = "FetchExistingEntities";
 
     async execute(context: JobContext): Promise<void> {
         const store = useMemoryStore.getState();
         const entities = await store.getAllEntities();
 
         // 简化实体信息，用于 Prompt 上下文
-        const simplified = entities.map(e => ({
+        const simplified = entities.map((e) => ({
             aliases: e.aliases || [],
             name: e.name,
-            type: e.type
+            type: e.type,
         }));
 
         // 存入 Input 供 BuildPrompt 使用
@@ -26,6 +26,9 @@ export class FetchExistingEntities implements IStep {
         // 同时存入完整对象供 SaveEntity 使用 (消歧用)
         context.input._rawExistingEntities = entities;
 
-        Logger.debug('FetchExistingEntities', `获取了 ${entities.length} 个现有实体`);
+        Logger.debug(
+            "FetchExistingEntities",
+            `获取了 ${entities.length} 个现有实体`,
+        );
     }
 }

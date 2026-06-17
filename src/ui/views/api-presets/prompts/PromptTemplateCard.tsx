@@ -1,11 +1,28 @@
-import { createPromptTemplate, getBuiltInTemplateByCategory, getBuiltInTemplateById } from '@/config/types/defaults';
-import type { PromptCategory, PromptTemplate } from '@/config/types/prompt';
-import { PROMPT_CATEGORIES } from '@/config/types/prompt';
-import { LogModule, Logger } from '@/core/logger';
-import { notificationService } from '@/ui/services/NotificationService';
-import { dump, load } from 'js-yaml';
-import { BrainCircuit, Clapperboard, Copy, Download, FolderInput, type LucideIcon, Paintbrush, Power, RotateCcw, Search, Trash2, Wand2 } from 'lucide-react';
-import React, { useRef } from 'react';
+import {
+    createPromptTemplate,
+    getBuiltInTemplateByCategory,
+    getBuiltInTemplateById,
+} from "@/config/types/defaults";
+import type { PromptCategory, PromptTemplate } from "@/config/types/prompt";
+import { PROMPT_CATEGORIES } from "@/config/types/prompt";
+import { Logger, LogModule } from "@/core/logger";
+import { notificationService } from "@/ui/services/NotificationService";
+import { dump, load } from "js-yaml";
+import {
+    BrainCircuit,
+    Clapperboard,
+    Copy,
+    Download,
+    FolderInput,
+    type LucideIcon,
+    Paintbrush,
+    Power,
+    RotateCcw,
+    Search,
+    Trash2,
+    Wand2,
+} from "lucide-react";
+import React, { useRef } from "react";
 
 interface PromptTemplateCardProps {
     template: PromptTemplate;
@@ -23,17 +40,17 @@ interface PromptTemplateCardProps {
  */
 function getCategoryColorClass(category: PromptCategory): string {
     switch (category) {
-        case 'summary': {
-            return 'text-label bg-label/10 border border-label/20';
+        case "summary": {
+            return "text-label bg-label/10 border border-label/20";
         }
-        case 'trim': {
-            return 'text-emphasis bg-emphasis/10 border border-emphasis/20';
+        case "trim": {
+            return "text-emphasis bg-emphasis/10 border border-emphasis/20";
         }
-        case 'preprocessing': {
-            return 'text-value bg-value/10 border border-value/20';
+        case "preprocessing": {
+            return "text-value bg-value/10 border border-value/20";
         }
         default: {
-            return 'text-muted-foreground bg-muted border border-border';
+            return "text-muted-foreground bg-muted border border-border";
         }
     }
 }
@@ -42,7 +59,9 @@ function getCategoryColorClass(category: PromptCategory): string {
  * 获取分类标签文本
  */
 function getCategoryLabel(category: PromptCategory): string {
-    return PROMPT_CATEGORIES.find((c: { value: PromptCategory; label: string }) => c.value === category)?.label || category;
+    return PROMPT_CATEGORIES.find((
+        c: { value: PromptCategory; label: string },
+    ) => c.value === category)?.label || category;
 }
 
 export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
@@ -74,11 +93,13 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
             quotingType: '"',
         });
 
-        const blob = new Blob([yamlString], { type: 'text/yaml' });
+        const blob = new Blob([yamlString], { type: "text/yaml" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `engram_template_${template.name.replaceAll(/\s+/g, '_')}.yaml`;
+        a.download = `engram_template_${
+            template.name.replaceAll(/\s+/g, "_")
+        }.yaml`;
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -91,7 +112,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
 
     const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (!file || !onImport) {return;}
+        if (!file || !onImport) return;
 
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -112,92 +133,124 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                             systemPrompt: templateData.systemPrompt,
                             userPromptTemplate: templateData.userPromptTemplate,
                             injectionMode: templateData.injectionMode,
-                        }
+                        },
                     );
                     // 保持原 ID
                     importedTemplate.id = template.id;
                     onImport(importedTemplate);
-                    notificationService.success(`模板 "${importedTemplate.name}" 导入成功`);
-                    Logger.info(LogModule.TAVERN, `Prompt template imported: ${importedTemplate.name}`);
+                    notificationService.success(
+                        `模板 "${importedTemplate.name}" 导入成功`,
+                    );
+                    Logger.info(
+                        LogModule.TAVERN,
+                        `Prompt template imported: ${importedTemplate.name}`,
+                    );
                 } else {
-                    Logger.error(LogModule.TAVERN, 'Invalid template format during import', data);
-                    notificationService.error('导入失败: 无效的模板文件格式');
+                    Logger.error(
+                        LogModule.TAVERN,
+                        "Invalid template format during import",
+                        data,
+                    );
+                    notificationService.error("导入失败: 无效的模板文件格式");
                 }
             } catch (error) {
-                Logger.error(LogModule.TAVERN, 'Failed to parse template file', error);
-                notificationService.error('导入失败: 无法解析文件');
+                Logger.error(
+                    LogModule.TAVERN,
+                    "Failed to parse template file",
+                    error,
+                );
+                notificationService.error("导入失败: 无法解析文件");
             }
         };
         reader.readAsText(file);
 
         // 重置 input
         if (fileInputRef.current) {
-            fileInputRef.current.value = '';
+            fileInputRef.current.value = "";
         }
     };
 
-    const isPreprocessing = template.category === 'preprocessing';
+    const isPreprocessing = template.category === "preprocessing";
 
     return (
         <div
             className={`
                 group relative p-3 rounded-lg border cursor-pointer transition-all duration-200
-                ${isSelected
-                    ? 'bg-accent/50 border-input'
-                    : 'bg-transparent border-transparent hover:bg-muted/50 hover:border-border'
-                }
-                ${(!template.enabled && !isPreprocessing) && 'opacity-50'}
+                ${
+                isSelected
+                    ? "bg-accent/50 border-input"
+                    : "bg-transparent border-transparent hover:bg-muted/50 hover:border-border"
+            }
+                ${(!template.enabled && !isPreprocessing) && "opacity-50"}
             `}
             onClick={onSelect}
         >
             <div className="flex items-start gap-3">
                 {/* 状态图标 */}
-                {!isPreprocessing ? (
-                    <button
-                        className={`
+                {!isPreprocessing
+                    ? (
+                        <button
+                            className={`
                             w-8 h-8 flex items-center justify-center rounded-lg transition-colors flex-shrink-0
-                            ${template.enabled
-                                ? 'bg-primary/10 text-primary'
-                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                            ${
+                                template.enabled
+                                    ? "bg-primary/10 text-primary"
+                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
                             }
                         `}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleEnabled?.(!template.enabled);
-                        }}
-                        title={template.enabled ? "点击禁用" : "点击启用"}
-                    >
-                        <Power size={16} />
-                    </button>
-                ) : (
-                    // 预处理模板：内置模板使用专属图标，自建模板用通用图标
-                    (() => {
-                        const BUILTIN_ICON_MAP: Record<string, LucideIcon> = {
-                            builtin_agentic_recall: BrainCircuit,
-                            builtin_description_enhance: Paintbrush,
-                            builtin_plot_director: Clapperboard,
-                            builtin_query_enhance: Search,
-                        };
-                        const Icon = BUILTIN_ICON_MAP[template.id] || Wand2;
-                        return (
-                            <div
-                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-value/10 text-value flex-shrink-0"
-                                title="预处理模板 (在快捷面板中激活)"
-                            >
-                                <Icon size={16} />
-                            </div>
-                        );
-                    })())}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleEnabled?.(!template.enabled);
+                            }}
+                            title={template.enabled ? "点击禁用" : "点击启用"}
+                        >
+                            <Power size={16} />
+                        </button>
+                    )
+                    : (
+                        // 预处理模板：内置模板使用专属图标，自建模板用通用图标
+                        (() => {
+                            const BUILTIN_ICON_MAP: Record<string, LucideIcon> =
+                                {
+                                    builtin_agentic_recall: BrainCircuit,
+                                    builtin_description_enhance: Paintbrush,
+                                    builtin_plot_director: Clapperboard,
+                                    builtin_query_enhance: Search,
+                                };
+                            const Icon = BUILTIN_ICON_MAP[template.id] || Wand2;
+                            return (
+                                <div
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-value/10 text-value flex-shrink-0"
+                                    title="预处理模板 (在快捷面板中激活)"
+                                >
+                                    <Icon size={16} />
+                                </div>
+                            );
+                        })()
+                    )}
 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                        <h4 className={`text-sm font-medium truncate ${isSelected ? 'text-heading' : 'text-muted-foreground group-hover:text-heading'} ${(!template.enabled && !isPreprocessing) && 'line-through'}`}>
+                        <h4
+                            className={`text-sm font-medium truncate ${
+                                isSelected
+                                    ? "text-heading"
+                                    : "text-muted-foreground group-hover:text-heading"
+                            } ${
+                                (!template.enabled && !isPreprocessing) &&
+                                "line-through"
+                            }`}
+                        >
                             {template.name}
                         </h4>
 
                         {/* 标签 */}
                         <div className="flex items-center gap-1.5 flex-shrink-0">
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded-sm font-medium ${getCategoryColorClass(template.category)}`}>
+                            <span
+                                className={`text-[10px] px-1.5 py-0.5 rounded-sm font-medium ${
+                                    getCategoryColorClass(template.category)
+                                }`}
+                            >
                                 {getCategoryLabel(template.category)}
                             </span>
                             {template.isBuiltIn && (
@@ -210,29 +263,63 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
 
                     <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground/70 font-mono">
                         <span className="truncate max-w-[120px]">
-                            {template.boundPresetId ? `BOUND: ${template.boundPresetId}` : 'DEFAULT PRESET'}
+                            {template.boundPresetId
+                                ? `BOUND: ${template.boundPresetId}`
+                                : "DEFAULT PRESET"}
                         </span>
                     </div>
                 </div>
             </div>
 
             {/* Action Buttons - Visible on hover or selected */}
-            <div className={`mt-2 flex justify-end gap-1 ${isSelected || 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
-                <button className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors" onClick={handleImportClick} title="Import"><FolderInput size={12} /></button>
-                <button className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors" onClick={handleExport} title="Export"><Download size={12} /></button>
-                <button className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors" onClick={(e) => { e.stopPropagation(); onCopy?.(); }} title="Copy"><Copy size={12} /></button>
+            <div
+                className={`mt-2 flex justify-end gap-1 ${
+                    isSelected || "opacity-0 group-hover:opacity-100"
+                } transition-opacity`}
+            >
+                <button
+                    className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={handleImportClick}
+                    title="Import"
+                >
+                    <FolderInput size={12} />
+                </button>
+                <button
+                    className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={handleExport}
+                    title="Export"
+                >
+                    <Download size={12} />
+                </button>
+                <button
+                    className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onCopy?.();
+                    }}
+                    title="Copy"
+                >
+                    <Copy size={12} />
+                </button>
                 {template.isBuiltIn && (
                     <button
                         className="p-1.5 hover:bg-emphasis/10 rounded text-muted-foreground hover:text-emphasis transition-colors"
                         onClick={(e) => {
                             e.stopPropagation();
                             // 优先尝试通过 ID 精确匹配 (V0.8.6 Fix)
-                            let defaultTemplate: PromptTemplate | null | undefined = getBuiltInTemplateById(template.id);
+                            let defaultTemplate:
+                                | PromptTemplate
+                                | null
+                                | undefined = getBuiltInTemplateById(
+                                    template.id,
+                                );
 
                             // 如果找不到 (可能是旧数据的随机 ID)，回退到分类匹配
                             // 注意：对于 preprocessing 分类，分类匹配可能不准确，建议刷新页面以触发 ID 迁移
                             if (!defaultTemplate) {
-                                defaultTemplate = getBuiltInTemplateByCategory(template.category);
+                                defaultTemplate = getBuiltInTemplateByCategory(
+                                    template.category,
+                                );
                             }
 
                             if (defaultTemplate && onResetToDefault) {
@@ -251,7 +338,16 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                     </button>
                 )}
                 {!template.isBuiltIn && (
-                    <button className="p-1.5 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors" onClick={(e) => { e.stopPropagation(); onDelete?.(); }} title="Delete"><Trash2 size={12} /></button>
+                    <button
+                        className="p-1.5 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete?.();
+                        }}
+                        title="Delete"
+                    >
+                        <Trash2 size={12} />
+                    </button>
                 )}
             </div>
 

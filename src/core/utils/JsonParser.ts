@@ -21,14 +21,16 @@ export class RobustJsonParser {
         let jsonString = this.extractJsonBlock(input);
 
         if (!jsonString) {
-            console.warn('[RobustJsonParser] 未找到 JSON 数据块');
+            console.warn("[RobustJsonParser] 未找到 JSON 数据块");
             return null;
         }
 
         // V1.0.1: 智能封装 (Array -> Object)
         // 如果提取到的是数组 [...]，自动封装为 { events: [...] } 以适配下游消费
-        if (jsonString.trim().startsWith('[')) {
-            console.log('[RobustJsonParser] 检测到数组格式，尝试自动封装为 { events: [] }');
+        if (jsonString.trim().startsWith("[")) {
+            console.log(
+                "[RobustJsonParser] 检测到数组格式，尝试自动封装为 { events: [] }",
+            );
             jsonString = `{ "events": ${jsonString} }`;
         }
 
@@ -41,7 +43,7 @@ export class RobustJsonParser {
             try {
                 return JSON.parse(repaired);
             } catch (error) {
-                console.error('[RobustJsonParser] 解析失败:', error);
+                console.error("[RobustJsonParser] 解析失败:", error);
                 return null;
             }
         }
@@ -59,16 +61,18 @@ export class RobustJsonParser {
         }
 
         // 2. 尝试查找最外层的大括号 (Object)
-        const firstOpenBrace = text.indexOf('{');
-        const lastCloseBrace = text.lastIndexOf('}');
+        const firstOpenBrace = text.indexOf("{");
+        const lastCloseBrace = text.lastIndexOf("}");
 
         // 3. 尝试查找最外层的方括号 (Array) - V1.0.1
-        const firstOpenBracket = text.indexOf('[');
-        const lastCloseBracket = text.lastIndexOf(']');
+        const firstOpenBracket = text.indexOf("[");
+        const lastCloseBracket = text.lastIndexOf("]");
 
         // 比较哪个出现得更早且有效
-        const foundObject = (firstOpenBrace !== -1 && lastCloseBrace !== -1 && lastCloseBrace > firstOpenBrace);
-        const foundArray = (firstOpenBracket !== -1 && lastCloseBracket !== -1 && lastCloseBracket > firstOpenBracket);
+        const foundObject = firstOpenBrace !== -1 && lastCloseBrace !== -1 &&
+            lastCloseBrace > firstOpenBrace;
+        const foundArray = firstOpenBracket !== -1 && lastCloseBracket !== -1 &&
+            lastCloseBracket > firstOpenBracket;
 
         // 如果两者都存在，取最外层的（索引更小的）
         // 实际上很少混合，通常是二选一
@@ -76,8 +80,7 @@ export class RobustJsonParser {
             if (firstOpenBrace < firstOpenBracket) {
                 return text.substring(firstOpenBrace, lastCloseBrace + 1);
             }
-                return text.substring(firstOpenBracket, lastCloseBracket + 1);
-            
+            return text.substring(firstOpenBracket, lastCloseBracket + 1);
         }
 
         if (foundObject) {
@@ -101,7 +104,7 @@ export class RobustJsonParser {
 
         // 1. 移除对象或数组尾部多余的逗号
         // 例如: "key": "value", } -> "key": "value" }
-        repaired = repaired.replaceAll(/,\s*([}\]])/g, '$1');
+        repaired = repaired.replaceAll(/,\s*([}\]])/g, "$1");
 
         return repaired;
     }

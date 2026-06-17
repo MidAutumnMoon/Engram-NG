@@ -3,9 +3,9 @@
  * 用于在提示词模板中直接绑定额外世界书
  */
 
-import { WorldInfoService } from '@/integrations/tavern/worldbook';
-import { Book, Plus, X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { WorldInfoService } from "@/integrations/tavern/worldbook";
+import { Book, Plus, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
 
 interface WorldbookBindingFieldProps {
     selectedBooks: string[];
@@ -17,21 +17,26 @@ interface WorldbookBindingFieldProps {
 export const WorldbookBindingField: React.FC<WorldbookBindingFieldProps> = ({
     selectedBooks,
     onChange,
-    label = '额外世界书',
-    description = '选择要额外扫描的世界书。角色绑定的世界书会自动包含（无需手动添加）。'
+    label = "额外世界书",
+    description =
+        "选择要额外扫描的世界书。角色绑定的世界书会自动包含（无需手动添加）。",
 }) => {
     const [showPicker, setShowPicker] = useState(false);
     const [availableBooks, setAvailableBooks] = useState<string[]>([]);
-    const [localSelection, setLocalSelection] = useState<string[]>(selectedBooks);
+    const [localSelection, setLocalSelection] = useState<string[]>(
+        selectedBooks,
+    );
 
     // 加载可用世界书列表
     useEffect(() => {
         const scopes = WorldInfoService.getScopes();
         // 合并全局 + 已安装，排除 [Engram] 开头和角色绑定的
-        const allBooks = [...new Set([
-            ...scopes.global,
-            ...scopes.installed
-        ])].filter(name => !name.startsWith('[Engram]'));
+        const allBooks = [
+            ...new Set([
+                ...scopes.global,
+                ...scopes.installed,
+            ]),
+        ].filter((name) => !name.startsWith("[Engram]"));
 
         setAvailableBooks(allBooks);
     }, [showPicker]);
@@ -42,9 +47,9 @@ export const WorldbookBindingField: React.FC<WorldbookBindingFieldProps> = ({
     }, [selectedBooks]);
 
     const handleToggle = (book: string) => {
-        setLocalSelection(prev =>
+        setLocalSelection((prev) =>
             prev.includes(book)
-                ? prev.filter(b => b !== book)
+                ? prev.filter((b) => b !== book)
                 : [...prev, book]
         );
     };
@@ -55,7 +60,7 @@ export const WorldbookBindingField: React.FC<WorldbookBindingFieldProps> = ({
     };
 
     const handleRemove = (book: string) => {
-        onChange(selectedBooks.filter(b => b !== book));
+        onChange(selectedBooks.filter((b) => b !== book));
     };
 
     return (
@@ -73,25 +78,31 @@ export const WorldbookBindingField: React.FC<WorldbookBindingFieldProps> = ({
 
             {/* 已选标签 */}
             <div className="flex flex-wrap gap-1.5">
-                {selectedBooks.length === 0 ? (
-                    <span className="text-xs text-muted-foreground italic">未绑定额外世界书</span>
-                ) : (
-                    selectedBooks.map(book => (
-                        <div
-                            key={book}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full border border-primary/20"
-                        >
-                            <span className="max-w-32 truncate">{book}</span>
-                            <button
-                                onClick={() => handleRemove(book)}
-                                className="p-0.5 hover:bg-primary/20 rounded-full transition-colors"
-                                title="移除"
+                {selectedBooks.length === 0
+                    ? (
+                        <span className="text-xs text-muted-foreground italic">
+                            未绑定额外世界书
+                        </span>
+                    )
+                    : (
+                        selectedBooks.map((book) => (
+                            <div
+                                key={book}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full border border-primary/20"
                             >
-                                <X size={10} />
-                            </button>
-                        </div>
-                    ))
-                )}
+                                <span className="max-w-32 truncate">
+                                    {book}
+                                </span>
+                                <button
+                                    onClick={() => handleRemove(book)}
+                                    className="p-0.5 hover:bg-primary/20 rounded-full transition-colors"
+                                    title="移除"
+                                >
+                                    <X size={10} />
+                                </button>
+                            </div>
+                        ))
+                    )}
 
                 {/* 添加按钮 */}
                 <button
@@ -107,48 +118,76 @@ export const WorldbookBindingField: React.FC<WorldbookBindingFieldProps> = ({
             {showPicker && (
                 <>
                     {/* 透明遮罩用于点击外部关闭 */}
-                    <div className="fixed inset-0 z-40" onClick={() => setShowPicker(false)} />
+                    <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowPicker(false)}
+                    />
 
                     <div className="absolute z-50 mt-1 w-64 bg-popover border border-border rounded-md shadow-md">
                         {/* 搜索/标题栏 */}
                         <div className="px-3 py-2 border-b border-border text-xs font-semibold text-muted-foreground flex justify-between items-center">
                             <span>选择世界书</span>
-                            <span className="text-[10px]">{availableBooks.length} 个可用</span>
+                            <span className="text-[10px]">
+                                {availableBooks.length} 个可用
+                            </span>
                         </div>
 
                         {/* 列表 */}
                         <div className="max-h-60 overflow-y-auto p-1">
-                            {availableBooks.length === 0 ? (
-                                <div className="text-center py-4 text-muted-foreground text-xs">
-                                    没有可用的世界书
-                                </div>
-                            ) : (
-                                <div className="flex flex-col gap-0.5">
-                                    {availableBooks.map(book => {
-                                        const isSelected = selectedBooks.includes(book);
-                                        return (
-                                            <label
-                                                key={book}
-                                                className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-colors text-xs ${isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+                            {availableBooks.length === 0
+                                ? (
+                                    <div className="text-center py-4 text-muted-foreground text-xs">
+                                        没有可用的世界书
+                                    </div>
+                                )
+                                : (
+                                    <div className="flex flex-col gap-0.5">
+                                        {availableBooks.map((book) => {
+                                            const isSelected = selectedBooks
+                                                .includes(book);
+                                            return (
+                                                <label
+                                                    key={book}
+                                                    className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-colors text-xs ${
+                                                        isSelected
+                                                            ? "bg-primary/10 text-primary"
+                                                            : "hover:bg-muted"
                                                     }`}
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={isSelected}
-                                                    onChange={() => {
-                                                        const newSelection = isSelected
-                                                            ? selectedBooks.filter(b => b !== book)
-                                                            : [...selectedBooks, book];
-                                                        onChange(newSelection);
-                                                    }}
-                                                    className="w-3.5 h-3.5 rounded border-border"
-                                                />
-                                                <span className="truncate flex-1" title={book}>{book}</span>
-                                            </label>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isSelected}
+                                                        onChange={() => {
+                                                            const newSelection =
+                                                                isSelected
+                                                                    ? selectedBooks
+                                                                        .filter(
+                                                                            (
+                                                                                b,
+                                                                            ) => b !==
+                                                                                book,
+                                                                        )
+                                                                    : [
+                                                                        ...selectedBooks,
+                                                                        book,
+                                                                    ];
+                                                            onChange(
+                                                                newSelection,
+                                                            );
+                                                        }}
+                                                        className="w-3.5 h-3.5 rounded border-border"
+                                                    />
+                                                    <span
+                                                        className="truncate flex-1"
+                                                        title={book}
+                                                    >
+                                                        {book}
+                                                    </span>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                         </div>
                     </div>
                 </>

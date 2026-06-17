@@ -587,7 +587,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                                 (() => {
                                     const editingMacro =
                                         (settings.customMacros || []).find(
-                                            (m) => m.id === editingMacroId
+                                            (m) => m.id === editingMacroId,
                                         );
                                     return editingMacro
                                         ? (

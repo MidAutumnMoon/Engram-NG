@@ -21,7 +21,7 @@
         "lint:fix": "deno run -A npm:oxlint src -D correctness -W perf -W suspicious --fix",
     },
     "nodeModulesDir": "auto",
-    "exclude": ["docs", "vendor"],
+    "exclude": ["docs", "vendor", "*.md", "*.html", "*.css", "*.json"],
     "fmt": {
         "indentWidth": 4,
         "useTabs": false,

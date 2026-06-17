@@ -7,7 +7,13 @@
  * - 极简主义布局
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import {
     ArrowDownToLine,
     ChevronDown,
@@ -19,49 +25,51 @@ import {
     Terminal,
     Trash2,
     Zap,
-} from 'lucide-react';
+} from "lucide-react";
 import { PageTitle } from "@/ui/components/display/PageTitle";
-import type { LogEntry, LogLevel} from "@/core/logger";
-import { Logger, LogLevelConfig, ALL_MODULES } from "@/core/logger";
-import { LogEntryItem, LogGroup, groupLogsByModule } from './LogEntryItem';
-import { ModelLog } from './ModelLog';
-import { RecallLog } from './RecallLog';
+import type { LogEntry, LogLevel } from "@/core/logger";
+import { ALL_MODULES, Logger, LogLevelConfig } from "@/core/logger";
+import { groupLogsByModule, LogEntryItem, LogGroup } from "./LogEntryItem";
+import { ModelLog } from "./ModelLog";
+import { RecallLog } from "./RecallLog";
 import type { Tab } from "@/ui/components/layout/TabPills";
 import { LayoutTabs } from "@/ui/components/layout/LayoutTabs";
 import { Divider } from "@/ui/components/layout/Divider";
 
 // Tab 类型
-type TabType = 'runtime' | 'model' | 'recall';
+type TabType = "runtime" | "model" | "recall";
 
 // Tab 配置
 const TABS: Tab[] = [
-    { icon: <Terminal size={14} />, id: 'runtime', label: '运行日志' },
-    { icon: <Zap size={14} />, id: 'model', label: '模型日志' },
-    { icon: <Target size={14} />, id: 'recall', label: '召回日志' },
+    { icon: <Terminal size={14} />, id: "runtime", label: "运行日志" },
+    { icon: <Zap size={14} />, id: "model", label: "模型日志" },
+    { icon: <Target size={14} />, id: "recall", label: "召回日志" },
 ];
 
 // Tab 信息映射
 const TAB_INFO: Record<TabType, { title: string; subtitle: string }> = {
-    model: { subtitle: '查看 LLM 调用记录', title: '模型日志' },
-    recall: { subtitle: '查看 RAG 召回记录', title: '召回日志' },
-    runtime: { subtitle: '查看系统运行时日志', title: '运行日志' },
+    model: { subtitle: "查看 LLM 调用记录", title: "模型日志" },
+    recall: { subtitle: "查看 RAG 召回记录", title: "召回日志" },
+    runtime: { subtitle: "查看系统运行时日志", title: "运行日志" },
 };
 
 // V0.9.10: 模块列表自动生成（不再硬编码）
-const MODULES = ['ALL', ...ALL_MODULES];
+const MODULES = ["ALL", ...ALL_MODULES];
 
 interface DevLogProps {
     initialTab?: TabType;
 }
 
 export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
-    const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'runtime');
+    const [activeTab, setActiveTab] = useState<TabType>(
+        initialTab || "runtime",
+    );
     const currentInfo = TAB_INFO[activeTab];
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([]);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState("");
     const [levelFilter, setLevelFilter] = useState<LogLevel | -1>(-1);
-    const [moduleFilter, setModuleFilter] = useState('ALL');
+    const [moduleFilter, setModuleFilter] = useState("ALL");
     const [autoScroll, setAutoScroll] = useState(true);
     const [showLevelDropdown, setShowLevelDropdown] = useState(false);
     const [showModuleDropdown, setShowModuleDropdown] = useState(false);
@@ -86,27 +94,34 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
         if (levelFilter !== -1) {
             result = result.filter((log) => log.level >= levelFilter);
         }
-        if (moduleFilter !== 'ALL') {
-            result = result.filter((log) => log.module.startsWith(moduleFilter));
+        if (moduleFilter !== "ALL") {
+            result = result.filter((log) =>
+                log.module.startsWith(moduleFilter)
+            );
         }
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
             result = result.filter(
                 (log) =>
                     log.message.toLowerCase().includes(query) ||
-                    log.module.toLowerCase().includes(query)
+                    log.module.toLowerCase().includes(query),
             );
         }
         setFilteredLogs(result);
     }, [logs, levelFilter, moduleFilter, searchQuery]);
 
     // V0.9.12: 将日志按模块分组
-    const logGroups = useMemo(() => groupLogsByModule(filteredLogs), [filteredLogs]);
+    const logGroups = useMemo(() => groupLogsByModule(filteredLogs), [
+        filteredLogs,
+    ]);
 
     // 自动滚动
     useEffect(() => {
         if (autoScroll && bottomRef.current) {
-            bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            bottomRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+            });
         }
     }, [filteredLogs, autoScroll]);
 
@@ -118,14 +133,14 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
     const handleExport = useCallback(() => {
         const markdown = Logger.exportToMarkdown();
         const filename = Logger.getExportFilename();
-        const blob = new Blob([markdown], { type: 'text/markdown' });
+        const blob = new Blob([markdown], { type: "text/markdown" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
         a.download = filename;
         a.click();
         URL.revokeObjectURL(url);
-        Logger.success('DevLog', `日志已导出: ${filename}`);
+        Logger.success("DevLog", `日志已导出: ${filename}`);
     }, []);
 
     return (
@@ -133,7 +148,7 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
             {/* 页面标题 - 统一样式 */}
             {/* 页面标题 - 统一样式 */}
             <PageTitle
-                breadcrumbs={['开发日志']}
+                breadcrumbs={["开发日志"]}
                 title={currentInfo.title}
                 subtitle={currentInfo.subtitle}
                 className="mb-2"
@@ -147,7 +162,7 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
             />
 
             {/* ========== 运行日志 Tab ========== */}
-            {activeTab === 'runtime' && (
+            {activeTab === "runtime" && (
                 <div className="flex flex-col flex-1 min-h-0">
                     {/* 工具栏 - sticky (Level 2, now top-0 because tabs are in header) */}
                     <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm py-3 -mx-4 px-4 md:-mx-8 md:px-8 lg:-mx-12 lg:px-12 border-b border-border">
@@ -156,24 +171,41 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
                             <div className="relative">
                                 <button
                                     className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                                    onClick={() => setShowLevelDropdown(!showLevelDropdown)}
+                                    onClick={() =>
+                                        setShowLevelDropdown(
+                                            !showLevelDropdown,
+                                        )}
                                 >
-                                    {levelFilter === -1 ? '全部级别' : LogLevelConfig[levelFilter].label}
+                                    {levelFilter === -1
+                                        ? "全部级别"
+                                        : LogLevelConfig[levelFilter].label}
                                     <ChevronDown size={12} />
                                 </button>
                                 {showLevelDropdown && (
                                     <div className="absolute top-full left-0 mt-1 bg-popover border border-border rounded-md shadow-lg z-20 min-w-[100px] py-1 flex flex-col">
                                         <button
                                             className="block w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors"
-                                            onClick={() => { setLevelFilter(-1); setShowLevelDropdown(false); }}
+                                            onClick={() => {
+                                                setLevelFilter(-1);
+                                                setShowLevelDropdown(false);
+                                            }}
                                         >
                                             全部级别
                                         </button>
-                                        {Object.entries(LogLevelConfig).map(([level, config]) => (
+                                        {Object.entries(LogLevelConfig).map((
+                                            [level, config],
+                                        ) => (
                                             <button
                                                 key={level}
                                                 className="block w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors"
-                                                onClick={() => { setLevelFilter(Number(level) as LogLevel); setShowLevelDropdown(false); }}
+                                                onClick={() => {
+                                                    setLevelFilter(
+                                                        Number(
+                                                            level,
+                                                        ) as LogLevel,
+                                                    );
+                                                    setShowLevelDropdown(false);
+                                                }}
                                             >
                                                 {config.icon} {config.label}
                                             </button>
@@ -189,7 +221,10 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
                             <div className="relative">
                                 <button
                                     className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                                    onClick={() => setShowModuleDropdown(!showModuleDropdown)}
+                                    onClick={() =>
+                                        setShowModuleDropdown(
+                                            !showModuleDropdown,
+                                        )}
                                 >
                                     {moduleFilter}
                                     <ChevronDown size={12} />
@@ -200,7 +235,12 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
                                             <button
                                                 key={mod}
                                                 className="block w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors"
-                                                onClick={() => { setModuleFilter(mod); setShowModuleDropdown(false); }}
+                                                onClick={() => {
+                                                    setModuleFilter(mod);
+                                                    setShowModuleDropdown(
+                                                        false,
+                                                    );
+                                                }}
                                             >
                                                 {mod}
                                             </button>
@@ -219,7 +259,8 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
                                     type="text"
                                     placeholder="搜索日志..."
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onChange={(e) =>
+                                        setSearchQuery(e.target.value)}
                                     className="bg-transparent border-none outline-none text-xs text-foreground placeholder:text-muted-foreground w-24 md:w-40"
                                 />
                             </div>
@@ -228,14 +269,29 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
                             <div className="flex items-center gap-1 ml-auto">
                                 {/* V0.9.12: 分组展开控制 */}
                                 <button
-                                    className={`p-1.5 rounded transition-colors ${defaultGroupExpanded ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-                                    onClick={() => setDefaultGroupExpanded(!defaultGroupExpanded)}
-                                    title={defaultGroupExpanded ? '折叠所有分组' : '展开所有分组'}
+                                    className={`p-1.5 rounded transition-colors ${
+                                        defaultGroupExpanded
+                                            ? "text-primary"
+                                            : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                                    onClick={() =>
+                                        setDefaultGroupExpanded(
+                                            !defaultGroupExpanded,
+                                        )}
+                                    title={defaultGroupExpanded
+                                        ? "折叠所有分组"
+                                        : "展开所有分组"}
                                 >
-                                    {defaultGroupExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                                    {defaultGroupExpanded
+                                        ? <Minimize2 size={14} />
+                                        : <Maximize2 size={14} />}
                                 </button>
                                 <button
-                                    className={`p-1.5 rounded transition-colors ${autoScroll ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                                    className={`p-1.5 rounded transition-colors ${
+                                        autoScroll
+                                            ? "text-primary"
+                                            : "text-muted-foreground hover:text-foreground"
+                                    }`}
                                     onClick={() => setAutoScroll(!autoScroll)}
                                     title="自动滚动"
                                 >
@@ -261,43 +317,54 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
 
                     {/* 日志内容区 - 无边框 */}
                     <div className="flex-1 overflow-y-auto font-mono text-xs leading-relaxed py-2">
-                        {filteredLogs.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
-                                <Terminal size={32} strokeWidth={1} className="opacity-30" />
-                                <p className="text-sm font-light">暂无日志记录</p>
-                            </div>
-                        ) : (
-                            <>
-                                {logGroups.map((group, idx) => (
-                                    <LogGroup
-                                        key={`${group[0].module}-${group[0].id}`}
-                                        entries={group}
-                                        defaultExpanded={defaultGroupExpanded}
-                                        defaultDataExpanded={defaultDataExpanded}
+                        {filteredLogs.length === 0
+                            ? (
+                                <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+                                    <Terminal
+                                        size={32}
+                                        strokeWidth={1}
+                                        className="opacity-30"
                                     />
-                                ))}
-                                <div ref={bottomRef} />
-                            </>
-                        )}
+                                    <p className="text-sm font-light">
+                                        暂无日志记录
+                                    </p>
+                                </div>
+                            )
+                            : (
+                                <>
+                                    {logGroups.map((group, idx) => (
+                                        <LogGroup
+                                            key={`${group[0].module}-${
+                                                group[0].id
+                                            }`}
+                                            entries={group}
+                                            defaultExpanded={defaultGroupExpanded}
+                                            defaultDataExpanded={defaultDataExpanded}
+                                        />
+                                    ))}
+                                    <div ref={bottomRef} />
+                                </>
+                            )}
                     </div>
 
                     {/* 状态栏 - 简化 */}
                     <div className="text-[10px] text-muted-foreground py-2 border-t border-border">
                         {logs.length} 条日志
-                        {filteredLogs.length !== logs.length && ` · ${filteredLogs.length} 条匹配`}
+                        {filteredLogs.length !== logs.length &&
+                            ` · ${filteredLogs.length} 条匹配`}
                     </div>
                 </div>
             )}
 
             {/* ========== 模型日志 Tab ========== */}
-            {activeTab === 'model' && (
+            {activeTab === "model" && (
                 <div className="flex-1 overflow-hidden">
                     <ModelLog />
                 </div>
             )}
 
             {/* ========== 召回日志 Tab ========== */}
-            {activeTab === 'recall' && (
+            {activeTab === "recall" && (
                 <div className="flex-1 overflow-hidden">
                     <RecallLog />
                 </div>
@@ -305,4 +372,3 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
         </div>
     );
 };
-

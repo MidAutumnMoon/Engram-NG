@@ -1,4 +1,3 @@
-
 /**
  * EventNode - The atom of memory
  * Represents a single processed event, either from raw chat or higher-level summary.
@@ -76,7 +75,6 @@ export interface EventNode {
         end_index: number;
     };
 
-
     /**
      * 是否锁定 (阻止自动归档/精简)
      */
@@ -90,11 +88,11 @@ export interface EventNode {
  * V0.9: 新增
  */
 export enum EntityType {
-    Character = 'char',      // 角色/人物
-    Location = 'loc',        // 地点
-    Item = 'item',           // 物品
-    Concept = 'concept',     // 概念/组织/势力
-    Unknown = 'unknown'      // 未知类型
+    Character = "char", // 角色/人物
+    Location = "loc", // 地点
+    Item = "item", // 物品
+    Concept = "concept", // 概念/组织/势力
+    Unknown = "unknown", // 未知类型
 }
 
 /**
@@ -176,7 +174,6 @@ export interface EntityNode {
      */
     is_embedded?: boolean;
 
-
     /**
      * 是否锁定 (阻止自动归档)
      */
@@ -208,7 +205,7 @@ export interface ScopeState {
  */
 export const DEFAULT_SCOPE_STATE: ScopeState = {
     active_summary_order: 9000,
-    chatId: '',
+    chatId: "",
     lastModified: 0,
     last_compressed_at: 0,
     last_extracted_floor: 0,

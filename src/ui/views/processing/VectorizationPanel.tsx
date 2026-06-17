@@ -7,19 +7,24 @@
  * - 批量嵌入控制
  * - 进度显示
  */
-import type { EmbeddingConfig, VectorConfig } from '@/config/types/rag';
-import { embeddingService } from '@/modules/rag';
-import { NumberField, SelectField, SwitchField, TextField } from '@/ui/components/form/FormComponents';
-import { Divider } from '@/ui/components/layout/Divider';
+import type { EmbeddingConfig, VectorConfig } from "@/config/types/rag";
+import { embeddingService } from "@/modules/rag";
+import {
+    NumberField,
+    SelectField,
+    SwitchField,
+    TextField,
+} from "@/ui/components/form/FormComponents";
+import { Divider } from "@/ui/components/layout/Divider";
 import {
     AlertCircle,
     CheckCircle2,
     Loader2,
     Play,
     RefreshCw,
-    Square
-} from 'lucide-react';
-import React, { useCallback, useEffect, useState } from 'react';
+    Square,
+} from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
 
 // ==================== 类型 ====================
 
@@ -48,17 +53,23 @@ interface VectorizationPanelProps {
 export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
     config,
     vectorConfig,
-    onConfigChange
+    onConfigChange,
 }) => {
     // 状态
-    const [stats, setStats] = useState<EmbeddingStats>({ embedded: 0, pending: 0, total: 0 });
+    const [stats, setStats] = useState<EmbeddingStats>({
+        embedded: 0,
+        pending: 0,
+        total: 0,
+    });
     const [progress, setProgress] = useState<EmbeddingProgress | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [lastResult, setLastResult] = useState<{ success: number; failed: number } | null>(null);
-    const [rangeStart, setRangeStart] = useState<string>('');
-    const [rangeEnd, setRangeEnd] = useState<string>('');
+    const [lastResult, setLastResult] = useState<
+        { success: number; failed: number } | null
+    >(null);
+    const [rangeStart, setRangeStart] = useState<string>("");
+    const [rangeEnd, setRangeEnd] = useState<string>("");
 
     // 加载初始数据
     useEffect(() => {
@@ -73,7 +84,7 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
             const newStats = await embeddingService.getEmbeddingStats();
             setStats(newStats);
         } catch (error: any) {
-            setError(error.message || '加载失败');
+            setError(error.message || "加载失败");
         } finally {
             setLoading(false);
         }
@@ -88,7 +99,7 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
     // 开始嵌入
     const handleStartEmbedding = async () => {
         if (!vectorConfig) {
-            setError('请先配置向量化服务');
+            setError("请先配置向量化服务");
             return;
         }
 
@@ -106,14 +117,17 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                 start: rangeStart ? parseInt(rangeStart, 10) : undefined,
             };
 
-            const result = await embeddingService.embedUnprocessedEvents((current, total, errors) => {
-                setProgress({ current, errors, total });
-            }, range);
+            const result = await embeddingService.embedUnprocessedEvents(
+                (current, total, errors) => {
+                    setProgress({ current, errors, total });
+                },
+                range,
+            );
 
             setLastResult(result);
             await refreshStats();
         } catch (error: any) {
-            setError(error.message || '嵌入失败');
+            setError(error.message || "嵌入失败");
         } finally {
             setIsProcessing(false);
             setProgress(null);
@@ -128,11 +142,13 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
     // 重新嵌入所有
     const handleReembedAll = async () => {
         if (!vectorConfig) {
-            setError('请先配置向量化服务');
+            setError("请先配置向量化服务");
             return;
         }
 
-        if (!confirm('确定要重新嵌入所有事件吗？这将清除现有嵌入并重新生成。')) {
+        if (
+            !confirm("确定要重新嵌入所有事件吗？这将清除现有嵌入并重新生成。")
+        ) {
             return;
         }
 
@@ -150,14 +166,17 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                 start: rangeStart ? parseInt(rangeStart, 10) : undefined,
             };
 
-            const result = await embeddingService.reembedAllEvents((current, total, errors) => {
-                setProgress({ current, errors, total });
-            }, range);
+            const result = await embeddingService.reembedAllEvents(
+                (current, total, errors) => {
+                    setProgress({ current, errors, total });
+                },
+                range,
+            );
 
             setLastResult(result);
             await refreshStats();
         } catch (error: any) {
-            setError(error.message || '重新嵌入失败');
+            setError(error.message || "重新嵌入失败");
         } finally {
             setIsProcessing(false);
             setProgress(null);
@@ -166,12 +185,14 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
 
     // 计算进度百分比
     const progressPercent = progress
-        ? (progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0)
+        ? (progress.total > 0
+            ? Math.round((progress.current / progress.total) * 100)
+            : 0)
         : 0;
 
     // 检查向量配置是否有效
     const isVectorConfigValid = vectorConfig && (
-        vectorConfig.source === 'transformers' ||
+        vectorConfig.source === "transformers" ||
         vectorConfig.model
     );
 
@@ -189,16 +210,26 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
             {/* 统计信息 */}
             <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="flex flex-col gap-1">
-                    <span className="text-xs text-muted-foreground uppercase tracking-wider">总事件</span>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                        总事件
+                    </span>
                     <span className="text-2xl font-light">{stats.total}</span>
                 </div>
                 <div className="flex flex-col gap-1">
-                    <span className="text-xs text-muted-foreground uppercase tracking-wider">已嵌入</span>
-                    <span className="text-2xl font-light text-primary">{stats.embedded}</span>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                        已嵌入
+                    </span>
+                    <span className="text-2xl font-light text-primary">
+                        {stats.embedded}
+                    </span>
                 </div>
                 <div className="flex flex-col gap-1">
-                    <span className="text-xs text-muted-foreground uppercase tracking-wider">待处理</span>
-                    <span className="text-2xl font-light text-warning">{stats.pending}</span>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                        待处理
+                    </span>
+                    <span className="text-2xl font-light text-warning">
+                        {stats.pending}
+                    </span>
                 </div>
             </div>
 
@@ -209,7 +240,9 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                         <span className="text-sm text-muted-foreground">
                             嵌入进度 {progress.current}/{progress.total}
                         </span>
-                        <span className="text-sm font-medium">{progressPercent}%</span>
+                        <span className="text-sm font-medium">
+                            {progressPercent}%
+                        </span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <div
@@ -227,13 +260,20 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
 
             {/* 结果提示 */}
             {lastResult && (
-                <div className={`mb-6 p-3 rounded-lg flex items-center gap-2 ${lastResult.failed > 0 ? 'bg-warning/10 text-warning' : 'bg-primary/10 text-primary'
-                    }`}>
-                    {lastResult.failed > 0 ? (
-                        <AlertCircle size={16} />
-                    ) : (
-                        <CheckCircle2 size={16} />
-                    )}
+                <div
+                    className={`mb-6 p-3 rounded-lg flex items-center gap-2 ${
+                        lastResult.failed > 0
+                            ? "bg-warning/10 text-warning"
+                            : "bg-primary/10 text-primary"
+                    }`}
+                >
+                    {lastResult.failed > 0
+                        ? (
+                            <AlertCircle size={16} />
+                        )
+                        : (
+                            <CheckCircle2 size={16} />
+                        )}
                     <span className="text-sm">
                         完成：{lastResult.success} 成功
                         {lastResult.failed > 0 && `，${lastResult.failed} 失败`}
@@ -254,7 +294,9 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                 <div className="mb-6 p-3 bg-muted/50 rounded-lg">
                     <p className="text-sm text-muted-foreground">
                         请在
-                        <span className="text-primary mx-1">API 配置 → 模型配置 → 向量化</span>
+                        <span className="text-primary mx-1">
+                            API 配置 → 模型配置 → 向量化
+                        </span>
                         中设置向量化服务
                     </p>
                 </div>
@@ -282,47 +324,53 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
 
             {/* 操作按钮 */}
             <div className="flex flex-wrap gap-3 mb-6">
-                {isProcessing ? (
-                    <button
-                        onClick={handleStopEmbedding}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
-                    >
-                        <Square size={16} />
-                        停止
-                    </button>
-                ) : (
-                    <>
+                {isProcessing
+                    ? (
                         <button
-                            onClick={handleStartEmbedding}
-                            disabled={stats.pending === 0 || !isVectorConfigValid}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={handleStopEmbedding}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
                         >
-                            <Play size={16} />
-                            嵌入未处理 ({stats.pending})
+                            <Square size={16} />
+                            停止
                         </button>
-                        <button
-                            onClick={handleReembedAll}
-                            disabled={stats.total === 0 || !isVectorConfigValid}
-                            className="inline-flex items-center gap-2 px-4 py-2 border border-border text-foreground rounded-md hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <RefreshCw size={16} />
-                            重新嵌入所有
-                        </button>
-                        <button
-                            onClick={refreshStats}
-                            className="inline-flex items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                            <RefreshCw size={16} />
-                        </button>
-                    </>
-                )}
+                    )
+                    : (
+                        <>
+                            <button
+                                onClick={handleStartEmbedding}
+                                disabled={stats.pending === 0 ||
+                                    !isVectorConfigValid}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <Play size={16} />
+                                嵌入未处理 ({stats.pending})
+                            </button>
+                            <button
+                                onClick={handleReembedAll}
+                                disabled={stats.total === 0 ||
+                                    !isVectorConfigValid}
+                                className="inline-flex items-center gap-2 px-4 py-2 border border-border text-foreground rounded-md hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <RefreshCw size={16} />
+                                重新嵌入所有
+                            </button>
+                            <button
+                                onClick={refreshStats}
+                                className="inline-flex items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                <RefreshCw size={16} />
+                            </button>
+                        </>
+                    )}
             </div>
 
             <Divider className="my-6" />
 
             {/* 配置区域 */}
             <div className="space-y-4">
-                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">嵌入设置</h3>
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                    嵌入设置
+                </h3>
 
                 <SwitchField
                     label="启用自动嵌入"
@@ -334,11 +382,14 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                 <SelectField
                     label="触发模式"
                     value={config.trigger}
-                    onChange={(value) => onConfigChange({ trigger: value as EmbeddingConfig['trigger'] })}
+                    onChange={(value) =>
+                        onConfigChange({
+                            trigger: value as EmbeddingConfig["trigger"],
+                        })}
                     options={[
-                        { label: '与 Trim 联动', value: 'with_trim' },
-                        { label: '独立触发', value: 'standalone' },
-                        { label: '仅手动', value: 'manual' },
+                        { label: "与 Trim 联动", value: "with_trim" },
+                        { label: "独立触发", value: "standalone" },
+                        { label: "仅手动", value: "manual" },
                     ]}
                     description="with_trim: Trim 时自动嵌入 | standalone: 使用相同阈值独立触发"
                 />
@@ -346,7 +397,10 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                 <NumberField
                     label="并发数"
                     value={config.concurrency}
-                    onChange={(value) => onConfigChange({ concurrency: Math.max(1, Math.min(20, value)) })}
+                    onChange={(value) =>
+                        onConfigChange({
+                            concurrency: Math.max(1, Math.min(20, value)),
+                        })}
                     min={1}
                     max={20}
                     description="同时处理的嵌入请求数 (1-20)"
@@ -354,11 +408,17 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
 
                 {vectorConfig && (
                     <div className="p-3 bg-muted/30 rounded-lg">
-                        <p className="text-xs text-muted-foreground mb-1">当前向量配置</p>
+                        <p className="text-xs text-muted-foreground mb-1">
+                            当前向量配置
+                        </p>
                         <p className="text-sm">
-                            <span className="text-primary">{vectorConfig.source}</span>
+                            <span className="text-primary">
+                                {vectorConfig.source}
+                            </span>
                             {vectorConfig.model && (
-                                <span className="text-muted-foreground ml-2">/ {vectorConfig.model}</span>
+                                <span className="text-muted-foreground ml-2">
+                                    / {vectorConfig.model}
+                                </span>
                             )}
                         </p>
                     </div>
@@ -367,4 +427,3 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
         </div>
     );
 };
-

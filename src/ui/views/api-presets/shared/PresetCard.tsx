@@ -1,10 +1,10 @@
 /**
  * PresetCard - LLM 预设卡片（使用通用 ItemCard）
  */
-import React from 'react';
-import { Cloud, Copy, Edit2, Server, Trash2 } from 'lucide-react';
-import { ItemCard } from '@/ui/components/display/ItemCard';
-import type { LLMPreset } from '@/config/types/llm';
+import React from "react";
+import { Cloud, Copy, Edit2, Server, Trash2 } from "lucide-react";
+import { ItemCard } from "@/ui/components/display/ItemCard";
+import type { LLMPreset } from "@/config/types/llm";
 
 interface PresetCardProps {
     preset: LLMPreset;
@@ -23,10 +23,13 @@ export const PresetCard: React.FC<PresetCardProps> = ({
     onCopy,
     onDelete,
 }) => {
-    const SourceIcon = preset.source === 'tavern' || preset.source === 'tavern_profile' ? Server : Cloud;
-    const modelName = preset.source === 'custom'
-        ? preset.custom?.model || '未设置'
-        : '使用当前';
+    const SourceIcon =
+        preset.source === "tavern" || preset.source === "tavern_profile"
+            ? Server
+            : Cloud;
+    const modelName = preset.source === "custom"
+        ? preset.custom?.model || "未设置"
+        : "使用当前";
 
     return (
         <ItemCard
@@ -34,15 +37,30 @@ export const PresetCard: React.FC<PresetCardProps> = ({
             title={preset.name}
             subtitle={modelName}
             meta={`T:${preset.parameters.temperature}`}
-            badges={preset.isDefault ? [{ color: 'primary', text: 'DEFAULT' }] : []}
+            badges={preset.isDefault
+                ? [{ color: "primary", text: "DEFAULT" }]
+                : []}
             selected={isSelected}
             onClick={onSelect}
             actions={[
-                { icon: <Edit2 size={12} />, onClick: () => onEdit(), title: '编辑' },
-                { icon: <Copy size={12} />, onClick: () => onCopy(), title: '复制' },
-                { danger: true, hidden: preset.isDefault, icon: <Trash2 size={12} />, onClick: () => onDelete(), title: '删除' },
+                {
+                    icon: <Edit2 size={12} />,
+                    onClick: () => onEdit(),
+                    title: "编辑",
+                },
+                {
+                    icon: <Copy size={12} />,
+                    onClick: () => onCopy(),
+                    title: "复制",
+                },
+                {
+                    danger: true,
+                    hidden: preset.isDefault,
+                    icon: <Trash2 size={12} />,
+                    onClick: () => onDelete(),
+                    title: "删除",
+                },
             ]}
         />
     );
 };
-

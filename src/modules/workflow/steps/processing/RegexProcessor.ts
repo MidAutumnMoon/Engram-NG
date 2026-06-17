@@ -6,20 +6,18 @@
  * 通用管道组件：可被多个模块复用
  */
 
-import { Logger } from '@/core/logger';
-import type {
-    RegexRule,
-    RegexScope} from '@/config/types/data_processing';
+import { Logger } from "@/core/logger";
+import type { RegexRule, RegexScope } from "@/config/types/data_processing";
 import {
     DEFAULT_REGEX_RULES,
-    REGEX_SCOPE_OPTIONS
-} from '@/config/types/data_processing';
+    REGEX_SCOPE_OPTIONS,
+} from "@/config/types/data_processing";
 
-const MODULE = 'RegexProcessor';
+const MODULE = "RegexProcessor";
 
 // 重新导出以便其他模块使用
 export type { RegexRule, RegexScope };
-export { REGEX_SCOPE_OPTIONS, DEFAULT_REGEX_RULES };
+export { DEFAULT_REGEX_RULES, REGEX_SCOPE_OPTIONS };
 
 /**
  * 正则处理器类
@@ -49,7 +47,11 @@ export class RegexProcessor {
             this.ruleRegexCache.set(cacheKey, regex);
             return regex;
         } catch (error) {
-            Logger.warn(MODULE, `Invalid regex pattern for rule "${rule.name}":`, error);
+            Logger.warn(
+                MODULE,
+                `Invalid regex pattern for rule "${rule.name}":`,
+                error,
+            );
             return null;
         }
     }
@@ -63,10 +65,10 @@ export class RegexProcessor {
         let result = text;
 
         for (const rule of this.rules) {
-            if (!rule.enabled) {continue;}
+            if (!rule.enabled) continue;
 
             // 如果指定了 scope，只应用匹配的规则
-            if (scope && rule.scope !== scope && rule.scope !== 'both') {
+            if (scope && rule.scope !== scope && rule.scope !== "both") {
                 continue;
             }
 
@@ -75,7 +77,11 @@ export class RegexProcessor {
                 try {
                     result = result.replace(regex, rule.replacement);
                 } catch (error) {
-                    Logger.warn(MODULE, `Rule "${rule.name}" execution failed:`, error);
+                    Logger.warn(
+                        MODULE,
+                        `Rule "${rule.name}" execution failed:`,
+                        error,
+                    );
                 }
             }
         }
@@ -101,14 +107,19 @@ export class RegexProcessor {
     /**
      * 验证正则表达式是否有效
      */
-    validatePattern(pattern: string, flags: string): { valid: boolean; error?: string } {
+    validatePattern(
+        pattern: string,
+        flags: string,
+    ): { valid: boolean; error?: string } {
         try {
             new RegExp(pattern, flags);
             return { valid: true };
         } catch (error) {
             return {
                 valid: false,
-                error: error instanceof Error ? error.message : '无效的正则表达式',
+                error: error instanceof Error
+                    ? error.message
+                    : "无效的正则表达式",
             };
         }
     }
@@ -140,7 +151,7 @@ export class RegexProcessor {
      * 更新规则
      */
     updateRule(id: string, updates: Partial<RegexRule>): void {
-        const index = this.rules.findIndex(r => r.id === id);
+        const index = this.rules.findIndex((r) => r.id === id);
         if (index !== -1) {
             this.rules[index] = { ...this.rules[index], ...updates };
             // 简单策略：清除整个缓存，或者保留 key。
@@ -155,7 +166,7 @@ export class RegexProcessor {
      * 删除规则
      */
     deleteRule(id: string): void {
-        this.rules = this.rules.filter(r => r.id !== id);
+        this.rules = this.rules.filter((r) => r.id !== id);
         this.ruleRegexCache.clear();
     }
 
@@ -163,7 +174,7 @@ export class RegexProcessor {
      * 启用/禁用规则
      */
     toggleRule(id: string): void {
-        const rule = this.rules.find(r => r.id === id);
+        const rule = this.rules.find((r) => r.id === id);
         if (rule) {
             rule.enabled = !rule.enabled;
         }
@@ -180,23 +191,32 @@ export class RegexProcessor {
      * 获取启用的规则数量
      */
     getEnabledCount(): number {
-        return this.rules.filter(r => r.enabled).length;
+        return this.rules.filter((r) => r.enabled).length;
     }
 
     // ========== V0.8: 标签捕获方法 ==========
 
-    private getCachedTagRegex(tagName: string, type: 'capture' | 'remove'): RegExp {
+    private getCachedTagRegex(
+        tagName: string,
+        type: "capture" | "remove",
+    ): RegExp {
         const key = `${type}:${tagName}`;
         if (this.tagRegexCache.has(key)) {
             return this.tagRegexCache.get(key)!;
         }
 
         let regex: RegExp;
-        if (type === 'capture') {
+        if (type === "capture") {
             // 支持属性和空格: <tag attr="..."> content </tag>
-            regex = new RegExp(`<${tagName}(?:\\s+[^>]*)?>([\\s\\S]*?)<\\/${tagName}\\s*>`, 'i');
+            regex = new RegExp(
+                `<${tagName}(?:\\s+[^>]*)?>([\\s\\S]*?)<\\/${tagName}\\s*>`,
+                "i",
+            );
         } else {
-            regex = new RegExp(`<${tagName}(?:\\s+[^>]*)?>[\\s\\S]*?<\\/${tagName}\\s*>`, 'gi');
+            regex = new RegExp(
+                `<${tagName}(?:\\s+[^>]*)?>[\\s\\S]*?<\\/${tagName}\\s*>`,
+                "gi",
+            );
         }
 
         this.tagRegexCache.set(key, regex);
@@ -211,7 +231,7 @@ export class RegexProcessor {
      */
     captureTag(text: string, tagName: string): string | null {
         try {
-            const regex = this.getCachedTagRegex(tagName, 'capture');
+            const regex = this.getCachedTagRegex(tagName, "capture");
             const match = text.match(regex);
             return match?.[1]?.trim() || null;
         } catch (error) {
@@ -227,8 +247,8 @@ export class RegexProcessor {
      */
     removeTag(text: string, tagName: string): string {
         try {
-            const regex = this.getCachedTagRegex(tagName, 'remove');
-            return text.replace(regex, '').trim();
+            const regex = this.getCachedTagRegex(tagName, "remove");
+            return text.replace(regex, "").trim();
         } catch (error) {
             Logger.warn(MODULE, `Failed to remove tag: ${tagName}`, error);
             return text;
@@ -241,7 +261,10 @@ export class RegexProcessor {
      * @param tagNames 标签名数组
      * @returns 标签内容映射
      */
-    captureTags(text: string, tagNames: string[]): Record<string, string | null> {
+    captureTags(
+        text: string,
+        tagNames: string[],
+    ): Record<string, string | null> {
         const result: Record<string, string | null> = {};
         for (const tag of tagNames) {
             result[tag] = this.captureTag(text, tag);
@@ -252,4 +275,3 @@ export class RegexProcessor {
 
 /** 默认实例 */
 export const regexProcessor = new RegexProcessor();
-

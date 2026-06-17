@@ -7,12 +7,12 @@
  * - 可用于 EventNode 和 EntityNode
  */
 
-import type { VectorConfig } from '@/config/types/rag';
-import { LogModule, Logger } from '@/core/logger';
-import { getDbForChat, tryGetDbForChat } from '@/data/db';
-import type { EventNode } from '@/data/types/graph';
-import { EmbeddingClient } from '@/integrations/embedding/EmbeddingClient';
-import { getCurrentChatId } from '@/integrations/tavern';
+import type { VectorConfig } from "@/config/types/rag";
+import { Logger, LogModule } from "@/core/logger";
+import { getDbForChat, tryGetDbForChat } from "@/data/db";
+import type { EventNode } from "@/data/types/graph";
+import { EmbeddingClient } from "@/integrations/embedding/EmbeddingClient";
+import { getCurrentChatId } from "@/integrations/tavern";
 
 // ==================== 类型定义 ====================
 
@@ -36,7 +36,11 @@ interface EmbedResult {
 /**
  * 嵌入进度回调
  */
-type EmbedProgressCallback = (current: number, total: number, errors: number) => void;
+type EmbedProgressCallback = (
+    current: number,
+    total: number,
+    errors: number,
+) => void;
 
 // ==================== 常量 ====================
 
@@ -64,7 +68,9 @@ export class EmbeddingService {
      * 设置并发数
      */
     public setConcurrency(n: number) {
-        const val = typeof n === 'number' && !isNaN(n) ? n : DEFAULT_CONCURRENCY;
+        const val = typeof n === "number" && !isNaN(n)
+            ? n
+            : DEFAULT_CONCURRENCY;
         this.concurrency = Math.max(1, Math.min(20, val));
     }
 
@@ -89,10 +95,10 @@ export class EmbeddingService {
      */
     public async embed(text: string): Promise<number[]> {
         if (!this.config) {
-            throw new Error('EmbeddingService: config not set');
+            throw new Error("EmbeddingService: config not set");
         }
 
-        const results = await this.embedBatch([{ id: 'single', text }]);
+        const results = await this.embedBatch([{ id: "single", text }]);
         if (results[0].error) {
             throw new Error(results[0].error);
         }
@@ -104,10 +110,10 @@ export class EmbeddingService {
      */
     public async embedBatch(
         requests: EmbedRequest[],
-        onProgress?: EmbedProgressCallback
+        onProgress?: EmbedProgressCallback,
     ): Promise<EmbedResult[]> {
         if (!this.config) {
-            throw new Error('EmbeddingService: config not set');
+            throw new Error("EmbeddingService: config not set");
         }
 
         this.stopSignal = false;
@@ -117,7 +123,7 @@ export class EmbeddingService {
 
         // 并发处理
         const worker = async (index: number) => {
-            if (index >= requests.length || this.stopSignal) {return;}
+            if (index >= requests.length || this.stopSignal) return;
 
             const req = requests[index];
             try {
@@ -125,8 +131,14 @@ export class EmbeddingService {
                 results[index] = { embedding, id: req.id };
             } catch (error: any) {
                 errors++;
-                results[index] = { id: req.id, embedding: [], error: error.message };
-                Logger.warn(LogModule.RAG_EMBED, `嵌入失败: ${req.id}`, { error: error.message });
+                results[index] = {
+                    id: req.id,
+                    embedding: [],
+                    error: error.message,
+                };
+                Logger.warn(LogModule.RAG_EMBED, `嵌入失败: ${req.id}`, {
+                    error: error.message,
+                });
             } finally {
                 completed++;
                 onProgress?.(completed, requests.length, errors);
@@ -135,10 +147,10 @@ export class EmbeddingService {
 
         // 分批并发
         for (let i = 0; i < requests.length; i += this.concurrency) {
-            if (this.stopSignal) {break;}
+            if (this.stopSignal) break;
             const batch = Array.from(
                 { length: Math.min(this.concurrency, requests.length - i) },
-                (_, j) => worker(i + j)
+                (_, j) => worker(i + j),
             );
             await Promise.all(batch);
         }
@@ -162,26 +174,30 @@ export class EmbeddingService {
      */
     public async embedUnprocessedEvents(
         onProgress?: EmbedProgressCallback,
-        range?: { start?: number; end?: number }
+        range?: { start?: number; end?: number },
     ): Promise<{ success: number; failed: number }> {
         const chatId = getCurrentChatId();
         if (!chatId) {
-            throw new Error('No current chat');
+            throw new Error("No current chat");
         }
 
         const db = getDbForChat(chatId);
 
         // 获取未嵌入的事件 (V1.2.2: 仅处理 Level 0 事件，大纲节点不进行向量化)
         let events = await db.events
-            .filter(e => e.level === 0 && !e.is_embedded && !e.embedding)
+            .filter((e) => e.level === 0 && !e.is_embedded && !e.embedding)
             .toArray();
 
         // 应用范围过滤
         if (range) {
-            events = events.filter(e => {
+            events = events.filter((e) => {
                 const { start_index, end_index } = e.source_range;
-                if (range.start !== undefined && start_index < range.start) {return false;}
-                if (range.end !== undefined && end_index > range.end) {return false;}
+                if (range.start !== undefined && start_index < range.start) {
+                    return false;
+                }
+                if (range.end !== undefined && end_index > range.end) {
+                    return false;
+                }
                 return true;
             });
         }
@@ -193,7 +209,7 @@ export class EmbeddingService {
         Logger.info(LogModule.RAG_EMBED, `开始嵌入 ${events.length} 个事件`);
 
         // 构建请求
-        const requests: EmbedRequest[] = events.map(e => ({
+        const requests: EmbedRequest[] = events.map((e) => ({
             id: e.id,
             text: e.summary,
         }));
@@ -218,7 +234,10 @@ export class EmbeddingService {
             success++;
         }
 
-        Logger.info(LogModule.RAG_EMBED, `嵌入完成: ${success} 成功, ${failed} 失败`);
+        Logger.info(
+            LogModule.RAG_EMBED,
+            `嵌入完成: ${success} 成功, ${failed} 失败`,
+        );
         return { failed, success };
     }
 
@@ -227,18 +246,18 @@ export class EmbeddingService {
      */
     public async embedEvents(
         events: EventNode[],
-        onProgress?: EmbedProgressCallback
+        onProgress?: EmbedProgressCallback,
     ): Promise<{ success: number; failed: number }> {
         if (events.length === 0) {
             return { failed: 0, success: 0 };
         }
 
         const chatId = getCurrentChatId();
-        if (!chatId) {throw new Error('No current chat');}
+        if (!chatId) throw new Error("No current chat");
         const db = getDbForChat(chatId);
 
         // 构建请求
-        const requests: EmbedRequest[] = events.map(e => ({
+        const requests: EmbedRequest[] = events.map((e) => ({
             id: e.id,
             text: e.summary,
         }));
@@ -292,26 +311,30 @@ export class EmbeddingService {
      */
     public async reembedAllEvents(
         onProgress?: EmbedProgressCallback,
-        range?: { start?: number; end?: number }
+        range?: { start?: number; end?: number },
     ): Promise<{ success: number; failed: number }> {
         const chatId = getCurrentChatId();
         if (!chatId) {
-            throw new Error('No current chat');
+            throw new Error("No current chat");
         }
 
         const db = getDbForChat(chatId);
 
         // 获取所有事件 (V1.2.2: 仅处理 Level 0 事件)
         let events = await db.events
-            .filter(e => e.level === 0)
+            .filter((e) => e.level === 0)
             .toArray();
 
         // 应用范围过滤
         if (range) {
-            events = events.filter(e => {
+            events = events.filter((e) => {
                 const { start_index, end_index } = e.source_range;
-                if (range.start !== undefined && start_index < range.start) {return false;}
-                if (range.end !== undefined && end_index > range.end) {return false;}
+                if (range.start !== undefined && start_index < range.start) {
+                    return false;
+                }
+                if (range.end !== undefined && end_index > range.end) {
+                    return false;
+                }
                 return true;
             });
         }
@@ -356,8 +379,13 @@ export class EmbeddingService {
      * @param normSqA (可选) 向量 A 的范数平方
      * @param normSqB (可选) 向量 B 的范数平方
      */
-    public cosineSimilarity(vecA: number[], vecB: number[], normSqA?: number, normSqB?: number): number {
-        if (!vecA || !vecB || vecA.length !== vecB.length) {return 0;}
+    public cosineSimilarity(
+        vecA: number[],
+        vecB: number[],
+        normSqA?: number,
+        normSqB?: number,
+    ): number {
+        if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
 
         let dot = 0;
         let nA = normSqA ?? 0;
@@ -368,8 +396,8 @@ export class EmbeddingService {
 
         for (let i = 0; i < vecA.length; i++) {
             dot += vecA[i] * vecB[i];
-            if (calcA) {nA += vecA[i] * vecA[i];}
-            if (calcB) {nB += vecB[i] * vecB[i];}
+            if (calcA) nA += vecA[i] * vecA[i];
+            if (calcB) nB += vecB[i] * vecB[i];
         }
 
         const denom = Math.sqrt(nA) * Math.sqrt(nB);
@@ -395,7 +423,7 @@ export class EmbeddingService {
         }
 
         const events = await db.events.toArray();
-        const embedded = events.filter(e => e.is_embedded).length;
+        const embedded = events.filter((e) => e.is_embedded).length;
 
         return {
             embedded,

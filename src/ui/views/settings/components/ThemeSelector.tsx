@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
-import { ThemeManager } from '@/ui/services/ThemeManager';
-import type { ThemeName } from '../../../styles/themes';
-import { themes } from '../../../styles/themes';
-import { useThemeStore } from '@/state/themeStore';
+import React, { useEffect } from "react";
+import { ThemeManager } from "@/ui/services/ThemeManager";
+import type { ThemeName } from "../../../styles/themes";
+import { themes } from "../../../styles/themes";
+import { useThemeStore } from "@/state/themeStore";
 
 interface ThemeOption {
     id: ThemeName;
@@ -25,24 +25,26 @@ export const ThemeSelector: React.FC = () => {
     };
 
     // Prepare theme options for display
-    const options: ThemeOption[] = Object.entries(themes).map(([key, theme]) => {
-        const bg = theme.colors.background;
-        const prim = theme.colors.primary;
+    const options: ThemeOption[] = Object.entries(themes).map(
+        ([key, theme]) => {
+            const bg = theme.colors.background;
+            const prim = theme.colors.primary;
 
-        // Handle CSS variables for SillyTavern theme preview
-        // If (key === 'sillytavern') {
-        //     Bg = 'var(--SmartThemeBlurTintColor, #333)';
-        //     Prim = 'var(--SmartThemeQuoteColor, #0af)';
-        // }
+            // Handle CSS variables for SillyTavern theme preview
+            // If (key === 'sillytavern') {
+            //     Bg = 'var(--SmartThemeBlurTintColor, #333)';
+            //     Prim = 'var(--SmartThemeQuoteColor, #0af)';
+            // }
 
-        return {
-            id: key as ThemeName,
-            name: theme.name,
-            background: bg,
-            sidebar: theme.colors.sidebar, // Add sidebar color
-            primary: prim
-        };
-    });
+            return {
+                id: key as ThemeName,
+                name: theme.name,
+                background: bg,
+                sidebar: theme.colors.sidebar, // Add sidebar color
+                primary: prim,
+            };
+        },
+    );
 
     return (
         <div className="space-y-4">
@@ -54,10 +56,11 @@ export const ThemeSelector: React.FC = () => {
                         onClick={() => handleThemeChange(option.id)}
                         className={`
                             relative group flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all
-                            ${currentTheme === option.id
-                                ? 'border-primary bg-accent/10'
-                                : 'border-transparent hover:bg-accent/5'
-                            }
+                            ${
+                            currentTheme === option.id
+                                ? "border-primary bg-accent/10"
+                                : "border-transparent hover:bg-accent/5"
+                        }
                         `}
                     >
                         {/* Circular Swatch */}
@@ -83,7 +86,13 @@ export const ThemeSelector: React.FC = () => {
                             />
                         </div>
 
-                        <span className={`text-sm font-medium ${currentTheme === option.id ? 'text-primary' : 'text-muted-foreground'}`}>
+                        <span
+                            className={`text-sm font-medium ${
+                                currentTheme === option.id
+                                    ? "text-primary"
+                                    : "text-muted-foreground"
+                            }`}
+                        >
                             {option.name}
                         </span>
 

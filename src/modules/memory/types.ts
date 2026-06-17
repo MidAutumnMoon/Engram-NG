@@ -3,10 +3,10 @@
  */
 
 /** 触发模式 */
-export type TriggerMode = 'auto' | 'manual';
+export type TriggerMode = "auto" | "manual";
 
 /** 世界书绑定模式 */
-export type WorldbookBindMode = 'chat' | 'character';
+export type WorldbookBindMode = "chat" | "character";
 
 /** Summarizer 配置 */
 export interface SummarizerConfig {
@@ -33,13 +33,13 @@ export interface SummarizerConfig {
 /** 默认配置 (V0.9.5 推荐参数) */
 export const DEFAULT_SUMMARIZER_CONFIG: SummarizerConfig = {
     enabled: true,
-    triggerMode: 'auto',
-    floorInterval: 25,      // V0.9.5: 20-30 层一次
-    worldbookMode: 'chat',
+    triggerMode: "auto",
+    floorInterval: 25, // V0.9.5: 20-30 层一次
+    worldbookMode: "chat",
     previewEnabled: true,
     promptTemplateId: null,
     llmPresetId: null,
-    bufferSize: 10,         // V0.9.5: 缓存 10 层
+    bufferSize: 10, // V0.9.5: 缓存 10 层
     autoHide: false,
 };
 
@@ -77,7 +77,7 @@ export interface SummarizerStatus {
      * auto: 自动触发 (基于楼层或 V2 Pipeline)
      * manual: 仅手动
      */
-    mode?: 'auto' | 'manual';
+    mode?: "auto" | "manual";
 
     /** 总结历史记录数 */
     historyCount: number;
@@ -89,7 +89,7 @@ export interface SummarizerStatus {
 interface SummarizeRequest {
     /** 消息内容数组 */
     messages: {
-        role: 'user' | 'assistant' | 'system';
+        role: "user" | "assistant" | "system";
         content: string;
         name?: string;
     }[];

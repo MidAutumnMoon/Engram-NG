@@ -1,14 +1,34 @@
 export type PromptCategory =
-    | 'summary'           // 剧情摘要 (V0.5 统一为 JSON 输出)
-    | 'trim'              // 精简/修剪
-    | 'preprocessing'     // 预处理 (统一分类，包含 Query 增强/剧情编排/描写增强等)
-    | 'entity_extraction'; // V0.9: 实体提取
+    | "summary" // 剧情摘要 (V0.5 统一为 JSON 输出)
+    | "trim" // 精简/修剪
+    | "preprocessing" // 预处理 (统一分类，包含 Query 增强/剧情编排/描写增强等)
+    | "entity_extraction"; // V0.9: 实体提取
 
-export const PROMPT_CATEGORIES: { value: PromptCategory; label: string; description: string }[] = [
-    { description: '将对话转为结构化 JSON 事件', label: '剧情摘要', value: 'summary' },
-    { description: '合并、压缩旧的事件记录', label: '精简/修剪', value: 'trim' },
-    { description: '用户输入预处理（Query 增强/剧情编排/描写增强等）', label: '预处理', value: 'preprocessing' },
-    { description: '从事件中提取角色、地点、物品等实体', label: '实体提取', value: 'entity_extraction' },
+export const PROMPT_CATEGORIES: {
+    value: PromptCategory;
+    label: string;
+    description: string;
+}[] = [
+    {
+        description: "将对话转为结构化 JSON 事件",
+        label: "剧情摘要",
+        value: "summary",
+    },
+    {
+        description: "合并、压缩旧的事件记录",
+        label: "精简/修剪",
+        value: "trim",
+    },
+    {
+        description: "用户输入预处理（Query 增强/剧情编排/描写增强等）",
+        label: "预处理",
+        value: "preprocessing",
+    },
+    {
+        description: "从事件中提取角色、地点、物品等实体",
+        label: "实体提取",
+        value: "entity_extraction",
+    },
 ];
 
 export interface CustomMacro {
@@ -44,20 +64,36 @@ export interface PromptTemplate {
     /** 用户提示词模板，支持变量 {{chatHistory}}, {{context}} 等 */
     userPromptTemplate: string;
     /** 注入模式: 'replace'=覆盖用户输入, 'append'=追加到用户输入之后, 'prepend'=添加到用户输入之前 */
-    injectionMode?: 'replace' | 'append' | 'prepend';
+    injectionMode?: "replace" | "append" | "prepend";
     /** 创建时间 */
     createdAt: number;
     /** 更新时间 */
     updatedAt: number;
 }
 
-export type PromptTemplateSingleExport = Omit<PromptTemplate, 'id' | 'isBuiltIn' | 'enabled' | 'createdAt' | 'updatedAt' | 'extraWorldbooks'>;
+export type PromptTemplateSingleExport = Omit<
+    PromptTemplate,
+    | "id"
+    | "isBuiltIn"
+    | "enabled"
+    | "createdAt"
+    | "updatedAt"
+    | "extraWorldbooks"
+>;
 
 interface PromptTemplateExport {
     version: string;
     exportedAt: number;
     // V1.2.8: 导出时排除 extraWorldbooks（可能包含私人信息）
-    templates: Omit<PromptTemplate, 'id' | 'isBuiltIn' | 'enabled' | 'createdAt' | 'updatedAt' | 'extraWorldbooks'>[];
+    templates: Omit<
+        PromptTemplate,
+        | "id"
+        | "isBuiltIn"
+        | "enabled"
+        | "createdAt"
+        | "updatedAt"
+        | "extraWorldbooks"
+    >[];
 }
 
 export interface WorldbookConfig {
@@ -77,7 +113,7 @@ export interface WorldbookConfigProfile {
     id: string;
     name: string;
     description?: string; // For future LLM routing
-    mode: 'inherit_global' | 'custom';
+    mode: "inherit_global" | "custom";
     selectedWorldbooks: string[]; // Whitelist of worldbook names
     createdAt: number;
     updatedAt: number;

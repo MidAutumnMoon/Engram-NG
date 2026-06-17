@@ -289,7 +289,8 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
                     <Sparkles size={12} className="shrink-0 mt-0.5" />
                     <span>
                         💡{" "}
-                        <strong>提示：
+                        <strong>
+                            提示：
                         </strong>目前实体（NPC/地点）召回仅支持基于触发词
                         (Trigger Keywords)
                         的关键词扫描和关系链关联。这是为了保证在极低消耗下提供最高的一致性与响应准确度。
@@ -376,12 +377,10 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
                             onChange={(val) =>
                                 updateConfig({
                                     brainRecall: {
-                                        boredomPenalty:
-                                            config.brainRecall
-                                                ?.boredomPenalty ?? 0.2,
-                                        boredomThreshold:
-                                            config.brainRecall
-                                                ?.boredomThreshold ?? 3,
+                                        boredomPenalty: config.brainRecall
+                                            ?.boredomPenalty ?? 0.2,
+                                        boredomThreshold: config.brainRecall
+                                            ?.boredomThreshold ?? 3,
                                         contextSwitchThreshold:
                                             config.brainRecall
                                                 ?.contextSwitchThreshold ?? 0.4,
@@ -389,9 +388,8 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
                                             config.brainRecall?.decayRate ??
                                                 0.08,
                                         enabled: val,
-                                        evictionThreshold:
-                                            config.brainRecall
-                                                ?.evictionThreshold ?? 0.25,
+                                        evictionThreshold: config.brainRecall
+                                            ?.evictionThreshold ?? 0.25,
                                         gateThreshold:
                                             config.brainRecall?.gateThreshold ??
                                                 0.6,
@@ -404,15 +402,12 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
                                         newcomerBoost:
                                             config.brainRecall?.newcomerBoost ??
                                                 0.3,
-                                        reinforceFactor:
-                                            config.brainRecall
-                                                ?.reinforceFactor ?? 0.2,
-                                        shortTermLimit:
-                                            config.brainRecall
-                                                ?.shortTermLimit ?? 35,
-                                        sigmoidTemperature:
-                                            config.brainRecall
-                                                ?.sigmoidTemperature ?? 5.0,
+                                        reinforceFactor: config.brainRecall
+                                            ?.reinforceFactor ?? 0.2,
+                                        shortTermLimit: config.brainRecall
+                                            ?.shortTermLimit ?? 35,
+                                        sigmoidTemperature: config.brainRecall
+                                            ?.sigmoidTemperature ?? 5.0,
                                         workingLimit:
                                             config.brainRecall?.workingLimit ??
                                                 10,

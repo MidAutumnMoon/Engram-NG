@@ -1,7 +1,20 @@
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="100%" viewBox="0 96 400 400" enable-background="new 0 96 400 400" xml:space="preserve">
-<path fill="currentColor" opacity="1.000000" stroke="none"
-	d="
+<svg
+    version="1.1"
+    id="Layer_1"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    x="0px"
+    y="0px"
+    width="100%"
+    viewBox="0 96 400 400"
+    enable-background="new 0 96 400 400"
+    xml:space="preserve"
+>
+    <path
+        fill="currentColor"
+        opacity="1.000000"
+        stroke="none"
+        d="
 M103.875908,522.166260
 	C75.225380,521.276611 55.289425,503.229828 52.249313,475.852142
 	C49.879883,454.514191 63.027035,433.000366 83.930901,424.858398
@@ -72,5 +85,6 @@ M116.349434,377.499908
 	C145.119888,331.194611 135.004120,341.287384 120.496223,346.769958
 	C117.238434,348.001068 116.190170,349.706024 116.267418,353.006317
 	C116.450615,360.833862 116.340004,368.668243 116.349434,377.499908
-z"/>
+z"
+    />
 </svg>
