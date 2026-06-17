@@ -1,45 +1,17 @@
-import React, { lazy, Suspense, useEffect, useState } from "react";
-import { MainLayout } from "@/ui/components/layout/MainLayout";
-import { SettingsManager } from "@/config/settings";
-import { EventBus } from "@/core/events/types";
-import { UpdateService } from "@/core/updater/Updater";
-import { notificationService } from "@/ui/services/NotificationService";
+import React, { useEffect, useState } from "react";
+import { MainLayout } from "@/ui/components/layout/MainLayout.tsx";
+import { SettingsManager } from "@/config/settings.ts";
+import { EventBus } from "@/core/events/types.ts";
+import { UpdateService } from "@/core/updater/Updater.ts";
+import { notificationService } from "@/ui/services/NotificationService.ts";
 
-// 首屏视图同步导入
-import { Dashboard } from "@/ui/views/dashboard";
-
-// 非首屏视图懒加载 - 减少首屏 bundle 大小
-const DevLog = lazy(() =>
-    import("@/ui/views/dev-log").then((m) => ({ default: m.DevLog }))
-);
-const APIPresets = lazy(() =>
-    import("@/ui/views/api-presets/APIPresetsView").then((m) => ({
-        default: m.APIPresets,
-    }))
-);
-const Settings = lazy(() =>
-    import("@/ui/views/settings").then((m) => ({ default: m.Settings }))
-);
-const MemoryStream = lazy(() =>
-    import("@/ui/views/memory-stream").then((m) => ({
-        default: m.MemoryStream,
-    }))
-);
-const ProcessingView = lazy(() =>
-    import("@/ui/views/processing/ProcessingView").then((m) => ({
-        default: m.ProcessingView,
-    }))
-);
-const DocsView = lazy(() =>
-    import("@/ui/views/docs").then((m) => ({ default: m.DocsView }))
-); // V0.9.11
-
-// 懒加载 Loading 占位符
-const LoadingFallback = () => (
-    <div className="flex items-center justify-center h-full">
-        <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
-    </div>
-);
+import { Dashboard } from "@/ui/views/dashboard/index.tsx";
+import { DevLog } from "@/ui/views/dev-log/index.tsx";
+import { APIPresets } from "@/ui/views/api-presets/APIPresetsView.tsx";
+import { Settings } from "@/ui/views/settings/index.tsx";
+import { MemoryStream } from "@/ui/views/memory-stream/index.tsx";
+import { ProcessingView } from "@/ui/views/processing/ProcessingView.tsx";
+import { DocsView } from "@/ui/views/docs/index.tsx";
 
 interface AppProps {
     onClose: () => void;
@@ -49,7 +21,6 @@ const App: React.FC<AppProps> = ({ onClose }) => {
     const [activeTab, setActiveTab] = useState(() =>
         SettingsManager.get("lastOpenedTab") || "dashboard"
     );
-    const [isInitialized, setIsInitialized] = useState(false);
 
     // Deep Link Navigation Handler
     const handleNavigate = (path: string) => {
@@ -58,15 +29,6 @@ const App: React.FC<AppProps> = ({ onClose }) => {
         setActiveTab(cleanPath);
         SettingsManager.set("lastOpenedTab", cleanPath);
     };
-
-    // 延迟初始化确保 ST 设置已加载
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsInitialized(true);
-        }, 1000); // 延迟 1 秒确保 ST 加载完成
-
-        return () => clearTimeout(timer);
-    }, []);
 
     // V0.9.10: 监听通知系统的导航请求
     useEffect(() => {
@@ -121,11 +83,6 @@ const App: React.FC<AppProps> = ({ onClose }) => {
         const timer = setTimeout(checkUpdate, 3000);
         return () => clearTimeout(timer);
     }, []);
-
-    // 等待初始化完成
-    if (!isInitialized) {
-        return null;
-    }
 
     const renderContent = () => {
         // 解析路径，支持 page:subtab[:detail] 格式（如 devlog:model, presets:prompt:macros）
@@ -188,9 +145,7 @@ const App: React.FC<AppProps> = ({ onClose }) => {
             setActiveTab={handleNavigate}
             onClose={onClose}
         >
-            <Suspense fallback={<LoadingFallback />}>
-                {renderContent()}
-            </Suspense>
+            {renderContent()}
         </MainLayout>
     );
 };
