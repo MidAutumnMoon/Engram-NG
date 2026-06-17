@@ -1,11 +1,18 @@
 /**
- * ModelLogger - 模型调用日志
+ * ModelLogger - 模型调用日志（门面）
  *
- * 记录所有 LLM 调用的发送和接收信息
- * 仅内存存储，不导出，不持久化
+ * V0.9.13: 重构为薄门面。所有数据存入 Logger 的统一缓存（category="model"），
+ * 不再维护独立 store / 订阅链路 / trim 逻辑。原始 LogEntry 通过 `data` 字段
+ * 承载 ModelLogEntry 特有字段。
+ *
+ * 公共 API 与原版保持兼容，调用方（LlmRequest、ModelLog.tsx）无需改动。
  */
 
-/** 模型日志条目 */
+import { generateShortUUID } from "@/core/utils";
+import { Logger } from "./Logger.ts";
+import { LogLevel } from "./types.ts";
+
+/** 模型日志条目（数据载荷形状） */
 export interface ModelLogEntry {
     /** 唯一 ID */
     id: string;
@@ -18,7 +25,8 @@ export interface ModelLogEntry {
         | "vectorize"
         | "query"
         | "entity_extraction"
-        | "other";
+        | "other"
+        | "generation";
     /** 方向：发送/接收 */
     direction: "sent" | "received";
 
@@ -53,17 +61,7 @@ export interface ModelLogEntry {
     floorRange?: [number, number];
 }
 
-/** 最大日志条目数 */
-const MAX_ENTRIES = 100;
-
-/**
- * ModelLogger 类
- * 管理模型调用日志
- */
 class ModelLoggerClass {
-    private entries: ModelLogEntry[] = [];
-    private listeners = new Set<() => void>();
-
     /**
      * 创建新的日志条目（发送阶段）
      */
@@ -76,177 +74,147 @@ class ModelLoggerClass {
         character?: string;
         floorRange?: [number, number];
     }): string {
-        const id = `log_${Date.now()}_${
-            Math.random().toString(36).slice(2, 8)
-        }`;
-
-        const entry: ModelLogEntry = {
-            character: data.character,
-            direction: "sent",
-            floorRange: data.floorRange,
-            id,
-            model: data.model,
+        const id = generateShortUUID("model_");
+        Logger.log({
+            category: "model",
+            correlationId: id,
+            data: {
+                character: data.character,
+                direction: "sent",
+                floorRange: data.floorRange,
+                model: data.model,
+                systemPrompt: data.systemPrompt,
+                tokensSent: data.tokensSent,
+                type: data.type,
+                userPrompt: data.userPrompt,
+            } satisfies Partial<ModelLogEntry>,
+            level: LogLevel.INFO,
+            message: `→ ${data.model ?? "unknown"}`,
+            module: "LLM",
             status: "pending",
-            systemPrompt: data.systemPrompt,
-            timestamp: Date.now(),
-            tokensSent: data.tokensSent,
-            type: data.type,
-            userPrompt: data.userPrompt,
-        };
-
-        this.entries.unshift(entry);
-        this.trimEntries();
-        this.notifyListeners();
-
+        });
         return id;
     }
 
     /**
-     * 更新日志条目（接收阶段）
+     * 更新日志条目（接收阶段）。与发送条目共享 correlationId。
      */
-    logReceive(id: string, data: {
-        response?: string;
-        tokensReceived?: number;
-        status: "success" | "error" | "cancelled";
-        error?: string;
-        duration?: number;
-    }): void {
-        const entry = this.entries.find((e) => e.id === id);
-        if (!entry) return;
-
-        // 添加接收条目
-        const receiveEntry: ModelLogEntry = {
-            character: entry.character,
-            direction: "received",
-            duration: data.duration,
-            error: data.error,
-            floorRange: entry.floorRange,
-            id: `${id}_recv`,
-            model: entry.model,
-            response: data.response,
-            status: data.status,
-            timestamp: Date.now(),
-            tokensReceived: data.tokensReceived,
-            type: entry.type,
-        };
-
-        // 更新原条目状态
-        entry.status = data.status;
-        entry.duration = data.duration;
-
-        // 在发送条目后插入接收条目
-        const index = this.entries.findIndex((e) => e.id === id);
-        if (index !== -1) {
-            this.entries.splice(index, 0, receiveEntry);
-        } else {
-            this.entries.unshift(receiveEntry);
-        }
-
-        this.trimEntries();
-        this.notifyListeners();
-    }
-
-    /**
-     * 快捷方法：记录完整的调用过程
-     */
-    async logCall<T>(
+    logReceive(
+        id: string,
         data: {
-            type: ModelLogEntry["type"];
-            systemPrompt?: string;
-            userPrompt?: string;
-            tokensSent?: number;
-            model?: string;
-            character?: string;
-            floorRange?: [number, number];
+            response?: string;
+            tokensReceived?: number;
+            status: "success" | "error" | "cancelled";
+            error?: string;
+            duration?: number;
         },
-        action: () => Promise<T>,
-    ): Promise<T> {
-        const id = this.logSend(data);
-        const startTime = Date.now();
-
-        try {
-            const result = await action();
-            this.logReceive(id, {
-                duration: Date.now() - startTime,
-                response: typeof result === "string"
-                    ? result
-                    : JSON.stringify(result),
-                status: "success",
-            });
-            return result;
-        } catch (error) {
-            this.logReceive(id, {
-                status: "error",
-                error: error instanceof Error ? error.message : String(error),
-                duration: Date.now() - startTime,
-            });
-            throw error;
-        }
+    ): void {
+        Logger.log({
+            category: "model",
+            correlationId: id,
+            data: {
+                direction: "received",
+                duration: data.duration,
+                error: data.error,
+                response: data.response,
+                status: data.status,
+                tokensReceived: data.tokensReceived,
+            } satisfies Partial<ModelLogEntry>,
+            level: data.status === "error" ? LogLevel.ERROR : LogLevel.INFO,
+            message: `← ${data.status}`,
+            module: "LLM",
+            status: data.status,
+        });
     }
 
     /**
-     * 获取所有日志
+     * 从底层 LogEntry 重建 ModelLogEntry（合并 send/receive 对的公共字段）
+     */
+    private toModelLogEntry(
+        e: import("./types.ts").LogEntry,
+    ): ModelLogEntry {
+        const d = (e.data ?? {}) as Partial<ModelLogEntry>;
+        return {
+            character: d.character,
+            direction: d.direction ?? "sent",
+            duration: d.duration,
+            error: d.error,
+            floorRange: d.floorRange,
+            id: e.id,
+            model: d.model,
+            response: d.response,
+            status: e.status ?? d.status ?? "pending",
+            systemPrompt: d.systemPrompt,
+            timestamp: e.timestamp,
+            tokensReceived: d.tokensReceived,
+            tokensSent: d.tokensSent,
+            type: d.type ?? "other",
+            userPrompt: d.userPrompt,
+        };
+    }
+
+    /**
+     * 获取所有条目（按时间倒序）
      */
     getAll(): ModelLogEntry[] {
-        return [...this.entries];
+        return Logger
+            .getFiltered((e) => e.category === "model")
+            .map((e) => this.toModelLogEntry(e));
     }
 
     /**
-     * 获取配对的日志（发送+接收）
+     * 获取配对的日志（发送+接收）—— 按 correlationId 配对
      */
     getPaired(): { sent: ModelLogEntry; received?: ModelLogEntry }[] {
+        const raw = Logger.getFiltered((e) => e.category === "model");
+        const sentRaw = raw.filter(
+            (e) => (e.data as { direction?: string })?.direction === "sent",
+        );
         const result: { sent: ModelLogEntry; received?: ModelLogEntry }[] = [];
-        const sentEntries = this.entries.filter((e) => e.direction === "sent");
 
-        for (const sent of sentEntries) {
-            const received = this.entries.find(
-                (e) => e.id === `${sent.id}_recv` && e.direction === "received",
+        for (const sent of sentRaw) {
+            const receivedRaw = raw.find(
+                (e) =>
+                    e.correlationId === sent.correlationId &&
+                    (e.data as { direction?: string })?.direction ===
+                        "received",
             );
-            result.push({ received, sent });
+            result.push({
+                received: receivedRaw
+                    ? this.toModelLogEntry(receivedRaw)
+                    : undefined,
+                sent: this.toModelLogEntry(sent),
+            });
         }
 
         return result;
     }
 
     /**
-     * 清除所有日志
+     * 清除所有模型日志
      */
     clear(): void {
-        this.entries = [];
-        this.notifyListeners();
+        Logger.clear("model");
     }
 
     /**
-     * 订阅日志变化
+     * 订阅日志变化（仅 model 类别）
      */
     subscribe(listener: () => void): () => void {
-        this.listeners.add(listener);
-        return () => this.listeners.delete(listener);
+        return Logger.subscribe((entry) => {
+            if (entry.category === "model") listener();
+        });
     }
 
     /**
-     * 获取日志数量
+     * 获取发送条目数量
      */
     getCount(): number {
-        return this.entries.filter((e) => e.direction === "sent").length;
-    }
-
-    /**
-     * 裁剪条目
-     */
-    private trimEntries(): void {
-        if (this.entries.length > MAX_ENTRIES * 2) {
-            this.entries = this.entries.slice(0, MAX_ENTRIES * 2);
-        }
-    }
-
-    /**
-     * 通知监听器
-     */
-    private notifyListeners(): void {
-        for (const listener of this.listeners) {
-            listener();
-        }
+        return Logger.getFiltered(
+            (e) =>
+                e.category === "model" &&
+                (e.data as { direction?: string })?.direction === "sent",
+        ).length;
     }
 }
 

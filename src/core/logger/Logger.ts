@@ -1,53 +1,56 @@
 /**
  * Logger - 日志核心服务
  *
- * 提供统一的日志记录、持久化存储和 EventBus 集成。
- * 替代 console.log，确保调试信息可追踪、可导出。
+ * 统一的日志记录与广播。所有日志（app / model / recall）流经同一份缓存、
+ * 同一份订阅链路、同一套 trim 策略。ModelLogger 与 RecallLogService 作为
+ * 薄门面调用本模块的 `log()` / `clear(category)` 写入或清空。
  */
 
 import { generateShortUUID } from "@/core/utils";
 import { Subject } from "rxjs";
-import manifest from "../../../manifest.json" with { type: "json" };
-import type { EngramEvent } from "../events";
-import { EventBus } from "../events";
-import type { LogModule } from "./LogModule";
-import type { LogEntry, LoggerConfig } from "./types";
-import { DEFAULT_LOGGER_CONFIG, LogLevel } from "./types";
+import type { LogModule } from "./LogModule.ts";
+import type { LogCategory, LogEntry, LoggerConfig } from "./types.ts";
+import { DEFAULT_LOGGER_CONFIG, LogLevel } from "./types.ts";
 
 // 日志流 Subject (RxJS)
+// 保留 RxJS：EventBus 等其他子系统也用 RxJS，统一技术栈。
 const logSubject = new Subject<LogEntry>();
 
 // 内存中的日志缓存（用于快速访问和 UI 展示）
-// 注意：模块级变量在 HMR 时可能被保留，但完整页面刷新会重置
+// 注意：模块级变量在 HMR 时可能被保留，但完整页面刷新会重置。
+// 本项目不使用 HMR，因此无需 HMR guard；若未来引入 HMR 需重新评估。
 let logCache: LogEntry[] = [];
 
 // 全局配置实例
 let config: LoggerConfig = { ...DEFAULT_LOGGER_CONFIG };
 
-// 初始化标记（防止重复订阅 EventBus）
-let isInitialized = false;
-
 /**
- * 格式化时间戳为 HH:MM:SS
+ * 写入一条日志（内部）——共享 push/trim/notify 逻辑
  */
-function formatTime(timestamp: number): string {
-    const date = new Date(timestamp);
-    return date.toTimeString().slice(0, 8);
+function pushEntry(entry: LogEntry): void {
+    logCache.push(entry);
+
+    // 容量超限时原地裁剪（splice 比 slice 省一次 5000 元素数组分配）
+    if (logCache.length > config.maxEntries) {
+        logCache.splice(0, logCache.length - config.maxEntries);
+    }
+
+    logSubject.next(entry);
 }
 
 /**
- * 写入日志条目（内部方法）
- * 执行过滤、缓存和广播
+ * 写入一条 app 类别日志（兼容旧的 5 个级别 API）
  */
-function writeLog(
+function writeAppLog(
     level: LogLevel,
     module: string,
     message: string,
     data?: unknown,
-): void {
-    if (level < config.minLevel) return;
+): string {
+    if (level < config.minLevel) return "";
 
     const entry: LogEntry = {
+        category: "app",
         data,
         id: generateShortUUID("log_"),
         level,
@@ -55,106 +58,86 @@ function writeLog(
         module,
         timestamp: Date.now(),
     };
-
-    // 添加到内存缓存
-    logCache.push(entry);
-
-    // 限制最大缓存条数 (FIFO)
-    if (logCache.length > config.maxEntries) {
-        logCache = logCache.slice(-config.maxEntries);
-    }
-
-    // 广播给订阅者 (如: DevTools UI)
-    logSubject.next(entry);
-}
-
-/**
- * 设置 EventBus 监听
- * 将系统核心事件自动转换为日志
- */
-function setupEventBusListener(): void {
-    EventBus.subscribe((event: EngramEvent) => {
-        const levelMap: Record<string, LogLevel> = {
-            CHAT_CHANGED: LogLevel.INFO,
-            ENTITY_CREATED: LogLevel.INFO,
-            INGESTION_COMPLETE: LogLevel.SUCCESS,
-            INGESTION_START: LogLevel.INFO,
-            MEMORY_STORED: LogLevel.SUCCESS,
-            MESSAGE_RECEIVED: LogLevel.DEBUG,
-            RETRIEVAL_COMPLETE: LogLevel.SUCCESS,
-            RETRIEVAL_START: LogLevel.DEBUG,
-        };
-
-        const level = levelMap[event.type] ?? LogLevel.DEBUG;
-        writeLog(level, "EventBus", `${event.type}`, event.payload);
-    });
+    pushEntry(entry);
+    return entry.id;
 }
 
 /**
  * Logger 公共 API
- *
- * V0.9.10: 支持 LogModule 枚举和普通字符串作为模块名
  */
 export const Logger = {
     /**
      * 初始化 Logger
-     * 重置缓存并建立 EventBus 连接
+     * 重置缓存（注：本方法会清空所有 category 的日志，谨慎调用）
      */
     init(userConfig?: Partial<LoggerConfig>): void {
-        logCache = []; // 清空之前的日志
+        logCache = [];
 
         if (userConfig) {
             config = { ...config, ...userConfig };
         }
 
-        if (!isInitialized) {
-            setupEventBusListener();
-            isInitialized = true;
-        }
-
         Logger.info("System", "Logger 初始化完成");
     },
 
-    /**
-     * DEBUG 级别日志 (调试信息)
-     */
-    debug(module: LogModule | string, message: string, data?: unknown): void {
-        writeLog(LogLevel.DEBUG, module as string, message, data);
+    /** DEBUG 级别日志 (调试信息) */
+    debug(module: LogModule | string, message: string, data?: unknown): string {
+        return writeAppLog(LogLevel.DEBUG, module as string, message, data);
+    },
+
+    /** INFO 级别日志 (常规信息) */
+    info(module: LogModule | string, message: string, data?: unknown): string {
+        return writeAppLog(LogLevel.INFO, module as string, message, data);
+    },
+
+    /** SUCCESS 级别日志 (操作成功) */
+    success(
+        module: LogModule | string,
+        message: string,
+        data?: unknown,
+    ): string {
+        return writeAppLog(LogLevel.SUCCESS, module as string, message, data);
+    },
+
+    /** WARN 级别日志 (警告信息) */
+    warn(module: LogModule | string, message: string, data?: unknown): string {
+        return writeAppLog(LogLevel.WARN, module as string, message, data);
+    },
+
+    /** ERROR 级别日志 (错误信息) */
+    error(module: LogModule | string, message: string, data?: unknown): string {
+        return writeAppLog(LogLevel.ERROR, module as string, message, data);
     },
 
     /**
-     * INFO 级别日志 (常规信息)
+     * 通用写入入口——供 ModelLogger / RecallLogService 等门面使用。
+     * 接受除 id/timestamp 外的完整 LogEntry 字段。
+     * @returns 新条目的 id（若被 minLevel 过滤则返回空串）
      */
-    info(module: LogModule | string, message: string, data?: unknown): void {
-        writeLog(LogLevel.INFO, module as string, message, data);
+    log(partial: Omit<LogEntry, "id" | "timestamp">): string {
+        if (partial.level < config.minLevel) return "";
+
+        const entry: LogEntry = {
+            ...partial,
+            id: generateShortUUID("log_"),
+            timestamp: Date.now(),
+        };
+        pushEntry(entry);
+        return entry.id;
     },
 
     /**
-     * SUCCESS 级别日志 (操作成功)
-     */
-    success(module: LogModule | string, message: string, data?: unknown): void {
-        writeLog(LogLevel.SUCCESS, module as string, message, data);
-    },
-
-    /**
-     * WARN 级别日志 (警告信息)
-     */
-    warn(module: LogModule | string, message: string, data?: unknown): void {
-        writeLog(LogLevel.WARN, module as string, message, data);
-    },
-
-    /**
-     * ERROR 级别日志 (错误信息)
-     */
-    error(module: LogModule | string, message: string, data?: unknown): void {
-        writeLog(LogLevel.ERROR, module as string, message, data);
-    },
-
-    /**
-     * 获取所有缓存日志
+     * 获取所有缓存日志（快照副本，迭代期间不受后续写入影响）
      */
     getLogs(): LogEntry[] {
         return [...logCache];
+    },
+
+    /**
+     * 按谓词过滤日志（供门面查询特定 category 时使用）
+     */
+    getFiltered(predicate: (e: LogEntry) => boolean): LogEntry[] {
+        return logCache.filter(predicate);
     },
 
     /**
@@ -167,67 +150,16 @@ export const Logger = {
     },
 
     /**
-     * 清空所有日志
+     * 清空日志。
+     * @param category 若指定，仅清空该类别；否则全清。
      */
-    clear(): void {
-        logCache = [];
-        Logger.info("Logger", "日志已清空");
-    },
-
-    /**
-     * 导出日志为 Markdown 格式
-     * 用于错误报告
-     */
-    exportToMarkdown(): string {
-        const now = new Date();
-
-        const levelLabels: Record<LogLevel, string> = {
-            [LogLevel.DEBUG]: "DEBUG",
-            [LogLevel.INFO]: "INFO",
-            [LogLevel.SUCCESS]: "SUCCESS",
-            [LogLevel.WARN]: "WARN",
-            [LogLevel.ERROR]: "ERROR",
-        };
-
-        let md = `# Engram Debug Log\n\n`;
-        md += `- **导出时间**: ${now.toLocaleString("zh-CN")}\n`;
-        md += `- **版本**: ${manifest.version}\n`;
-        md += `- **日志条数**: ${logCache.length}\n\n`;
-        md += `---\n\n`;
-        md += `## 日志记录\n\n`;
-        md += "```m\n";
-
-        for (const entry of logCache) {
-            const time = formatTime(entry.timestamp);
-            const level = levelLabels[entry.level].padEnd(7);
-            const module = entry.module.padEnd(16);
-            md += `[${time}] [${module}] ${level} ${entry.message}\n`;
-
-            if (entry.data !== undefined) {
-                try {
-                    const dataStr = JSON.stringify(entry.data, null, 2)
-                        .split("\n")
-                        .map((line) => `    ${line}`)
-                        .join("\n");
-                    md += `${dataStr}\n`;
-                } catch {
-                    md += `    [Data serialization failed]\n`;
-                }
-            }
+    clear(category?: LogCategory): void {
+        if (category) {
+            logCache = logCache.filter((e) => e.category !== category);
+            Logger.info("Logger", `已清空 ${category} 类别日志`);
+        } else {
+            logCache = [];
+            Logger.info("Logger", "日志已清空");
         }
-
-        md += "```\n";
-        return md;
-    },
-
-    /**
-     * 生成导出文件名
-     * 格式: engram_log_YYYY-MM-DD_HHMMSS.md
-     */
-    getExportFilename(): string {
-        const now = new Date();
-        const dateStr = now.toISOString().slice(0, 10);
-        const timeStr = now.toTimeString().slice(0, 8).replaceAll(/:/g, "");
-        return `engram_log_${dateStr}_${timeStr}.md`;
     },
 };

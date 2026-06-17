@@ -29,7 +29,8 @@ import {
 import { PageTitle } from "@/ui/components/display/PageTitle";
 import type { LogEntry, LogLevel } from "@/core/logger";
 import { ALL_MODULES, Logger, LogLevelConfig } from "@/core/logger";
-import { groupLogsByModule, LogEntryItem, LogGroup } from "./LogEntryItem";
+import { exportLogsToMarkdown, getExportFilename } from "./export.ts";
+import { groupLogsByModule, LogEntryItem, LogGroup } from "./LogEntryItem.tsx";
 import { ModelLog } from "./ModelLog";
 import { RecallLog } from "./RecallLog";
 import type { Tab } from "@/ui/components/layout/TabPills";
@@ -131,8 +132,8 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
     }, []);
 
     const handleExport = useCallback(() => {
-        const markdown = Logger.exportToMarkdown();
-        const filename = Logger.getExportFilename();
+        const markdown = exportLogsToMarkdown();
+        const filename = getExportFilename();
         const blob = new Blob([markdown], { type: "text/markdown" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -207,7 +208,7 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
                                                     setShowLevelDropdown(false);
                                                 }}
                                             >
-                                                {config.icon} {config.label}
+                                                {config.label}
                                             </button>
                                         ))}
                                     </div>
