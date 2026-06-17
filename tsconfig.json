@@ -1,42 +1,33 @@
 {
-    "compilerOptions": {
-        "target": "ESNext",
-        "lib": [
-            "ESNext",
-            "DOM",
-            "DOM.Iterable"
-        ],
-        "module": "ESNext",
-        "moduleResolution": "bundler",
-        "jsx": "react-jsx",
-        "strict": true,
-        "noEmit": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "resolveJsonModule": true,
-        "isolatedModules": true,
-        "allowImportingTsExtensions": true,
-        "baseUrl": "./src",
-        "paths": {
-            "@/*": [
-                "./*"
-            ]
-        },
-        "types": [
-            "node",
-            "jquery"
-        ]
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@core/*": ["src/core/*"],
+      "@infrastructure/*": ["src/infrastructure/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@components/*": ["src/components/*"],
     },
-    "include": [
-        "src/**/*",
-        "src/@types/**/*.d.ts",
-        "manifest.json",
-        "vite.config.ts",
-        "vitest.config.ts"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist"
-    ]
+    "types": ["vite/client", "jquery"],
+  },
+  "include": [
+    "src/**/*",
+    "src/@types/**/*.d.ts",
+    "manifest.json",
+    "vite.config.ts",
+    "vitest.config.ts",
+  ],
+  "exclude": ["node_modules", "dist"],
 }

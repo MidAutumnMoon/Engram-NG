@@ -1,18 +1,17 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
-import mdx from '@mdx-js/rollup';
-import remarkGfm from 'remark-gfm';
-import path from 'path';
-import { execSync } from 'child_process';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import deno from "@deno/vite-plugin";
+import mdx from "@mdx-js/rollup";
+import remarkGfm from "remark-gfm";
 
-const commitHash = 'unknown'; // Git hash is now detected at runtime via tavern API
+const commitHash = "unknown"; // Git hash is now detected at runtime via tavern API
 
 export default defineConfig(({ mode }) => ({
     plugins: [
         // MDX 支持 - 必须在 react() 之前
         mdx({ remarkPlugins: [remarkGfm] }),
         react(),
+        deno(),
     ],
 
     // 开发服务器配置
@@ -20,7 +19,7 @@ export default defineConfig(({ mode }) => ({
         port: 5173,
         cors: true, // 允许跨域（ST 需要访问）
         headers: {
-            'Access-Control-Allow-Origin': '*',
+            "Access-Control-Allow-Origin": "*",
         },
         // HMR 配置
         hmr: {
@@ -28,15 +27,15 @@ export default defineConfig(({ mode }) => ({
         },
         // 允许访问项目根目录的 assets
         fs: {
-            allow: ['..'],
+            allow: [".."],
         },
     },
 
     // public 目录作为静态资源目录
-    publicDir: 'public',
+    publicDir: "public",
 
     build: {
-        outDir: 'dist',
+        outDir: "dist",
         emptyDirOnBuild: true,
 
         rollupOptions: {
@@ -44,34 +43,36 @@ export default defineConfig(({ mode }) => ({
             // 这里我们配置输出，确保尽管是 App 模式，最终产物名仍为 index.js
             output: {
                 inlineDynamicImports: true,
-                entryFileNames: 'index.js',
-                chunkFileNames: '[name].js',
+                entryFileNames: "index.js",
+                chunkFileNames: "[name].js",
                 assetFileNames: (assetInfo) => {
-                    if (assetInfo.name?.endsWith('.css')) {
-                        return 'style.css';
+                    if (assetInfo.name?.endsWith(".css")) {
+                        return "style.css";
                     }
-                    return 'assets/[name][extname]';
+                    return "assets/[name][extname]";
                 },
             },
         },
 
-        minify: mode === 'production',
+        minify: mode === "production",
         sourcemap: true,
     },
 
     // 定义环境变量，避免浏览器 process is not defined 错误
     define: {
-        'process.env.NODE_ENV': JSON.stringify(mode),
-        '__COMMIT_HASH__': JSON.stringify(commitHash),
+        "process.env.NODE_ENV": JSON.stringify(mode),
+        "__COMMIT_HASH__": JSON.stringify(commitHash),
     },
 
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, 'src'),
-            '@core': path.resolve(__dirname, 'src/core'),
-            '@infrastructure': path.resolve(__dirname, 'src/infrastructure'),
-            '@hooks': path.resolve(__dirname, 'src/hooks'),
-            '@components': path.resolve(__dirname, 'src/components'),
+            "@": new URL("./src", import.meta.url).pathname,
+            "@core": new URL("./src/core", import.meta.url).pathname,
+            "@infrastructure":
+                new URL("./src/infrastructure", import.meta.url).pathname,
+            "@hooks": new URL("./src/hooks", import.meta.url).pathname,
+            "@components":
+                new URL("./src/components", import.meta.url).pathname,
         },
     },
 }));
