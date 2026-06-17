@@ -147,7 +147,7 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
         <div className="engram-app-root" style={{ display: 'contents' }}>
             <div
                 ref={panelRef}
-                className="fixed z-[11000] flex flex-col rounded-lg shadow-2xl border border-border overflow-hidden engram-animate-scale-in"
+                className="fixed z-[11000] flex flex-col rounded-lg shadow-2xl border border-border overflow-hidden"
                 style={{
                     WebkitBackdropFilter: 'blur(20px)',
                     backdropFilter: 'blur(20px)',

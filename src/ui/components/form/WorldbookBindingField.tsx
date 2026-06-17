@@ -109,7 +109,7 @@ export const WorldbookBindingField: React.FC<WorldbookBindingFieldProps> = ({
                     {/* 透明遮罩用于点击外部关闭 */}
                     <div className="fixed inset-0 z-40" onClick={() => setShowPicker(false)} />
 
-                    <div className="absolute z-50 mt-1 w-64 bg-popover border border-border rounded-md shadow-md animate-in fade-in zoom-in-95 duration-100">
+                    <div className="absolute z-50 mt-1 w-64 bg-popover border border-border rounded-md shadow-md">
                         {/* 搜索/标题栏 */}
                         <div className="px-3 py-2 border-b border-border text-xs font-semibold text-muted-foreground flex justify-between items-center">
                             <span>选择世界书</span>

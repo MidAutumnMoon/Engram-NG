@@ -10,7 +10,7 @@ interface PageTitleProps {
 }
 
 export const PageTitle: React.FC<PageTitleProps> = ({ title, breadcrumbs = [], subtitle, actions, className = '' }) => (
-    <div className={`mb-8 px-4 md:px-0 flex justify-between items-start animate-in fade-in slide-in-from-bottom-2 duration-500 ${className}`}>
+    <div className={`mb-8 px-4 md:px-0 flex justify-between items-start ${className}`}>
         <div>
             <h1 className="text-3xl font-light tracking-tight text-foreground flex items-center gap-2">
                 {breadcrumbs.map((crumb, index) => (

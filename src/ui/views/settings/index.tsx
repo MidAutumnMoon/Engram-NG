@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { PageTitle } from "@/ui/components/display/PageTitle";
 import { LayoutTabs } from "@/ui/components/layout/LayoutTabs";
 
 // Tabs
-import { AppearanceTab } from './tabs/AppearanceTab';
-import { FeaturesTab } from './tabs/FeaturesTab';
-import { DataTab } from './tabs/DataTab';
+import { AppearanceTab } from "./tabs/AppearanceTab";
+import { FeaturesTab } from "./tabs/FeaturesTab";
+import { DataTab } from "./tabs/DataTab";
 
-type SettingsTabType = 'appearance' | 'features' | 'data';
+type SettingsTabType = "appearance" | "features" | "data";
 
 export const Settings: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<SettingsTabType>('appearance');
+    const [activeTab, setActiveTab] = useState<SettingsTabType>("appearance");
 
     return (
-        <div className="flex flex-col h-full animate-in fade-in">
+        <div className="flex flex-col h-full">
             <PageTitle
-                breadcrumbs={['设置']}
+                breadcrumbs={["设置"]}
                 title="全局选项"
                 subtitle="扩展全局选项与数据维护"
                 className="mb-2"
@@ -24,18 +24,18 @@ export const Settings: React.FC = () => {
             {/* 顶部标签栏 - 自动 Portal 到 Layout Header */}
             <LayoutTabs
                 tabs={[
-                    { id: 'appearance', label: '外观' },
-                    { id: 'features', label: '功能' },
-                    { id: 'data', label: '数据管理' },
+                    { id: "appearance", label: "外观" },
+                    { id: "features", label: "功能" },
+                    { id: "data", label: "数据管理" },
                 ]}
                 activeTab={activeTab}
                 onChange={(id: string) => setActiveTab(id as SettingsTabType)}
             />
 
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
-                {activeTab === 'appearance' && <AppearanceTab />}
-                {activeTab === 'features' && <FeaturesTab />}
-                {activeTab === 'data' && <DataTab />}
+                {activeTab === "appearance" && <AppearanceTab />}
+                {activeTab === "features" && <FeaturesTab />}
+                {activeTab === "data" && <DataTab />}
             </div>
         </div>
     );

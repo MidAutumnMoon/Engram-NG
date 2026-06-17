@@ -1,8 +1,7 @@
-import { useIsPresent } from 'framer-motion';
-import React, { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import type { TabPillsProps } from './TabPills';
-import { TabPills } from './TabPills';
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import type { TabPillsProps } from "./TabPills";
+import { TabPills } from "./TabPills";
 
 /**
  * LayoutTabs - 布局级标签导航组件
@@ -14,18 +13,16 @@ import { TabPills } from './TabPills';
  */
 export const LayoutTabs: React.FC<TabPillsProps> = (props) => {
     const [mounted, setMounted] = useState(false);
-    // 判断当前组件所在的页面组件树是否正在被 AnimatePresence 卸载(即退场动画播放中)
-    const isPresent = useIsPresent();
 
     useEffect(() => {
         setMounted(true);
         return () => setMounted(false);
     }, []);
 
-    const container = document.querySelector('#engram-header-extension');
+    const container = document.querySelector("#engram-header-extension");
 
-    // 如果未挂载或找不到容器，或者当前正在播退出动画，暂不向 Portal 渲染，防止重叠
-    if (!mounted || !container || !isPresent) {
+    // 如果未挂载或找不到容器，暂不向 Portal 渲染，防止重叠
+    if (!mounted || !container) {
         return null;
     }
 
@@ -36,12 +33,14 @@ export const LayoutTabs: React.FC<TabPillsProps> = (props) => {
     // 4. 增加水平内边距以匹配 Layout 内容区布局 (px-4 md:px-8...)
     const headerProps = {
         ...props,
-        className: `!mb-0 !border-0 !bg-transparent px-4 md:px-8 lg:px-12 ${props.className || ''}`,
-        sticky: false
+        className: `!mb-0 !border-0 !bg-transparent px-4 md:px-8 lg:px-12 ${
+            props.className || ""
+        }`,
+        sticky: false,
     };
 
     return createPortal(
         <TabPills {...headerProps} />,
-        container
+        container,
     );
 };

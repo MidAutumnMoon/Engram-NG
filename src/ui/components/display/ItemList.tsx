@@ -81,7 +81,7 @@ export function ItemList<T>({
             </div>
 
             {/* 列表内容 */}
-            <div className="flex flex-col gap-1 flex-1 overflow-y-auto no-scrollbar engram-stagger-children">
+            <div className="flex flex-col gap-1 flex-1 overflow-y-auto no-scrollbar">
                 {/* 分组模式 */}
                 {groups && groups.map((group) => (
                     group.items.length > 0 && (

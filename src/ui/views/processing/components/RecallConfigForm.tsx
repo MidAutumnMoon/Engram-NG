@@ -1,9 +1,18 @@
-
-import type { RecallConfig, RerankConfig } from '@/config/types/rag';
-import { Switch } from '@/ui/components/core/Switch';
-import { NumberField } from '@/ui/components/form/FormComponents';
-import { AlertTriangle, BrainCircuit, Database, Layers, Network, Search, Sliders, Sparkles, Zap } from 'lucide-react';
-import React from 'react';
+import type { RecallConfig, RerankConfig } from "@/config/types/rag";
+import { Switch } from "@/ui/components/core/Switch";
+import { NumberField } from "@/ui/components/form/FormComponents";
+import {
+    AlertTriangle,
+    BrainCircuit,
+    Database,
+    Layers,
+    Network,
+    Search,
+    Sliders,
+    Sparkles,
+    Zap,
+} from "lucide-react";
+import React from "react";
 
 interface RecallConfigFormProps {
     config: RecallConfig;
@@ -13,8 +22,9 @@ interface RecallConfigFormProps {
     onRerankChange?: (config: RerankConfig) => void;
 }
 
-export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onChange, rerankConfig, onRerankChange }) => {
-
+export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
+    { config, onChange, rerankConfig, onRerankChange },
+) => {
     // 更新配置的辅助函数
     const updateConfig = (updates: Partial<RecallConfig>) => {
         const newConfig = { ...config, ...updates };
@@ -22,17 +32,25 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+        <div className="space-y-6">
             {/* 总开关 */}
             <div className="bg-secondary/20 p-4 rounded-lg border border-border/50">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-md ${config.enabled ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                        <div
+                            className={`p-2 rounded-md ${
+                                config.enabled
+                                    ? "bg-primary/20 text-primary"
+                                    : "bg-muted text-muted-foreground"
+                            }`}
+                        >
                             <Network size={20} />
                         </div>
                         <div>
                             <div className="font-medium">启用 RAG 召回系统</div>
-                            <div className="text-xs text-muted-foreground">即使未启用，配置也会被保存</div>
+                            <div className="text-xs text-muted-foreground">
+                                即使未启用，配置也会被保存
+                            </div>
                         </div>
                     </div>
                     <Switch
@@ -50,94 +68,177 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* 关键词召回 (0 消耗) */}
-                    <div className={`p-4 rounded-lg border transition-all ${config.useKeywordRecall ? 'bg-primary/5 border-primary/30' : 'bg-card border-border/50 hover:border-border'}`}>
+                    <div
+                        className={`p-4 rounded-lg border transition-all ${
+                            config.useKeywordRecall
+                                ? "bg-primary/5 border-primary/30"
+                                : "bg-card border-border/50 hover:border-border"
+                        }`}
+                    >
                         <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-2 text-sm font-medium">
-                                <Search size={16} className={config.useKeywordRecall ? 'text-primary' : 'text-muted-foreground'} />
+                                <Search
+                                    size={16}
+                                    className={config.useKeywordRecall
+                                        ? "text-primary"
+                                        : "text-muted-foreground"}
+                                />
                                 关键词召回 (Keyword)
                             </div>
                             <Switch
                                 checked={config.useKeywordRecall ?? true}
-                                onChange={(val) => updateConfig({ useKeywordRecall: val })}
+                                onChange={(val) =>
+                                    updateConfig({ useKeywordRecall: val })}
                             />
                         </div>
                         <p className="text-xs text-muted-foreground leading-relaxed italic">
-                            基于 Trigger Keywords 和元数据进行正则扫描，<span className="text-amber-500/80 font-medium">零 Token 消耗</span>。
+                            基于 Trigger Keywords
+                            和元数据进行正则扫描，<span className="text-amber-500/80 font-medium">
+                                零 Token 消耗
+                            </span>。
                         </p>
                         {config.useKeywordRecall && (
                             <div className="mt-3 pt-3 border-t border-primary/10 grid grid-cols-2 gap-4">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">检索实体</span>
+                                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">
+                                        检索实体
+                                    </span>
                                     <Switch
-                                        checked={config.enableEntityKeyword ?? true}
-                                        onChange={(val) => updateConfig({ enableEntityKeyword: val })}
+                                        checked={config.enableEntityKeyword ??
+                                            true}
+                                        onChange={(val) =>
+                                            updateConfig({
+                                                enableEntityKeyword: val,
+                                            })}
                                     />
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">检索事件</span>
+                                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">
+                                        检索事件
+                                    </span>
                                     <Switch
-                                        checked={config.enableEventKeyword ?? true}
-                                        onChange={(val) => updateConfig({ enableEventKeyword: val })}
+                                        checked={config.enableEventKeyword ??
+                                            true}
+                                        onChange={(val) =>
+                                            updateConfig({
+                                                enableEventKeyword: val,
+                                            })}
                                     />
                                 </div>
                             </div>
                         )}
-                        {config.useKeywordRecall && !config.useEmbedding && !config.useAgenticRAG && !config.enableEntityKeyword && !config.enableEventKeyword && (
-                            <p className="text-[10px] text-yellow-500 mt-2 flex items-center gap-1">
-                                <AlertTriangle size={10} /> 关键词已开启但无生效项目
-                            </p>
-                        )}
-                        {config.useKeywordRecall && !config.useEmbedding && !config.useAgenticRAG && (config.enableEntityKeyword || config.enableEventKeyword) && (
-                            <p className="text-[10px] text-primary mt-2 flex items-center gap-1">
-                                <Zap size={10} /> 当前处于纯 0 消耗模式
-                            </p>
-                        )}
+                        {config.useKeywordRecall && !config.useEmbedding &&
+                            !config.useAgenticRAG &&
+                            !config.enableEntityKeyword &&
+                            !config.enableEventKeyword && (
+                                <p className="text-[10px] text-yellow-500 mt-2 flex items-center gap-1">
+                                    <AlertTriangle size={10} />{" "}
+                                    关键词已开启但无生效项目
+                                </p>
+                            )}
+                        {config.useKeywordRecall && !config.useEmbedding &&
+                            !config.useAgenticRAG &&
+                            (config.enableEntityKeyword ||
+                                config.enableEventKeyword) &&
+                            (
+                                <p className="text-[10px] text-primary mt-2 flex items-center gap-1">
+                                    <Zap size={10} /> 当前处于纯 0 消耗模式
+                                </p>
+                            )}
                     </div>
 
                     {/* Agentic RAG */}
-                    <div className={`p-4 rounded-lg border transition-all overflow-hidden ${config.useAgenticRAG ? 'bg-primary/5 border-primary/30' : 'bg-card border-border/50 hover:border-border'}`}>
+                    <div
+                        className={`p-4 rounded-lg border transition-all overflow-hidden ${
+                            config.useAgenticRAG
+                                ? "bg-primary/5 border-primary/30"
+                                : "bg-card border-border/50 hover:border-border"
+                        }`}
+                    >
                         <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-2 text-sm font-medium">
-                                <Zap size={16} className={config.useAgenticRAG ? 'text-primary' : 'text-muted-foreground'} />
+                                <Zap
+                                    size={16}
+                                    className={config.useAgenticRAG
+                                        ? "text-primary"
+                                        : "text-muted-foreground"}
+                                />
                                 Agentic RAG
                             </div>
                             <Switch
                                 checked={config.useAgenticRAG}
-                                onChange={(val) => updateConfig({ useAgenticRAG: val, useEmbedding: val ? false : config.useEmbedding })}
+                                onChange={(val) =>
+                                    updateConfig({
+                                        useAgenticRAG: val,
+                                        useEmbedding: val
+                                            ? false
+                                            : config.useEmbedding,
+                                    })}
                             />
                         </div>
                         <p className="text-xs text-muted-foreground leading-relaxed break-words">
-                            LLM 裁判式召回：精准选出档案 ID，跳过向量检索。产生 Token 消耗。
+                            LLM 裁判式召回：精准选出档案 ID，跳过向量检索。产生
+                            Token 消耗。
                         </p>
                     </div>
 
                     {/* 向量检索 */}
-                    <div className={`p-4 rounded-lg border transition-all ${config.useEmbedding ? 'bg-primary/5 border-primary/30' : 'bg-card border-border/50 hover:border-border'}`}>
+                    <div
+                        className={`p-4 rounded-lg border transition-all ${
+                            config.useEmbedding
+                                ? "bg-primary/5 border-primary/30"
+                                : "bg-card border-border/50 hover:border-border"
+                        }`}
+                    >
                         <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-2 text-sm font-medium">
-                                <Database size={16} className={config.useEmbedding ? 'text-primary' : 'text-muted-foreground'} />
+                                <Database
+                                    size={16}
+                                    className={config.useEmbedding
+                                        ? "text-primary"
+                                        : "text-muted-foreground"}
+                                />
                                 向量检索 (Embedding)
                             </div>
                             <Switch
                                 checked={config.useEmbedding}
-                                onChange={(val) => updateConfig({ useAgenticRAG: val ? false : config.useAgenticRAG, useEmbedding: val })}
+                                onChange={(val) =>
+                                    updateConfig({
+                                        useAgenticRAG: val
+                                            ? false
+                                            : config.useAgenticRAG,
+                                        useEmbedding: val,
+                                    })}
                             />
                         </div>
                         <p className="text-xs text-muted-foreground leading-relaxed">
-                            使用语义向量匹配历史事件，RAG 的核心能力。产生 Token 消耗。
+                            使用语义向量匹配历史事件，RAG 的核心能力。产生 Token
+                            消耗。
                         </p>
                     </div>
 
                     {/* 预处理增强 */}
-                    <div className={`p-4 rounded-lg border transition-all ${config.usePreprocessing ? 'bg-primary/5 border-primary/30' : 'bg-card border-border/50 hover:border-border'}`}>
+                    <div
+                        className={`p-4 rounded-lg border transition-all ${
+                            config.usePreprocessing
+                                ? "bg-primary/5 border-primary/30"
+                                : "bg-card border-border/50 hover:border-border"
+                        }`}
+                    >
                         <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-2 text-sm font-medium">
-                                <BrainCircuit size={16} className={config.usePreprocessing ? 'text-primary' : 'text-muted-foreground'} />
+                                <BrainCircuit
+                                    size={16}
+                                    className={config.usePreprocessing
+                                        ? "text-primary"
+                                        : "text-muted-foreground"}
+                                />
                                 LLM 预处理增强
                             </div>
                             <Switch
                                 checked={config.usePreprocessing}
-                                onChange={(val) => updateConfig({ usePreprocessing: val })}
+                                onChange={(val) =>
+                                    updateConfig({ usePreprocessing: val })}
                             />
                         </div>
                         <p className="text-xs text-muted-foreground leading-relaxed">
@@ -146,21 +247,37 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                     </div>
 
                     {/* Rerank 重排序 */}
-                    <div className={`p-4 rounded-lg border transition-all ${config.useRerank ? 'bg-primary/5 border-primary/30' : 'bg-card border-border/50 hover:border-border'}`}>
+                    <div
+                        className={`p-4 rounded-lg border transition-all ${
+                            config.useRerank
+                                ? "bg-primary/5 border-primary/30"
+                                : "bg-card border-border/50 hover:border-border"
+                        }`}
+                    >
                         <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-2 text-sm font-medium">
-                                <Layers size={16} className={config.useRerank ? 'text-primary' : 'text-muted-foreground'} />
+                                <Layers
+                                    size={16}
+                                    className={config.useRerank
+                                        ? "text-primary"
+                                        : "text-muted-foreground"}
+                                />
                                 Rerank 重排序
                             </div>
                             <Switch
                                 checked={config.useRerank}
                                 disabled={!config.useEmbedding} // 依赖 Embedding
-                                onChange={(val) => updateConfig({ useRerank: val })}
+                                onChange={(val) =>
+                                    updateConfig({ useRerank: val })}
                             />
                         </div>
                         <p className="text-xs text-muted-foreground leading-relaxed">
                             对初筛结果进行二次精排。产生 Token 消耗。
-                            {!config.useEmbedding && <span className="text-yellow-500 mt-1 text-[10px] flex items-center gap-1"><AlertTriangle size={10} /> 需要先启用向量检索</span>}
+                            {!config.useEmbedding &&
+                                <span className="text-yellow-500 mt-1 text-[10px] flex items-center gap-1">
+                                    <AlertTriangle size={10} />{" "}
+                                    需要先启用向量检索
+                                </span>}
                         </p>
                     </div>
                 </div>
@@ -171,7 +288,11 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                 <p className="text-[10px] text-amber-500/90 leading-relaxed flex items-start gap-1.5">
                     <Sparkles size={12} className="shrink-0 mt-0.5" />
                     <span>
-                        💡 <strong>提示：</strong>目前实体（NPC/地点）召回仅支持基于触发词 (Trigger Keywords) 的关键词扫描和关系链关联。这是为了保证在极低消耗下提供最高的一致性与响应准确度。
+                        💡{" "}
+                        <strong>提示：
+                        </strong>目前实体（NPC/地点）召回仅支持基于触发词
+                        (Trigger Keywords)
+                        的关键词扫描和关系链关联。这是为了保证在极低消耗下提供最高的一致性与响应准确度。
                     </span>
                 </p>
             </div>
@@ -184,12 +305,14 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                     min={1}
                     max={100}
                     value={config.embedding?.topK ?? 20}
-                    onChange={(val) => updateConfig({
-                        embedding: {
-                            minScoreThreshold: config.embedding?.minScoreThreshold ?? 0.3,
-                            topK: val
-                        }
-                    })}
+                    onChange={(val) =>
+                        updateConfig({
+                            embedding: {
+                                minScoreThreshold:
+                                    config.embedding?.minScoreThreshold ?? 0.3,
+                                topK: val,
+                            },
+                        })}
                 />
 
                 <NumberField
@@ -199,79 +322,114 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                     max={1}
                     step={0.05}
                     value={config.embedding?.minScoreThreshold ?? 0.3}
-                    onChange={(val) => updateConfig({
-                        embedding: {
-                            minScoreThreshold: val,
-                            topK: config.embedding?.topK ?? 20
-                        }
-                    })}
+                    onChange={(val) =>
+                        updateConfig({
+                            embedding: {
+                                minScoreThreshold: val,
+                                topK: config.embedding?.topK ?? 20,
+                            },
+                        })}
                 />
             </div>
 
             {/* 类脑召回系统 (V0.9.5 实验性) */}
             <div
-                className={`space-y-4 pt-4 border-t border-border/30 relative transition-all duration-300 ${config.brainRecall?.enabled
-                    ? 'pl-4 border-l-2 border-l-primary'
-                    : ''
-                    }`}
+                className={`space-y-4 pt-4 border-t border-border/30 relative transition-all duration-300 ${
+                    config.brainRecall?.enabled
+                        ? "pl-4 border-l-2 border-l-primary"
+                        : ""
+                }`}
             >
-
                 <div className="relative">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div
-                                className={`p-1.5 rounded-md transition-colors ${config.brainRecall?.enabled
-                                    ? 'bg-primary/20 text-primary'
-                                    : 'bg-muted text-muted-foreground'
-                                    }`}
+                                className={`p-1.5 rounded-md transition-colors ${
+                                    config.brainRecall?.enabled
+                                        ? "bg-primary/20 text-primary"
+                                        : "bg-muted text-muted-foreground"
+                                }`}
                             >
                                 <BrainCircuit size={16} />
                             </div>
                             <h3
-                                className={`text-sm font-medium uppercase tracking-wider transition-all ${config.brainRecall?.enabled
-                                    ? 'text-primary'
-                                    : 'text-muted-foreground'
-                                    }`}
+                                className={`text-sm font-medium uppercase tracking-wider transition-all ${
+                                    config.brainRecall?.enabled
+                                        ? "text-primary"
+                                        : "text-muted-foreground"
+                                }`}
                             >
                                 类脑召回
                             </h3>
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium border ${config.brainRecall?.enabled
-                                ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30'
-                                : 'bg-muted text-muted-foreground border-transparent'
-                                }`}>
+                            <span
+                                className={`text-[10px] px-1.5 py-0.5 rounded font-medium border ${
+                                    config.brainRecall?.enabled
+                                        ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/30"
+                                        : "bg-muted text-muted-foreground border-transparent"
+                                }`}
+                            >
                                 实验性功能,不保证更好的召回效力
                             </span>
                         </div>
                         <Switch
                             checked={config.brainRecall?.enabled ?? false}
-                            onChange={(val) => updateConfig({
-                                brainRecall: {
-                                    boredomPenalty: config.brainRecall?.boredomPenalty ?? 0.2,
-                                    boredomThreshold: config.brainRecall?.boredomThreshold ?? 3,
-                                    contextSwitchThreshold: config.brainRecall?.contextSwitchThreshold ?? 0.4,
-                                    decayRate: config.brainRecall?.decayRate ?? 0.08,
-                                    enabled: val,
-                                    evictionThreshold: config.brainRecall?.evictionThreshold ?? 0.25,
-                                    gateThreshold: config.brainRecall?.gateThreshold ?? 0.6,
-                                    maxDamping: config.brainRecall?.maxDamping ?? 3.0,
-                                    mmrThreshold: config.brainRecall?.mmrThreshold ?? 0.6,
-                                    newcomerBoost: config.brainRecall?.newcomerBoost ?? 0.3,
-                                    reinforceFactor: config.brainRecall?.reinforceFactor ?? 0.2,
-                                    shortTermLimit: config.brainRecall?.shortTermLimit ?? 35,
-                                    sigmoidTemperature: config.brainRecall?.sigmoidTemperature ?? 5.0,
-                                    workingLimit: config.brainRecall?.workingLimit ?? 10,
-                                },
-                            })}
+                            onChange={(val) =>
+                                updateConfig({
+                                    brainRecall: {
+                                        boredomPenalty:
+                                            config.brainRecall
+                                                ?.boredomPenalty ?? 0.2,
+                                        boredomThreshold:
+                                            config.brainRecall
+                                                ?.boredomThreshold ?? 3,
+                                        contextSwitchThreshold:
+                                            config.brainRecall
+                                                ?.contextSwitchThreshold ?? 0.4,
+                                        decayRate:
+                                            config.brainRecall?.decayRate ??
+                                                0.08,
+                                        enabled: val,
+                                        evictionThreshold:
+                                            config.brainRecall
+                                                ?.evictionThreshold ?? 0.25,
+                                        gateThreshold:
+                                            config.brainRecall?.gateThreshold ??
+                                                0.6,
+                                        maxDamping:
+                                            config.brainRecall?.maxDamping ??
+                                                3.0,
+                                        mmrThreshold:
+                                            config.brainRecall?.mmrThreshold ??
+                                                0.6,
+                                        newcomerBoost:
+                                            config.brainRecall?.newcomerBoost ??
+                                                0.3,
+                                        reinforceFactor:
+                                            config.brainRecall
+                                                ?.reinforceFactor ?? 0.2,
+                                        shortTermLimit:
+                                            config.brainRecall
+                                                ?.shortTermLimit ?? 35,
+                                        sigmoidTemperature:
+                                            config.brainRecall
+                                                ?.sigmoidTemperature ?? 5.0,
+                                        workingLimit:
+                                            config.brainRecall?.workingLimit ??
+                                                10,
+                                    },
+                                })}
                         />
                     </div>
                     <p className="text-xs text-muted-foreground mt-2 pl-8 leading-relaxed">
                         模拟人脑记忆机制：强化、衰减、竞争淘汰、上下文感知。
-                        <span className="opacity-70 ml-1">替代旧版黏性系统。</span>
+                        <span className="opacity-70 ml-1">
+                            替代旧版黏性系统。
+                        </span>
                     </p>
                 </div>
 
                 {config.brainRecall?.enabled && (
-                    <div className="space-y-6 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="space-y-6 pt-2">
                         {/* 容量配置 */}
                         <div className="space-y-3 pl-2 border-l-2 border-primary/20 ml-2">
                             <div className="flex items-center gap-2 text-xs text-primary/80 font-medium uppercase tracking-wider">
@@ -286,9 +444,13 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                                     max={20}
                                     step={1}
                                     value={config.brainRecall.workingLimit}
-                                    onChange={(val) => updateConfig({
-                                        brainRecall: { ...config.brainRecall!, workingLimit: val }
-                                    })}
+                                    onChange={(val) =>
+                                        updateConfig({
+                                            brainRecall: {
+                                                ...config.brainRecall!,
+                                                workingLimit: val,
+                                            },
+                                        })}
                                 />
                                 <NumberField
                                     label="短期记忆"
@@ -297,9 +459,13 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                                     max={50}
                                     step={1}
                                     value={config.brainRecall.shortTermLimit}
-                                    onChange={(val) => updateConfig({
-                                        brainRecall: { ...config.brainRecall!, shortTermLimit: val }
-                                    })}
+                                    onChange={(val) =>
+                                        updateConfig({
+                                            brainRecall: {
+                                                ...config.brainRecall!,
+                                                shortTermLimit: val,
+                                            },
+                                        })}
                                 />
                             </div>
                         </div>
@@ -318,9 +484,13 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                                     max={1}
                                     step={0.05}
                                     value={config.brainRecall.reinforceFactor}
-                                    onChange={(val) => updateConfig({
-                                        brainRecall: { ...config.brainRecall!, reinforceFactor: val }
-                                    })}
+                                    onChange={(val) =>
+                                        updateConfig({
+                                            brainRecall: {
+                                                ...config.brainRecall!,
+                                                reinforceFactor: val,
+                                            },
+                                        })}
                                 />
                                 <NumberField
                                     label="衰减速率"
@@ -329,9 +499,13 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                                     max={1}
                                     step={0.01}
                                     value={config.brainRecall.decayRate}
-                                    onChange={(val) => updateConfig({
-                                        brainRecall: { ...config.brainRecall!, decayRate: val }
-                                    })}
+                                    onChange={(val) =>
+                                        updateConfig({
+                                            brainRecall: {
+                                                ...config.brainRecall!,
+                                                decayRate: val,
+                                            },
+                                        })}
                                 />
                             </div>
                         </div>
@@ -348,10 +522,15 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                                 min={0}
                                 max={1}
                                 step={0.1}
-                                value={config.brainRecall.contextSwitchThreshold}
-                                onChange={(val) => updateConfig({
-                                    brainRecall: { ...config.brainRecall!, contextSwitchThreshold: val }
-                                })}
+                                value={config.brainRecall
+                                    .contextSwitchThreshold}
+                                onChange={(val) =>
+                                    updateConfig({
+                                        brainRecall: {
+                                            ...config.brainRecall!,
+                                            contextSwitchThreshold: val,
+                                        },
+                                    })}
                             />
                         </div>
 
@@ -368,10 +547,15 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                                     min={0}
                                     max={1}
                                     step={0.05}
-                                    value={config.brainRecall.gateThreshold ?? 0.6}
-                                    onChange={(val) => updateConfig({
-                                        brainRecall: { ...config.brainRecall!, gateThreshold: val }
-                                    })}
+                                    value={config.brainRecall.gateThreshold ??
+                                        0.6}
+                                    onChange={(val) =>
+                                        updateConfig({
+                                            brainRecall: {
+                                                ...config.brainRecall!,
+                                                gateThreshold: val,
+                                            },
+                                        })}
                                 />
                                 <NumberField
                                     label="最大阻尼"
@@ -380,9 +564,13 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                                     max={10}
                                     step={0.1}
                                     value={config.brainRecall.maxDamping ?? 3}
-                                    onChange={(val) => updateConfig({
-                                        brainRecall: { ...config.brainRecall!, maxDamping: val }
-                                    })}
+                                    onChange={(val) =>
+                                        updateConfig({
+                                            brainRecall: {
+                                                ...config.brainRecall!,
+                                                maxDamping: val,
+                                            },
+                                        })}
                                 />
                                 <NumberField
                                     label="Sigmoid 温度"
@@ -390,10 +578,15 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                                     min={0.1}
                                     max={20}
                                     step={0.5}
-                                    value={config.brainRecall.sigmoidTemperature ?? 5}
-                                    onChange={(val) => updateConfig({
-                                        brainRecall: { ...config.brainRecall!, sigmoidTemperature: val }
-                                    })}
+                                    value={config.brainRecall
+                                        .sigmoidTemperature ?? 5}
+                                    onChange={(val) =>
+                                        updateConfig({
+                                            brainRecall: {
+                                                ...config.brainRecall!,
+                                                sigmoidTemperature: val,
+                                            },
+                                        })}
                                 />
                             </div>
                         </div>
@@ -411,10 +604,15 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                                     min={1}
                                     max={20}
                                     step={1}
-                                    value={config.brainRecall.boredomThreshold ?? 3}
-                                    onChange={(val) => updateConfig({
-                                        brainRecall: { ...config.brainRecall!, boredomThreshold: val }
-                                    })}
+                                    value={config.brainRecall
+                                        .boredomThreshold ?? 3}
+                                    onChange={(val) =>
+                                        updateConfig({
+                                            brainRecall: {
+                                                ...config.brainRecall!,
+                                                boredomThreshold: val,
+                                            },
+                                        })}
                                 />
                                 <NumberField
                                     label="厌倦惩罚"
@@ -422,10 +620,15 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                                     min={0}
                                     max={2}
                                     step={0.1}
-                                    value={config.brainRecall.boredomPenalty ?? 0.2}
-                                    onChange={(val) => updateConfig({
-                                        brainRecall: { ...config.brainRecall!, boredomPenalty: val }
-                                    })}
+                                    value={config.brainRecall.boredomPenalty ??
+                                        0.2}
+                                    onChange={(val) =>
+                                        updateConfig({
+                                            brainRecall: {
+                                                ...config.brainRecall!,
+                                                boredomPenalty: val,
+                                            },
+                                        })}
                                 />
 
                                 <NumberField
@@ -434,10 +637,15 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                                     min={0}
                                     max={2}
                                     step={0.1}
-                                    value={config.brainRecall.newcomerBoost ?? 0.3}
-                                    onChange={(val) => updateConfig({
-                                        brainRecall: { ...config.brainRecall!, newcomerBoost: val }
-                                    })}
+                                    value={config.brainRecall.newcomerBoost ??
+                                        0.3}
+                                    onChange={(val) =>
+                                        updateConfig({
+                                            brainRecall: {
+                                                ...config.brainRecall!,
+                                                newcomerBoost: val,
+                                            },
+                                        })}
                                 />
                             </div>
                         </div>

@@ -1,10 +1,9 @@
-import { createPromptTemplate } from '@/config/types/defaults';
-import type { PromptTemplate } from '@/config/types/prompt';
-import { PROMPT_CATEGORIES } from '@/config/types/prompt';
-import { AnimatePresence, motion } from 'framer-motion';
-import { FileText, Plus, RotateCcw } from 'lucide-react';
-import React from 'react';
-import { PromptTemplateCard } from './PromptTemplateCard';
+import { createPromptTemplate } from "@/config/types/defaults";
+import type { PromptTemplate } from "@/config/types/prompt";
+import { PROMPT_CATEGORIES } from "@/config/types/prompt";
+import { FileText, Plus, RotateCcw } from "lucide-react";
+import React from "react";
+import { PromptTemplateCard } from "./PromptTemplateCard";
 
 interface PromptTemplateListProps {
     templates: PromptTemplate[];
@@ -30,7 +29,7 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
     const handleAdd = () => {
         const newTemplate = createPromptTemplate(
             `新模板 ${templates.length + 1}`,
-            'summary'
+            "summary",
         );
         onAdd(newTemplate);
         onSelect(newTemplate);
@@ -46,18 +45,24 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
                 boundPresetId: template.boundPresetId,
                 systemPrompt: template.systemPrompt,
                 userPromptTemplate: template.userPromptTemplate,
-            }
+            },
         );
         onAdd(copy);
     };
 
     // 切换启用状态
-    const handleToggleEnabled = (template: PromptTemplate, enabled: boolean) => {
+    const handleToggleEnabled = (
+        template: PromptTemplate,
+        enabled: boolean,
+    ) => {
         // 如果启用，同分类的其他模板要禁用（每个分类只有一个启用）
         if (enabled) {
             templates
-                .filter(t => t.category === template.category && t.id !== template.id && t.enabled)
-                .forEach(t => onUpdate({ ...t, enabled: false }));
+                .filter((t) =>
+                    t.category === template.category && t.id !== template.id &&
+                    t.enabled
+                )
+                .forEach((t) => onUpdate({ ...t, enabled: false }));
         }
         onUpdate({ ...template, enabled });
     };
@@ -68,22 +73,28 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
     };
 
     // 按分类分组
-    const groupedTemplates = PROMPT_CATEGORIES.map(category => ({
+    const groupedTemplates = PROMPT_CATEGORIES.map((category) => ({
         ...category,
-        templates: templates.filter(t => t.category === category.value),
-    })).filter(group => group.templates.length > 0);
+        templates: templates.filter((t) => t.category === category.value),
+    })).filter((group) => group.templates.length > 0);
 
     return (
         <div className="flex flex-col gap-4 h-full">
             {/* 头部操作栏 */}
             <div className="flex items-center justify-between gap-2">
-                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">提示词模板</h3>
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    提示词模板
+                </h3>
                 <div className="flex items-center gap-1">
                     {onResetAll && (
                         <button
                             className="text-muted-foreground hover:text-foreground transition-colors p-1"
                             onClick={() => {
-                                if (confirm('确定要重置所有内置模板为默认值吗？\n\n这将恢复所有内置模板的原始内容，但不会删除你创建的自定义模板。')) {
+                                if (
+                                    confirm(
+                                        "确定要重置所有内置模板为默认值吗？\n\n这将恢复所有内置模板的原始内容，但不会删除你创建的自定义模板。",
+                                    )
+                                ) {
                                     onResetAll();
                                 }
                             }}
@@ -105,37 +116,33 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
             {/* 模板列表 */}
             <div className="flex flex-col gap-6 overflow-y-auto flex-1 no-scrollbar">
                 {groupedTemplates.map((group) => (
-                    <motion.div layout key={group.value} className="flex flex-col gap-2">
-                        <motion.div layout className="text-[10px] items-center gap-2 text-muted-foreground font-medium px-1 uppercase tracking-wider flex">
+                    <div key={group.value} className="flex flex-col gap-2">
+                        <div className="text-[10px] items-center gap-2 text-muted-foreground font-medium px-1 uppercase tracking-wider flex">
                             {group.label}
                             <div className="h-px bg-border flex-1"></div>
-                        </motion.div>
-                        <motion.div layout className="flex flex-col gap-1">
-                            <AnimatePresence initial={false}>
-                                {group.templates.map((template) => (
-                                    <motion.div
-                                        key={template.id}
-                                        layout
-                                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 }, y: -10 }}
-                                        transition={{ duration: 0.3 }}
-                                    >
-                                        <PromptTemplateCard
-                                            template={template}
-                                            isSelected={selectedId === template.id}
-                                            onSelect={() => onSelect(template)}
-                                            onCopy={() => handleCopy(template)}
-                                            onDelete={() => onDelete(template)}
-                                            onToggleEnabled={(enabled) => handleToggleEnabled(template, enabled)}
-                                            onImport={handleImport}
-                                            onResetToDefault={(resetTemplate) => onUpdate(resetTemplate)}
-                                        />
-                                    </motion.div>
-                                ))}
-                            </AnimatePresence>
-                        </motion.div>
-                    </motion.div>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            {group.templates.map((template) => (
+                                <div key={template.id}>
+                                    <PromptTemplateCard
+                                        template={template}
+                                        isSelected={selectedId === template.id}
+                                        onSelect={() => onSelect(template)}
+                                        onCopy={() => handleCopy(template)}
+                                        onDelete={() => onDelete(template)}
+                                        onToggleEnabled={(enabled) =>
+                                            handleToggleEnabled(
+                                                template,
+                                                enabled,
+                                            )}
+                                        onImport={handleImport}
+                                        onResetToDefault={(resetTemplate) =>
+                                            onUpdate(resetTemplate)}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 ))}
 
                 {templates.length === 0 && (
@@ -148,4 +155,3 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
         </div>
     );
 };
-

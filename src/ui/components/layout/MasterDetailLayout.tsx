@@ -1,8 +1,6 @@
-import { useConfigStore } from '@/state/configStore';
-import { useResponsive } from '@/ui/hooks/useResponsive';
-import { AnimatePresence, motion } from 'framer-motion';
-import React from 'react';
-import { MobileFullscreenForm } from './MobileFullscreenForm';
+import { useResponsive } from "@/ui/hooks/useResponsive";
+import React from "react";
+import { MobileFullscreenForm } from "./MobileFullscreenForm";
 
 interface MasterDetailLayoutProps {
     /** 列表区域内容 */
@@ -38,16 +36,15 @@ export const MasterDetailLayout: React.FC<MasterDetailLayoutProps> = ({
     detail,
     header,
     listRef,
-    listWidth = '30%',
+    listWidth = "30%",
     mobileDetailOpen = false,
     onMobileDetailClose,
-    mobileDetailTitle = '详情',
+    mobileDetailTitle = "详情",
     mobileDetailActions,
-    className = '',
+    className = "",
     style,
 }) => {
     const { isMobile } = useResponsive();
-    const enableAnimations = useConfigStore(state => state.enableAnimations);
 
     // 移动端全屏详情页
     if (isMobile && mobileDetailOpen) {
@@ -63,7 +60,10 @@ export const MasterDetailLayout: React.FC<MasterDetailLayoutProps> = ({
     }
 
     return (
-        <div className={`flex flex-col h-full overflow-hidden ${className}`} style={style}>
+        <div
+            className={`flex flex-col h-full overflow-hidden ${className}`}
+            style={style}
+        >
             {/* 顶部工具栏 (搜索框等) */}
             {header && (
                 <div className="shrink-0 mb-4 px-1">
@@ -73,50 +73,33 @@ export const MasterDetailLayout: React.FC<MasterDetailLayoutProps> = ({
 
             {/* 主内容区 - 双栏布局 */}
             <div className="flex-1 flex gap-6 min-h-0 overflow-hidden relative">
-                {/* 左侧：列表区域 - 使用 framer-motion layout 平滑改变宽度 */}
-                <motion.div
-                    layout={enableAnimations}
-                    initial={false}
-                    animate={{
-                        minWidth: isMobile ? 'auto' : '240px',
-                        width: isMobile ? '100%' : listWidth
-                    }}
-                    transition={enableAnimations ? { bounce: 0.1, duration: 0.4, type: "spring" } : { duration: 0 }}
+                {/* 左侧：列表区域 */}
+                <div
                     className={`
                         flex flex-col min-h-0 shrink-0
-                        ${isMobile ? 'w-full' : 'border-r border-border/50 pr-4'}
+                        ${
+                        isMobile ? "w-full" : "border-r border-border/50 pr-4"
+                    }
                     `}
                     ref={listRef}
+                    style={{
+                        minWidth: isMobile ? "auto" : "240px",
+                        width: isMobile ? "100%" : listWidth,
+                    }}
                 >
                     {list}
-                </motion.div>
+                </div>
 
-                {/* 右侧：详情区域 - 优雅滑入进场 */}
+                {/* 右侧：详情区域 */}
                 {!isMobile && (
-                    <>
-                        {enableAnimations ? (
-                            <AnimatePresence mode="wait">
-                                {detail && (
-                                    <motion.div
-                                        key="detail-pane"
-                                        initial={{ opacity: 0, x: 20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, position: 'absolute', right: 0, x: 20 }}
-                                        transition={{ bounce: 0, duration: 0.4, type: "spring" }}
-                                        className="flex-1 flex flex-col min-h-0 min-w-0"
-                                    >
-                                        {detail}
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        ) : (
-                            detail && (
-                                <div key="detail-pane" className="flex-1 flex flex-col min-h-0 min-w-0">
-                                    {detail}
-                                </div>
-                            )
-                        )}
-                    </>
+                    detail && (
+                        <div
+                            key="detail-pane"
+                            className="flex-1 flex flex-col min-h-0 min-w-0"
+                        >
+                            {detail}
+                        </div>
+                    )
                 )}
             </div>
         </div>

@@ -27,7 +27,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     action,
     className = '',
 }) => (
-        <div className={`flex flex-col items-center justify-center p-8 text-muted-foreground gap-4 h-full min-h-[200px] animate-in fade-in duration-300 ${className}`}>
+        <div className={`flex flex-col items-center justify-center p-8 text-muted-foreground gap-4 h-full min-h-[200px] ${className}`}>
             <div className="p-4 bg-muted/30 rounded-full">
                 <Icon size={48} className="opacity-20 text-foreground" />
             </div>

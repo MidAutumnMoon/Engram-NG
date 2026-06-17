@@ -1,66 +1,65 @@
 @import "tailwindcss/theme";
 @import "tailwindcss/utilities";
-@import './variables.css';
-@import './animations.css';
+@import "./variables.css";
 
 @source "../../**/*.{js,ts,jsx,tsx}";
 
 @theme {
-  /* Semantic Theme Colors */
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
+    /* Semantic Theme Colors */
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
 
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
 
-  /* Sidebar */
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
 
-  /* Text Hierarchy */
-  --color-heading: var(--heading);
-  --color-label: var(--label);
-  --color-meta: var(--meta);
-  --color-link: var(--link);
-  --color-value: var(--value);
-  --color-emphasis: var(--emphasis);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
 
-  /* Status Colors */
-  --color-success: var(--engram-success);
-  --color-warning: var(--engram-warning);
-  --color-error: var(--engram-error);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
 
-  /* Border Radius */
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+
+    /* Sidebar */
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+
+    /* Text Hierarchy */
+    --color-heading: var(--heading);
+    --color-label: var(--label);
+    --color-meta: var(--meta);
+    --color-link: var(--link);
+    --color-value: var(--value);
+    --color-emphasis: var(--emphasis);
+
+    /* Status Colors */
+    --color-success: var(--engram-success);
+    --color-warning: var(--engram-warning);
+    --color-error: var(--engram-error);
+
+    /* Border Radius */
+    --radius-lg: var(--radius);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-sm: calc(var(--radius) - 4px);
 }
 
 /* ==========================================================================
@@ -147,13 +146,20 @@
 }
 
 /* Scoped Scrollbars */
-.engram-app-root ::-webkit-scrollbar { width: 8px; height: 8px; }
-.engram-app-root ::-webkit-scrollbar-track { background: var(--background); }
-.engram-app-root ::-webkit-scrollbar-thumb { 
+.engram-app-root ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.engram-app-root ::-webkit-scrollbar-track {
+    background: var(--background);
+}
+.engram-app-root ::-webkit-scrollbar-thumb {
     background: var(--muted);
     border-radius: 9999px;
 }
-.engram-app-root ::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
+.engram-app-root ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
+}
 
 #engram-layout-root {
     background-color: var(--background);

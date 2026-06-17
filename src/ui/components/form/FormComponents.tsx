@@ -397,7 +397,7 @@ export const SearchableSelectField: React.FC<SearchableSelectFieldProps> = ({
 
             {/* 下拉面板 - 使用 glass-panel 实现正确的模糊效果 */}
             {isOpen && (
-                <div className="glass-panel absolute z-50 mt-1 w-full max-h-64 border border-border rounded-lg shadow-xl overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-1 duration-150"
+                <div className="glass-panel absolute z-50 mt-1 w-full max-h-64 border border-border rounded-lg shadow-xl overflow-hidden flex flex-col"
                     style={{ left: 0, right: 0, top: '100%' }}
                 >
                     {/* 搜索框 */}

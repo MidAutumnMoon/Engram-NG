@@ -1,13 +1,22 @@
-import type { ReviewAction, ReviewRequest } from '@/core/events/ReviewBridge';
-import { EventBus, TavernEventType } from '@/integrations/tavern'; // EventBus is from events.ts
-import { ModernButton as Button } from '@/ui/components/core/Button';
-import { AlertTriangle, ArrowDownToLine, Check, Layers, Minus, RefreshCw, RotateCcw, X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import ReactDOM from 'react-dom';
-import { EntityReview } from './EntityReview';
-import { MessageReview } from './MessageReview';
-import { RecallDecisionModal } from './RecallDecisionModal';
-import { SummaryReview } from './SummaryReview'; // V1.2
+import type { ReviewAction, ReviewRequest } from "@/core/events/ReviewBridge";
+import { EventBus, TavernEventType } from "@/integrations/tavern"; // EventBus is from events.ts
+import { ModernButton as Button } from "@/ui/components/core/Button";
+import {
+    AlertTriangle,
+    ArrowDownToLine,
+    Check,
+    Layers,
+    Minus,
+    RefreshCw,
+    RotateCcw,
+    X,
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import ReactDOM from "react-dom";
+import { EntityReview } from "./EntityReview";
+import { MessageReview } from "./MessageReview";
+import { RecallDecisionModal } from "./RecallDecisionModal";
+import { SummaryReview } from "./SummaryReview"; // V1.2
 
 // --- Sub-component: ReviewSession ---
 // Encapsulates state and logic for a SINGLE review request
@@ -18,7 +27,9 @@ interface ReviewSessionProps {
     footerEl: HTMLElement | null; // V1.5: Portal target for footer
 }
 
-const ReviewSession: React.FC<ReviewSessionProps> = ({ request, isActive, onFinish, footerEl }) => {
+const ReviewSession: React.FC<ReviewSessionProps> = (
+    { request, isActive, onFinish, footerEl },
+) => {
     // Independent state for this session
     const [content, setContent] = useState(request.content);
     const [data, setData] = useState<any>(request.data);
@@ -32,13 +43,13 @@ const ReviewSession: React.FC<ReviewSessionProps> = ({ request, isActive, onFini
     }, [request.content, request.data, request.data?.query]);
 
     // Reject Feedback State
-    const [feedback, setFeedback] = useState('');
+    const [feedback, setFeedback] = useState("");
     const [showFeedbackInput, setShowFeedbackInput] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [isRecallModalOpen, setIsRecallModalOpen] = useState(false);
 
     const handleAction = (action: ReviewAction) => {
-        if (action === 'reject' && !showFeedbackInput) {
+        if (action === "reject" && !showFeedbackInput) {
             setShowFeedbackInput(true);
             return;
         }
@@ -50,7 +61,7 @@ const ReviewSession: React.FC<ReviewSessionProps> = ({ request, isActive, onFini
             action,
             content,
             data: resultData,
-            feedback: action === 'reject' ? feedback : undefined
+            feedback: action === "reject" ? feedback : undefined,
         });
 
         // Notify parent to remove this session
@@ -58,88 +69,160 @@ const ReviewSession: React.FC<ReviewSessionProps> = ({ request, isActive, onFini
     };
 
     // Keep mounted but hidden if not active to preserve state
-    const displayStyle = isActive ? { display: 'flex' } : { display: 'none' };
+    const displayStyle = isActive ? { display: "flex" } : { display: "none" };
 
     return (
-        <div className="flex flex-col flex-1 min-h-0 w-full" style={displayStyle}>
+        <div
+            className="flex flex-col flex-1 min-h-0 w-full"
+            style={displayStyle}
+        >
             {/* Header (Session Info) - Optional, can be merged into Tab bar or kept here */}
             {request.description && (
                 <div className="px-5 py-2 border-b border-border bg-muted/20 text-xs text-muted-foreground flex items-center justify-between">
                     <span>{request.description}</span>
-                    <span className="uppercase border border-border px-1 rounded bg-background">{request.type}</span>
+                    <span className="uppercase border border-border px-1 rounded bg-background">
+                        {request.type}
+                    </span>
                 </div>
             )}
 
             {/* Content Area */}
             <div className="flex-1 min-h-0 p-5 overflow-y-auto bg-background/50 custom-scrollbar">
-                {showFeedbackInput ? (
-                    <div className="flex flex-col h-full gap-4 animate-in fade-in slide-in-from-bottom-2">
-                        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-md flex items-center gap-3">
-                            <AlertTriangle className="text-destructive shrink-0" />
-                            <div>
-                                <h4 className="font-medium text-destructive">准备打回重写</h4>
-                                <p className="text-xs text-destructive/80">请输入修改意见，AI 将根据您的反馈重新生成。</p>
+                {showFeedbackInput
+                    ? (
+                        <div className="flex flex-col h-full gap-4">
+                            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-md flex items-center gap-3">
+                                <AlertTriangle className="text-destructive shrink-0" />
+                                <div>
+                                    <h4 className="font-medium text-destructive">
+                                        准备打回重写
+                                    </h4>
+                                    <p className="text-xs text-destructive/80">
+                                        请输入修改意见，AI
+                                        将根据您的反馈重新生成。
+                                    </p>
+                                </div>
                             </div>
+                            <textarea
+                                value={feedback}
+                                onChange={(e) => setFeedback(e.target.value)}
+                                className="flex-1 w-full min-h-[150px] p-4 bg-muted border border-border rounded-md focus:ring-2 focus:ring-destructive resize-none"
+                                placeholder="例如：请不要引入新人物..."
+                                autoFocus
+                            />
                         </div>
-                        <textarea
-                            value={feedback}
-                            onChange={(e) => setFeedback(e.target.value)}
-                            className="flex-1 w-full min-h-[150px] p-4 bg-muted border border-border rounded-md focus:ring-2 focus:ring-destructive resize-none"
-                            placeholder="例如：请不要引入新人物..."
-                            autoFocus
-                        />
-                    </div>
-                ) : (
-                    request.type === 'entity' ? (
-                        <EntityReview
-                            data={data || { newEntities: [], updatedEntities: [] }}
-                            onChange={(newData) => setData(newData)}
-                        />
-                    ) : request.type === 'summary' ? (
-                        <SummaryReview
-                            content={content}
-                            data={data}
-                            onChange={(newContent, newData) => { setContent(newContent); setData(newData); }}
-                        />
-                    ) : (
-                        <MessageReview
-                            content={content}
-                            onChange={(newContent) => setContent(newContent)}
-                            query={query}
-                            onQueryChange={query !== undefined ? setQuery : undefined}
-                            agenticRecalls={data?.agenticRecalls}
-                            onAgenticRecallsChange={(newRecalls) => setData({ ...data, agenticRecalls: newRecalls })}
-                            onOpenRecallModal={() => setIsRecallModalOpen(true)}
-                        />
                     )
-                )}
+                    : (
+                        request.type === "entity"
+                            ? (
+                                <EntityReview
+                                    data={data ||
+                                        {
+                                            newEntities: [],
+                                            updatedEntities: [],
+                                        }}
+                                    onChange={(newData) => setData(newData)}
+                                />
+                            )
+                            : request.type === "summary"
+                            ? (
+                                <SummaryReview
+                                    content={content}
+                                    data={data}
+                                    onChange={(newContent, newData) => {
+                                        setContent(newContent);
+                                        setData(newData);
+                                    }}
+                                />
+                            )
+                            : (
+                                <MessageReview
+                                    content={content}
+                                    onChange={(newContent) =>
+                                        setContent(newContent)}
+                                    query={query}
+                                    onQueryChange={query !== undefined
+                                        ? setQuery
+                                        : undefined}
+                                    agenticRecalls={data?.agenticRecalls}
+                                    onAgenticRecallsChange={(newRecalls) =>
+                                        setData({
+                                            ...data,
+                                            agenticRecalls: newRecalls,
+                                        })}
+                                    onOpenRecallModal={() =>
+                                        setIsRecallModalOpen(true)}
+                                />
+                            )
+                    )}
             </div>
 
             {/* Footer / Action Bar (Portaled to Window Level) */}
             {footerEl && isActive && ReactDOM.createPortal(
                 <div className="flex flex-col-reverse sm:flex-row items-center justify-between px-4 py-4 sm:px-5 gap-4 sm:gap-0 h-full w-full">
                     <div className="flex gap-2 w-full sm:w-auto">
-                        {showFeedbackInput ? (
-                            <Button label="返回" onClick={() => setShowFeedbackInput(false)} className="w-full sm:w-auto" />
-                        ) : (
-                            request.actions?.includes('fill') && (
-                                <Button label="填充" icon={ArrowDownToLine} onClick={() => handleAction('fill')} className="text-muted-foreground hover:text-foreground w-full sm:w-auto" />
+                        {showFeedbackInput
+                            ? (
+                                <Button
+                                    label="返回"
+                                    onClick={() => setShowFeedbackInput(false)}
+                                    className="w-full sm:w-auto"
+                                />
                             )
-                        )}
+                            : (
+                                request.actions?.includes("fill") && (
+                                    <Button
+                                        label="填充"
+                                        icon={ArrowDownToLine}
+                                        onClick={() => handleAction("fill")}
+                                        className="text-muted-foreground hover:text-foreground w-full sm:w-auto"
+                                    />
+                                )
+                            )}
                     </div>
                     <div className="flex gap-3 w-full sm:w-auto">
-                        {showFeedbackInput ? (
-                            <Button label="提交打回" icon={RotateCcw} onClick={() => handleAction('reject')} disabled={!feedback.trim()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto" />
-                        ) : (
-                            <>
-                                {request.actions?.includes('reject') && <Button label="打回" icon={RotateCcw} onClick={() => handleAction('reject')} className="text-destructive hover:bg-destructive/10 border-destructive/30 flex-1 sm:flex-none" />}
-                                {request.actions?.includes('reroll') && <Button label="重抽" icon={RefreshCw} onClick={() => handleAction('reroll')} className="flex-1 sm:flex-none" />}
-                                {request.actions?.includes('confirm') && <Button label="确认" icon={Check} primary onClick={() => handleAction('confirm')} className="min-w-[100px] flex-1 sm:flex-none" />}
-                            </>
-                        )}
+                        {showFeedbackInput
+                            ? (
+                                <Button
+                                    label="提交打回"
+                                    icon={RotateCcw}
+                                    onClick={() => handleAction("reject")}
+                                    disabled={!feedback.trim()}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto"
+                                />
+                            )
+                            : (
+                                <>
+                                    {request.actions?.includes("reject") &&
+                                        <Button
+                                            label="打回"
+                                            icon={RotateCcw}
+                                            onClick={() =>
+                                                handleAction("reject")}
+                                            className="text-destructive hover:bg-destructive/10 border-destructive/30 flex-1 sm:flex-none"
+                                        />}
+                                    {request.actions?.includes("reroll") &&
+                                        <Button
+                                            label="重抽"
+                                            icon={RefreshCw}
+                                            onClick={() =>
+                                                handleAction("reroll")}
+                                            className="flex-1 sm:flex-none"
+                                        />}
+                                    {request.actions?.includes("confirm") &&
+                                        <Button
+                                            label="确认"
+                                            icon={Check}
+                                            primary
+                                            onClick={() =>
+                                                handleAction("confirm")}
+                                            className="min-w-[100px] flex-1 sm:flex-none"
+                                        />}
+                                </>
+                            )}
                     </div>
                 </div>,
-                footerEl
+                footerEl,
             )}
 
             {/* Agentic RAG 决策编辑弹窗 (V1.4) */}
@@ -171,25 +254,27 @@ export const ReviewContainer: React.FC = () => {
             (payload: unknown) => {
                 const req = payload as ReviewRequest;
                 // Ensure ID exists (fallback for old callers though we updated Bridge)
-                if (!req.id) {req.id = Date.now().toString();}
+                if (!req.id) req.id = Date.now().toString();
 
-                setRequests(prev => {
-                    const exists = prev.find(r => r.id === req.id);
-                    if (exists) {return prev;}
+                setRequests((prev) => {
+                    const exists = prev.find((r) => r.id === req.id);
+                    if (exists) return prev;
                     return [...prev, req];
                 });
 
                 // If it's the first one, activate it
-                setActiveId(current => current || req.id);
+                setActiveId((current) => current || req.id);
                 setIsMinimized(false);
-            }
+            },
         );
-        return () => { unsubscribe(); };
+        return () => {
+            unsubscribe();
+        };
     }, []);
 
     const handleSessionFinish = (finishedId: string) => {
-        setRequests(prev => {
-            const next = prev.filter(r => r.id !== finishedId);
+        setRequests((prev) => {
+            const next = prev.filter((r) => r.id !== finishedId);
             // If we removed the active one, switch to another if available
             if (activeId === finishedId) {
                 const nextActive = next.length > 0 ? next[0].id : null;
@@ -202,41 +287,40 @@ export const ReviewContainer: React.FC = () => {
     const handleRestore = () => setIsMinimized(false);
 
     // Render Logic
-    if (requests.length === 0) {return null;}
+    if (requests.length === 0) return null;
 
     // Minimized Badge
     if (isMinimized) {
         return ReactDOM.createPortal(
-            <div className="engram-app-root" style={{ display: 'contents' }}>
-                <div className="fixed bottom-4 right-4 z-[9999] animate-in zoom-in slide-in-from-bottom-4 pointer-events-auto">
+            <div className="engram-app-root" style={{ display: "contents" }}>
+                <div className="fixed bottom-4 right-4 z-[9999] pointer-events-auto">
                     <button
                         onClick={handleRestore}
                         className="flex items-center gap-2 px-4 py-3 bg-primary text-primary-foreground shadow-lg rounded-full hover:scale-105 transition-transform font-medium border-2 border-primary-foreground/20"
                     >
-                        <Layers size={18} className="animate-pulse" />
+                        <Layers size={18} />
                         <span>待处理 ({requests.length})</span>
                     </button>
                 </div>
             </div>,
-            document.body
+            document.body,
         );
     }
 
     return ReactDOM.createPortal(
-        <div className="engram-app-root" style={{ display: 'contents' }}>
+        <div className="engram-app-root" style={{ display: "contents" }}>
             <div
                 className="fixed inset-0 z-[11000] flex items-center justify-center p-4 sm:p-4 pointer-events-auto"
-                style={{ height: '100dvh', width: '100vw' }} // Explicitly force full viewport info
+                style={{ height: "100dvh", width: "100vw" }} // Explicitly force full viewport info
             >
-                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200" />
+                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
 
-                <div className="relative w-full max-w-4xl bg-popover border border-border rounded-lg shadow-2xl flex flex-col h-[90dvh] sm:h-auto sm:max-h-[90vh] min-h-0 sm:min-h-[500px] animate-in zoom-in-95 border-t-4 border-t-primary">
-
+                <div className="relative w-full max-w-4xl bg-popover border border-border rounded-lg shadow-2xl flex flex-col h-[90dvh] sm:h-auto sm:max-h-[90vh] min-h-0 sm:min-h-[500px] border-t-4 border-t-primary">
                     {/* Top Bar: Tabs & Window Controls */}
                     <div className="flex items-center justify-between px-2 pt-2 border-b border-border bg-muted/40">
                         {/* Tabs Scroll Area */}
                         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1 pr-4">
-                            {requests.map(req => {
+                            {requests.map((req) => {
                                 const isActive = req.id === activeId;
                                 return (
                                     <button
@@ -244,12 +328,16 @@ export const ReviewContainer: React.FC = () => {
                                         onClick={() => setActiveId(req.id)}
                                         className={`
                                             flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-md transition-colors border-t border-x mb-[-1px]
-                                            ${isActive
-                                                ? 'bg-popover border-border text-foreground border-b-transparent z-10'
-                                                : 'bg-muted/50 border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/80'}
+                                            ${
+                                            isActive
+                                                ? "bg-popover border-border text-foreground border-b-transparent z-10"
+                                                : "bg-muted/50 border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                                        }
                                         `}
                                     >
-                                        <span className="truncate max-w-[120px]">{req.title}</span>
+                                        <span className="truncate max-w-[120px]">
+                                            {req.title}
+                                        </span>
                                     </button>
                                 );
                             })}
@@ -257,16 +345,26 @@ export const ReviewContainer: React.FC = () => {
 
                         {/* Window Controls */}
                         <div className="flex items-center gap-1 mb-1 px-2">
-                            <button onClick={() => setIsMinimized(true)} className="p-1.5 text-muted-foreground hover:text-foreground rounded-md transition-colors" title="最小化">
+                            <button
+                                onClick={() => setIsMinimized(true)}
+                                className="p-1.5 text-muted-foreground hover:text-foreground rounded-md transition-colors"
+                                title="最小化"
+                            >
                                 <Minus size={16} />
                             </button>
                             <button
                                 onClick={() => {
                                     if (activeId) {
                                         // Cancel active request
-                                        const req = requests.find(r => r.id === activeId);
+                                        const req = requests.find((r) =>
+                                            r.id === activeId
+                                        );
                                         if (req) {
-                                            req.onResult({ action: 'cancel', content: '', data: req.data });
+                                            req.onResult({
+                                                action: "cancel",
+                                                content: "",
+                                                data: req.data,
+                                            });
                                             handleSessionFinish(activeId);
                                         }
                                     }
@@ -281,7 +379,7 @@ export const ReviewContainer: React.FC = () => {
 
                     {/* Sessions Area */}
                     <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
-                        {requests.map(req => (
+                        {requests.map((req) => (
                             <ReviewSession
                                 key={req.id}
                                 request={req}
@@ -309,6 +407,6 @@ export const ReviewContainer: React.FC = () => {
                 </div>
             </div>
         </div>,
-        document.body
+        document.body,
     );
 };

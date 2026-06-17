@@ -13,9 +13,9 @@ import type {
     RecallConfig,
     RerankConfig,
     VectorConfig,
-} from '@/config/types/defaults';
-import type { EntityExtractConfig } from '@/config/types/memory';
-import { useConfigStore } from '@/state/configStore';
+} from "@/config/types/defaults";
+import type { EntityExtractConfig } from "@/config/types/memory";
+import { useConfigStore } from "@/state/configStore";
 
 export interface UseConfigReturn {
     vectorConfig: VectorConfig;
@@ -25,7 +25,6 @@ export interface UseConfigReturn {
     entityExtractConfig: EntityExtractConfig;
     embeddingConfig: EmbeddingConfig;
     customMacros: CustomMacro[];
-    enableAnimations: boolean;
 
     updateVectorConfig: (config: VectorConfig) => void;
     updateRerankConfig: (config: RerankConfig) => void;
@@ -33,19 +32,19 @@ export interface UseConfigReturn {
     updateRegexConfig: (config: GlobalRegexConfig) => void;
     updateEntityExtractConfig: (config: EntityExtractConfig) => void;
     updateEmbeddingConfig: (config: EmbeddingConfig) => void;
-    updateEnableAnimations: (enabled: boolean) => void;
 
     // Batch update interface (New Feature)
-    updateMultipleConfigs: (updates: Partial<{
-        vectorConfig: VectorConfig;
-        rerankConfig: RerankConfig;
-        recallConfig: RecallConfig;
-        regexConfig: GlobalRegexConfig;
-        entityExtractConfig: EntityExtractConfig;
-        embeddingConfig: EmbeddingConfig;
-        customMacros: CustomMacro[];
-        enableAnimations: boolean;
-    }>) => void;
+    updateMultipleConfigs: (
+        updates: Partial<{
+            vectorConfig: VectorConfig;
+            rerankConfig: RerankConfig;
+            recallConfig: RecallConfig;
+            regexConfig: GlobalRegexConfig;
+            entityExtractConfig: EntityExtractConfig;
+            embeddingConfig: EmbeddingConfig;
+            customMacros: CustomMacro[];
+        }>,
+    ) => void;
 
     // 自定义宏
     addCustomMacro: () => void;
@@ -65,7 +64,6 @@ export function useConfig(): UseConfigReturn {
         customMacros: store.customMacros,
         deleteCustomMacro: store.deleteCustomMacro,
         embeddingConfig: store.embeddingConfig,
-        enableAnimations: store.enableAnimations,
         entityExtractConfig: store.entityExtractConfig,
         hasChanges: store.hasChanges,
         recallConfig: store.recallConfig,
@@ -76,7 +74,6 @@ export function useConfig(): UseConfigReturn {
         toggleCustomMacro: store.toggleCustomMacro,
         updateCustomMacro: store.updateCustomMacro,
         updateEmbeddingConfig: store.updateEmbeddingConfig,
-        updateEnableAnimations: store.updateEnableAnimations,
         updateEntityExtractConfig: store.updateEntityExtractConfig,
 
         updateMultipleConfigs: store.updateMultipleConfigs,

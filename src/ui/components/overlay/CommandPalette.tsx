@@ -131,7 +131,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
     const modalContent = (
         <div className="engram-app-root" style={{ display: 'contents' }}>
             <div
-                className="fixed inset-0 flex items-start justify-center pt-[15vh] px-4 animate-in fade-in duration-200"
+                className="fixed inset-0 flex items-start justify-center pt-[15vh] px-4"
                 style={{
                     height: '100dvh',
                     width: '100vw',
@@ -144,7 +144,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
                 }}
             >
                 <div
-                    className="w-full max-w-xl border border-border rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 slide-in-from-top-4 duration-200"
+                    className="w-full max-w-xl border border-border rounded-xl shadow-2xl overflow-hidden flex flex-col"
                     style={{
                         backdropFilter: 'var(--glass-backdrop-filter)',
                         backgroundColor: 'var(--popover)',
