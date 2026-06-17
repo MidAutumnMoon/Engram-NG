@@ -55,19 +55,3 @@ export interface LogEntry {
     /** 生命周期状态（主要用于 category="model"） */
     status?: "pending" | "success" | "error" | "cancelled";
 }
-
-/**
- * 日志配置接口
- */
-export interface LoggerConfig {
-    maxEntries: number; // 最大存储条数
-    minLevel: LogLevel; // 最低显示级别
-}
-
-/**
- * 默认配置
- */
-export const DEFAULT_LOGGER_CONFIG: LoggerConfig = {
-    maxEntries: 5000,
-    minLevel: LogLevel.DEBUG,
-};

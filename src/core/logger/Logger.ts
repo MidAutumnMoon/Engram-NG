@@ -9,8 +9,8 @@
 import { generateShortUUID } from "@/core/utils";
 import { Subject } from "rxjs";
 import type { LogModule } from "./LogModule.ts";
-import type { LogCategory, LogEntry, LoggerConfig } from "./types.ts";
-import { DEFAULT_LOGGER_CONFIG, LogLevel } from "./types.ts";
+import type { LogCategory, LogEntry } from "./types.ts";
+import { LogLevel } from "./types.ts";
 
 // 日志流 Subject (RxJS)
 // 保留 RxJS：EventBus 等其他子系统也用 RxJS，统一技术栈。
@@ -21,8 +21,10 @@ const logSubject = new Subject<LogEntry>();
 // 本项目不使用 HMR，因此无需 HMR guard；若未来引入 HMR 需重新评估。
 let logCache: LogEntry[] = [];
 
-// 全局配置实例
-let config: LoggerConfig = { ...DEFAULT_LOGGER_CONFIG };
+/**
+ * Prevents logCache from growing indefinitely, ensuring memory safety and UI performance.
+ */
+const MAX_LOG_ENTRIES = 5000;
 
 /**
  * 写入一条日志（内部）——共享 push/trim/notify 逻辑
@@ -31,8 +33,8 @@ function pushEntry(entry: LogEntry): void {
     logCache.push(entry);
 
     // 容量超限时原地裁剪（splice 比 slice 省一次 5000 元素数组分配）
-    if (logCache.length > config.maxEntries) {
-        logCache.splice(0, logCache.length - config.maxEntries);
+    if (logCache.length > MAX_LOG_ENTRIES) {
+        logCache.splice(0, logCache.length - MAX_LOG_ENTRIES);
     }
 
     logSubject.next(entry);
@@ -47,8 +49,6 @@ function writeAppLog(
     message: string,
     data?: unknown,
 ): string {
-    if (level < config.minLevel) return "";
-
     const entry: LogEntry = {
         category: "app",
         data,
@@ -67,16 +67,12 @@ function writeAppLog(
  */
 export const Logger = {
     /**
-     * 初始化 Logger
-     * 重置缓存（注：本方法会清空所有 category 的日志，谨慎调用）
+     * 初始化 Logger。清空所有 category 的缓存。
+     *
+     * （注：本方法会清空所有 category 的日志，谨慎调用）
      */
-    init(userConfig?: Partial<LoggerConfig>): void {
+    init(): void {
         logCache = [];
-
-        if (userConfig) {
-            config = { ...config, ...userConfig };
-        }
-
         Logger.info("System", "Logger 初始化完成");
     },
 
@@ -112,11 +108,9 @@ export const Logger = {
     /**
      * 通用写入入口——供 ModelLogger / RecallLogService 等门面使用。
      * 接受除 id/timestamp 外的完整 LogEntry 字段。
-     * @returns 新条目的 id（若被 minLevel 过滤则返回空串）
+     * @returns 新条目的 id
      */
     log(partial: Omit<LogEntry, "id" | "timestamp">): string {
-        if (partial.level < config.minLevel) return "";
-
         const entry: LogEntry = {
             ...partial,
             id: generateShortUUID("log_"),
