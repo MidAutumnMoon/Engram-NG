@@ -4,8 +4,6 @@ import deno from "@deno/vite-plugin";
 import mdx from "@mdx-js/rollup";
 import remarkGfm from "remark-gfm";
 
-const commitHash = "unknown"; // Git hash is now detected at runtime via tavern API
-
 export default defineConfig(({ mode }) => ({
     plugins: [
         // MDX 支持 - 必须在 react() 之前
@@ -61,7 +59,6 @@ export default defineConfig(({ mode }) => ({
     // 定义环境变量，避免浏览器 process is not defined 错误
     define: {
         "process.env.NODE_ENV": JSON.stringify(mode),
-        "__COMMIT_HASH__": JSON.stringify(commitHash),
     },
 
     resolve: {

@@ -1,9 +1,7 @@
-import { UpdateService } from "@/core/updater/Updater";
-import { UpdateNotice } from "@/ui/components/feedback/UpdateNotice";
-import Header from "@/ui/components/layout/Header";
-import { Sidebar } from "@/ui/components/layout/Sidebar";
-import { GlobalStyles } from "@/ui/styles/GlobalStyles";
-import React, { useEffect, useState } from "react";
+import Header from "@/ui/components/layout/Header.tsx";
+import { Sidebar } from "@/ui/components/layout/Sidebar.tsx";
+import { GlobalStyles } from "@/ui/styles/GlobalStyles.tsx";
+import React from "react";
 
 interface MainLayoutProps {
     children: React.ReactNode;
@@ -12,34 +10,13 @@ interface MainLayoutProps {
     onClose: () => void;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = (
-    { children, activeTab, setActiveTab, onClose },
-) => {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [showUpdateNotice, setShowUpdateNotice] = useState(false);
-    const [hasUnreadUpdate, setHasUnreadUpdate] = useState(false);
-
-    // 检测是否有未读更新
-    useEffect(() => {
-        const checkUpdate = async () => {
-            try {
-                const unread = await UpdateService.hasUnreadUpdate();
-                setHasUnreadUpdate(unread);
-            } catch (error) {
-                console.debug("[Engram] 检查更新失败", error);
-            }
-        };
-        checkUpdate();
-    }, []);
-
-    const handleShowUpdateNotice = () => {
-        setShowUpdateNotice(true);
-    };
-
-    const handleCloseUpdateNotice = () => {
-        setShowUpdateNotice(false);
-        setHasUnreadUpdate(false);
-    };
+export const MainLayout: React.FC<MainLayoutProps> = ({
+    children,
+    activeTab,
+    setActiveTab,
+    onClose,
+}) => {
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
     return (
         <div
@@ -48,19 +25,11 @@ export const MainLayout: React.FC<MainLayoutProps> = (
         >
             <GlobalStyles />
 
-            {/* Update Notice Modal */}
-            <UpdateNotice
-                isOpen={showUpdateNotice}
-                onClose={handleCloseUpdateNotice}
-            />
-
             {/* PC 端侧边栏 */}
             <Sidebar
                 activeTab={activeTab}
                 onNavigate={setActiveTab}
                 isMobile={false}
-                onShowUpdateNotice={handleShowUpdateNotice}
-                hasUnreadUpdate={hasUnreadUpdate}
             />
 
             {/* 移动端侧边栏（抽屉） */}
@@ -70,13 +39,11 @@ export const MainLayout: React.FC<MainLayoutProps> = (
                 isMobile={true}
                 isOpen={isMobileMenuOpen}
                 onClose={() => setIsMobileMenuOpen(false)}
-                onShowUpdateNotice={handleShowUpdateNotice}
-                hasUnreadUpdate={hasUnreadUpdate}
             />
 
             {/* Right Content Area (Header + Main) */}
             <div className="flex flex-1 flex-col overflow-hidden">
-                <div className="flex flex-col shrink-0 border-b border-border bg-sidebar/80 backdrop-blur-xl z-50 transition-all duration-300">
+                <div className="flex flex-col shrink-0 border-b border-border bg-sidebar/80 backdrop-blur-xl z-50">
                     <Header
                         onToggleSidebar={() =>
                             setIsMobileMenuOpen(!isMobileMenuOpen)}

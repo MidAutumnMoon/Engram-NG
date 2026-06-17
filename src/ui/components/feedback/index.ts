@@ -1,4 +1,2 @@
-export * from './EmptyState';
-export * from './SimpleModal';
-export * from './UpdateNotice';
-
+export * from "./EmptyState.tsx";
+export * from "./SimpleModal.tsx";

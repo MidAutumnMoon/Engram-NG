@@ -5,7 +5,7 @@
  */
 import { NAV_ITEMS } from "@/constants/navigation";
 import { EngramTextLogo } from "@/ui/assets/icons/EngramTextLogo";
-import { Bell, Github, X } from "lucide-react";
+import { Github, X } from "lucide-react";
 import React from "react";
 import manifest from "../../../../manifest.json" with { type: "json" };
 
@@ -20,10 +20,6 @@ interface SidebarProps {
     isOpen?: boolean;
     /** 移动端：关闭回调 */
     onClose?: () => void;
-    /** 显示更新通知 */
-    onShowUpdateNotice: () => void;
-    /** 是否有未读更新 */
-    hasUnreadUpdate: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -32,41 +28,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
     isMobile,
     isOpen = false,
     onClose,
-    onShowUpdateNotice,
-    hasUnreadUpdate,
 }) => {
     const handleNavClick = (tabId: string) => {
         onNavigate(tabId);
         if (isMobile && onClose) onClose();
     };
 
-    // 统一的底部区域组件（三行布局）
+    // 统一的底部区域组件
     const BottomArea = () => (
         <div className="pt-4 border-t border-border/30 mt-2 space-y-2">
-            {/* 第一行：更新通知 */}
-            <button
-                onClick={onShowUpdateNotice}
-                className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all duration-(--duration-fast) text-muted-foreground hover:text-foreground hover:bg-muted/10 text-left"
-            >
-                <div className="relative">
-                    <Bell
-                        size={16}
-                        strokeWidth={1.5}
-                        className=""
-                    />
-                    {hasUnreadUpdate && (
-                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
-                    )}
-                </div>
-                <span className="text-xs">更新通知</span>
-                {hasUnreadUpdate && (
-                    <span className="ml-auto text-[10px] px-1.5 py-0.5 bg-primary/20 text-primary rounded-full">
-                        NEW
-                    </span>
-                )}
-            </button>
-
-            {/* 第二行：GitHub */}
+            {/* GitHub */}
             <a
                 href="https://github.com/shiyue137mh-netizen/Engram"
                 target="_blank"
@@ -85,7 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </span>
             </a>
 
-            {/* 第三行：Logo + 版本号 */}
+            {/* Logo + 版本号 */}
             <div className="flex items-center gap-2 px-2 py-1 opacity-50">
                 <EngramTextLogo height={12} />
                 <span className="text-[10px] text-muted-foreground font-mono">

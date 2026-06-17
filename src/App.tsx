@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import { MainLayout } from "@/ui/components/layout/MainLayout.tsx";
 import { SettingsManager } from "@/config/settings.ts";
 import { EventBus } from "@/core/events/types.ts";
-import { UpdateService } from "@/core/updater/Updater.ts";
-import { notificationService } from "@/ui/services/NotificationService.ts";
 
 import { Dashboard } from "@/ui/views/dashboard/index.tsx";
 import { DevLog } from "@/ui/views/dev-log/index.tsx";
@@ -59,29 +57,6 @@ const App: React.FC<AppProps> = ({ onClose }) => {
                 handleWindowNavigate as EventListener,
             );
         };
-    }, []);
-
-    // V0.9.10: 启动时检测更新，弹 toastr 提示
-    useEffect(() => {
-        const checkUpdate = async () => {
-            try {
-                const hasUnread = await UpdateService.hasUnreadUpdate();
-                if (hasUnread) {
-                    const latestVersion = await UpdateService
-                        .getLatestVersion();
-                    notificationService.info(
-                        `发现新版本 v${latestVersion}，点击查看更新`,
-                        "Engram 更新",
-                        { action: { goto: "settings" } }, // 跳转设置页，可以打开更新面板
-                    );
-                }
-            } catch (error) {
-                console.debug("[Engram] 更新检测失败", error);
-            }
-        };
-        // 延迟执行，避免影响首屏加载
-        const timer = setTimeout(checkUpdate, 3000);
-        return () => clearTimeout(timer);
     }, []);
 
     const renderContent = () => {

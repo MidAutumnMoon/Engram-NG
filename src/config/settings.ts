@@ -1,8 +1,11 @@
-import type { PreprocessingConfig, RegexRule } from '@/config/types/data_processing';
-import type { EngramAPISettings } from '@/config/types/defaults';
-import { getBuiltInTemplateById } from '@/config/types/defaults';
-import type { PromptCategory, PromptTemplate } from '@/config/types/prompt';
-import { Logger } from '@/core/logger';
+import type {
+    PreprocessingConfig,
+    RegexRule,
+} from "@/config/types/data_processing";
+import type { EngramAPISettings } from "@/config/types/defaults";
+import { getBuiltInTemplateById } from "@/config/types/defaults";
+import type { PromptCategory, PromptTemplate } from "@/config/types/prompt";
+import { Logger } from "@/core/logger";
 
 export interface EngramSettings {
     theme: string;
@@ -10,7 +13,6 @@ export interface EngramSettings {
     templates: Record<string, any>; // 待扩展的模板类型，暂时使用 Record
     promptTemplates: PromptTemplate[]; // 提示词模板列表
     hasSeenWelcome: boolean; // 是否已观看欢迎动画
-    lastReadVersion: string; // 最后已读的版本号
     lastOpenedTab: string; // 上次打开的主界面页面
     summarizerConfig: Partial<any>; // 总结器配置 (Legacy)
     globalPreviewEnabled: boolean; // 是否启用全局预览预览 (V1.4.7)
@@ -19,41 +21,40 @@ export interface EngramSettings {
     apiSettings: EngramAPISettings | null; // API 配置（LLM 预设、向量化、重排序等）
     preprocessingConfig: PreprocessingConfig | null; // 输入预处理配置
     linkedDeletion: {
-        enabled: boolean;          // 是否启用联动删除
-        deleteWorldbook: boolean;  // 删除角色时同步删除 Engram 世界书
+        enabled: boolean; // 是否启用联动删除
+        deleteWorldbook: boolean; // 删除角色时同步删除 Engram 世界书
         deleteChatWorldbook: boolean; // 删除聊天时同步删除 Engram 世界书
-        deleteIndexedDB: boolean;  // 删除角色时同步删除本地 IndexedDB 数据
+        deleteIndexedDB: boolean; // 删除角色时同步删除本地 IndexedDB 数据
         showConfirmation: boolean; // 删除前显示确认对话框
     };
     glassSettings: {
         enabled: boolean; // 是否启用
         opacity: number; // 0-1
-        blur: number;    // Px
+        blur: number; // Px
     };
     syncConfig: {
-        enabled: boolean;  // 总开关：是否启用同步功能
+        enabled: boolean; // 总开关：是否启用同步功能
         autoSync: boolean; // 是否在数据变动时自动上传
     };
     statistics: {
         firstUseAt: number | null; // 首次使用时间戳
-        activeDays: string[];      // 活跃日期集合 (如 ['2026-03-05', ...])
-        totalTokens: number;       // 总 Token 消耗
-        totalLlmCalls: number;     // 总 LLM 调用次数
-        totalEvents: number;       // 累计生成的节点数
-        totalEntities: number;     // 累计提取的实体数
-        totalRagInjections: number;// 总召回注入次数
+        activeDays: string[]; // 活跃日期集合 (如 ['2026-03-05', ...])
+        totalTokens: number; // 总 Token 消耗
+        totalLlmCalls: number; // 总 LLM 调用次数
+        totalEvents: number; // 累计生成的节点数
+        totalEntities: number; // 累计提取的实体数
+        totalRagInjections: number; // 总召回注入次数
     };
 }
 
 /** 默认设置 */
 const defaultSettings: EngramSettings = Object.freeze({
-    theme: 'odysseia',
+    theme: "odysseia",
     presets: {},
     templates: {},
     promptTemplates: [],
     hasSeenWelcome: false,
-    lastReadVersion: '0.0.0',
-    lastOpenedTab: 'dashboard',
+    lastOpenedTab: "dashboard",
     summarizerConfig: {},
     globalPreviewEnabled: true, // 默认开启
     trimmerConfig: {},
@@ -94,7 +95,7 @@ const defaultSettings: EngramSettings = Object.freeze({
  * 这是 ST 官方推荐的扩展设置存储方式
  */
 export class SettingsManager {
-    private static readonly EXTENSION_NAME = 'engram';
+    private static readonly EXTENSION_NAME = "engram";
     private static listeners = new Set<() => void>();
 
     /**
@@ -110,11 +111,15 @@ export class SettingsManager {
     }
 
     private static notifyListeners(): void {
-        this.listeners.forEach(l => {
+        this.listeners.forEach((l) => {
             try {
                 l();
             } catch (error) {
-                Logger.warn('SettingsManager', 'Listener Execution Error', error);
+                Logger.warn(
+                    "SettingsManager",
+                    "Listener Execution Error",
+                    error,
+                );
             }
         });
     }
@@ -134,14 +139,22 @@ export class SettingsManager {
     public static getSettings(): EngramSettings {
         const context = this.getContext();
         if (!context?.extensionSettings) {
-            Logger.warn('SettingsManager', 'SillyTavern context.extensionSettings not available');
+            Logger.warn(
+                "SettingsManager",
+                "SillyTavern context.extensionSettings not available",
+            );
             return { ...defaultSettings };
         }
 
         // 如果 engram 设置不存在，初始化它
         if (!context.extensionSettings[this.EXTENSION_NAME]) {
-            context.extensionSettings[this.EXTENSION_NAME] = { ...defaultSettings };
-            Logger.debug('SettingsManager', 'Initialized engram settings with defaults');
+            context.extensionSettings[this.EXTENSION_NAME] = {
+                ...defaultSettings,
+            };
+            Logger.debug(
+                "SettingsManager",
+                "Initialized engram settings with defaults",
+            );
             // 保存初始化的设置
             this.save();
         }
@@ -160,7 +173,10 @@ export class SettingsManager {
     public static initSettings(): void {
         const context = this.getContext();
         if (!context?.extensionSettings) {
-            Logger.warn('SettingsManager', 'Cannot init settings: context not available');
+            Logger.warn(
+                "SettingsManager",
+                "Cannot init settings: context not available",
+            );
             return;
         }
 
@@ -168,18 +184,24 @@ export class SettingsManager {
 
         // 如果 engram 设置不存在，创建它
         if (!context.extensionSettings[this.EXTENSION_NAME]) {
-            context.extensionSettings[this.EXTENSION_NAME] = { ...defaultSettings };
+            context.extensionSettings[this.EXTENSION_NAME] = {
+                ...defaultSettings,
+            };
             shouldSave = true;
-            Logger.info('SettingsManager', 'Created engram settings');
+            Logger.info("SettingsManager", "Created engram settings");
         }
 
         // 确保所有必需的字段都存在（补全缺失的字段）
         const settings = context.extensionSettings[this.EXTENSION_NAME];
-        for (const key of Object.keys(defaultSettings) as (keyof EngramSettings)[]) {
+        for (
+            const key of Object.keys(
+                defaultSettings,
+            ) as (keyof EngramSettings)[]
+        ) {
             if (!(key in settings)) {
                 (settings as any)[key] = (defaultSettings as any)[key];
                 shouldSave = true;
-                Logger.debug('SettingsManager', `Added missing field: ${key}`);
+                Logger.debug("SettingsManager", `Added missing field: ${key}`);
             }
         }
 
@@ -191,7 +213,9 @@ export class SettingsManager {
     /**
      * Get a specific setting value
      */
-    public static get<K extends keyof EngramSettings>(key: K): EngramSettings[K] {
+    public static get<K extends keyof EngramSettings>(
+        key: K,
+    ): EngramSettings[K] {
         const settings = this.getExtensionSettings();
         const value = settings[key];
         // 如果值不存在，返回默认值
@@ -202,21 +226,32 @@ export class SettingsManager {
      * Save a specific setting value
      * 直接更新 context.extensionSettings 中的字段
      */
-    public static set<K extends keyof EngramSettings>(key: K, value: EngramSettings[K]): void {
+    public static set<K extends keyof EngramSettings>(
+        key: K,
+        value: EngramSettings[K],
+    ): void {
         const context = this.getContext();
         if (!context?.extensionSettings) {
-            Logger.warn('SettingsManager', 'Cannot set: context.extensionSettings not available');
+            Logger.warn(
+                "SettingsManager",
+                "Cannot set: context.extensionSettings not available",
+            );
             return;
         }
 
         // 确保 engram 对象存在
         if (!context.extensionSettings[this.EXTENSION_NAME]) {
-            context.extensionSettings[this.EXTENSION_NAME] = { ...defaultSettings };
+            context.extensionSettings[this.EXTENSION_NAME] = {
+                ...defaultSettings,
+            };
         }
 
         // 更新单个字段
         context.extensionSettings[this.EXTENSION_NAME][key] = value;
-        Logger.debug('SettingsManager', `Set ${String(key)} = ${JSON.stringify(value)}`);
+        Logger.debug(
+            "SettingsManager",
+            `Set ${String(key)} = ${JSON.stringify(value)}`,
+        );
 
         // 触发变更通知
         this.notifyListeners();
@@ -232,9 +267,15 @@ export class SettingsManager {
         const context = this.getContext();
         if (context?.saveSettingsDebounced) {
             context.saveSettingsDebounced();
-            Logger.debug('SettingsManager', 'Saved via context.saveSettingsDebounced');
+            Logger.debug(
+                "SettingsManager",
+                "Saved via context.saveSettingsDebounced",
+            );
         } else {
-            Logger.warn('SettingsManager', 'saveSettingsDebounced not available');
+            Logger.warn(
+                "SettingsManager",
+                "saveSettingsDebounced not available",
+            );
         }
     }
 
@@ -251,11 +292,17 @@ export class SettingsManager {
      * @param category 模板分类
      * @returns 启用的模板，如果没有则返回 null
      */
-    public static getEnabledPromptTemplate(category: PromptCategory): PromptTemplate | null {
+    public static getEnabledPromptTemplate(
+        category: PromptCategory,
+    ): PromptTemplate | null {
         // 优先从 apiSettings.promptTemplates 读取（这是 useAPIPresets 保存的位置）
-        const apiSettings = this.get('apiSettings') as { promptTemplates?: PromptTemplate[] } | null;
+        const apiSettings = this.get("apiSettings") as {
+            promptTemplates?: PromptTemplate[];
+        } | null;
         const templates = apiSettings?.promptTemplates || [];
-        return templates.find((t: PromptTemplate) => t.category === category && t.enabled) || null;
+        return templates.find((t: PromptTemplate) =>
+            t.category === category && t.enabled
+        ) || null;
     }
 
     /**
@@ -264,11 +311,13 @@ export class SettingsManager {
      * @returns 模板对象，如果未找到则返回 null
      */
     public static getPromptTemplateById(id: string): PromptTemplate | null {
-        const apiSettings = this.get('apiSettings') as { promptTemplates?: PromptTemplate[] } | null;
+        const apiSettings = this.get("apiSettings") as {
+            promptTemplates?: PromptTemplate[];
+        } | null;
         const templates = apiSettings?.promptTemplates || [];
         // 尝试精确匹配 ID
         const byId = templates.find((t: PromptTemplate) => t.id === id);
-        if (byId) {return byId;}
+        if (byId) return byId;
 
         // Fallback: 尝试查找内置模板
         const builtIn = getBuiltInTemplateById(id);
@@ -281,7 +330,9 @@ export class SettingsManager {
 
         // 向下兼容：如果 ID 实际上是 category (旧版配置可能会这样)，尝试按分类查找启用的模板
         // 这种情况主要发生在旧配置未完全迁移时
-        return templates.find((t: PromptTemplate) => t.category === id && t.enabled) || null;
+        return templates.find((t: PromptTemplate) =>
+            t.category === id && t.enabled
+        ) || null;
     }
 
     /**
@@ -289,7 +340,7 @@ export class SettingsManager {
      * @returns summarizerConfig 对象
      */
     public static getSummarizerSettings(): any {
-        return this.get('summarizerConfig') || {};
+        return this.get("summarizerConfig") || {};
     }
 
     /**
@@ -298,7 +349,7 @@ export class SettingsManager {
      */
     public static setSummarizerSettings(config: Partial<any>): void {
         const current = this.getSummarizerSettings();
-        this.set('summarizerConfig', { ...current, ...config });
+        this.set("summarizerConfig", { ...current, ...config });
     }
 
     /**
@@ -306,7 +357,7 @@ export class SettingsManager {
      * @returns RegexRule[] 正则规则数组
      */
     public static getRegexRules(): RegexRule[] {
-        return this.get('regexRules') || [];
+        return this.get("regexRules") || [];
     }
 
     /**
@@ -314,7 +365,7 @@ export class SettingsManager {
      * @param rules 规则数组
      */
     public static setRegexRules(rules: RegexRule[]): void {
-        this.set('regexRules', rules);
+        this.set("regexRules", rules);
     }
 
     // ==================== 统计与遥测 (Telemetry) ====================
@@ -324,8 +375,11 @@ export class SettingsManager {
      * @param key 要累加的统计字段名
      * @param value 累加值 (默认为 1)
      */
-    public static incrementStatistic(key: keyof EngramSettings['statistics'], value: number = 1): void {
-        const stats = { ...this.get('statistics') };
+    public static incrementStatistic(
+        key: keyof EngramSettings["statistics"],
+        value: number = 1,
+    ): void {
+        const stats = { ...this.get("statistics") };
 
         // 初始化首次使用时间
         if (!stats.firstUseAt) {
@@ -333,8 +387,8 @@ export class SettingsManager {
         }
 
         // 记录活跃天数 (基于本地时区的 YYYY-MM-DD)
-        const today = new Date().toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
-        if (!stats.activeDays) {stats.activeDays = [];}
+        const today = new Date().toLocaleDateString("en-CA"); // 'YYYY-MM-DD'
+        if (!stats.activeDays) stats.activeDays = [];
         if (!stats.activeDays.includes(today)) {
             stats.activeDays.push(today);
             // 保持数组不过大，比如保留最近一年 365 天
@@ -344,10 +398,10 @@ export class SettingsManager {
         }
 
         // 累加数值 (不处理数组或非数值类型)
-        if (typeof stats[key] === 'number') {
+        if (typeof stats[key] === "number") {
             (stats[key] as number) += value;
         }
 
-        this.set('statistics', stats);
+        this.set("statistics", stats);
     }
 }
