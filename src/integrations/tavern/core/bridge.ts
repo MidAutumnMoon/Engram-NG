@@ -19,134 +19,161 @@ export {
     toggleMainPanel,
 } from "../ui/ui.tsx";
 
+import { Logger } from "@/core/logger";
+import { SettingsManager } from "@/config/settings";
+import { setupKeyboardShortcuts } from "@/core/KeyboardManager";
+import { regexProcessor } from "@/modules/workflow/steps/processing/RegexProcessor";
+import { ThemeManager } from "@/ui/services/ThemeManager";
+import { useUiStore } from "@/state/uiStore";
+import {
+    createTopBarButton,
+    initQuickPanelButton,
+    mountGlobalOverlay,
+    toggleMainPanel,
+} from "../ui/ui.tsx";
+
 /**
  * 初始化 Engram 插件
  */
 export async function initializeEngram(): Promise<void> {
-    // 初始化日志系统
-    const { Logger } = await import("@core/logger/index.ts");
+    // 1. 核心基础设施
     await Logger.init();
-
     Logger.info("STBridge", "Engram 插件正在初始化...");
 
-    // 初始化设置管理器
-    const { SettingsManager } = await import("@/config/settings.ts");
     SettingsManager.initSettings();
     Logger.info("STBridge", "SettingsManager 初始化完成");
 
-    // 加载保存的正则规则到全局处理器
+    // 2. 正则规则 (从具体文件加载，避免拖入 workflow/steps 整个 RAG 流水线)
     const savedRegexRules = SettingsManager.getRegexRules();
     if (savedRegexRules && savedRegexRules.length > 0) {
-        const { regexProcessor } = await import("@/modules/workflow/steps");
         regexProcessor.setRules(savedRegexRules);
-        Logger.info("STBridge", `已加载 ${savedRegexRules.length} 条正则规则`);
-    }
-
-    // 检查酒馆接口对接状态
-    try {
-        const { checkTavernIntegration } = await import(
-            "@/integrations/tavern/api"
+        Logger.info(
+            "STBridge",
+            `已加载 ${savedRegexRules.length} 条正则规则`,
         );
-        const tavernStatus = await checkTavernIntegration();
-        Logger.info("TavernAPI", "酒馆接口对接状态", tavernStatus);
-    } catch (error) {
-        Logger.warn("TavernAPI", "酒馆接口检查失败", { error: String(error) });
     }
 
-    // 启动 Summarizer 服务
-    try {
-        const { summarizerService } = await import(
-            "@/modules/memory/Summarizer"
-        );
-        summarizerService.start();
-        const status = summarizerService.getStatus();
-        Logger.info("Summarizer", "服务已启动", status);
-    } catch (error) {
-        Logger.warn("Summarizer", "服务启动失败", { error: String(error) });
+    // 3. 重型子系统 (LLM/RAG) — 并行懒加载
+    const [
+        summarizerMod,
+        entityMod,
+        injectorMod,
+        worldbookMod,
+        cleanupMod,
+    ] = await Promise.all([
+        import("@/modules/memory/Summarizer").catch((e) => {
+            Logger.warn("Summarizer", "模块加载失败", { error: String(e) });
+            return null;
+        }),
+        import("@/modules/memory/EntityExtractor").catch((e) => {
+            Logger.warn("EntityBuilder", "模块加载失败", { error: String(e) });
+            return null;
+        }),
+        import("@/modules/rag/injection/Injector").catch((e) => {
+            Logger.warn("Injector", "模块加载失败", { error: String(e) });
+            return null;
+        }),
+        import("@/integrations/tavern/worldbook").catch((e) => {
+            Logger.warn("Worldbook", "模块加载失败", { error: String(e) });
+            return null;
+        }),
+        import("@/data/cleanup/CharacterCleanup").catch((e) => {
+            Logger.warn("CharacterCleanup", "模块加载失败", {
+                error: String(e),
+            });
+            return null;
+        }),
+    ]);
+
+    // 4. 启动各服务 (与加载解耦，便于定位启动错误)
+    if (summarizerMod) {
+        try {
+            summarizerMod.summarizerService.start();
+            Logger.info(
+                "Summarizer",
+                "服务已启动",
+                summarizerMod.summarizerService.getStatus(),
+            );
+        } catch (error) {
+            Logger.warn("Summarizer", "服务启动失败", { error: String(error) });
+        }
     }
 
-    // Start Entity Extraction Service (V0.9.14)
-    try {
-        const { entityBuilder } = await import(
-            "@/modules/memory/EntityExtractor"
-        );
-        entityBuilder.start();
-        Logger.info("EntityBuilder", "Service started");
-    } catch (error) {
-        Logger.warn("EntityBuilder", "Service start failed", {
-            error: String(error),
-        });
+    if (entityMod) {
+        try {
+            entityMod.entityBuilder.start();
+            Logger.info("EntityBuilder", "Service started");
+        } catch (error) {
+            Logger.warn("EntityBuilder", "Service start failed", {
+                error: String(error),
+            });
+        }
     }
 
-    // 从 ui 提取加载顶部按钮指令
-    const { createTopBarButton } = await import("@/integrations/tavern");
-    // 优先使用顶栏按钮，找不到则使用悬浮球
+    if (injectorMod) {
+        try {
+            injectorMod.injector.init();
+            Logger.info("Injector", "注入服务初始化完成");
+        } catch (error) {
+            Logger.warn("Injector", "注入服务初始化失败", {
+                error: String(error),
+            });
+        }
+    }
+
+    let worldbookReady = false;
+    if (worldbookMod) {
+        try {
+            await worldbookMod.WorldBookSlotService.init();
+            worldbookReady = true;
+        } catch (error) {
+            Logger.warn("Worldbook", "世界书槽位初始化失败", {
+                error: String(error),
+            });
+        }
+    }
+
+    if (cleanupMod) {
+        try {
+            cleanupMod.CharacterDeleteService.init();
+            Logger.info("STBridge", "角色联动清理服务初始化完成");
+        } catch (error) {
+            Logger.warn("STBridge", "角色联动清理服务初始化失败", {
+                error: String(error),
+            });
+        }
+    }
+
+    // 5. UI 骨架 (DOM 注入，不拉 React)
     createTopBarButton();
-
-    // 初始化主题系统 (注入 CSS 并应用变量)
-    const { ThemeManager } = await import("@/ui/services/ThemeManager");
     ThemeManager.init();
+    initQuickPanelButton();
 
-    // Initialize Injector Service (V0.4 - Dynamic Context)
+    // 6. React 全局悬浮层 (内部通过动态 import 懒加载 GlobalOverlay)
     try {
-        const { injector } = await import("@/modules/rag/injection/Injector");
-        injector.init();
-        Logger.info("Injector", "注入服务初始化完成");
+        await mountGlobalOverlay();
     } catch (error) {
-        Logger.warn("Injector", "注入服务初始化失败", { error: String(error) });
-    }
-
-    // Initialize MacroService (Global ST Macros) and Worldbook Slot
-    try {
-        const { WorldBookSlotService } = await import(
-            "@/integrations/tavern/worldbook"
-        );
-        await WorldBookSlotService.init();
-
-        const { MacroService } = await import("@/integrations/tavern");
-        await MacroService.init();
-    } catch (error) {
-        Logger.warn("MacroService", "宏服务/世界书初始化失败", {
+        Logger.warn("STBridge", "全局悬浮层挂载失败", {
             error: String(error),
         });
     }
 
-    // V0.8: Initialize QR 栏快捷按钮
-    try {
-        const { initQuickPanelButton } = await import("@/integrations/tavern");
-        initQuickPanelButton();
-        Logger.info("QuickPanelButton", "QR 栏按钮初始化完成");
-    } catch (error) {
-        Logger.warn("QuickPanelButton", "QR 栏按钮初始化失败", {
-            error: String(error),
-        });
+    // 7. MacroService (依赖 worldbook 已就绪)
+    if (worldbookReady) {
+        try {
+            const { MacroService } = await import(
+                "@/integrations/tavern/prompt/macros"
+            );
+            await MacroService.init();
+        } catch (error) {
+            Logger.warn("MacroService", "宏服务初始化失败", {
+                error: String(error),
+            });
+        }
     }
 
-    // 挂载全局悬浮层 (用于修订弹窗等)
-    const { mountGlobalOverlay } = await import("@/integrations/tavern");
-    mountGlobalOverlay();
-
-    // 初始化角色删除联动服务
+    // 8. 键盘快捷键 (所有依赖均已就位)
     try {
-        const { CharacterDeleteService } = await import(
-            "@/data/cleanup/CharacterCleanup"
-        );
-        CharacterDeleteService.init();
-        Logger.info("STBridge", "角色联动清理服务初始化完成");
-    } catch (error) {
-        Logger.warn("STBridge", "角色联动清理服务初始化失败", {
-            error: String(error),
-        });
-    }
-
-    // V0.9.5: 初始化键盘快捷键
-    try {
-        const { setupKeyboardShortcuts } = await import(
-            "@/core/KeyboardManager"
-        );
-        const { useUiStore } = await import("@/state/uiStore");
-        const { toggleMainPanel } = await import("@/integrations/tavern");
-
         const ui = useUiStore.getState();
         setupKeyboardShortcuts({
             toggleMainPanel,
