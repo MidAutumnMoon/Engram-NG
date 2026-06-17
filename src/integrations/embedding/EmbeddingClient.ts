@@ -1,4 +1,4 @@
-import type { VectorConfig, VectorSource } from '@/config/types/rag';
+import type { VectorConfig, VectorSource } from "@/config/types/rag";
 
 /**
  * 嵌入 API 响应 (OpenAI 格式)
@@ -16,22 +16,15 @@ interface OpenAIEmbeddingResponse {
 }
 
 /**
- * Ollama 嵌入响应
- */
-interface OllamaEmbeddingResponse {
-    embedding: number[];
-}
-
-/**
  * 各 API 的默认端点
  */
 const DEFAULT_ENDPOINTS: Partial<Record<VectorSource, string>> = {
-    cohere: 'https://api.cohere.ai/v1/embed',
-    jina: 'https://api.jina.ai/v1/embeddings',
-    ollama: 'http://localhost:11434/api/embeddings',
-    openai: 'https://api.openai.com/v1/embeddings',
-    vllm: 'http://localhost:8000/v1/embeddings',
-    voyage: 'https://api.voyageai.com/v1/embeddings',
+    cohere: "https://api.cohere.ai/v1/embed",
+    jina: "https://api.jina.ai/v1/embeddings",
+    ollama: "http://localhost:11434/api/embeddings",
+    openai: "https://api.openai.com/v1/embeddings",
+    vllm: "http://localhost:8000/v1/embeddings",
+    voyage: "https://api.voyageai.com/v1/embeddings",
 };
 
 /**
@@ -42,21 +35,24 @@ export class EmbeddingClient {
     /**
      * 根据配置调用相应的嵌入 API
      */
-    static async callAPI(text: string, config: VectorConfig): Promise<number[]> {
+    static callAPI(
+        text: string,
+        config: VectorConfig,
+    ): Promise<number[]> {
         switch (config.source) {
-            case 'openai':
-            case 'custom':
-            case 'vllm':
-            case 'jina':
-            case 'voyage': {
+            case "openai":
+            case "custom":
+            case "vllm":
+            case "jina":
+            case "voyage": {
                 return this.callOpenAICompatible(text, config);
             }
 
-            case 'ollama': {
+            case "ollama": {
                 return this.callOllama(text, config);
             }
 
-            case 'cohere': {
+            case "cohere": {
                 return this.callCohere(text, config);
             }
 
@@ -69,38 +65,41 @@ export class EmbeddingClient {
     /**
      * OpenAI 兼容 API 调用
      */
-    private static async callOpenAICompatible(text: string, config: VectorConfig): Promise<number[]> {
-        let endpoint = config.apiUrl || DEFAULT_ENDPOINTS[config.source] || '';
+    private static async callOpenAICompatible(
+        text: string,
+        config: VectorConfig,
+    ): Promise<number[]> {
+        let endpoint = config.apiUrl || DEFAULT_ENDPOINTS[config.source] || "";
 
         // 清理末尾斜杠
         if (endpoint) {
-            endpoint = endpoint.replace(/\/+$/, '');
+            endpoint = endpoint.replace(/\/+$/, "");
         }
 
         // V0.9.9: 根据 autoSuffix 配置决定是否自动添加后缀
         // 默认 autoSuffix = true，除非用户明确关闭
         // 只补 /embeddings，用户需填写带 /v1 的完整 base URL
-        if (config.autoSuffix !== false && config.source !== 'ollama') {
+        if (config.autoSuffix !== false && config.source !== "ollama") {
             // 仅当 URL 不包含 /embeddings 时才添加
-            if (!endpoint.includes('/embeddings')) {
+            if (!endpoint.includes("/embeddings")) {
                 endpoint = `${endpoint}/embeddings`;
             }
         }
 
         if (!endpoint) {
-            throw new Error('API endpoint not configured');
+            throw new Error("API endpoint not configured");
         }
 
         const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
         };
         if (config.apiKey) {
-            headers['Authorization'] = `Bearer ${config.apiKey}`;
+            headers["Authorization"] = `Bearer ${config.apiKey}`;
         }
 
         const body: Record<string, any> = {
             input: text,
-            model: config.model || 'text-embedding-3-small',
+            model: config.model || "text-embedding-3-small",
         };
 
         // 可选: 指定维度 (OpenAI text-embedding-3 支持)
@@ -112,25 +111,30 @@ export class EmbeddingClient {
             const response = await fetch(endpoint, {
                 body: JSON.stringify(body),
                 headers,
-                method: 'POST',
+                method: "POST",
             });
 
             if (!response.ok) {
                 const errorText = await response.text();
                 // 增强错误信息，包含请求 URL
-                throw new Error(`API error ${response.status} at ${endpoint}: ${errorText}`);
+                throw new Error(
+                    `API error ${response.status} at ${endpoint}: ${errorText}`,
+                );
             }
 
             const data = await response.json() as OpenAIEmbeddingResponse;
             if (!data.data || data.data.length === 0) {
-                throw new Error('No embedding data returned');
+                throw new Error("No embedding data returned");
             }
 
             return data.data[0].embedding;
         } catch (error: any) {
             // 再次捕获以确保 URL 信息暴露
-            if (!error.message.includes('at http')) {
-                throw new Error(`Request to ${endpoint} failed: ${error.message}`, { cause: error });
+            if (!error.message.includes("at http")) {
+                throw new Error(
+                    `Request to ${endpoint} failed: ${error.message}`,
+                    { cause: error },
+                );
             }
             throw error;
         }
@@ -139,23 +143,27 @@ export class EmbeddingClient {
     /**
      * Ollama API 调用
      */
-    private static async callOllama(text: string, config: VectorConfig): Promise<number[]> {
+    private static async callOllama(
+        text: string,
+        config: VectorConfig,
+    ): Promise<number[]> {
         let endpoint = config.apiUrl || DEFAULT_ENDPOINTS.ollama!;
 
         // 智能 URL 处理：
         // - 如果已包含 /api/embed 或 /api/embeddings 路径，直接使用
         // - 否则当作 base URL，自动拼接 /api/embeddings
-        endpoint = endpoint.replace(/\/+$/, '');
-        if (!endpoint.includes('/api/embed')) {
+        endpoint = endpoint.replace(/\/+$/, "");
+        if (!endpoint.includes("/api/embed")) {
             endpoint = `${endpoint}/api/embeddings`;
         }
 
         // 智能判断是否为新版 API (/api/embed)
         // 新版 API 使用 "input" 字段，旧版使用 "prompt" 字段
-        const isNewEndpoint = endpoint.includes('/api/embed') && !endpoint.includes('/api/embeddings');
+        const isNewEndpoint = endpoint.includes("/api/embed") &&
+            !endpoint.includes("/api/embeddings");
 
         const requestBody: Record<string, any> = {
-            model: config.model || 'nomic-embed-text',
+            model: config.model || "nomic-embed-text",
         };
 
         if (isNewEndpoint) {
@@ -166,8 +174,8 @@ export class EmbeddingClient {
 
         const response = await fetch(endpoint, {
             body: JSON.stringify(requestBody),
-            headers: { 'Content-Type': 'application/json' },
-            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            method: "POST",
         });
 
         if (!response.ok) {
@@ -175,7 +183,10 @@ export class EmbeddingClient {
             throw new Error(`Ollama error ${response.status}: ${errorText}`);
         }
 
-        const data = await response.json() as { embedding?: number[], embeddings?: number[][] };
+        const data = await response.json() as {
+            embedding?: number[];
+            embeddings?: number[][];
+        };
 
         // 兼容处理：
         // 1. 旧版返回 { embedding: [...] }
@@ -188,26 +199,33 @@ export class EmbeddingClient {
             return data.embeddings[0];
         }
 
-        throw new Error(`No embedding data returned in Ollama response. Keys: ${Object.keys(data).join(', ')}`);
+        throw new Error(
+            `No embedding data returned in Ollama response. Keys: ${
+                Object.keys(data).join(", ")
+            }`,
+        );
     }
 
     /**
      * Cohere API 调用
      */
-    private static async callCohere(text: string, config: VectorConfig): Promise<number[]> {
+    private static async callCohere(
+        text: string,
+        config: VectorConfig,
+    ): Promise<number[]> {
         const endpoint = DEFAULT_ENDPOINTS.cohere!;
 
         const response = await fetch(endpoint, {
             body: JSON.stringify({
-                model: config.model || 'embed-multilingual-v3.0',
+                model: config.model || "embed-multilingual-v3.0",
                 texts: [text],
-                input_type: 'search_document',
+                input_type: "search_document",
             }),
             headers: {
-                'Authorization': `Bearer ${config.apiKey}`,
-                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${config.apiKey}`,
+                "Content-Type": "application/json",
             },
-            method: 'POST',
+            method: "POST",
         });
 
         if (!response.ok) {
@@ -217,10 +235,9 @@ export class EmbeddingClient {
 
         const data = await response.json();
         if (!data.embeddings || data.embeddings.length === 0) {
-            throw new Error('No embedding data returned');
+            throw new Error("No embedding data returned");
         }
 
         return data.embeddings[0];
     }
-
 }
