@@ -4,14 +4,14 @@
  * V0.6: 直接调用 llmAdapter，不再依赖 Extractor
  */
 
-import { SettingsManager } from "@/config/settings";
-import { DEFAULT_TRIM_CONFIG } from "@/config/types/defaults";
-import type { TrimConfig } from "@/config/types/memory";
-import { Logger, LogModule } from "@/logger";
-import type { EventNode } from "@/data/types/graph";
-import { useMemoryStore } from "@/state/memoryStore";
-import { notificationService } from "@/ui/services/NotificationService";
-import type { ChatContext } from "./types";
+import { DEFAULT_TRIM_CONFIG } from "@/config/types/defaults.ts";
+import type { TrimConfig } from "@/config/types/memory.ts";
+import { Logger, LogModule } from "@/logger/index.ts";
+import type { EventNode } from "@/data/types/graph.ts";
+import type { ChatDatabase } from "@/data/db.ts";
+import { WorldInfoService } from "@/integrations/tavern/worldbook/index.ts";
+import { notificationService } from "@/ui/services/NotificationService.ts";
+import type { ChatContext } from "./types.ts";
 
 interface TrimResult {
     /** 精简后的事件 */
@@ -57,19 +57,18 @@ class EventTrimmer {
     private config: TrimConfig;
     private isTrimming = false;
 
-    // Phase 2.2+2.4 step A: injected state (not yet wired into logic)
+    // Phase 2.2+2.4: injected by bootstrap (init + setChatContext).
+    // No SettingsManager or useMemoryStore reads remain.
     private globalPreviewEnabled = true;
     private chatContext: ChatContext | null = null;
 
     constructor(config?: Partial<TrimConfig>) {
-        this.config = this.getEffectiveConfig(config);
+        this.config = { ...DEFAULT_TRIM_CONFIG, ...config };
     }
 
     /**
      * Inject resolved config. Called by bootstrap before `start()`.
      * Replaces constructor-time `SettingsManager.get()` reads.
-     *
-     * Phase 2.2+2.4 step A — no-op storage only; logic migration in step B.
      */
     init(config: TrimConfig, globalPreviewEnabled: boolean): void {
         this.config = config;
@@ -79,31 +78,87 @@ class EventTrimmer {
     /**
      * Inject chat context. Called by bootstrap at startup and on `CHAT_CHANGED`.
      * Replaces `useMemoryStore.getState()` reads.
-     *
-     * Phase 2.2+2.4 step A — no-op storage only; logic migration in step B.
      */
     setChatContext(ctx: ChatContext): void {
         this.chatContext = ctx;
     }
 
-    /**
-     * 更新配置
-     */
-    updateConfig(config: Partial<TrimConfig>): void {
-        this.config = this.getEffectiveConfig(config);
+    private getDb(): ChatDatabase | null {
+        return this.chatContext?.db ?? null;
     }
 
-    private getStoredConfig(): Partial<TrimConfig> {
-        return SettingsManager.getSummarizerSettings()?.trimConfig || {};
+    /**
+     * 更新配置 (in-memory only; persistence is the caller's job — Phase 2.4 step F)
+     */
+    updateConfig(config: Partial<TrimConfig>): void {
+        this.config = { ...DEFAULT_TRIM_CONFIG, ...this.config, ...config };
     }
 
     private getEffectiveConfig(override: Partial<TrimConfig> = {}): TrimConfig {
-        return {
-            ...DEFAULT_TRIM_CONFIG,
-            ...this.getStoredConfig(),
-            ...this.config,
-            ...override,
-        };
+        return { ...DEFAULT_TRIM_CONFIG, ...this.config, ...override };
+    }
+
+    // ==================== 直接 DB 查询 (Phase 2.2: 原 memoryStore 包装内联) ====================
+
+    /**
+     * 获取可合并的事件 (level 0, 未归档, 未锁定), 排除最近 N 条
+     * 从 state/memory/slices/eventSlice.ts 原样内联。
+     */
+    private async getEventsToMergeFromDb(
+        db: ChatDatabase,
+        keepRecentCount: number,
+    ): Promise<EventNode[]> {
+        try {
+            const events = await db.events.orderBy("timestamp").toArray();
+            const eligible = events.filter((e) =>
+                e.level === 0 && !e.is_archived && !e.is_locked
+            );
+            if (eligible.length <= keepRecentCount) return [];
+            return eligible.slice(0, eligible.length - keepRecentCount);
+        } catch (error) {
+            Logger.error(LogModule.MEMORY_TRIM, "getEventsToMergeFromDb 失败", {
+                error,
+            });
+            return [];
+        }
+    }
+
+    /**
+     * 统计事件 token 数与活跃事件数。
+     * 从 state/memory/slices/eventSlice.ts 原样内联。
+     */
+    private async countEventTokensFromDb(
+        db: ChatDatabase,
+    ): Promise<{
+        totalTokens: number;
+        eventCount: number;
+        activeEventCount: number;
+    }> {
+        try {
+            const events = await db.events.toArray();
+            if (events.length === 0) {
+                return { totalTokens: 0, eventCount: 0, activeEventCount: 0 };
+            }
+            const activeEvents = events.filter((e) =>
+                e.level === 0 && !e.is_archived
+            );
+            const allSummaries = activeEvents.map((e) => e.summary).join(
+                "\n\n",
+            );
+            const totalTokens = await WorldInfoService.countTokens(
+                allSummaries,
+            );
+            return {
+                activeEventCount: activeEvents.length,
+                eventCount: events.length,
+                totalTokens,
+            };
+        } catch (error) {
+            Logger.error(LogModule.MEMORY_TRIM, "countEventTokensFromDb 失败", {
+                error,
+            });
+            return { activeEventCount: 0, eventCount: 0, totalTokens: 0 };
+        }
     }
 
     /**
@@ -113,12 +168,16 @@ class EventTrimmer {
     async canTrim(): Promise<
         { canTrim: boolean; eventCount: number; pendingCount: number }
     > {
+        const db = this.getDb();
+        if (!db) {
+            return { canTrim: false, eventCount: 0, pendingCount: 0 };
+        }
         const config = this.getEffectiveConfig();
-        const store = useMemoryStore.getState();
-        const eventsToMerge = await store.getEventsToMerge(
-            config.keepRecentCount,
+        const eventsToMerge = await this.getEventsToMergeFromDb(
+            db,
+            config.keepRecentCount ?? 3,
         );
-        const { activeEventCount } = await store.countEventTokens();
+        const { activeEventCount } = await this.countEventTokensFromDb(db);
 
         return {
             canTrim: eventsToMerge.length >= 2, // 至少需要 2 条才能合并
@@ -152,8 +211,7 @@ class EventTrimmer {
             const context = await WorkflowEngine.run(createTrimmerWorkflow(), {
                 config: {
                     keepRecentCount: config.keepRecentCount,
-                    previewEnabled:
-                        (SettingsManager.get("globalPreviewEnabled") ?? true) &&
+                    previewEnabled: this.globalPreviewEnabled &&
                         (config.previewEnabled ?? true),
                     templateId: "builtin_trim", // Hardcoded for now, matches BuildPrompt category mapping potentially
                     logType: "trimming",
@@ -201,37 +259,45 @@ class EventTrimmer {
      * 获取状态 (UI 适配)
      */
     async getStatus() {
-        // 动态导入以避免循环依赖
-        const { useMemoryStore } = await import("@/state/memoryStore");
-        const store = useMemoryStore.getState();
-        // V1.0.5: 使用 activeEventCount 而非 eventCount
-        const { totalTokens, activeEventCount } = await store
-            .countEventTokens();
-
-        // 触发检测
-        let triggered = false;
-        let currentValue = 0;
-        let threshold = 0;
-
         const config = this.getEffectiveConfig();
         const triggerType = config.trigger;
         const { tokenLimit } = config;
         const { countLimit } = config;
 
+        const db = this.getDb();
+        if (!db) {
+            return {
+                currentValue: 0,
+                isTrimming: this.isTrimming,
+                pendingEntryCount: 0,
+                threshold: triggerType === "token" ? tokenLimit : countLimit,
+                triggerType,
+                triggered: false,
+            };
+        }
+
+        // V1.0.5: 使用 activeEventCount 而非 eventCount
+        const { totalTokens, activeEventCount } = await this
+            .countEventTokensFromDb(db);
+
+        // 触发检测
+        let currentValue = 0;
+        let threshold = 0;
+
         if (triggerType === "token") {
             currentValue = totalTokens;
             threshold = tokenLimit;
         } else {
-            // V1.0.5: 使用 activeEventCount
             currentValue = activeEventCount;
             threshold = countLimit;
         }
 
-        triggered = currentValue >= threshold;
+        let triggered = currentValue >= threshold;
 
-        // 待合并条目 —— 复用 getEventsToMerge 确保口径一致（仅统计 level 0 未归档事件）
-        const eventsToMerge = await store.getEventsToMerge(
-            config.keepRecentCount,
+        // 待合并条目 —— 口径与 canTrim 一致
+        const eventsToMerge = await this.getEventsToMergeFromDb(
+            db,
+            config.keepRecentCount ?? 3,
         );
         const pendingEntryCount = eventsToMerge.length;
         triggered = triggered && pendingEntryCount >= 2;

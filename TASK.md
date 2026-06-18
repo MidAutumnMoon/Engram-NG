@@ -79,7 +79,10 @@ service.setChatContext({ chatId: string, db: ChatDatabase }): void
 Natural stopping points exist after each step — the app should build and run at each.
 
 - [x] **A. Design `init()` + `setChatContext()` contract.** Decide the exact signatures; add the methods to all three services as no-ops (or thin wrappers around current behavior) so the rest of the pass has a target. ✅ Done — see contract below.
-- [ ] **B. `EventTrimmer.ts`** — smallest service, no event lifecycle, good test case. Remove both `useMemoryStore` (static + dynamic import in `getStatus`) and `SettingsManager.getSummarizerSettings()` in `getStoredConfig()`. Take `db` and `trimConfig` from the resolved context.
+- [x] **B. `EventTrimmer.ts`** — smallest service, no event lifecycle, good test case. ✅ Done. Removed both `useMemoryStore` (static + dynamic import in `getStatus`) and `SettingsManager.getSummarizerSettings()` in `getStoredConfig()`. Takes `db` and `trimConfig` from the resolved context. Also wired bootstrap (step E preview for EventTrimmer only): loads trim config, calls `init()`, resolves chat, calls `setChatContext()`, subscribes to `CHAT_CHANGED`. Notes:
+  - `getEventsToMerge` / `countEventTokens` inlined as private methods (faithful copy from `eventSlice.ts`). The store versions still exist — other consumers (workflow steps in step D) haven't been migrated yet.
+  - `WorldInfoService` import surfaced (was hidden inside the store). This is a pre-existing `modules/ → integrations/` coupling — Phase 2.7 / 3.1 will address.
+  - `notificationService` stays (step 2.3 scope, not step B).
 - [ ] **C. `Summarizer.ts` + `EntityExtractor.ts`** — larger, have start/stop, cross-reference each other (Summarizer → `entityBuilder.extractByRange`, Summarizer → `eventTrimmer.trim`). Remove `SettingsManager.get()` in constructor + `triggerSummary`, `SettingsManager.set()` in `updateConfig`, and `useMemoryStore.getState()` in `setLastSummarizedFloor`. `setLastSummarizedFloor` writes directly to `chatManager` / `db`.
 - [ ] **D. Workflow steps.** Per-step; each step resolves what it needs from `JobContext`:
   - `SaveEvent.ts`, `FetchExistingEntities.ts`, `FetchEventsToTrim.ts`, `SaveEntity.ts` — pure 2.2: `useMemoryStore.getState()` → `getDbForChat(context.chatId)`.

@@ -8,8 +8,13 @@
 
 import { Logger } from "@/logger/index.ts";
 import { SettingsManager } from "@/config/settings.ts";
-
+import { DEFAULT_TRIM_CONFIG } from "@/config/types/defaults.ts";
+import type { TrimConfig } from "@/config/types/memory.ts";
+import { getDbForChat } from "@/data/db.ts";
+import type { ChatContext } from "@/modules/memory/types.ts";
 import { regexProcessor } from "@/modules/workflow/steps/processing/RegexProcessor.ts";
+import { getCurrentChatId } from "./context.ts";
+import { eventWatcher } from "./EventWatcher.ts";
 import {
     createTopBarButton,
     initQuickPanelButton,
@@ -42,6 +47,7 @@ export async function initializeEngram(): Promise<void> {
     const [
         summarizerMod,
         entityMod,
+        trimmerMod,
         injectorMod,
         worldbookMod,
         cleanupMod,
@@ -52,6 +58,10 @@ export async function initializeEngram(): Promise<void> {
         }),
         import("@/modules/memory/EntityExtractor.ts").catch((e) => {
             Logger.warn("EntityBuilder", "模块加载失败", { error: String(e) });
+            return null;
+        }),
+        import("@/modules/memory/EventTrimmer.ts").catch((e) => {
+            Logger.warn("EventTrimmer", "模块加载失败", { error: String(e) });
             return null;
         }),
         import("@/modules/rag/injection/Injector.ts").catch((e) => {
@@ -69,6 +79,44 @@ export async function initializeEngram(): Promise<void> {
             return null;
         }),
     ]);
+
+    // 3.5. 注入配置与聊天上下文 (Phase 2.2+2.4 step B)
+    //
+    // EventTrimmer 已完成迁移；Summarizer/EntityBuilder 的 init/setChatContext
+    // 是 no-op，step C 会将其接入。bootstrap 是唯一的组合根。
+    const globalPreviewEnabled = SettingsManager.get("globalPreviewEnabled") ??
+        true;
+
+    if (trimmerMod) {
+        const storedTrim =
+            SettingsManager.getSummarizerSettings()?.trimConfig || {};
+        const trimConfig: TrimConfig = {
+            ...DEFAULT_TRIM_CONFIG,
+            ...storedTrim,
+        };
+        trimmerMod.eventTrimmer.init(trimConfig, globalPreviewEnabled);
+    }
+
+    const injectChatContext = (): void => {
+        const chatId = getCurrentChatId();
+        if (!chatId) {
+            Logger.debug(
+                "STBridge",
+                "No chat selected, skipping context injection",
+            );
+            return;
+        }
+        const ctx: ChatContext = { chatId, db: getDbForChat(chatId) };
+        summarizerMod?.summarizerService.setChatContext(ctx);
+        entityMod?.entityBuilder.setChatContext(ctx);
+        trimmerMod?.eventTrimmer.setChatContext(ctx);
+        Logger.debug("STBridge", "Chat context injected", {
+            chatId: ctx.chatId,
+        });
+    };
+
+    injectChatContext();
+    eventWatcher.on("onChatChanged", injectChatContext);
 
     // 4. 启动各服务 (与加载解耦，便于定位启动错误)
     if (summarizerMod) {
