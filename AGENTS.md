@@ -2,7 +2,9 @@
 
 ## What This Is
 
-A SillyTavern third-party extension. Graph RAG memory system — extracts entities/events from chat, stores them in IndexedDB, summarizes arcs, and re-injects relevant memories into the prompt so characters stay coherent over long conversations. Built with Deno + Vite + React 19 + TypeScript. Ships as a bundled extension per `manifest.json`; the `dist/` payload lives only on the `release` branch (built by `.github/workflows/release.yml`); the `master` (source) branch does **not** track `dist/`, so the minified blob never pollutes search or agent context.
+A SillyTavern third-party extension. Graph RAG memory system — extracts entities/events from chat, stores them in IndexedDB, summarizes arcs, and re-injects relevant memories into the prompt so characters stay coherent over long conversations. Built with Deno + Vite + React 19 + TypeScript. Ships as a bundled extension per `manifest.json`; the `dist/` payload lives only on the `release` branch and is built by CI. The source branch does not track `dist/`.
+
+This file intentionally omits directory layouts, entry-point paths, and module-to-concern mappings. Those drift faster than the docs can be updated. Explore the tree with the tools available when you need that detail.
 
 ## Rules
 
@@ -10,15 +12,15 @@ A SillyTavern third-party extension. Graph RAG memory system — extracts entiti
 - When editing TS/TSX, match existing style: 4-space indent, double quotes, trailing commas, semicolons.
 - Use the `@/` alias for everything under `src/`.
 - This is a fork mid-refactor. Version strings and license fields are known-stale. Don't "fix" them unless asked.
-- Do not read files in `dist/` — it's generated build output, and on the `master` branch it is gitignored (untracked). Run `deno task build` to (re)generate it locally.
+- Do not read files in `dist/` — it's generated build output and is gitignored on the source branch. Run `deno task build` to (re)generate it locally.
 - Take care when reading `vendor/` or grepping for texts — third-party source may contain very large files. Check size first and avoid grepping without guards.
-- New or edited imports must be non-sloppy: include the explicit file extension (`.ts` / `.tsx`), or `/index.ts` for barrels. Write `import { Logger } from "@/core/logger/index.ts"`, not `from "@/core/logger"`. Existing sloppy imports across the codebase will be cleaned up incrementally — don't mass-rewrite them, but don't add new ones.
+- New or edited imports must be non-sloppy: include the explicit file extension (`.ts` / `.tsx`), or `/index.ts` for barrels. Existing sloppy imports across the codebase will be cleaned up incrementally — don't mass-rewrite them, but don't add new ones.
+- All SillyTavern API access goes through the tavern integration layer — don't call ST globals directly from modules or UI.
 
-## How to Work Here
+## Current Status
 
-- Entry point: `src/index.tsx`. `src/App.tsx` is the UI shell with tab routing.
-- All SillyTavern API access goes through `src/integrations/tavern/` — don't call ST globals directly from modules or UI. LLM and embedding calls live under `src/integrations/`. SillyTavern's own source is vendored at `vendor/SillyTavern/` for reference.
-- The memory/RAG pipeline is in `src/modules/`. Storage (Dexie/IndexedDB) in `src/data/`. State (Zustand) in `src/state/`. UI in `src/ui/`. Core infra in `src/core/`. Config and constants in `src/config/` and `src/constants/`. Tests in `test/` (Vitest, node env). Architecture docs (Chinese) in `docs/architecture/` — read these before large structural changes.
+- The `test/` suite is **broken post-fork**. Many tests reference deleted modules (Batch engine, Input Preprocessor, etc.) and stale paths (`@/core/...`). They have not been updated to match the refactor. Do not treat `deno task test` failures as regressions you caused, and don't "fix" the tests unless the task is explicitly about tests.
+- `deno task build` is the source of truth for "does this compile". Run it after structural changes.
 
 ## Look Things Up
 
