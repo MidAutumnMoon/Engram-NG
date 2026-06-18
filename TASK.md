@@ -5,110 +5,24 @@
 
 ---
 
-## Phase 1: Scope Reduction (Delete / Demote)
+## Phase 1: Scope Reduction (Delete / Demote) ✅ Done
 
-### 1.1 Delete Docs View & Content ✅ Done
+Goal: strip non-core features so the remaining code fits in a single mental model.
 
-**Rationale:** In-app MDX documentation is overkill. Use README / GitHub wiki.
+| # | Feature | Fate | Rationale |
+|---|---------|------|-----------|
+| 1.1 | Docs view + MDX pipeline | Deleted | README / wiki is enough for docs. |
+| 1.2 | Input Preprocessor | Deleted | Full LLM call before every user message — too slow, too niche. |
+| 1.3 | Batch Processor & Engine | Deleted | History backfill / text import are nice-to-have onboarding; not worth the module count. |
+| 1.4 | Global Search, Command Palette, Theme Manager | Deleted | Over-engineered for a ST extension panel. QuickPanel navigation kept; theme switched to fixed `claudeDarkTheme` colors in `variables.css`. |
+| 1.5 | BrainRecallStep | Removed from workflow | `BrainRecallCache.ts` kept for future review, but step is dead code in the hot path. |
+| 1.6 | SyncService | Demoted to reference | Moved to `dev-docs/SyncService/` with reintroduction guide. All active wiring in `db.ts`, `CharacterCleanup.ts`, `bootstrap.ts`, `DataTab.tsx` removed. |
+| 1.7 | Telemetry / "Statistics" | Deleted entirely | Counters (`totalTokens`, `totalLlmCalls`, etc.) were stored in ST extension settings JSON, triggering `saveSettingsDebounced()` on every LLM call. Misleading (don't reset with DB wipe) and duplicated live stats from IndexedDB. Dashboard now shows only current-state metrics. |
 
-- [x] Delete `src/ui/views/docs/`
-- [x] Delete `src/docs/` (registry + MDX files)
-- [x] Remove `docs` route from `src/App.tsx`
-- [x] Remove `docs` from `NAV_ITEMS` in `src/constants/navigation.ts`
-- [x] Removed `DocAdapter` from `src/modules/search/` (build fix — depended on deleted `@/docs`)
-- [x] Removed `@mdx-js/rollup` and `remark-gfm` dependencies from `deno.jsonc` / `vite.config.ts`
-
-### 1.2 Delete Input Preprocessor ✅ Done
-
-**Rationale:** Runs a full LLM call before every user message. Extremely slow, extremely niche.
-
-- [x] Delete `src/modules/preprocessing/` (Preprocessor.ts, types.ts, index.ts)
-- [x] Delete `src/modules/workflow/definitions/PreprocessWorkflow.ts`
-- [x] **High-risk edit:** In `src/modules/rag/injection/Injector.ts`, remove the preprocessing branch inside `handleGenerationAfterCommands`. The method currently checks `preprocessResult`, `preprocessConfig.enabled`, and calls `preprocessor.process()`. Strip all of that; `userInput` should flow directly to recall/injection.
-- [x] Remove `preprocessing` toggle from Dashboard `FEATURE_CONFIG` in `src/ui/views/dashboard/index.tsx`
-- [x] Remove the entire "预处理修订模式" section from `src/ui/views/settings/tabs/FeaturesTab.tsx`
-- [x] Keep `ExtractTags`, `CleanRegex`, `ParseJson`, `TextProcessor`, `RegexProcessor` — they are reused by other workflows.
-
-### 1.3 Delete Batch Processor & Engine ✅ Done
-
-**Rationale:** History backfill and text import are nice-to-have onboarding features, but they add `BatchProcessor`, `BatchEngine`, `HistoryTask`, `ImportTextTask`, and a full UI panel.
-
-- [x] Delete `src/modules/batch/` (entire directory)
-- [x] Delete `src/ui/views/processing/BatchProcessingPanel.tsx`
-- [x] Remove `batch` tab from `ProcessingView.tsx` and its `MAIN_TABS` / `TAB_INFO`
-- [x] Delete `src/ui/hooks/useWorkflow.ts` (only consumed by BatchProcessingPanel)
-
-### 1.4 Delete Global Search, Command Palette, Theme Manager ✅ Done
-
-**Rationale:** Command palette inside a SillyTavern extension panel is over-engineered. Theme management and glass effects are also non-essential. QuickPanel is kept for its navigation utility, but its preprocessing tab is stripped.
-
-- [x] Keep `src/ui/panels/QuickPanel.tsx` — remove the "preprocess" tab and all preprocessing-related state/logic (templateId selection, preprocessingConfig sync, etc.). Keep only the "navigate" quick links.
-- [x] Delete `src/ui/components/overlay/CommandPalette.tsx`
-- [x] Delete `src/modules/search/` (SearchService.ts + adapters/)
-- [x] Simplify `src/state/uiStore.ts` — remove `commandPaletteOpen` and related actions. Keep `quickPanelOpen` since QuickPanel is retained.
-- [x] Delete `src/ui/services/ThemeManager.ts`
-- [x] Delete `src/ui/views/settings/components/ThemeSelector.tsx`
-- [x] Delete `src/ui/views/settings/tabs/AppearanceTab.tsx` — it only contains ThemeSelector and Glass Settings
-- [x] In `src/ui/views/settings/index.tsx`, remove the `AppearanceTab` tab; keep only `FeaturesTab` and `DataTab`
-- [x] In `src/ui/overlay/GlobalOverlay.tsx`, remove `CommandPalette` and `useUiStore` imports if no longer needed; keep `QuickPanel` and `ReviewContainer`
-- [x] Keep `initQuickPanelButton` in `src/integrations/tavern/bootstrap.ts` (QuickPanel stays)
-- [x] Remove `ThemeManager.init()` from `src/integrations/tavern/bootstrap.ts`
-- [x] Remove glass settings from `EngramSettings` in `src/config/settings.ts`
-- [x] Remove `preprocessingConfig` and `glassSettings` from `ConfigState` in `src/state/configStore.ts`, and remove the corresponding `debouncedSave` lines
-- [x] Delete `src/ui/styles/themes/` directory (did not exist)
-- [x] Delete `src/state/themeStore.ts` and `src/state/index.ts` (depended on ThemeManager)
-- [x] Remove `CommandPalette` from `src/ui/shell/Header.tsx` and `src/ui/shell/MainLayout.tsx`
-
-### 1.5 Remove BrainRecallStep from Active Retrieval Workflow ✅ Done
-
-**Rationale:** BrainRecallCache is kept for future review, but it is not used. Do not run dead code in the hot path.
-
-- [x] Remove `BrainRecallStep` from `src/modules/workflow/definitions/RetrievalWorkflow.ts` steps array
-- [x] Keep `src/modules/rag/retrieval/BrainRecallCache.ts` and `BrainRecallStep.ts` files intact for later review
-- [x] In `MacroService`, remove the `brainRecallCache` dynamic-import fallback paths from `refreshEngramCache()` and `refreshCacheWithNodes()`. Since the cache is never populated now, these paths are unreachable.
-- [x] Remove `brainRecallCache` usage from `Retriever.agenticSearch()`
-- [x] Remove `brainRecallCache` usage from `useDashboardData.ts` (`fetchBrainStats`)
-- [x] Remove `brainRecallCache` usage from `useMemoryStream.ts`
-- [x] Backed up algorithm to `docs/reference/brain_recall_algorithm.md`
-- [x] Remove `brainRecall` field from `RecallConfig` type and `DEFAULT_RECALL_CONFIG`
-- [x] Remove brainRecall config section from `RecallConfigForm.tsx`
-- [x] Remove `BrainRecallStats` / `brainStats` from dev-log types and `RecallLog.tsx`
-- [x] Remove `BrainStats` / `ContextStats` from `useDashboardData.ts` and Dashboard UI
-
-### 1.6 Demote SyncService to Reference-Only ✅ Done
-
-**Rationale:** User wants it left for reference, but it must stop poisoning the data layer.
-
-- [x] In `src/data/db.ts`: remove `syncService` import, remove `isImportingState` check, remove `scheduleUpload()` call inside `updateLastModified()`. `updateLastModified()` should only write `lastModified` to meta.
-- [x] In `src/data/cleanup/CharacterCleanup.ts`: remove `syncService` imports and `syncService.purge()` calls.
-- [x] In `src/integrations/tavern/bootstrap.ts`: ensure no SyncService wiring exists.
-- [x] In `src/ui/views/settings/tabs/DataTab.tsx`: remove `<SyncSection />` usage. Keep the component file if desired, but it should not be mounted.
-- [x] Add a top-of-file comment to `src/data/sync/SyncService.ts`:
-  ```ts
-  // REFERENCE ONLY — This module is not actively wired.
-  // Re-enable by restoring imports in db.ts and CharacterCleanup.ts.
-  ```
-
-### 1.7 Remove Telemetry Subsystem Entirely ✅ Done
-
-**Rationale:** Historical counters (`totalTokens`, `totalLlmCalls`, etc.) are stored in SillyTavern's extension settings JSON. Every increment triggers `saveSettingsDebounced()` — writing telemetry into user config. The counters are also misleading (`totalEvents` doesn't reset when DB is wiped) and duplicate information already visible in the "记忆统计" section. Current-state metrics (event count, entity count, estimated tokens) are already derived from IndexedDB in the Dashboard.
-
-- [x] In `src/config/settings.ts`:
-  - Remove the entire `statistics` field from `EngramSettings` interface and `defaultSettings`
-  - Remove `incrementStatistic` method from `SettingsManager`
-- [x] Remove all `incrementStatistic` call sites:
-  - `src/integrations/llm/Adapter.ts` (2 calls: `totalLlmCalls`, `totalTokens`)
-  - `src/modules/memory/EntityExtractor.ts` (1 call: `totalEntities`)
-  - `src/modules/memory/Summarizer.ts` (1 call: `totalEvents`)
-  - `src/modules/rag/injection/Injector.ts` (1 call: `totalRagInjections`)
-- [x] Delete `src/ui/views/dashboard/components/StatsPanel.tsx` (formerly `AchievementsPanel.tsx`)
-- [x] In `src/ui/views/dashboard/index.tsx`: remove `StatsPanel` import and usage, remove `globalStats` destructuring from `useDashboardData`
-- [x] In `src/ui/hooks/useDashboardData.ts`:
-  - Remove `globalStats` state and `fetchGlobalStats`
-  - Remove `fetchBrainStats` (already gone from 1.5)
-  - Delete `toggleFeature` preprocessing branch (already gone from 1.2)
-  - Simplify `fetchFeatureStatus` to exclude preprocessing (already gone from 1.2)
-- [x] In `test/unit/entity-extractor.test.ts`: remove `incrementStatistic` from the `SettingsManager` mock
+**Side effects:**
+- `src/ui/styles/variables.css` colors switched to `claudeDarkTheme` (fixed fallback since ThemeManager was removed).
+- `EngramSettings` interface slimmed: removed `statistics`, `preprocessingConfig`, `glassSettings`.
+- `SettingsManager` no longer has `incrementStatistic`.
 
 ---
 
