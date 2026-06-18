@@ -33,9 +33,10 @@
 
 **Rationale:** History backfill and text import are nice-to-have onboarding features, but they add `BatchProcessor`, `BatchEngine`, `HistoryTask`, `ImportTextTask`, and a full UI panel.
 
-- [ ] Delete `src/modules/batch/` (entire directory)
-- [ ] Delete `src/ui/views/processing/BatchProcessingPanel.tsx`
-- [ ] Remove `batch` tab from `ProcessingView.tsx` and its `MAIN_TABS` / `TAB_INFO`
+- [x] Delete `src/modules/batch/` (entire directory)
+- [x] Delete `src/ui/views/processing/BatchProcessingPanel.tsx`
+- [x] Remove `batch` tab from `ProcessingView.tsx` and its `MAIN_TABS` / `TAB_INFO`
+- [x] Delete `src/ui/hooks/useWorkflow.ts` (only consumed by BatchProcessingPanel)
 
 ### 1.4 Delete Global Search & QuickPanel
 

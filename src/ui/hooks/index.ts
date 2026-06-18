@@ -24,6 +24,3 @@ export type { UseRegexRulesReturn } from "./useRegexRules";
 
 export { useConfig } from "./useConfig";
 export type { UseConfigReturn } from "./useConfig";
-
-export { useWorkflow } from "./useWorkflow";
-export type { UseWorkflowReturn } from "./useWorkflow";

@@ -100,7 +100,6 @@ const App: React.FC<AppProps> = ({ onClose }) => {
                         | "vectorization"
                         | "recall"
                         | "entity"
-                        | "batch"
                         | undefined}
                 />;
             }

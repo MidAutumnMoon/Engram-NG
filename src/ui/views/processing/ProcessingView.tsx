@@ -9,7 +9,6 @@ import {
     BookOpen,
     Database,
     FileText,
-    Layers,
     Network,
     Save,
     ScrollText,
@@ -28,22 +27,19 @@ import { SummaryPanel } from "./SummaryPanel";
 import { VectorizationPanel } from "./VectorizationPanel";
 import { RecallPanel } from "./RecallPanel";
 import { EntityConfigPanel } from "./EntityConfigPanel";
-import { BatchProcessingPanel } from "./BatchProcessingPanel";
 
 type ProcessingTab =
     | "summary"
     | "vectorization"
     | "recall"
-    | "entity"
-    | "batch";
+    | "entity";
 
-// 主 Tab 配置 - V0.9.6: 添加批量处理
+// 主 Tab 配置
 const MAIN_TABS: Tab[] = [
     { icon: <FileText size={16} />, id: "summary", label: "记忆摘要" },
     { icon: <Network size={16} />, id: "entity", label: "实体提取" },
     { icon: <Database size={16} />, id: "vectorization", label: "向量化" },
     { icon: <Search size={16} />, id: "recall", label: "召回配置" },
-    { icon: <Layers size={16} />, id: "batch", label: "批量处理" },
 ];
 
 // 快速跳转链接配置（使用 page:subtab 格式精确跳转）
@@ -73,7 +69,6 @@ interface TabInfo {
 }
 
 const TAB_INFO: Record<ProcessingTab, TabInfo> = {
-    batch: { subtitle: "批量处理历史消息和外部文本导入", title: "批量处理" },
     entity: { subtitle: "配置实体提取规则和提取结果", title: "实体提取" },
     recall: { subtitle: "配置 RAG 召回策略和参数", title: "召回配置" },
     summary: { subtitle: "查看和管理自动生成的剧情摘要", title: "记忆摘要" },
@@ -194,9 +189,6 @@ export const ProcessingView: React.FC<ProcessingViewProps> = (
                         onChange={updateEntityExtractConfig}
                     />
                 )}
-
-                {/* 批量处理 Tab - V0.9.6 */}
-                {activeTab === "batch" && <BatchProcessingPanel />}
             </div>
         </div>
     );
