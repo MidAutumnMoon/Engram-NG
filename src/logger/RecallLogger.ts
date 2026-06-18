@@ -15,11 +15,7 @@
 import { generateShortUUID } from "@/utils";
 import { Logger } from "./Logger.ts";
 import { LogLevel } from "./types.ts";
-import type {
-    RecallLogEntry,
-    RecallResultItem,
-    RecallStats,
-} from "@/ui/views/dev-log/types.ts";
+import type { RecallLogEntry, RecallResultItem, RecallStats } from "./types.ts";
 
 type RecallLogSubscriber = (logs: RecallLogEntry[]) => void;
 

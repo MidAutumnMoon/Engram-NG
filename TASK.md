@@ -37,10 +37,13 @@ Goal: strip non-core features so the remaining code fits in a single mental mode
 
 After Phase 1 the import graph is smaller. Fix the remaining violations with **arguments and return values**, not new abstraction layers.
 
-### 2.1 Fix Logger → UI Type Dependency
+### 2.1 Fix Logger → UI Type Dependency ✅ Done
 
-- [ ] Move `RecallLogEntry`, `RecallResultItem`, `RecallStats` from `src/ui/views/dev-log/types.ts` to `src/logger/types.ts`.
-- [ ] Update imports in `RecallLogger.ts` and `dev-log/types.ts`.
+- [x] Moved `RecallLogEntry`, `RecallResultItem`, `RecallStats` from `src/ui/views/dev-log/types.ts` to `src/logger/types.ts`.
+- [x] Re-exported the three types from `src/logger/index.ts`.
+- [x] Updated `RecallLogger.ts` to import from `./types.ts` (logger → ui violation eliminated).
+- [x] Updated `RecallLog.tsx` to import from `@/logger/index.ts`.
+- [x] Deleted `src/ui/views/dev-log/types.ts` — after the move its only remaining contents were the dead `RecallLogStore` interface and `DEFAULT_RECALL_LOG_STORE` const (unused leftovers from the V0.9.13 RecallLogger facade refactor; zero external references).
 
 ### 2.2 Stop `modules/` from Reaching into `state/memoryStore.ts`
 
