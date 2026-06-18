@@ -38,20 +38,20 @@
 - [x] Remove `batch` tab from `ProcessingView.tsx` and its `MAIN_TABS` / `TAB_INFO`
 - [x] Delete `src/ui/hooks/useWorkflow.ts` (only consumed by BatchProcessingPanel)
 
-### 1.4 Delete Global Search & QuickPanel
+### 1.4 Delete Global Search, Command Palette, Theme Manager
 
-**Rationale:** Command palette inside a SillyTavern extension panel is over-engineered. Theme management and glass effects are also non-essential.
+**Rationale:** Command palette inside a SillyTavern extension panel is over-engineered. Theme management and glass effects are also non-essential. QuickPanel is kept for its navigation utility, but its preprocessing tab is stripped.
 
-- [ ] Delete `src/ui/panels/QuickPanel.tsx`
+- [ ] Keep `src/ui/panels/QuickPanel.tsx` — remove the "preprocess" tab and all preprocessing-related state/logic (templateId selection, preprocessingConfig sync, etc.). Keep only the "navigate" quick links.
 - [ ] Delete `src/ui/components/overlay/CommandPalette.tsx`
 - [ ] Delete `src/modules/search/` (SearchService.ts + adapters/)
-- [ ] Delete `src/state/uiStore.ts` — it only tracks QuickPanel / CommandPalette visibility
+- [ ] Simplify `src/state/uiStore.ts` — remove `commandPaletteOpen` and related actions. Keep `quickPanelOpen` since QuickPanel is retained.
 - [ ] Delete `src/ui/services/ThemeManager.ts`
 - [ ] Delete `src/ui/views/settings/components/ThemeSelector.tsx`
 - [ ] Delete `src/ui/views/settings/tabs/AppearanceTab.tsx` — it only contains ThemeSelector and Glass Settings
 - [ ] In `src/ui/views/settings/index.tsx`, remove the `AppearanceTab` tab; keep only `FeaturesTab` and `DataTab`
-- [ ] In `src/ui/overlay/GlobalOverlay.tsx`, remove `QuickPanel` and `useUiStore` imports; keep only `ReviewContainer`
-- [ ] Remove `initQuickPanelButton` call from `src/integrations/tavern/bootstrap.ts`
+- [ ] In `src/ui/overlay/GlobalOverlay.tsx`, remove `CommandPalette` and `useUiStore` imports if no longer needed; keep `QuickPanel` and `ReviewContainer`
+- [ ] Keep `initQuickPanelButton` in `src/integrations/tavern/bootstrap.ts` (QuickPanel stays)
 - [ ] Remove `ThemeManager.init()` from `src/integrations/tavern/bootstrap.ts`
 - [ ] Remove glass settings from `EngramSettings` in `src/config/settings.ts`
 - [ ] Remove `preprocessingConfig` and `glassSettings` from `ConfigState` in `src/state/configStore.ts`, and remove the corresponding `debouncedSave` lines
