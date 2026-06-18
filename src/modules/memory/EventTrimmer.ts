@@ -7,7 +7,7 @@
 import { SettingsManager } from "@/config/settings";
 import { DEFAULT_TRIM_CONFIG } from "@/config/types/defaults";
 import type { TrimConfig } from "@/config/types/memory";
-import { Logger, LogModule } from "@/core/logger";
+import { Logger, LogModule } from "@/logger";
 import type { EventNode } from "@/data/types/graph";
 import { useMemoryStore } from "@/state/memoryStore";
 import { notificationService } from "@/ui/services/NotificationService";

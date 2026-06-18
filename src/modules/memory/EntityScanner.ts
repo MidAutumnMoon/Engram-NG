@@ -1,4 +1,4 @@
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 import type { EntityNode, EventNode } from "@/data/types/graph";
 
 const MODULE = "EntityScanner";

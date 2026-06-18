@@ -1,5 +1,5 @@
-import { Logger, LogModule } from "@/core/logger";
-import { generateShortUUID, sleep } from "@/core/utils";
+import { Logger, LogModule } from "@/logger";
+import { generateShortUUID, sleep } from "@/utils";
 import type { JobContext } from "./JobContext";
 import type { IStep, StepResult } from "./Step";
 

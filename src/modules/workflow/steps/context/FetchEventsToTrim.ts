@@ -1,7 +1,7 @@
 import type { IStep } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
 import { useMemoryStore } from "@/state/memoryStore";
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 import type { EventNode } from "@/data/types/graph";
 
 export class FetchEventsToTrim implements IStep {

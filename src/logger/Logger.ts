@@ -6,7 +6,7 @@
  * 薄门面调用本模块的 `log()` / `clear(category)` 写入或清空。
  */
 
-import { generateShortUUID } from "@/core/utils";
+import { generateShortUUID } from "@/utils";
 import type { LogModule } from "./LogModule.ts";
 import type { LogCategory, LogEntry } from "./types.ts";
 import { LogLevel } from "./types.ts";

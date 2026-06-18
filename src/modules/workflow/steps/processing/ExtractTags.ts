@@ -1,7 +1,7 @@
 import type { IStep } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
 import { regexProcessor } from "./RegexProcessor";
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 
 export class ExtractTags implements IStep {
     name = "ExtractTags";

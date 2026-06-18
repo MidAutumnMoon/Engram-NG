@@ -14,7 +14,7 @@ import {
     ENGRAM_GLOBAL_OVERLAY_ID,
     ENGRAM_PANEL_ID,
 } from "@/constants";
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 import { useUiStore } from "@/state/uiStore";
 import { createRoot } from "react-dom/client";
 

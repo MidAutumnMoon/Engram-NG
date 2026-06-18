@@ -7,7 +7,7 @@
  * - 移动端：全屏详情
  */
 
-import { RecallLogService } from "@/core/logger/RecallLogger";
+import { RecallLogService } from "@/logger/RecallLogger";
 import {
     ArrowLeft,
     ChevronRight,

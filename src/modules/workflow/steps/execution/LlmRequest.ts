@@ -1,9 +1,9 @@
 import type { IStep, RetryConfig } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
 import { llmAdapter } from "@/integrations/llm/Adapter";
-import { ModelLogger } from "@/core/logger/ModelLogger";
+import { ModelLogger } from "@/logger/ModelLogger";
 import { getCurrentCharacter, getCurrentModel } from "@/integrations/tavern";
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 import { SettingsManager } from "@/config/settings";
 
 export class LlmRequest implements IStep {

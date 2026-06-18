@@ -8,7 +8,7 @@
 
 import { DEFAULT_BRAIN_RECALL_CONFIG } from "@/config/types/defaults";
 import type { BrainRecallConfig } from "@/config/types/rag";
-import { Logger, LogModule } from "@/core/logger";
+import { Logger, LogModule } from "@/logger";
 
 const MODULE = "BrainRecallCache";
 

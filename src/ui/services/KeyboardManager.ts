@@ -5,7 +5,7 @@
  * 采用双重监听策略，确保在酒馆主界面和插件窗口内均可触发。
  */
 
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 
 interface ShortcutConfig {
     key: string;

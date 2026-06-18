@@ -4,7 +4,7 @@ import { Switch } from "@/ui/components/core/Switch";
 import { useMemoryStore } from "@/state/memoryStore";
 import { getCurrentChatId } from "@/integrations/tavern";
 import { RefreshCw, Trash2 } from "lucide-react";
-import { Logger, LogModule } from "@/core/logger";
+import { Logger, LogModule } from "@/logger";
 
 // V1.4.6 Extracted imported components
 import { SyncSection } from "../components/SyncSection";

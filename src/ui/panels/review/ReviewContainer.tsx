@@ -1,4 +1,4 @@
-import type { ReviewAction, ReviewRequest } from "@/core/events/ReviewBridge";
+import type { ReviewAction, ReviewRequest } from "@/integrations/tavern/ReviewBridge";
 import { EventBus, TavernEventType } from "@/integrations/tavern"; // EventBus is from events.ts
 import { ModernButton as Button } from "@/ui/components/core/Button";
 import {

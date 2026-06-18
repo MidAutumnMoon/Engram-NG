@@ -1,4 +1,4 @@
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 import type { EventNode } from "@/data/types/graph";
 import { hideMessageRange, MacroService } from "@/integrations/tavern";
 import { useMemoryStore } from "@/state/memoryStore";
@@ -27,7 +27,7 @@ export class SaveEvent implements IStep {
         } else {
             try {
                 const { RobustJsonParser } = await import(
-                    "@/core/utils/JsonParser"
+                    "@/utils/JsonParser"
                 );
                 const parsed = RobustJsonParser.parse<any>(content);
                 if (parsed && parsed.events) {

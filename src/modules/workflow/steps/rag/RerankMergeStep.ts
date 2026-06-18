@@ -1,7 +1,7 @@
 import { SettingsManager } from "@/config/settings";
 import { DEFAULT_RECALL_CONFIG } from "@/config/types/defaults";
 import type { RecallConfig } from "@/config/types/rag";
-import { Logger, LogModule } from "@/core/logger";
+import { Logger, LogModule } from "@/logger";
 import {
     mergeResults,
     scoreAndSort,

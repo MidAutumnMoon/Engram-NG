@@ -5,7 +5,7 @@ import {
 } from "@/config/types/defaults";
 import type { PromptCategory, PromptTemplate } from "@/config/types/prompt";
 import { PROMPT_CATEGORIES } from "@/config/types/prompt";
-import { Logger, LogModule } from "@/core/logger";
+import { Logger, LogModule } from "@/logger";
 import { notificationService } from "@/ui/services/NotificationService";
 import { dump, load } from "js-yaml";
 import {

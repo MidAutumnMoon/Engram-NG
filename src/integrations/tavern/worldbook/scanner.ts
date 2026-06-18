@@ -1,4 +1,4 @@
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 import { getTavernHelper } from "./adapter";
 import { getEntries } from "./crud";
 import type { WorldInfoEntry } from "./types";

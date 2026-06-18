@@ -3,7 +3,7 @@ import type {
     BatchQueue,
     IBatchTaskHandler,
 } from "../types";
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 /**
  * 核心调度引擎
  * 负责管理任务队列，并发锁，控制起停以及 UI 进度节流更新。

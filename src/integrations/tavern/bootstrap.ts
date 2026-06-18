@@ -6,9 +6,9 @@
  * 统一通过 `@/integrations/tavern` barrel 暴露给外部消费。
  */
 
-import { Logger } from "@/core/logger/index.ts";
+import { Logger } from "@/logger/index.ts";
 import { SettingsManager } from "@/config/settings.ts";
-import { setupKeyboardShortcuts } from "@/core/KeyboardManager.ts";
+import { setupKeyboardShortcuts } from "@/ui/services/KeyboardManager.ts";
 import { regexProcessor } from "@/modules/workflow/steps/processing/RegexProcessor.ts";
 import { ThemeManager } from "@/ui/services/ThemeManager.ts";
 import { useUiStore } from "@/state/uiStore.ts";

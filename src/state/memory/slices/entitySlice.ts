@@ -1,4 +1,4 @@
-import { generateShortUUID } from "@/core/utils";
+import { generateShortUUID } from "@/utils";
 import type { EntityNode } from "@/data/types/graph";
 import type { StateCreator } from "zustand";
 import { getCurrentDb, tryGetCurrentDb } from "./coreSlice";

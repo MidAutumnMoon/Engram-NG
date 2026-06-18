@@ -17,7 +17,7 @@
 
 import { SettingsManager } from "@/config/settings";
 import { NAV_ITEMS } from "@/constants/navigation";
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 import { preprocessor } from "@/modules/preprocessing";
 import type { PreprocessingConfig } from "@/modules/preprocessing/types";
 import { DEFAULT_PREPROCESSING_CONFIG } from "@/modules/preprocessing/types";

@@ -1,5 +1,5 @@
-import { EventBus } from "@/core/events/types";
-import { Logger } from "@/core/logger";
+import { EventBus } from "@/events/index.ts";
+import { Logger } from "@/logger";
 
 /**
  * Toastr 类型定义 (部分)

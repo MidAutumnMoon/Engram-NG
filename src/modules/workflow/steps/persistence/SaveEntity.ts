@@ -1,5 +1,5 @@
-import { Logger } from "@/core/logger";
-import { RobustJsonParser } from "@/core/utils/JsonParser";
+import { Logger } from "@/logger";
+import { RobustJsonParser } from "@/utils/JsonParser";
 import type { EntityNode } from "@/data/types/graph";
 import { EntityType } from "@/data/types/graph";
 import { useMemoryStore } from "@/state/memoryStore";

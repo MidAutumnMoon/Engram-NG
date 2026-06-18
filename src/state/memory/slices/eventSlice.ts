@@ -1,4 +1,4 @@
-import { generateShortUUID } from "@/core/utils";
+import { generateShortUUID } from "@/utils";
 import type { EventNode } from "@/data/types/graph";
 import { WorldInfoService } from "@/integrations/tavern";
 import type { StateCreator } from "zustand";

@@ -7,7 +7,7 @@
 
 import type { Table } from "dexie";
 import Dexie from "dexie";
-import type { EntityNode, EventNode } from "./types/graph";
+import type { EntityNode, EventNode } from "./types/graph.ts";
 
 /**
  * 每个聊天的元数据存储
@@ -17,7 +17,7 @@ export interface ChatMeta {
     value: unknown;
 }
 
-import { Logger } from "../core/logger";
+import { Logger } from "@/logger";
 import { syncService } from "./sync/SyncService";
 
 const MODULE = "Database";

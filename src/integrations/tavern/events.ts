@@ -63,7 +63,7 @@ export type EventCallback = (...args: unknown[]) => void | Promise<void>;
 /** 取消订阅函数类型 */
 export type Unsubscribe = () => void;
 
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 
 const MODULE = "TavernEventBus";
 

@@ -12,8 +12,8 @@
  */
 
 import { SettingsManager } from "@/config/settings";
-import { Logger, LogModule } from "@/core/logger";
-import { RecallLogService } from "@/core/logger/RecallLogger";
+import { Logger, LogModule } from "@/logger";
+import { RecallLogService } from "@/logger/RecallLogger";
 import { tryGetDbForChat } from "@/data/db";
 import { getCurrentChatId } from "@/integrations/tavern";
 

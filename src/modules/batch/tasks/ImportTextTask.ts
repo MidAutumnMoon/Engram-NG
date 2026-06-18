@@ -1,6 +1,6 @@
 import { SettingsManager } from "@/config/settings";
-import { Logger, LogModule } from "@/core/logger";
-import { generateShortUUID } from "@/core/utils";
+import { Logger, LogModule } from "@/logger";
+import { generateShortUUID } from "@/utils";
 import { embeddingService } from "@/modules/rag/embedding/EmbeddingService";
 import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine";
 import { SaveEvent } from "@/modules/workflow/steps/persistence/SaveEvent";

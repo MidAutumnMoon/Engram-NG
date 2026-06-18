@@ -8,9 +8,9 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import type { LogEntry } from "@/core/logger";
-import { LogLevel, LogLevelConfig } from "@/core/logger";
-import { getModuleMeta } from "@/core/logger/moduleMeta.ts";
+import type { LogEntry } from "@/logger";
+import { LogLevel, LogLevelConfig } from "@/logger";
+import { getModuleMeta } from "@/logger/moduleMeta.ts";
 
 interface LogEntryItemProps {
     entry: LogEntry;

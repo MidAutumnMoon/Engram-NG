@@ -1,7 +1,7 @@
 import type { IStep } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
 import type { EventNode } from "@/data/types/graph";
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 
 export class FormatTrimInput implements IStep {
     name = "FormatTrimInput";

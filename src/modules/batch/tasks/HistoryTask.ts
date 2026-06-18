@@ -1,5 +1,5 @@
-import { Logger, LogModule } from "@/core/logger";
-import { generateShortUUID } from "@/core/utils";
+import { Logger, LogModule } from "@/logger";
+import { generateShortUUID } from "@/utils";
 import { chatManager } from "@/data/ChatManager";
 import { MacroService } from "@/integrations/tavern";
 import { summarizerService } from "@/modules/memory";

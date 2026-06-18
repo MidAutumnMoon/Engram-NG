@@ -1,5 +1,5 @@
 import { SettingsManager } from "@/config/settings";
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 import type { EventNode } from "@/data/types/graph";
 import { MacroService } from "@/integrations/tavern";
 import { embeddingService } from "@/modules/rag";

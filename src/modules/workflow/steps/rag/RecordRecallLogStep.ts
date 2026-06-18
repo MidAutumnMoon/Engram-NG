@@ -1,5 +1,5 @@
-import { Logger, LogModule } from "@/core/logger";
-import { RecallLogService } from "@/core/logger/RecallLogger";
+import { Logger, LogModule } from "@/logger";
+import { RecallLogService } from "@/logger/RecallLogger";
 import { WorldbookScannerService } from "@/integrations/tavern/worldbook/scanner";
 import type { ScoredEvent } from "@/modules/rag/retrieval/HybridScorer";
 import type { JobContext } from "../../core/JobContext";

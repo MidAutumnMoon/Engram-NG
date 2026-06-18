@@ -8,7 +8,7 @@
  * 公共 API 与原版保持兼容，调用方（LlmRequest、ModelLog.tsx）无需改动。
  */
 
-import { generateShortUUID } from "@/core/utils";
+import { generateShortUUID } from "@/utils";
 import { Logger } from "./Logger.ts";
 import { LogLevel } from "./types.ts";
 

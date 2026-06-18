@@ -1,4 +1,4 @@
-import { Logger, LogModule } from "@/core/logger";
+import { Logger, LogModule } from "@/logger";
 import { getRequestHeaders, getSTContext } from "@/integrations/tavern";
 import type { ChatDataDump } from "@/data/db";
 import {

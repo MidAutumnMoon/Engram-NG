@@ -1,7 +1,7 @@
 import type { IStep } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
-import { Logger } from "@/core/logger";
-import { LogModule } from "@/core/logger";
+import { Logger } from "@/logger";
+import { LogModule } from "@/logger";
 
 /**
  * 停止 SillyTavern 生成

@@ -3,8 +3,8 @@
  *
  * 伪聊天式布局展示 LLM 调用记录
  */
-import type { ModelLogEntry } from "@/core/logger/ModelLogger";
-import { ModelLogger } from "@/core/logger/ModelLogger";
+import type { ModelLogEntry } from "@/logger/ModelLogger";
+import { ModelLogger } from "@/logger/ModelLogger";
 import {
     AlertCircle,
     Bot,

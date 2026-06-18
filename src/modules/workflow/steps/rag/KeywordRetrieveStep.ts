@@ -1,5 +1,5 @@
 import { SettingsManager } from "@/config/settings";
-import { Logger, LogModule } from "@/core/logger";
+import { Logger, LogModule } from "@/logger";
 import { tryGetDbForChat } from "@/data/db";
 import { getCurrentChatId } from "@/integrations/tavern";
 import { matchEvent, scanEntities } from "@/modules/memory/EntityScanner";

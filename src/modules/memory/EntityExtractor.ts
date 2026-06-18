@@ -9,9 +9,9 @@
 import { SettingsManager } from "@/config/settings";
 import { DEFAULT_ENTITY_CONFIG } from "@/config/types/defaults";
 import type { EntityExtractConfig } from "@/config/types/memory";
-import { EventBus } from "@/core/events";
-import { eventWatcher } from "@/core/events/EventWatcher";
-import { Logger, LogModule } from "@/core/logger";
+import { EventBus } from "@/events";
+import { eventWatcher } from "@/integrations/tavern/EventWatcher";
+import { Logger, LogModule } from "@/logger";
 import { chatManager } from "@/data/ChatManager";
 import type { EntityNode } from "@/data/types/graph";
 import { MacroService } from "@/integrations/tavern";

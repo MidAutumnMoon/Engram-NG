@@ -4,7 +4,7 @@ import {
     DEFAULT_RECALL_CONFIG,
 } from "@/config/types/defaults";
 import type { BrainRecallConfig, RecallConfig } from "@/config/types/rag";
-import { Logger, LogModule } from "@/core/logger";
+import { Logger, LogModule } from "@/logger";
 import { tryGetDbForChat } from "@/data/db";
 import { getCurrentChatId } from "@/integrations/tavern";
 import {

@@ -12,7 +12,7 @@
  * 如需召回日志导出，应统一在 UI 层基于 Logger.getFiltered 实现。
  */
 
-import { generateShortUUID } from "@/core/utils";
+import { generateShortUUID } from "@/utils";
 import { Logger } from "./Logger.ts";
 import { LogLevel } from "./types.ts";
 import type {

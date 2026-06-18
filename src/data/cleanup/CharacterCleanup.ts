@@ -1,5 +1,5 @@
 import { SettingsManager } from "@/config/settings";
-import { Logger, LogModule } from "@/core/logger";
+import { Logger, LogModule } from "@/logger";
 import { getSTContext } from "@/integrations/tavern";
 import { callPopup } from "@/integrations/tavern";
 import { WorldInfoService } from "@/integrations/tavern/worldbook";

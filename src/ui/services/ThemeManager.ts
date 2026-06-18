@@ -1,5 +1,5 @@
 import { SettingsManager } from "@/config/settings";
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 import type { ThemeName } from "../styles/themes";
 import { themes } from "../styles/themes";
 

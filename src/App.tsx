@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { MainLayout } from "@/ui/shell/MainLayout.tsx";
 import { SettingsManager } from "@/config/settings.ts";
-import { EventBus } from "@/core/events/types.ts";
+import { EventBus } from "@/events/index.ts";
 
 import { Dashboard } from "@/ui/views/dashboard/index.tsx";
 import { DevLog } from "@/ui/views/dev-log/index.tsx";

@@ -5,7 +5,7 @@
  * Each chat_id has its own database, so we just need to track the current chatId.
  */
 
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger/index.ts";
 import { type ChatDatabase, type ChatMeta, getDbForChat } from "./db";
 import { getCurrentCharacter, getCurrentChatId } from "@/integrations/tavern";
 import { DEFAULT_SCOPE_STATE, type ScopeState } from "./types/graph";

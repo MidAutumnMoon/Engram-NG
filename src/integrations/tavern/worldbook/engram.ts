@@ -1,4 +1,4 @@
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 import { getSTContext } from "../context.ts";
 import { getTavernHelper } from "./adapter";
 

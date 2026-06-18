@@ -11,7 +11,7 @@ import {
     DEFAULT_BRAIN_RECALL_CONFIG,
     getDefaultAPISettings,
 } from "@/config/types/defaults";
-import { Logger, LogModule } from "@/core/logger";
+import { Logger, LogModule } from "@/logger";
 import {
     getCurrentChatId,
     getSTContext,

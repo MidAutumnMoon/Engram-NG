@@ -9,7 +9,7 @@
  */
 
 import { SettingsManager } from "@/config/settings";
-import { Logger, LogModule } from "@/core/logger";
+import { Logger, LogModule } from "@/logger";
 import { notificationService } from "@/ui/services/NotificationService";
 import type { PreprocessingConfig, PreprocessingResult } from "./types";
 import { DEFAULT_PREPROCESSING_CONFIG } from "./types";
@@ -158,7 +158,7 @@ class Preprocessor {
             if (recallDecisionRaw) {
                 try {
                     const { RobustJsonParser } = await import(
-                        "@/core/utils/JsonParser"
+                        "@/utils/JsonParser"
                     );
                     const parsed = RobustJsonParser.parse(recallDecisionRaw);
                     if (parsed?.recalls && Array.isArray(parsed.recalls)) {

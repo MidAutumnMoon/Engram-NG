@@ -1,4 +1,4 @@
-import { Logger } from "@/core/logger/index.ts";
+import { Logger } from "@/logger/index.ts";
 import { getEntries } from "@/integrations/tavern/worldbook/crud.ts";
 import type { WorldInfoEntry, WorldInfoTokenStats } from "./types.ts";
 

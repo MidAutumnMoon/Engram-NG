@@ -1,5 +1,5 @@
 import { getBuiltInTemplateByCategory } from "@/config/types/defaults";
-import { Logger, LogModule } from "@/core/logger";
+import { Logger, LogModule } from "@/logger";
 import { llmAdapter } from "@/integrations/llm/Adapter";
 
 export class BatchUtils {

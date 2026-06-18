@@ -6,7 +6,7 @@
  * 通用管道组件：可被多个模块复用
  */
 
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger";
 import type { RegexRule, RegexScope } from "@/config/types/data_processing";
 import {
     DEFAULT_REGEX_RULES,

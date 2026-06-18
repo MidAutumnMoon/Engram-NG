@@ -1,4 +1,4 @@
-import { Logger, LogModule } from "@/core/logger";
+import { Logger, LogModule } from "@/logger";
 import type { PromptTemplate } from "@/config/types/prompt";
 // @ts-expect-error
 const promptFiles = import.meta.glob("./prompts/*.yaml", {

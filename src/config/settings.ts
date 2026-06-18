@@ -5,7 +5,7 @@ import type {
 import type { EngramAPISettings } from "@/config/types/defaults";
 import { getBuiltInTemplateById } from "@/config/types/defaults";
 import type { PromptCategory, PromptTemplate } from "@/config/types/prompt";
-import { Logger } from "@/core/logger";
+import { Logger } from "@/logger/index.ts";
 
 export interface EngramSettings {
     theme: string;

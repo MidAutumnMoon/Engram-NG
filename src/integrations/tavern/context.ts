@@ -5,7 +5,7 @@
  * 负责从 window.SillyTavern 对象中安全地提取状态。
  */
 
-import { Logger } from "@/core/logger/index.ts";
+import { Logger } from "@/logger/index.ts";
 
 const MODULE = "TavernContext";
 

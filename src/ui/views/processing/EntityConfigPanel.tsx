@@ -8,7 +8,7 @@
  * V1.4.2: 增加自动归档与手动清理功能
  */
 import type { EntityExtractConfig } from "@/config/types/memory";
-import { EventBus } from "@/core/events";
+import { EventBus } from "@/events";
 import { entityBuilder } from "@/modules/memory/EntityExtractor";
 import { SliderField } from "@/ui/components/core/SliderField";
 import { SwitchField } from "@/ui/components/form/FormComponents";
