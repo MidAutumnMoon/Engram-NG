@@ -1,8 +1,16 @@
 /**
  * Engram Database (Dexie.js)
  *
- * V0.6 Multi-Database Architecture
- * Each chat_id gets its own isolated IndexedDB database.
+ * V0.6 Multi-Database Architecture: each chat_id gets its own isolated
+ * IndexedDB database. This module owns three concerns:
+ *   1. Dexie schema (`ChatDatabase` class)
+ *   2. Instance factory + cache (`getDbForChat`, `tryGetDbForChat`, ...)
+ *   3. Lifecycle admin (`deleteDatabase`, `listAllChatIds`, `getDatabaseStats`)
+ *
+ * Phase 2.2 routes more traffic through here — services previously went via
+ * `state/memoryStore.ts` now call `db.events.toArray()` etc. directly.
+ *
+ * See file-bottom for deferred refactor options.
  */
 
 import type { Table } from "dexie";
@@ -62,6 +70,12 @@ export class ChatDatabase extends Dexie {
 
     private lastUpdateTimer: any = null;
 
+    // NOTE: 这套 debounce + `Dexie.ignoreTransaction` + `setTimeout` 机制存在的
+    // 唯一目的是为 `GlobalDatabaseList.tsx` 的「按更新时间排序」UI 提供
+    // `lastModified` 字段。如果未来替换该 UI（例如改用
+    // `indexedDB.databases()` 原生 mtime），整个钩子链路与 `meta.lastModified`
+    // 都可以删除。Phase 1.6 删除 SyncService 后，`meta.lastModified` 已不再
+    // 有其他消费者。
     /**
      * 更新最后修改时间
      * V0.9.11: 增强导入期间的保护
@@ -90,56 +104,7 @@ export class ChatDatabase extends Dexie {
     }
 }
 
-// ======================== 数据库工厂 ========================
-
-// 导出数据接口
-export interface ChatDataDump {
-    events: EventNode[];
-    entities: EntityNode[];
-    meta: Record<string, any>;
-}
-
-/**
- * 导出数据库所有数据
- */
-export async function exportChatData(db: ChatDatabase): Promise<ChatDataDump> {
-    const events = await db.events.toArray();
-    const entities = await db.entities.toArray();
-    const metaArr = await db.meta.toArray();
-    const meta = metaArr.reduce(
-        (acc, cur) => ({ ...acc, [cur.key]: cur.value }),
-        {},
-    );
-
-    // V1.4.6 Optimization: 将 meta 放在最前面，这样 JSON.stringify 出来的字符串中，
-    // 元数据会出现在文件头部。这让 SyncService 的流式正则解析能瞬间命中并切断连接，节省 99% 的带宽喵！
-    return { entities, events, meta };
-}
-
-/**
- * 导入数据到数据库（覆盖）
- */
-export async function importChatData(
-    db: ChatDatabase,
-    data: ChatDataDump,
-): Promise<void> {
-    await db.transaction("rw", db.events, db.entities, db.meta, async () => {
-        // 清空
-        await db.events.clear();
-        await db.entities.clear();
-        await db.meta.clear();
-
-        // 批量添加
-        await db.events.bulkAdd(data.events);
-        await db.entities.bulkAdd(data.entities);
-
-        // 转换 meta 因为它是一个 KV 表
-        const metaEntries = Object.entries(data.meta || {}).map((
-            [key, value],
-        ) => ({ key, value }));
-        await db.meta.bulkAdd(metaEntries);
-    });
-}
+// ======================== 实例工厂与缓存 ========================
 
 /** 数据库实例缓存 */
 const dbCache = new Map<string, ChatDatabase>();
@@ -195,32 +160,13 @@ export async function deleteDatabase(chatId: string): Promise<void> {
 }
 
 /**
- * 列出所有 Engram 数据库名称
- */
-export async function listAllDatabases(): Promise<string[]> {
-    const allDbs = await Dexie.getDatabaseNames();
-    return allDbs.filter((name) => name.startsWith("Engram_"));
-}
-
-/**
  * 获取所有 Engram 数据库的 chatId 列表
  */
 export async function listAllChatIds(): Promise<string[]> {
-    const dbNames = await listAllDatabases();
-    return dbNames.map((name) => name.replace("Engram_", ""));
-}
-
-/**
- * 删除所有 Engram 数据库 (危险操作！)
- */
-export async function deleteAllDatabases(): Promise<number> {
-    const dbNames = await listAllDatabases();
-    for (const name of dbNames) {
-        await Dexie.delete(name);
-    }
-    dbCache.clear();
-    Logger.warn(MODULE, `Deleted ${dbNames.length} databases`);
-    return dbNames.length;
+    const allDbs = await Dexie.getDatabaseNames();
+    return allDbs
+        .filter((name) => name.startsWith("Engram_"))
+        .map((name) => name.replace("Engram_", ""));
 }
 
 export interface DatabaseStats {
@@ -255,3 +201,22 @@ export async function getDatabaseStats(chatId: string): Promise<DatabaseStats> {
         return { chatId, lastUpdateTime: 0 };
     }
 }
+
+// ======================== 未来重构参考 ========================
+//
+// 以下选项已被评估并主动推迟；记录在此供后人参考。
+//
+// B. 拆分为 db/schema.ts + db/factory.ts + db/admin.ts
+//    优点：职责更清晰。缺点：当前文件不到 200 行，拆分会增加导航成本。
+//    待文件超过 ~400 行或职责进一步膨胀再考虑。
+//
+// C. 引入 Repository 模式包装 Dexie
+//    不推荐。`state/memory/slices/` 已扮演这个角色（eventSlice.ts 提供
+//    `getEventsToMerge`、`countEventTokens` 等意图化方法）。Phase 2.2 step B
+//    正在消除这层间接性——services 直接调用 `db.events.toArray()`。再加
+//    Repository 会重新引入刚拆除的层。
+//
+// D. 用类型化字段替换 `meta` 的 KV bag
+//    当前 `meta` 表用 `{key, value}` 存 `lastModified`、`STATE_KEY`、
+//    `CHARACTER_KEY`。能工作但丢失了类型安全。需要 schema 迁移，目前不值得；
+//    如未来要加更多 chat 级状态字段再考虑。
