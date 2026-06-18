@@ -95,7 +95,6 @@ export const DEFAULT_BRAIN_RECALL_CONFIG: BrainRecallConfig = {
 };
 
 export const DEFAULT_RECALL_CONFIG: RecallConfig = {
-    brainRecall: DEFAULT_BRAIN_RECALL_CONFIG,
     embedding: {
         topK: 50, // Embedding 初筛 50 条
         minScoreThreshold: 0.35, // 过滤阈值 (稍高，过滤不相关)
@@ -286,7 +285,8 @@ export function getDefaultAPISettings(): EngramAPISettings {
         promptTemplates: getBuiltInPromptTemplates(),
         worldbookConfig: { ...DEFAULT_WORLDBOOK_CONFIG },
         regexConfig: { ...DEFAULT_REGEX_CONFIG }, // V0.8
-        recallConfig: { ...DEFAULT_RECALL_CONFIG }, // V0.8.5
+        // V0.8.5: brainRecall removed from hot path; kept in BrainRecallCache.ts for reference
+        recallConfig: { ...DEFAULT_RECALL_CONFIG },
         customMacros: [...DEFAULT_CUSTOM_MACROS], // V0.9.2
         worldbookProfiles: [], // V1.1.0
     };

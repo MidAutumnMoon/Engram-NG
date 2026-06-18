@@ -139,9 +139,6 @@ export interface RecallConfig {
         topK: number;
         minScoreThreshold: number;
     };
-
-    /** 类脑召回配置 (V0.9.5 实验性) */
-    brainRecall?: BrainRecallConfig;
 }
 
 /** Agentic RAG 召回条目 */

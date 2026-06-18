@@ -70,6 +70,10 @@
 - [x] Remove `brainRecallCache` usage from `useDashboardData.ts` (`fetchBrainStats`)
 - [x] Remove `brainRecallCache` usage from `useMemoryStream.ts`
 - [x] Backed up algorithm to `docs/reference/brain_recall_algorithm.md`
+- [x] Remove `brainRecall` field from `RecallConfig` type and `DEFAULT_RECALL_CONFIG`
+- [x] Remove brainRecall config section from `RecallConfigForm.tsx`
+- [x] Remove `BrainRecallStats` / `brainStats` from dev-log types and `RecallLog.tsx`
+- [x] Remove `BrainStats` / `ContextStats` from `useDashboardData.ts` and Dashboard UI
 
 ### 1.6 Demote SyncService to Reference-Only
 

@@ -17,12 +17,8 @@ import { RecallLogService } from "@/logger/RecallLogger";
 import { tryGetDbForChat } from "@/data/db";
 import { getCurrentChatId } from "@/integrations/tavern";
 
-import {
-    DEFAULT_BRAIN_RECALL_CONFIG,
-    DEFAULT_RECALL_CONFIG,
-} from "@/config/types/defaults";
+import { DEFAULT_RECALL_CONFIG } from "@/config/types/defaults";
 import type {
-    BrainRecallConfig,
     RecallConfig,
     RerankConfig,
     VectorConfig,
@@ -32,7 +28,6 @@ import { ChatHistoryHelper } from "@/integrations/tavern/chat/chatHistory";
 import type { AgenticRecall } from "@/config/types/rag.ts";
 import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine";
 import { createRetrievalWorkflow } from "@/modules/workflow/definitions/RetrievalWorkflow";
-import type { RecallCandidate } from "./BrainRecallCache";
 
 // ==================== 类型定义 ====================
 
@@ -40,7 +35,7 @@ export interface RetrievalResult {
     entries: string[]; // Formatted entries ready for injection
     nodes: EventNode[]; // Raw nodes
     candidates?: any[]; // V1.4: 曝露带分数的候选列表供前端装配
-    recalledEntities?: any[]; // V1.4: 曝露通过类脑被召回的实体
+    recalledEntities?: any[]; // V1.4: 曝露被召回的实体
     skippedReason?: string; // V1.4.4: 召回短路原因（如无可召回对象）
 }
 

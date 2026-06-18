@@ -8,7 +8,7 @@
  */
 import { type EngramSettings, SettingsManager } from "@/config/settings";
 import {
-    DEFAULT_BRAIN_RECALL_CONFIG,
+    DEFAULT_RECALL_CONFIG,
     getDefaultAPISettings,
 } from "@/config/types/defaults";
 import { Logger, LogModule } from "@/logger";
@@ -51,25 +51,10 @@ export interface SystemHealth {
     isSummarizing: boolean;
 }
 
-export interface BrainStats {
-    shortTermCount: number;
-    shortTermLimit: number;
-    workingCount: number;
-    workingLimit: number;
-    topItems: { id: string; label: string; score: number }[];
-}
-
-export interface ContextStats {
-    injectedLength: number;
-    estimatedTokens: number;
-}
-
 export interface DashboardData {
     system: SystemHealth;
     memory: MemoryStats;
     features: FeatureStatus;
-    brainStats: BrainStats;
-    contextStats: ContextStats;
     globalStats: EngramSettings["statistics"];
     isLoading: boolean;
 }
@@ -103,17 +88,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
         entity: false,
         recall: true,
         summarizer: true,
-    });
-    const [brainStats, setBrainStats] = useState<BrainStats>({
-        shortTermCount: 0,
-        shortTermLimit: 0,
-        topItems: [],
-        workingCount: 0,
-        workingLimit: 0,
-    });
-    const [contextStats, setContextStats] = useState<ContextStats>({
-        estimatedTokens: 0,
-        injectedLength: 0,
     });
     const [globalStats, setGlobalStats] = useState<
         EngramSettings["statistics"]
@@ -391,8 +365,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
     }, [refreshInterval]);
 
     return {
-        brainStats,
-        contextStats,
         features,
         globalStats,
         isLoading,
