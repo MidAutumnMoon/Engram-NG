@@ -1,3 +1,6 @@
+// REFERENCE ONLY — This module is not actively wired.
+// Re-enable by restoring imports in db.ts and CharacterCleanup.ts.
+
 import { Logger, LogModule } from "@/logger";
 import { getRequestHeaders, getSTContext } from "@/integrations/tavern";
 import type { ChatDataDump } from "@/data/db";

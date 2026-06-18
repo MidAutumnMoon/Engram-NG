@@ -7,7 +7,6 @@ import { RefreshCw, Trash2 } from "lucide-react";
 import { Logger, LogModule } from "@/logger";
 
 // V1.4.6 Extracted imported components
-import { SyncSection } from "../components/SyncSection";
 import { GlobalDatabaseList } from "../components/GlobalDatabaseList";
 
 export const DataTab: React.FC = () => {
@@ -174,9 +173,6 @@ export const DataTab: React.FC = () => {
                         </button>
                     </div>
                 </div>
-
-                {/* Data Synchronization Section */}
-                <SyncSection />
             </section>
         </div>
     );

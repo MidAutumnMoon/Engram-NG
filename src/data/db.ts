@@ -18,7 +18,6 @@ export interface ChatMeta {
 }
 
 import { Logger } from "@/logger";
-import { syncService } from "./sync/SyncService";
 
 const MODULE = "Database";
 
@@ -64,26 +63,16 @@ export class ChatDatabase extends Dexie {
     private lastUpdateTimer: any = null;
 
     /**
-     * 更新最后修改时间并调度上传
+     * 更新最后修改时间
      * V0.9.11: 增强导入期间的保护
      * V1.4.6: 优化为防抖宏任务，避免 P0/P1 合规性问题
      */
     private updateLastModified() {
-        // 检查导入锁 - 如果正在导入，完全跳过
-        if (syncService.isImportingState) {
-            return;
-        }
-
         // 如果已经有一个在排队了，直接跳过 (500ms 窗口防抖)
         if (this.lastUpdateTimer) return;
 
         this.lastUpdateTimer = setTimeout(() => {
             this.lastUpdateTimer = null;
-
-            // 再次检查导入状态（防止在延时期间状态变化）
-            if (syncService.isImportingState) {
-                return;
-            }
 
             // 使用 ignoreTransaction 显式脱离当前潜在的 Hooks 事务
             // 防止在只读或特定表的事务中试图写入 meta 表导致 DEXIE 报错喵~
@@ -93,8 +82,6 @@ export class ChatDatabase extends Dexie {
                         key: "lastModified",
                         value: Date.now(),
                     });
-                    // 调度同步 (SyncService 内部已有防抖)
-                    syncService.scheduleUpload(this.chatId);
                 } catch (error) {
                     Logger.error(MODULE, "异步更新 lastModified 失败", error);
                 }

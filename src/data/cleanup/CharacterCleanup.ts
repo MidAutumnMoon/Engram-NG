@@ -129,7 +129,7 @@ export class CharacterDeleteService {
                 <div style="font-size: 0.9em;">
                     <h3>🧹 Engram 联动深度清理</h3>
                     <p>检测到角色 <b>${characterName}</b> 已被删除。</p>
-                    
+
                     ${
                 booksToDelete.length > 0
                     ? `
@@ -188,14 +188,10 @@ export class CharacterDeleteService {
         // 清理聊天数据
         if (settings.deleteIndexedDB && matchedChatIds.length > 0) {
             const { deleteDatabase } = await import("@/data/db");
-            const { syncService } = await import("@/data/sync/SyncService");
 
             for (const chatId of matchedChatIds) {
                 try {
-                    // 删除本地
                     await deleteDatabase(chatId);
-                    // 删除云端
-                    await syncService.purge(chatId);
                 } catch (error) {
                     Logger.error(
                         LogModule.DATA_CLEANUP,
@@ -306,23 +302,6 @@ export class CharacterDeleteService {
         if (!characterName) {
             Logger.debug(LogModule.DATA_CLEANUP, `无法从 chatId 解析角色名`);
             return;
-        }
-
-        // 3. 删除 Sync 本地文件 (Engram_sync_*.json)
-        // 即使 sync 未启用，如果有残留文件也应清理
-        try {
-            const { syncService } = await import("@/data/sync/SyncService");
-            await syncService.purge(chatId);
-            Logger.debug(
-                LogModule.DATA_CLEANUP,
-                `已触发同步文件清理: ${chatId}`,
-            );
-        } catch (error) {
-            Logger.warn(
-                LogModule.DATA_CLEANUP,
-                `清理同步文件失败: ${chatId}`,
-                error,
-            );
         }
 
         await this.deleteEngramWorldbooks(

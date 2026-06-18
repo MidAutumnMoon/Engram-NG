@@ -75,15 +75,15 @@
 - [x] Remove `BrainRecallStats` / `brainStats` from dev-log types and `RecallLog.tsx`
 - [x] Remove `BrainStats` / `ContextStats` from `useDashboardData.ts` and Dashboard UI
 
-### 1.6 Demote SyncService to Reference-Only
+### 1.6 Demote SyncService to Reference-Only ✅ Done
 
 **Rationale:** User wants it left for reference, but it must stop poisoning the data layer.
 
-- [ ] In `src/data/db.ts`: remove `syncService` import, remove `isImportingState` check, remove `scheduleUpload()` call inside `updateLastModified()`. `updateLastModified()` should only write `lastModified` to meta.
-- [ ] In `src/data/cleanup/CharacterCleanup.ts`: remove `syncService` imports and `syncService.purge()` calls.
-- [ ] In `src/integrations/tavern/bootstrap.ts`: ensure no SyncService wiring exists.
-- [ ] In `src/ui/views/settings/tabs/DataTab.tsx`: remove `<SyncSection />` usage. Keep the component file if desired, but it should not be mounted.
-- [ ] Add a top-of-file comment to `src/data/sync/SyncService.ts`:
+- [x] In `src/data/db.ts`: remove `syncService` import, remove `isImportingState` check, remove `scheduleUpload()` call inside `updateLastModified()`. `updateLastModified()` should only write `lastModified` to meta.
+- [x] In `src/data/cleanup/CharacterCleanup.ts`: remove `syncService` imports and `syncService.purge()` calls.
+- [x] In `src/integrations/tavern/bootstrap.ts`: ensure no SyncService wiring exists.
+- [x] In `src/ui/views/settings/tabs/DataTab.tsx`: remove `<SyncSection />` usage. Keep the component file if desired, but it should not be mounted.
+- [x] Add a top-of-file comment to `src/data/sync/SyncService.ts`:
   ```ts
   // REFERENCE ONLY — This module is not actively wired.
   // Re-enable by restoring imports in db.ts and CharacterCleanup.ts.
