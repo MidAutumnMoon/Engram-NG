@@ -89,29 +89,26 @@
   // Re-enable by restoring imports in db.ts and CharacterCleanup.ts.
   ```
 
-### 1.7 Strip Dashboard Gamification, Keep Core Telemetry ✅ Done
+### 1.7 Remove Telemetry Subsystem Entirely ✅ Done
 
-**Rationale:** The 4 stat cards (Token 消耗总计 / LLM 引擎调用 / 系统记忆构建 / RAG 上下文召回) are useful operational metrics. The gamification wrapper (badges, active-days tracking, "全局统计与成就" framing) is bloat.
+**Rationale:** Historical counters (`totalTokens`, `totalLlmCalls`, etc.) are stored in SillyTavern's extension settings JSON. Every increment triggers `saveSettingsDebounced()` — writing telemetry into user config. The counters are also misleading (`totalEvents` doesn't reset when DB is wiped) and duplicate information already visible in the "记忆统计" section. Current-state metrics (event count, entity count, estimated tokens) are already derived from IndexedDB in the Dashboard.
 
 - [x] In `src/config/settings.ts`:
-  - Remove `firstUseAt` and `activeDays` from `EngramSettings["statistics"]` and `defaultSettings.statistics`
-  - Keep: `totalTokens`, `totalLlmCalls`, `totalEvents`, `totalEntities`, `totalRagInjections`
-  - In `incrementStatistic`: remove `firstUseAt` init and `activeDays` tracking. Keep numeric increment logic. All existing call sites use kept keys, so no call sites need removal.
-- [x] Rename `src/ui/views/dashboard/components/AchievementsPanel.tsx` → `StatsPanel.tsx`
-  - Remove the `<Trophy>` title "全局统计与成就"
-  - Remove the entire "使用周期与活跃度" progress bar section (uses `firstUseAt` + `activeDays`)
-  - Remove all achievement badge blocks (百日陪伴 / 忠实用户 / 活跃初见 / 千万 Token / 百万 Token / 十万 Token / 万卷藏书 / 千思之录 / 神经漫游者 / 记忆编织者 / 初窥门径)
-  - Keep the 4 stat cards exactly as-is
-  - Update export name and component name to `StatsPanel`
-- [x] In `src/ui/views/dashboard/index.tsx`:
-  - Replace `<AchievementsPanel stats={globalStats} />` with `<StatsPanel stats={globalStats} />`
-  - Update import path accordingly
+  - Remove the entire `statistics` field from `EngramSettings` interface and `defaultSettings`
+  - Remove `incrementStatistic` method from `SettingsManager`
+- [x] Remove all `incrementStatistic` call sites:
+  - `src/integrations/llm/Adapter.ts` (2 calls: `totalLlmCalls`, `totalTokens`)
+  - `src/modules/memory/EntityExtractor.ts` (1 call: `totalEntities`)
+  - `src/modules/memory/Summarizer.ts` (1 call: `totalEvents`)
+  - `src/modules/rag/injection/Injector.ts` (1 call: `totalRagInjections`)
+- [x] Delete `src/ui/views/dashboard/components/StatsPanel.tsx` (formerly `AchievementsPanel.tsx`)
+- [x] In `src/ui/views/dashboard/index.tsx`: remove `StatsPanel` import and usage, remove `globalStats` destructuring from `useDashboardData`
 - [x] In `src/ui/hooks/useDashboardData.ts`:
+  - Remove `globalStats` state and `fetchGlobalStats`
   - Remove `fetchBrainStats` (already gone from 1.5)
-  - Simplify the default `globalStats` state to drop `firstUseAt` / `activeDays`
-  - Keep `fetchGlobalStats` (still reads the 5 counters)
   - Delete `toggleFeature` preprocessing branch (already gone from 1.2)
   - Simplify `fetchFeatureStatus` to exclude preprocessing (already gone from 1.2)
+- [x] In `test/unit/entity-extractor.test.ts`: remove `incrementStatistic` from the `SettingsManager` mock
 
 ---
 

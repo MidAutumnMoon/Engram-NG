@@ -6,7 +6,7 @@
  * - Memory Stats: 事件/实体统计
  * - Feature Status: 功能开关状态
  */
-import { type EngramSettings, SettingsManager } from "@/config/settings";
+import { SettingsManager } from "@/config/settings";
 import {
     DEFAULT_RECALL_CONFIG,
     getDefaultAPISettings,
@@ -55,7 +55,6 @@ export interface DashboardData {
     system: SystemHealth;
     memory: MemoryStats;
     features: FeatureStatus;
-    globalStats: EngramSettings["statistics"];
     isLoading: boolean;
 }
 
@@ -89,16 +88,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
         recall: true,
         summarizer: true,
     });
-    const [globalStats, setGlobalStats] = useState<
-        EngramSettings["statistics"]
-    >({
-        totalEntities: 0,
-        totalEvents: 0,
-        totalLlmCalls: 0,
-        totalRagInjections: 0,
-        totalTokens: 0,
-    });
-
     const isMounted = useRef(true);
     const lastDbModified = useRef<number>(0);
 
@@ -121,18 +110,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
             lastSummarizedFloor: summarizerStatus.lastSummarizedFloor,
             pendingFloors: summarizerStatus.pendingFloors,
         });
-    }, []);
-
-    const fetchGlobalStats = useCallback(() => {
-        const currentStats = SettingsManager.get("statistics") || {
-            totalEntities: 0,
-            totalEvents: 0,
-            totalLlmCalls: 0,
-            totalRagInjections: 0,
-            totalTokens: 0,
-        };
-        if (!isMounted.current) return;
-        setGlobalStats(currentStats as EngramSettings["statistics"]);
     }, []);
 
     const fetchMemoryStats = useCallback(async () => {
@@ -211,7 +188,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
     const refresh = useCallback(async () => {
         try {
             fetchSystemHealth();
-            fetchGlobalStats();
             await fetchMemoryStats();
             await fetchFeatureStatus();
 
@@ -224,7 +200,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
         }
     }, [
         fetchSystemHealth,
-        fetchGlobalStats,
         fetchMemoryStats,
         fetchFeatureStatus,
     ]);
@@ -362,7 +337,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
 
     return {
         features,
-        globalStats,
         isLoading,
         memory,
         refresh,

@@ -511,13 +511,6 @@ class SummarizerService {
                 writtenToWorldbook: true,
             };
 
-            if (Array.isArray(savedEvents) && savedEvents.length > 0) {
-                SettingsManager.incrementStatistic(
-                    "totalEvents",
-                    savedEvents.length,
-                );
-            }
-
             // Update local state (redundant if SaveEvent updated store, but safe)
             this._lastSummarizedFloor = endFloor;
             this.summaryHistory.push(result);

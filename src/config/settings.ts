@@ -30,13 +30,6 @@ export interface EngramSettings {
         enabled: boolean; // 总开关：是否启用同步功能
         autoSync: boolean; // 是否在数据变动时自动上传
     };
-    statistics: {
-        totalTokens: number; // 总 Token 消耗
-        totalLlmCalls: number; // 总 LLM 调用次数
-        totalEvents: number; // 累计生成的节点数
-        totalEntities: number; // 累计提取的实体数
-        totalRagInjections: number; // 总召回注入次数
-    };
 }
 
 /** 默认设置 */
@@ -62,13 +55,6 @@ const defaultSettings: EngramSettings = Object.freeze({
     syncConfig: {
         enabled: false, // 默认关闭（Beta功能）
         autoSync: true, // 启用后默认开启自动同步
-    },
-    statistics: {
-        totalEntities: 0,
-        totalEvents: 0,
-        totalLlmCalls: 0,
-        totalRagInjections: 0,
-        totalTokens: 0,
     },
 });
 
@@ -349,25 +335,5 @@ export class SettingsManager {
      */
     public static setRegexRules(rules: RegexRule[]): void {
         this.set("regexRules", rules);
-    }
-
-    // ==================== 统计与遥测 (Telemetry) ====================
-
-    /**
-     * 累加全局统计数据
-     * @param key 要累加的统计字段名
-     * @param value 累加值 (默认为 1)
-     */
-    public static incrementStatistic(
-        key: keyof EngramSettings["statistics"],
-        value: number = 1,
-    ): void {
-        const stats = { ...this.get("statistics") };
-
-        if (typeof stats[key] === "number") {
-            (stats[key] as number) += value;
-        }
-
-        this.set("statistics", stats);
     }
 }

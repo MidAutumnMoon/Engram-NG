@@ -328,10 +328,6 @@ class Injector {
                             await MacroService.refreshCacheWithNodes(
                                 recallResult.nodes,
                             );
-                            SettingsManager.incrementStatistic(
-                                "totalRagInjections",
-                                1,
-                            );
                         } else {
                             Logger.debug(
                                 LogModule.RAG_INJECT,

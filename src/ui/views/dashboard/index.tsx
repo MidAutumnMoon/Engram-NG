@@ -13,7 +13,6 @@ import { Switch } from "@/ui/components/core/Switch";
 import { PageTitle } from "@/ui/components/display/PageTitle";
 import { Divider } from "@/ui/components/layout/Divider";
 import { useDashboardData } from "@/ui/hooks/useDashboardData";
-import { StatsPanel } from "@/ui/views/dashboard/components/StatsPanel";
 import {
     AlertCircle,
     Brain,
@@ -89,7 +88,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         system,
         memory,
         features,
-        globalStats,
         toggleFeature,
     } = useDashboardData(2000);
 
@@ -149,13 +147,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 subtitle="系统状态概览与快速操作"
                 className="mb-6"
             />
-
-            {/* 新加入的成就展板 */}
-            <div className="mb-6">
-                <StatsPanel stats={globalStats} />
-            </div>
-
-            <Divider className="mb-6" />
 
             {/* 主内容区 - 双栏 + 阶梯动画 */}
             <div className="flex-1 overflow-y-auto no-scrollbar">

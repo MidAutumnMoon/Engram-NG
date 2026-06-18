@@ -40,7 +40,6 @@ vi.mock("@/config/settings", () => ({
             }
             return undefined;
         }),
-        incrementStatistic: vi.fn(),
     },
 }));
 

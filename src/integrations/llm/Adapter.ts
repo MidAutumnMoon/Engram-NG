@@ -283,17 +283,6 @@ class LLMAdapter {
             throw new Error("无可用的生成 API");
         }
 
-        // --- 全局数据遥测 (Telemetry) ---
-        SettingsManager.incrementStatistic("totalLlmCalls", 1);
-        const estimatedPromptTokens = this.estimateTokens(
-            finalSystemPrompt + finalUserPrompt,
-        );
-        const estimatedCompletionTokens = this.estimateTokens(content || "");
-        SettingsManager.incrementStatistic(
-            "totalTokens",
-            estimatedPromptTokens + estimatedCompletionTokens,
-        );
-
         return {
             content: content || "",
             success: true,
