@@ -8,18 +8,20 @@
  * 现已改为直接动态 import React 组件，消除了循环依赖与渲染器注入抽象。
  */
 
-import {
-    DOM_IDS,
-    ENGRAM_DRAWER_ICON_ID,
-    ENGRAM_DRAWER_ID,
-    ENGRAM_GLOBAL_OVERLAY_ID,
-    ENGRAM_PANEL_ID,
-} from "@/constants";
-import { Logger } from "@/logger";
-import { useUiStore } from "@/state/uiStore";
+import { Logger } from "@/logger/index.ts";
+import { useUiStore } from "@/state/uiStore.ts";
 import { createRoot } from "react-dom/client";
 
 const MODULE = "TavernUI";
+
+// SillyTavern DOM hooks (selectors we inject next to / read from)
+const LEFT_SEND_FORM_SELECTOR = "#leftSendForm";
+const TOP_SETTINGS_HOLDER_SELECTOR = "#top-settings-holder";
+const WI_SP_BUTTON_SELECTOR = "#WI-SP-button";
+
+// Engram-injected element IDs (used more than once)
+const QUICK_PANEL_TRIGGER_ID = "engram-quick-panel-trigger";
+const PANEL_ID = "engram-panel-root";
 
 // ==================== QR 栏快捷面板按钮 ====================
 
@@ -45,15 +47,18 @@ function injectQuickPanelButton(): boolean {
     }
 
     const leftSendForm = document.querySelector(
-        DOM_IDS.LEFT_SEND_FORM,
+        LEFT_SEND_FORM_SELECTOR,
     ) as HTMLElement | null;
     if (!leftSendForm) {
-        Logger.debug(MODULE, `${DOM_IDS.LEFT_SEND_FORM} 未找到，延迟重试`);
+        Logger.debug(
+            MODULE,
+            `${LEFT_SEND_FORM_SELECTOR} 未找到，延迟重试`,
+        );
         return false;
     }
 
     const button = document.createElement("div");
-    button.id = DOM_IDS.QUICK_PANEL_TRIGGER;
+    button.id = QUICK_PANEL_TRIGGER_ID;
     button.className = "fa-solid fa-layer-group interactable";
     button.tabIndex = 0;
     button.title = "Engram 快捷面板";
@@ -78,7 +83,7 @@ function injectQuickPanelButton(): boolean {
  * 移除按钮
  */
 function removeQuickPanelButton(): void {
-    const button = document.querySelector(`#${DOM_IDS.QUICK_PANEL_TRIGGER}`);
+    const button = document.querySelector(`#${QUICK_PANEL_TRIGGER_ID}`);
     if (button) {
         button.removeEventListener(
             "click",
@@ -115,10 +120,12 @@ export function initQuickPanelButton(): void {
     };
 
     const observer = new MutationObserver(() => {
-        const leftSendForm = document.querySelector(DOM_IDS.LEFT_SEND_FORM);
+        const leftSendForm = document.querySelector(
+            LEFT_SEND_FORM_SELECTOR,
+        );
         if (
             leftSendForm &&
-            !document.getElementById(DOM_IDS.QUICK_PANEL_TRIGGER)
+            !document.getElementById(QUICK_PANEL_TRIGGER_ID)
         ) {
             isInjected = false;
             injectQuickPanelButton();
@@ -145,12 +152,13 @@ let reactRoot: ReturnType<typeof createRoot> | null = null;
  * 通过动态 import 懒加载 GlobalOverlay，避免在扩展启动时拉起整个 React UI。
  */
 export async function mountGlobalOverlay(): Promise<void> {
-    const overlayId = ENGRAM_GLOBAL_OVERLAY_ID;
-    let overlay = document.querySelector(`#${overlayId}`) as HTMLElement | null;
+    let overlay = document.querySelector("#engram-global-overlay") as
+        | HTMLElement
+        | null;
 
     if (!overlay) {
         overlay = document.createElement("div");
-        overlay.id = overlayId;
+        overlay.id = "engram-global-overlay";
         overlay.className =
             "pointer-events-none fixed inset-0 z-[11000] engram-app-root";
         document.body.append(overlay);
@@ -169,22 +177,22 @@ export async function mountGlobalOverlay(): Promise<void> {
  * 创建顶栏按钮入口（模仿 ST 的 drawer 结构）
  */
 export function createTopBarButton(): void {
-    const holder = document.querySelector(DOM_IDS.TOP_SETTINGS_HOLDER);
-    const wiButton = document.querySelector(DOM_IDS.WI_SP_BUTTON);
+    const holder = document.querySelector(TOP_SETTINGS_HOLDER_SELECTOR);
+    const wiButton = document.querySelector(WI_SP_BUTTON_SELECTOR);
 
     if (!holder) {
         return;
     }
 
     const drawer = document.createElement("div");
-    drawer.id = ENGRAM_DRAWER_ID;
+    drawer.id = "engram-drawer";
     drawer.className = "drawer";
 
     const toggle = document.createElement("div");
     toggle.className = "drawer-toggle drawer-header";
 
     const icon = document.createElement("div");
-    icon.id = ENGRAM_DRAWER_ICON_ID;
+    icon.id = "engram-drawer-icon";
     icon.className = "drawer-icon fa-solid fa-e fa-fw closedIcon";
     icon.title = "Engram - 记忆操作系统";
     icon.dataset.i18n = "[title]Engram - Memory OS";
@@ -254,10 +262,10 @@ async function createMainPanel(): Promise<HTMLElement> {
     panel.style.width = "100vw";
     panel.style.top = "0";
     panel.style.left = "0";
-    panel.id = ENGRAM_PANEL_ID;
+    panel.id = PANEL_ID;
 
     const header = document.createElement("div");
-    header.id = `${ENGRAM_PANEL_ID}-header`;
+    header.id = `${PANEL_ID}-header`;
     header.className = "engram-panel-header";
 
     const title = document.createElement("h3");
@@ -274,7 +282,7 @@ async function createMainPanel(): Promise<HTMLElement> {
     header.append(closeBtn);
 
     const content = document.createElement("div");
-    content.id = `${ENGRAM_PANEL_ID}-content`;
+    content.id = `${PANEL_ID}-content`;
     content.className = "flex-1 overflow-auto p-5";
 
     panel.append(header);

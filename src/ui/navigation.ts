@@ -29,6 +29,3 @@ export const NAV_ITEMS: NavItem[] = [
     { icon: Terminal, id: "devlog", label: "开发日志", path: "/devlog" },
     { icon: Settings, id: "settings", label: "设置", path: "/settings" },
 ];
-
-// 默认路由
-const DEFAULT_ROUTE = "/dashboard";

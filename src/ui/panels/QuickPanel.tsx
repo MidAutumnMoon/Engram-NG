@@ -5,7 +5,7 @@
  * 用于快捷导航到各功能页面
  */
 
-import { NAV_ITEMS } from "@/constants/navigation";
+import { NAV_ITEMS } from "@/ui/navigation";
 import { FloatingPanel } from "@/ui/components/overlay/FloatingPanel";
 import {
     BrainCircuit,
