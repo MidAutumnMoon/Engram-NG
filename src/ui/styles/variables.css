@@ -1,50 +1,49 @@
 /**
  * Engram Design Token 系统
- * 现在主要由 ThemeContext 和 Tailwind 变量处理
- * 此文件保留用于存放尚未迁移的特定变量或作为向后兼容
+ * Fixed fallback colors from claudeDarkTheme (ThemeManager was removed in Phase 1.4)
  */
 
 :root {
-    /* Default Theme Fallback (Tokyo Night) — used when ThemeManager is absent */
-    --background: #1a1b26;
-    --foreground: #a9b1d6;
-    --card: #24283b;
-    --card-foreground: #a9b1d6;
-    --popover: #1a1b26;
-    --popover-foreground: #a9b1d6;
-    --primary: #7aa2f7;
-    --primary-foreground: #1a1b26;
-    --secondary: #414868;
-    --secondary-foreground: #c0caf5;
-    --muted: #24283b;
-    --muted-foreground: #565f89;
-    --accent: #414868;
-    --accent-foreground: #a9b1d6;
-    --destructive: #f7768e;
-    --destructive-foreground: #1a1b26;
-    --border: #414868;
-    --input: #24283b;
-    --ring: #7aa2f7;
-    --heading: #bb9af7;
-    --label: #7dcfff;
-    --meta: #565f89;
-    --link: #e0af68;
-    --value: #9ece6a;
-    --emphasis: #f7768e;
-    --sidebar: #16161e;
-    --sidebar-foreground: #a9b1d6;
-    --sidebar-primary: #7aa2f7;
-    --sidebar-primary-foreground: #1a1b26;
-    --sidebar-accent: #24283b;
-    --sidebar-accent-foreground: #a9b1d6;
-    --sidebar-border: #414868;
-    --sidebar-ring: #7aa2f7;
+    /* Fixed Theme: Claude (Dark) */
+    --background: oklch(0.2679 0.0036 106.6427);
+    --foreground: oklch(0.8074 0.0142 93.0137);
+    --card: oklch(0.2679 0.0036 106.6427);
+    --card-foreground: oklch(0.8074 0.0142 93.0137);
+    --popover: oklch(0.2357 0.0024 67.7077);
+    --popover-foreground: oklch(0.8074 0.0142 93.0137);
+    --primary: oklch(0.6724 0.1308 38.7559);
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.2213 0.0038 106.707);
+    --secondary-foreground: oklch(0.8074 0.0142 93.0137);
+    --muted: oklch(0.2357 0.0024 67.7077);
+    --muted-foreground: oklch(0.7713 0.0169 99.0657);
+    --accent: oklch(0.6724 0.1308 38.7559);
+    --accent-foreground: oklch(1 0 0);
+    --destructive: oklch(0.6368 0.2078 25.3313);
+    --destructive-foreground: oklch(1 0 0);
+    --border: oklch(0.8074 0.0142 93.0137 / 0.15);
+    --input: oklch(0.4336 0.0113 100.2195);
+    --ring: oklch(0.6724 0.1308 38.7559);
+    --heading: oklch(0.6724 0.1308 38.7559);
+    --label: oklch(0.6898 0.1581 290.4107);
+    --meta: oklch(0.4336 0.0113 100.2195);
+    --link: oklch(0.8816 0.0276 93.128);
+    --value: oklch(0.6907 0.1554 160.3454);
+    --emphasis: oklch(0.7066 0.15 48);
+    --sidebar: oklch(0.2357 0.0024 67.7077);
+    --sidebar-foreground: oklch(0.7713 0.0169 99.0657);
+    --sidebar-primary: oklch(0.6724 0.1308 38.7559);
+    --sidebar-primary-foreground: oklch(1 0 0);
+    --sidebar-accent: oklch(0.2213 0.0038 106.707);
+    --sidebar-accent-foreground: oklch(0.8074 0.0142 93.0137);
+    --sidebar-border: oklch(0.7713 0.0169 99.0657 / 0.15);
+    --sidebar-ring: oklch(0.6724 0.1308 38.7559);
     --radius: 0.4rem;
 
     /* Status Colors */
-    --engram-success: #9ece6a;
-    --engram-warning: #e0af68;
-    --engram-error: #f7768e;
+    --engram-success: oklch(0.6907 0.1554 160.3454);
+    --engram-warning: oklch(0.7066 0.15 48);
+    --engram-error: oklch(0.6368 0.2078 25.3313);
 
     /* Z-index 层级 */
     --engram-z-dropdown: 100;
