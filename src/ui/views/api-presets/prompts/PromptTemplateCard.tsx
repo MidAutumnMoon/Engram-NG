@@ -9,18 +9,12 @@ import { Logger, LogModule } from "@/logger";
 import { notificationService } from "@/ui/services/NotificationService";
 import { dump, load } from "js-yaml";
 import {
-    BrainCircuit,
-    Clapperboard,
     Copy,
     Download,
     FolderInput,
-    type LucideIcon,
-    Paintbrush,
     Power,
     RotateCcw,
-    Search,
     Trash2,
-    Wand2,
 } from "lucide-react";
 import React, { useRef } from "react";
 
@@ -45,9 +39,6 @@ function getCategoryColorClass(category: PromptCategory): string {
         }
         case "trim": {
             return "text-emphasis bg-emphasis/10 border border-emphasis/20";
-        }
-        case "preprocessing": {
-            return "text-value bg-value/10 border border-value/20";
         }
         default: {
             return "text-muted-foreground bg-muted border border-border";
@@ -170,8 +161,6 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
         }
     };
 
-    const isPreprocessing = template.category === "preprocessing";
-
     return (
         <div
             className={`
@@ -181,53 +170,29 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                     ? "bg-accent/50 border-input"
                     : "bg-transparent border-transparent hover:bg-muted/50 hover:border-border"
             }
-                ${(!template.enabled && !isPreprocessing) && "opacity-50"}
+                ${!template.enabled && "opacity-50"}
             `}
             onClick={onSelect}
         >
             <div className="flex items-start gap-3">
                 {/* 状态图标 */}
-                {!isPreprocessing
-                    ? (
-                        <button
-                            className={`
-                            w-8 h-8 flex items-center justify-center rounded-lg transition-colors flex-shrink-0
-                            ${
-                                template.enabled
-                                    ? "bg-primary/10 text-primary"
-                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-                            }
-                        `}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onToggleEnabled?.(!template.enabled);
-                            }}
-                            title={template.enabled ? "点击禁用" : "点击启用"}
-                        >
-                            <Power size={16} />
-                        </button>
-                    )
-                    : (
-                        // 预处理模板：内置模板使用专属图标，自建模板用通用图标
-                        (() => {
-                            const BUILTIN_ICON_MAP: Record<string, LucideIcon> =
-                                {
-                                    builtin_agentic_recall: BrainCircuit,
-                                    builtin_description_enhance: Paintbrush,
-                                    builtin_plot_director: Clapperboard,
-                                    builtin_query_enhance: Search,
-                                };
-                            const Icon = BUILTIN_ICON_MAP[template.id] || Wand2;
-                            return (
-                                <div
-                                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-value/10 text-value flex-shrink-0"
-                                    title="预处理模板 (在快捷面板中激活)"
-                                >
-                                    <Icon size={16} />
-                                </div>
-                            );
-                        })()
-                    )}
+                <button
+                    className={`
+                    w-8 h-8 flex items-center justify-center rounded-lg transition-colors flex-shrink-0
+                    ${
+                        template.enabled
+                            ? "bg-primary/10 text-primary"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    }
+                `}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleEnabled?.(!template.enabled);
+                    }}
+                    title={template.enabled ? "点击禁用" : "点击启用"}
+                >
+                    <Power size={16} />
+                </button>
 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
@@ -236,10 +201,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                                 isSelected
                                     ? "text-heading"
                                     : "text-muted-foreground group-hover:text-heading"
-                            } ${
-                                (!template.enabled && !isPreprocessing) &&
-                                "line-through"
-                            }`}
+                            } ${!template.enabled && "line-through"}`}
                         >
                             {template.name}
                         </h4>
@@ -315,7 +277,6 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                                 );
 
                             // 如果找不到 (可能是旧数据的随机 ID)，回退到分类匹配
-                            // 注意：对于 preprocessing 分类，分类匹配可能不准确，建议刷新页面以触发 ID 迁移
                             if (!defaultTemplate) {
                                 defaultTemplate = getBuiltInTemplateByCategory(
                                     template.category,

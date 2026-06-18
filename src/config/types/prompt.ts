@@ -1,7 +1,6 @@
 export type PromptCategory =
     | "summary" // 剧情摘要 (V0.5 统一为 JSON 输出)
     | "trim" // 精简/修剪
-    | "preprocessing" // 预处理 (统一分类，包含 Query 增强/剧情编排/描写增强等)
     | "entity_extraction"; // V0.9: 实体提取
 
 export const PROMPT_CATEGORIES: {
@@ -18,11 +17,6 @@ export const PROMPT_CATEGORIES: {
         description: "合并、压缩旧的事件记录",
         label: "精简/修剪",
         value: "trim",
-    },
-    {
-        description: "用户输入预处理（Query 增强/剧情编排/描写增强等）",
-        label: "预处理",
-        value: "preprocessing",
     },
     {
         description: "从事件中提取角色、地点、物品等实体",

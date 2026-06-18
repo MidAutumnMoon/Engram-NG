@@ -209,26 +209,6 @@ export const PromptTemplateForm: React.FC<PromptTemplateFormProps> = ({
                     options={modelSourceOptions}
                     description="选择用于此模板的 LLM 预设"
                 />
-
-                {template.category === "preprocessing" && (
-                    <SelectField
-                        label="注入模式"
-                        value={template.injectionMode || "replace"}
-                        onChange={(value) =>
-                            updateTemplate({
-                                injectionMode: value as
-                                    | "replace"
-                                    | "append"
-                                    | "prepend",
-                            })}
-                        options={[
-                            { label: "覆盖 (Overwrite)", value: "replace" },
-                            { label: "追加 (Append)", value: "append" },
-                            { label: "前置 (Prepend)", value: "prepend" },
-                        ]}
-                        description="预处理结果如何与用户输入组合"
-                    />
-                )}
             </FormSection>
 
             {/* 提示词内容 */}
