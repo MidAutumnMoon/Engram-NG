@@ -217,35 +217,6 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
                         </p>
                     </div>
 
-                    {/* 预处理增强 */}
-                    <div
-                        className={`p-4 rounded-lg border transition-all ${
-                            config.usePreprocessing
-                                ? "bg-primary/5 border-primary/30"
-                                : "bg-card border-border/50 hover:border-border"
-                        }`}
-                    >
-                        <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <BrainCircuit
-                                    size={16}
-                                    className={config.usePreprocessing
-                                        ? "text-primary"
-                                        : "text-muted-foreground"}
-                                />
-                                LLM 预处理增强
-                            </div>
-                            <Switch
-                                checked={config.usePreprocessing}
-                                onChange={(val) =>
-                                    updateConfig({ usePreprocessing: val })}
-                            />
-                        </div>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                            使用 LLM 优化用户输入。产生 Token 消耗。
-                        </p>
-                    </div>
-
                     {/* Rerank 重排序 */}
                     <div
                         className={`p-4 rounded-lg border transition-all ${

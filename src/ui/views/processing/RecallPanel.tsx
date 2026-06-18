@@ -91,8 +91,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
         // 向用户提供明确的 Token 扣费警告
         // V1.4: 如果仅启用了关键词召回 (0 消耗)，则跳过确认
         const isZeroCost = recallConfig.useKeywordRecall &&
-            !recallConfig.useEmbedding && !recallConfig.useAgenticRAG &&
-            !recallConfig.usePreprocessing;
+            !recallConfig.useEmbedding && !recallConfig.useAgenticRAG;
 
         if (!isZeroCost) {
             const userAgreed = window.confirm(
