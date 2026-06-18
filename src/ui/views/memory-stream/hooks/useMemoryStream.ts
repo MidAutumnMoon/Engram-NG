@@ -1,7 +1,7 @@
 import { SettingsManager } from "@/config/settings";
 import type { EntityNode, EventNode } from "@/data/types/graph";
 import { embeddingService } from "@/modules/rag/embedding/EmbeddingService";
-
+import { MacroService } from "@/sillytavern/prompt/macros";
 import { getCurrentDb, useMemoryStore } from "@/state/memoryStore";
 import { notificationService } from "@/ui/services/NotificationService";
 import {
@@ -270,9 +270,6 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                     )
                 );
 
-                const { MacroService } = await import(
-                    "@/sillytavern/prompt/macros"
-                );
                 await MacroService.refreshEngramCache();
 
                 notificationService.success(
