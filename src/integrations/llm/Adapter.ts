@@ -283,6 +283,12 @@ class LLMAdapter {
             throw new Error("无可用的生成 API");
         }
 
+        // V1.5.5: TavernHelper 不返回 token 用量，这里用本地估算兜底
+        const estimatedPromptTokens = this.estimateTokens(
+            finalSystemPrompt + finalUserPrompt,
+        );
+        const estimatedCompletionTokens = this.estimateTokens(content);
+
         return {
             content: content || "",
             success: true,
