@@ -1,10 +1,6 @@
-import type {
-    PreprocessingConfig,
-    RegexRule,
-} from "@/config/types/data_processing";
+import type { RegexRule } from "@/config/types/data_processing";
 import type { EngramAPISettings } from "@/config/types/defaults";
-import { getBuiltInTemplateById } from "@/config/types/defaults";
-import type { PromptCategory, PromptTemplate } from "@/config/types/prompt";
+import type { PromptTemplate } from "@/config/types/prompt";
 import { Logger } from "@/logger/index.ts";
 
 export interface EngramSettings {
@@ -63,36 +59,12 @@ const defaultSettings: EngramSettings = Object.freeze({
  *
  * 使用 SillyTavern.getContext().extensionSettings API 进行持久化
  * 这是 ST 官方推荐的扩展设置存储方式
+ *
+ * 反应式订阅走 state/ 下的 zustand stores（configStore 等），
+ * 此处只承担读写 ST 持久化层的职责。
  */
 export class SettingsManager {
     private static readonly EXTENSION_NAME = "engram";
-    private static listeners = new Set<() => void>();
-
-    /**
-     * 订阅设置变更事件
-     * @param listener 回调函数
-     * @returns 取消订阅的函数
-     */
-    public static subscribe(listener: () => void): () => void {
-        this.listeners.add(listener);
-        return () => {
-            this.listeners.delete(listener);
-        };
-    }
-
-    private static notifyListeners(): void {
-        this.listeners.forEach((l) => {
-            try {
-                l();
-            } catch (error) {
-                Logger.warn(
-                    "SettingsManager",
-                    "Listener Execution Error",
-                    error,
-                );
-            }
-        });
-    }
 
     /**
      * 获取 SillyTavern context
@@ -129,10 +101,6 @@ export class SettingsManager {
         }
 
         return context.extensionSettings[this.EXTENSION_NAME];
-    }
-
-    private static getExtensionSettings(): EngramSettings {
-        return this.getSettings();
     }
 
     /**
@@ -185,7 +153,7 @@ export class SettingsManager {
     public static get<K extends keyof EngramSettings>(
         key: K,
     ): EngramSettings[K] {
-        const settings = this.getExtensionSettings();
+        const settings = this.getSettings();
         const value = settings[key];
         // 如果值不存在，返回默认值
         return value !== undefined ? value : defaultSettings[key];
@@ -222,9 +190,6 @@ export class SettingsManager {
             `Set ${String(key)} = ${JSON.stringify(value)}`,
         );
 
-        // 触发变更通知
-        this.notifyListeners();
-
         // 保存到服务器
         this.save();
     }
@@ -246,62 +211,6 @@ export class SettingsManager {
                 "saveSettingsDebounced not available",
             );
         }
-    }
-
-    /**
-     * Load settings from SillyTavern global state
-     * 兼容旧代码的接口
-     */
-    public static loadSettings(): EngramSettings {
-        return this.getExtensionSettings();
-    }
-
-    /**
-     * 获取指定分类下已启用的提示词模板
-     * @param category 模板分类
-     * @returns 启用的模板，如果没有则返回 null
-     */
-    public static getEnabledPromptTemplate(
-        category: PromptCategory,
-    ): PromptTemplate | null {
-        // 优先从 apiSettings.promptTemplates 读取（这是 useAPIPresets 保存的位置）
-        const apiSettings = this.get("apiSettings") as {
-            promptTemplates?: PromptTemplate[];
-        } | null;
-        const templates = apiSettings?.promptTemplates || [];
-        return templates.find((t: PromptTemplate) =>
-            t.category === category && t.enabled
-        ) || null;
-    }
-
-    /**
-     * 根据 ID 获取提示词模板
-     * @param id 模板 ID
-     * @returns 模板对象，如果未找到则返回 null
-     */
-    public static getPromptTemplateById(id: string): PromptTemplate | null {
-        const apiSettings = this.get("apiSettings") as {
-            promptTemplates?: PromptTemplate[];
-        } | null;
-        const templates = apiSettings?.promptTemplates || [];
-        // 尝试精确匹配 ID
-        const byId = templates.find((t: PromptTemplate) => t.id === id);
-        if (byId) return byId;
-
-        // Fallback: 尝试查找内置模板
-        const builtIn = getBuiltInTemplateById(id);
-        if (builtIn) {
-            // 注意：这里返回的内置模板可能没有用户覆盖的配置（如 enabled），
-            // 但如果它被 QuickPanel 选中为当前模板，说明用户意图是使用它。
-            // 它的 enabled 状态可能在 Settings 里没保存，但在运行时 context 下它是有效的。
-            return builtIn;
-        }
-
-        // 向下兼容：如果 ID 实际上是 category (旧版配置可能会这样)，尝试按分类查找启用的模板
-        // 这种情况主要发生在旧配置未完全迁移时
-        return templates.find((t: PromptTemplate) =>
-            t.category === id && t.enabled
-        ) || null;
     }
 
     /**
@@ -327,13 +236,5 @@ export class SettingsManager {
      */
     public static getRegexRules(): RegexRule[] {
         return this.get("regexRules") || [];
-    }
-
-    /**
-     * 设置正则规则列表
-     * @param rules 规则数组
-     */
-    public static setRegexRules(rules: RegexRule[]): void {
-        this.set("regexRules", rules);
     }
 }
