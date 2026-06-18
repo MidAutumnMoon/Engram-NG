@@ -6,6 +6,7 @@
  */
 
 import { NAV_ITEMS } from "@/constants/navigation";
+import { FloatingPanel } from "@/ui/components/overlay/FloatingPanel";
 import {
     BrainCircuit,
     Clapperboard,
@@ -113,65 +114,54 @@ export function QuickPanel({ isOpen, onClose }: QuickPanelProps) {
         ];
     }, []);
 
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-50 flex items-start justify-end p-4 pointer-events-none">
-            <div
-                className="pointer-events-auto w-72 max-h-[80vh] overflow-y-auto rounded-xl border border-border bg-card shadow-2xl p-4 space-y-3"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold">Engram 快捷面板</h3>
-                    <button
-                        onClick={onClose}
-                        className="text-muted-foreground hover:text-foreground text-xs"
-                    >
-                        关闭
-                    </button>
+        <FloatingPanel
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Engram 快捷面板"
+            width={300}
+            resizable={false}
+        >
+            <div className="space-y-2">
+                <div className="text-xs px-1 text-muted-foreground">
+                    快捷跳转
                 </div>
-
-                <div className="space-y-2">
-                    <div className="text-xs px-1 text-muted-foreground">
-                        快捷跳转
-                    </div>
-                    <div className="space-y-1 max-h-72 overflow-y-auto custom-scrollbar pr-1">
-                        {quickNavItems.map((item) => {
-                            const Icon = item.icon;
-                            return (
-                                <button
-                                    key={item.id}
-                                    onClick={() => handleNavigate(item.path)}
-                                    className="w-full flex items-center gap-3 p-2 rounded-md transition-all text-left bg-muted/30 border border-border hover:border-primary/40 hover:bg-primary/5"
-                                >
-                                    <Icon
-                                        size={16}
-                                        className="text-primary shrink-0"
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                        <div className="text-sm font-medium truncate">
-                                            {item.label}
-                                        </div>
-                                        <div className="text-xs text-muted-foreground truncate">
-                                            {item.description}
-                                        </div>
+                <div className="space-y-1 max-h-72 overflow-y-auto custom-scrollbar pr-1">
+                    {quickNavItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => handleNavigate(item.path)}
+                                className="w-full flex items-center gap-3 p-2 rounded-md transition-all text-left bg-muted/30 border border-border hover:border-primary/40 hover:bg-primary/5"
+                            >
+                                <Icon
+                                    size={16}
+                                    className="text-primary shrink-0"
+                                />
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-medium truncate">
+                                        {item.label}
                                     </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-                    <div
-                        className="text-xs text-center pt-2"
-                        style={{
-                            borderTop:
-                                "1px solid var(--border, rgba(255,255,255,0.1))",
-                            color: "var(--muted-foreground, #888)",
-                        }}
-                    >
-                        支持记住主页面与部分子标签路径
-                    </div>
+                                    <div className="text-xs text-muted-foreground truncate">
+                                        {item.description}
+                                    </div>
+                                </div>
+                            </button>
+                        );
+                    })}
+                </div>
+                <div
+                    className="text-xs text-center pt-2"
+                    style={{
+                        borderTop:
+                            "1px solid var(--border, rgba(255,255,255,0.1))",
+                        color: "var(--muted-foreground, #888)",
+                    }}
+                >
+                    支持记住主页面与部分子标签路径
                 </div>
             </div>
-        </div>
+        </FloatingPanel>
     );
 }

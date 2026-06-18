@@ -177,7 +177,7 @@ class SummarizerService {
      * 获取当前聊天 ID
      */
     private getCurrentChatId(): string | null {
-        const context = window.SillyTavern.getContext.();
+        const context = window.SillyTavern.getContext();
         return context?.chatId || null;
     }
 
