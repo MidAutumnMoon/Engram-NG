@@ -11,7 +11,7 @@ A SillyTavern third-party extension. Graph RAG memory system — extracts entiti
 - Use the `@/` alias for everything under `src/`.
 - This is a fork mid-refactor. Version strings and license fields are known-stale. Don't "fix" them unless asked.
 - Do not read files in `dist/` — it's generated build output, and on the `master` branch it is gitignored (untracked). Run `deno task build` to (re)generate it locally.
-- Take care when reading `vendor/` — third-party source may contain very large files. Check size first.
+- Take care when reading `vendor/` or grepping for texts — third-party source may contain very large files. Check size first and avoid grepping without guards.
 - New or edited imports must be non-sloppy: include the explicit file extension (`.ts` / `.tsx`), or `/index.ts` for barrels. Write `import { Logger } from "@/core/logger/index.ts"`, not `from "@/core/logger"`. Existing sloppy imports across the codebase will be cleaned up incrementally — don't mass-rewrite them, but don't add new ones.
 
 ## How to Work Here
