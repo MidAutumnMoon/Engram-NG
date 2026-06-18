@@ -45,22 +45,67 @@ After Phase 1 the import graph is smaller. Fix the remaining violations with **a
 - [x] Updated `RecallLog.tsx` to import from `@/logger/index.ts`.
 - [x] Deleted `src/ui/views/dev-log/types.ts` — after the move its only remaining contents were the dead `RecallLogStore` interface and `DEFAULT_RECALL_LOG_STORE` const (unused leftovers from the V0.9.13 RecallLogger facade refactor; zero external references).
 
-### 2.2 Stop `modules/` from Reaching into `state/memoryStore.ts`
+### 2.2 + 2.4 — Merged Pass: `memoryStore` and `SettingsManager` Isolation
 
-**Rule:** `useMemoryStore.getState()` must not be called inside `modules/`.
+**Done together, not sequenced.** Both concerns share the same files (`Summarizer.ts`, `EntityExtractor.ts`, `EventTrimmer.ts`, `ApplyTrim.ts`) and the same lifecycle moment. Splitting them means opening each file twice and risking a half-migrated state. 2.2 establishes what `setChatContext()` looks like; 2.4 establishes what `init(config)` looks like — a single pass gets both right.
 
-**Architectural call:** after this, `state/memoryStore.ts` becomes a UI-only convenience wrapper. `modules/` and `data/` talk to Dexie directly via `getDbForChat(chatId)` / `tryGetDbForChat(chatId)`. Don't preserve the store as an intermediary — that re-introduces the coupling this phase removes.
+#### Rules
 
-**Singleton lifecycle pattern:** `summarizerService`, `entityBuilder`, `eventTrimmer` are module-level singletons. Don't thread `chatId` / `db` through every method call. Instead:
-- Each singleton gains an `init({ chatId, db })` (or equivalent) method.
-- `bootstrap.ts` resolves the current chat on startup and on `CHAT_CHANGED`, then calls `init()` on each service.
-- Methods read state from the resolved handle, not from `useMemoryStore.getState()`.
+- **2.2 rule:** `useMemoryStore.getState()` must not be called inside `modules/`.
+- **2.4 rule:** `SettingsManager.get()` must not be called inside `modules/` or `data/`.
 
-- [ ] `Summarizer.ts`: remove `useMemoryStore` import; replace the `setLastSummarizedFloor` store call with a direct `chatManager`/`db` write.
-- [ ] `EntityExtractor.ts`: remove `useMemoryStore` import; `saveRawEntities`, `checkAndArchiveEntities`, `getStatus` take `db` (or use the resolved handle).
-- [ ] `EventTrimmer.ts`: remove `useMemoryStore` import (both static and the dynamic `import("@/state/memoryStore")` inside `getStatus`); use `db` directly.
-- [ ] Workflow steps (`SaveEvent.ts`, `ApplyTrim.ts`, `FetchExistingEntities.ts`, `FetchEventsToTrim.ts`, `SaveEntity.ts`): receive `chatId` via `JobContext`, fetch `db` via `getDbForChat(chatId)` inside the step.
-- [ ] `MacroService` / `chatHistory.ts`: if they need memory data, accept it as parameters from the caller.
+#### Architectural call
+
+After this, `state/memoryStore.ts` becomes a UI-only convenience wrapper. `modules/` and `data/` talk to Dexie directly via `getDbForChat(chatId)` / `tryGetDbForChat(chatId)`. Don't preserve the store as an intermediary — that re-introduces the coupling this phase removes.
+
+#### Singleton lifecycle contract
+
+`summarizerService`, `entityBuilder`, `eventTrimmer` are module-level singletons. Config and chat context change at different cadences, so they get separate entry points:
+
+```ts
+// Called once at startup (and when user edits settings).
+// Replaces constructor-time SettingsManager reads.
+service.init(config: ServiceConfig): void
+
+// Called at startup and on every CHAT_CHANGED.
+// Replaces useMemoryStore.getState() reads.
+service.setChatContext({ chatId: string, db: ChatDatabase }): void
+```
+
+`bootstrap.ts` owns both calls: it reads `SettingsManager` once to build the config objects, resolves the current chat to build the context, and dispatches. On `CHAT_CHANGED` it calls only `setChatContext()` on each service.
+
+#### Step ordering
+
+Natural stopping points exist after each step — the app should build and run at each.
+
+- [ ] **A. Design `init()` + `setChatContext()` contract.** Decide the exact signatures; add the methods to all three services as no-ops (or thin wrappers around current behavior) so the rest of the pass has a target.
+- [ ] **B. `EventTrimmer.ts`** — smallest service, no event lifecycle, good test case. Remove both `useMemoryStore` (static + dynamic import in `getStatus`) and `SettingsManager.getSummarizerSettings()` in `getStoredConfig()`. Take `db` and `trimConfig` from the resolved context.
+- [ ] **C. `Summarizer.ts` + `EntityExtractor.ts`** — larger, have start/stop, cross-reference each other (Summarizer → `entityBuilder.extractByRange`, Summarizer → `eventTrimmer.trim`). Remove `SettingsManager.get()` in constructor + `triggerSummary`, `SettingsManager.set()` in `updateConfig`, and `useMemoryStore.getState()` in `setLastSummarizedFloor`. `setLastSummarizedFloor` writes directly to `chatManager` / `db`.
+- [ ] **D. Workflow steps.** Per-step; each step resolves what it needs from `JobContext`:
+  - `SaveEvent.ts`, `FetchExistingEntities.ts`, `FetchEventsToTrim.ts`, `SaveEntity.ts` — pure 2.2: `useMemoryStore.getState()` → `getDbForChat(context.chatId)`.
+  - `VectorRetrieveStep.ts`, `KeywordRetrieveStep.ts` — pure 2.4: `SettingsManager.get("apiSettings")` → read from `context.config` (set at workflow construction).
+  - `ApplyTrim.ts` — both: remove `useMemoryStore`, `SettingsManager`, and `notificationService.*` (the last is 2.3 scope but cheap to do here since the file is open).
+- [ ] **E. `bootstrap.ts` wiring.** Load all configs once (see snippet below), resolve chat on startup, subscribe to `CHAT_CHANGED`, dispatch `init()` + `setChatContext()` to each service. Inject `recallConfig` / `vectorConfig` into `createRetrievalWorkflow({ recallConfig, vectorConfig })`.
+- [ ] **F. (Deferrable) UI hooks write-side.** Today `service.updateConfig()` internally calls `SettingsManager.set()`. The consistent pattern is: UI hooks own persistence (`SettingsManager.set` / `configStore`), `service.updateConfig()` becomes in-memory only. This ripples into `useSummarizerConfig.ts`, `useDashboardData.ts`, `EntityConfigPanel.tsx`. **Can stop at E** and defer this — it's a clean boundary.
+
+#### bootstrap.ts config snippet (for step E)
+
+```ts
+const summarizerConfig = SettingsManager.getSummarizerSettings();
+const entityConfig = SettingsManager.get("apiSettings")?.entityExtractConfig;
+const recallConfig = SettingsManager.get("apiSettings")?.recallConfig;
+const vectorConfig = SettingsManager.get("apiSettings")?.vectorConfig;
+// ...
+```
+
+#### After this pass, `SettingsManager` lives only in:
+- `bootstrap.ts` (read initial state, dispatch to services)
+- `configStore.ts` / UI hooks (persist changes)
+- Integration adapters (if they must read ST extension settings)
+
+#### Other consumers
+
+- [ ] `MacroService` / `chatHistory.ts`: if they need memory data, accept it as parameters from the caller (2.2). `chatHistory.ts` already reads `SettingsManager` and `useMemoryStore` — fold into step C or D.
 
 ### 2.3 Stop `modules/` from Calling `notificationService`
 
@@ -70,28 +115,6 @@ After Phase 1 the import graph is smaller. Fix the remaining violations with **a
 - [ ] `EntityExtractor.ts`: remove toast calls. Return `EntityBuildResult`.
 - [ ] `SaveEvent.ts`, `ApplyTrim.ts`: remove any direct `notificationService` calls.
 - [ ] `CharacterCleanup.ts`: remove toast calls. Return `{ deleted: number }`.
-
-### 2.4 Stop Deep `SettingsManager` Imports in Modules
-
-**Rule:** `SettingsManager.get()` must not be called inside `modules/` or `data/`.
-
-**Pattern:** same singleton-lifecycle approach as 2.2 — `bootstrap.ts` reads each config once and calls `service.init(cfg)`. For workflow steps that need per-run config (`VectorRetrieveStep`, `KeywordRetrieveStep`, `ApplyTrim`), put the config object into `JobContext.config` at workflow construction time; the step reads `context.config`, not `SettingsManager`.
-
-- [ ] In `bootstrap.ts`, load all required configs once:
-  ```ts
-  const summarizerConfig = SettingsManager.getSummarizerSettings();
-  const entityConfig = SettingsManager.get("apiSettings")?.entityExtractConfig;
-  const recallConfig = SettingsManager.get("apiSettings")?.recallConfig;
-  const vectorConfig = SettingsManager.get("apiSettings")?.vectorConfig;
-  // ...
-  ```
-- [ ] Pass these plain objects into `service.init(cfg)` calls and into workflow builders (e.g. `createRetrievalWorkflow({ recallConfig, vectorConfig })`).
-- [ ] Remove `SettingsManager` imports from `Summarizer.ts`, `EntityExtractor.ts`, `EventTrimmer.ts`, `VectorRetrieveStep.ts`, `KeywordRetrieveStep.ts`, `ApplyTrim.ts`.
-- [ ] Note: `EventTrimmer.getStoredConfig()` currently calls `SettingsManager.getSummarizerSettings()?.trimConfig` on every `getEffectiveConfig()` — this becomes the injected `trimConfig`.
-- [ ] Keep `SettingsManager` only in:
-  - `bootstrap.ts` (read initial state, dispatch to services)
-  - `configStore.ts` / UI hooks (persist changes)
-  - Integration adapters (if they must read ST extension settings)
 
 ### 2.5 Remove `EventBus.UI_NAVIGATE_REQUEST`
 
@@ -191,13 +214,12 @@ Don't fix these as a side-effect of Phase 2 work; call them out in review instea
 
 1. **Phase 1.1 – 1.4** (Deletes) — mechanical, reduces file count immediately. ✅ Done.
 2. **Phase 1.5 – 1.7** (Demotes & strips) — removes active dependencies on kept-for-reference code. ✅ Done.
-3. **Phase 2.1** (Logger types) — trivial, good warm-up.
-4. **Phase 2.4** (SettingsManager isolation) — establishes the `service.init(cfg)` pattern that 2.2 also uses. Do this **before** 2.2.
-5. **Phase 2.2** (memoryStore isolation) — medium, repetitive; builds on 2.4's pattern.
-6. **Phase 2.3** (notificationService removal) — medium, repetitive.
-7. **Phase 2.5 – 2.6** (EventBus cleanup, data layer isolation) — 2.6 is a focused task of its own.
-8. **Phase 2.7** (state/ → integrations/ cleanup) — required before 3.2's guard can be enabled.
-9. **Phase 3** (Documentation + guard) — final guardrail.
+3. **Phase 2.1** (Logger types) — trivial, good warm-up. ✅ Done.
+4. **Phase 2.2 + 2.4 merged** (`memoryStore` + `SettingsManager` isolation) — see unified pass. Steps A–E; step F (UI write-side) deferrable.
+5. **Phase 2.3** (notificationService removal) — medium, repetitive. Note: `ApplyTrim.ts` already done as part of step D above.
+6. **Phase 2.5 – 2.6** (EventBus cleanup, data layer isolation) — 2.6 is a focused task of its own.
+7. **Phase 2.7** (state/ → integrations/ cleanup) — required before 3.2's guard can be enabled.
+8. **Phase 3** (Documentation + guard) — final guardrail.
 
 ---
 
