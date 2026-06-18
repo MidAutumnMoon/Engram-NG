@@ -25,7 +25,6 @@ export class CharacterDeleteService {
 
             // 监听角色删除事件
             if (context.event_types.CHARACTER_DELETED) {
-                // @ts-expect-error
                 context.eventSource.on(
                     context.event_types.CHARACTER_DELETED,
                     this.onCharacterDeleted.bind(this),
@@ -38,7 +37,6 @@ export class CharacterDeleteService {
 
             // 监听聊天删除事件
             if (context.event_types.CHAT_DELETED) {
-                // @ts-expect-error
                 context.eventSource.on(
                     context.event_types.CHAT_DELETED,
                     this.onChatDeleted.bind(this),
@@ -48,7 +46,6 @@ export class CharacterDeleteService {
 
             // 监听群聊删除事件
             if (context.event_types.GROUP_CHAT_DELETED) {
-                // @ts-expect-error
                 context.eventSource.on(
                     context.event_types.GROUP_CHAT_DELETED,
                     this.onChatDeleted.bind(this),

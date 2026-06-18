@@ -5,8 +5,8 @@
  * 用于快捷导航到各功能页面
  */
 
-import { NAV_ITEMS } from "@/ui/navigation";
-import { FloatingPanel } from "@/ui/components/overlay/FloatingPanel";
+import { NAV_ITEMS } from "@/ui/navigation.ts";
+import { FloatingPanel } from "@/ui/components/overlay/FloatingPanel.tsx";
 import {
     BrainCircuit,
     Clapperboard,
@@ -87,8 +87,8 @@ export function QuickPanel({ isOpen, onClose }: QuickPanelProps) {
         import("@/sillytavern").then(({ openMainPanel }) => {
             openMainPanel();
         }).finally(() => {
-            window.setTimeout(() => {
-                window.dispatchEvent(
+            globalThis.setTimeout(() => {
+                globalThis.dispatchEvent(
                     new CustomEvent("engram:navigate", { detail: path }),
                 );
             }, 0);
