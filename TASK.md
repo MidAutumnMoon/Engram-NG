@@ -29,7 +29,7 @@
 - [x] Remove the entire "预处理修订模式" section from `src/ui/views/settings/tabs/FeaturesTab.tsx`
 - [x] Keep `ExtractTags`, `CleanRegex`, `ParseJson`, `TextProcessor`, `RegexProcessor` — they are reused by other workflows.
 
-### 1.3 Delete Batch Processor & Engine
+### 1.3 Delete Batch Processor & Engine ✅ Done
 
 **Rationale:** History backfill and text import are nice-to-have onboarding features, but they add `BatchProcessor`, `BatchEngine`, `HistoryTask`, `ImportTextTask`, and a full UI panel.
 
@@ -38,7 +38,7 @@
 - [x] Remove `batch` tab from `ProcessingView.tsx` and its `MAIN_TABS` / `TAB_INFO`
 - [x] Delete `src/ui/hooks/useWorkflow.ts` (only consumed by BatchProcessingPanel)
 
-### 1.4 Delete Global Search, Command Palette, Theme Manager
+### 1.4 Delete Global Search, Command Palette, Theme Manager ✅ Done
 
 **Rationale:** Command palette inside a SillyTavern extension panel is over-engineered. Theme management and glass effects are also non-essential. QuickPanel is kept for its navigation utility, but its preprocessing tab is stripped.
 
@@ -59,7 +59,7 @@
 - [x] Delete `src/state/themeStore.ts` and `src/state/index.ts` (depended on ThemeManager)
 - [x] Remove `CommandPalette` from `src/ui/shell/Header.tsx` and `src/ui/shell/MainLayout.tsx`
 
-### 1.5 Remove BrainRecallStep from Active Retrieval Workflow
+### 1.5 Remove BrainRecallStep from Active Retrieval Workflow ✅ Done
 
 **Rationale:** BrainRecallCache is kept for future review, but it is not used. Do not run dead code in the hot path.
 
