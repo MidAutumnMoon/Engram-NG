@@ -6,7 +6,6 @@
  *
  * 触发源：
  * - ST QR 栏按钮 (ui.tsx)
- * - 键盘快捷键 (KeyboardManager via bridge.ts)
  * - Header 中的搜索按钮 (CommandPalette)
  */
 import { create } from "zustand";

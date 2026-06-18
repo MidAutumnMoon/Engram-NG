@@ -14,7 +14,6 @@ export enum LogModule {
     SYSTEM = "System",
     EVENTS = "System/Events",
     LOGGER = "Logger",
-    KEYBOARD = "KeyboardManager",
 
     // ===== SillyTavern Bridge =====
     STBRIDGE = "STBridge",

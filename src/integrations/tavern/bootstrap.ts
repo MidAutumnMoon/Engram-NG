@@ -8,7 +8,7 @@
 
 import { Logger } from "@/logger/index.ts";
 import { SettingsManager } from "@/config/settings.ts";
-import { setupKeyboardShortcuts } from "@/ui/services/KeyboardManager.ts";
+
 import { regexProcessor } from "@/modules/workflow/steps/processing/RegexProcessor.ts";
 import { ThemeManager } from "@/ui/services/ThemeManager.ts";
 import { useUiStore } from "@/state/uiStore.ts";
@@ -157,21 +157,6 @@ export async function initializeEngram(): Promise<void> {
                 error: String(error),
             });
         }
-    }
-
-    // 8. 键盘快捷键 (所有依赖均已就位)
-    try {
-        const ui = useUiStore.getState();
-        setupKeyboardShortcuts({
-            toggleMainPanel,
-            toggleQuickPanel: ui.toggleQuickPanel,
-            openCommandPalette: ui.openCommandPalette,
-        });
-        Logger.info("STBridge", "键盘快捷键初始化完成");
-    } catch (error) {
-        Logger.warn("STBridge", "键盘快捷键初始化失败", {
-            error: String(error),
-        });
     }
 
     Logger.success(

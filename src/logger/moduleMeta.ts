@@ -19,7 +19,6 @@ import {
     Filter,
     GitBranch,
     Inbox,
-    KeyRound,
     Layers,
     Link as LinkIcon,
     type LucideIcon,
@@ -60,7 +59,6 @@ export const MODULE_META: Record<LogModule, ModuleMeta> = {
     [LogModule.SYSTEM]: { icon: Terminal, domain: "System" },
     [LogModule.EVENTS]: { icon: GitBranch, domain: "System" },
     [LogModule.LOGGER]: { icon: FileText, domain: "System" },
-    [LogModule.KEYBOARD]: { icon: KeyRound, domain: "System" },
 
     // ===== 集成层 =====
     [LogModule.STBRIDGE]: { icon: LinkIcon, domain: "Integration" },
