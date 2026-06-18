@@ -10,8 +10,6 @@ import { Logger } from "@/logger/index.ts";
 import { SettingsManager } from "@/config/settings.ts";
 
 import { regexProcessor } from "@/modules/workflow/steps/processing/RegexProcessor.ts";
-import { ThemeManager } from "@/ui/services/ThemeManager.ts";
-import { useUiStore } from "@/state/uiStore.ts";
 import {
     createTopBarButton,
     initQuickPanelButton,
@@ -133,7 +131,6 @@ export async function initializeEngram(): Promise<void> {
 
     // 5. UI 骨架 (DOM 注入，不拉 React)
     createTopBarButton();
-    ThemeManager.init();
     initQuickPanelButton();
 
     // 6. React 全局悬浮层 (内部通过动态 import 懒加载 GlobalOverlay)

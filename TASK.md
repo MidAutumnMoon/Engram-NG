@@ -42,20 +42,22 @@
 
 **Rationale:** Command palette inside a SillyTavern extension panel is over-engineered. Theme management and glass effects are also non-essential. QuickPanel is kept for its navigation utility, but its preprocessing tab is stripped.
 
-- [ ] Keep `src/ui/panels/QuickPanel.tsx` — remove the "preprocess" tab and all preprocessing-related state/logic (templateId selection, preprocessingConfig sync, etc.). Keep only the "navigate" quick links.
-- [ ] Delete `src/ui/components/overlay/CommandPalette.tsx`
-- [ ] Delete `src/modules/search/` (SearchService.ts + adapters/)
-- [ ] Simplify `src/state/uiStore.ts` — remove `commandPaletteOpen` and related actions. Keep `quickPanelOpen` since QuickPanel is retained.
-- [ ] Delete `src/ui/services/ThemeManager.ts`
-- [ ] Delete `src/ui/views/settings/components/ThemeSelector.tsx`
-- [ ] Delete `src/ui/views/settings/tabs/AppearanceTab.tsx` — it only contains ThemeSelector and Glass Settings
-- [ ] In `src/ui/views/settings/index.tsx`, remove the `AppearanceTab` tab; keep only `FeaturesTab` and `DataTab`
-- [ ] In `src/ui/overlay/GlobalOverlay.tsx`, remove `CommandPalette` and `useUiStore` imports if no longer needed; keep `QuickPanel` and `ReviewContainer`
-- [ ] Keep `initQuickPanelButton` in `src/integrations/tavern/bootstrap.ts` (QuickPanel stays)
-- [ ] Remove `ThemeManager.init()` from `src/integrations/tavern/bootstrap.ts`
-- [ ] Remove glass settings from `EngramSettings` in `src/config/settings.ts`
-- [ ] Remove `preprocessingConfig` and `glassSettings` from `ConfigState` in `src/state/configStore.ts`, and remove the corresponding `debouncedSave` lines
-- [ ] Delete `src/ui/styles/themes/` directory (or keep a single default CSS file if the build requires it)
+- [x] Keep `src/ui/panels/QuickPanel.tsx` — remove the "preprocess" tab and all preprocessing-related state/logic (templateId selection, preprocessingConfig sync, etc.). Keep only the "navigate" quick links.
+- [x] Delete `src/ui/components/overlay/CommandPalette.tsx`
+- [x] Delete `src/modules/search/` (SearchService.ts + adapters/)
+- [x] Simplify `src/state/uiStore.ts` — remove `commandPaletteOpen` and related actions. Keep `quickPanelOpen` since QuickPanel is retained.
+- [x] Delete `src/ui/services/ThemeManager.ts`
+- [x] Delete `src/ui/views/settings/components/ThemeSelector.tsx`
+- [x] Delete `src/ui/views/settings/tabs/AppearanceTab.tsx` — it only contains ThemeSelector and Glass Settings
+- [x] In `src/ui/views/settings/index.tsx`, remove the `AppearanceTab` tab; keep only `FeaturesTab` and `DataTab`
+- [x] In `src/ui/overlay/GlobalOverlay.tsx`, remove `CommandPalette` and `useUiStore` imports if no longer needed; keep `QuickPanel` and `ReviewContainer`
+- [x] Keep `initQuickPanelButton` in `src/integrations/tavern/bootstrap.ts` (QuickPanel stays)
+- [x] Remove `ThemeManager.init()` from `src/integrations/tavern/bootstrap.ts`
+- [x] Remove glass settings from `EngramSettings` in `src/config/settings.ts`
+- [x] Remove `preprocessingConfig` and `glassSettings` from `ConfigState` in `src/state/configStore.ts`, and remove the corresponding `debouncedSave` lines
+- [x] Delete `src/ui/styles/themes/` directory (did not exist)
+- [x] Delete `src/state/themeStore.ts` and `src/state/index.ts` (depended on ThemeManager)
+- [x] Remove `CommandPalette` from `src/ui/shell/Header.tsx` and `src/ui/shell/MainLayout.tsx`
 
 ### 1.5 Remove BrainRecallStep from Active Retrieval Workflow
 

@@ -49,8 +49,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                             setIsMobileMenuOpen(!isMobileMenuOpen)}
                         isMobile={false}
                         onClose={onClose}
-                        onNavigate={(path) =>
-                            setActiveTab(path.replace("/", ""))}
                     />
                 </div>
 

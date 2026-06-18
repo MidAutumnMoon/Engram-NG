@@ -34,10 +34,8 @@ const debouncedSave = (state: ConfigState) => {
         // 直接更新 SettingsManager
         SettingsManager.set("apiSettings", newApiSettings as any);
         SettingsManager.set("summarizerConfig", state.summarizerConfig);
-        SettingsManager.set("preprocessingConfig", state.preprocessingConfig);
         SettingsManager.set("globalPreviewEnabled", state.globalPreviewEnabled);
         SettingsManager.set("linkedDeletion", state.linkedDeletion);
-        SettingsManager.set("glassSettings", state.glassSettings);
         SettingsManager.set("syncConfig", state.syncConfig);
     }, 500);
 };
@@ -55,9 +53,7 @@ export interface ConfigState {
     // UI & Settings
     summarizerConfig: EngramSettings["summarizerConfig"];
     globalPreviewEnabled: boolean;
-    preprocessingConfig: EngramSettings["preprocessingConfig"];
     linkedDeletion: EngramSettings["linkedDeletion"];
-    glassSettings: EngramSettings["glassSettings"];
     syncConfig: EngramSettings["syncConfig"];
 
     // Legacy manual updates & status
@@ -124,8 +120,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
             floorInterval: 10,
             keepRecentCount: 5,
         },
-    glassSettings: globalSettings.glassSettings ||
-        { enabled: true, opacity: 0.3, blur: 10 },
     globalPreviewEnabled: globalSettings.globalPreviewEnabled ?? true,
 
     hasChanges: false,
@@ -137,7 +131,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
             deleteIndexedDB: false,
             showConfirmation: true,
         },
-    preprocessingConfig: globalSettings.preprocessingConfig || null,
     recallConfig: savedContext.recallConfig || defaults.recallConfig!,
     regexConfig: savedContext.regexConfig || defaults.regexConfig!,
     rerankConfig: savedContext.rerankConfig || defaults.rerankConfig!,

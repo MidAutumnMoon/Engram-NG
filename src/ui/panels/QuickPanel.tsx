@@ -2,39 +2,20 @@
  * QuickPanel - V0.8 快捷面板组件
  *
  * 独立于主面板的可拖拽悬浮面板
- * 用于快捷切换预处理模式、查看 RAG 状态等
- *
- * 注意：预置的模式只是 UI 占位，需要用户在 API 配置 → 提示词模板中
- * 创建对应分类的模板并启用才能生效。
+ * 用于快捷导航到各功能页面
  */
 
-/**
- * QuickPanel - V0.8 快捷面板组件
- *
- * 独立于主面板的可拖拽悬浮面板
- * 用于快捷切换预处理模式、查看 RAG 状态等
- */
-
-import { SettingsManager } from "@/config/settings";
 import { NAV_ITEMS } from "@/constants/navigation";
-import { Logger } from "@/logger";
-import type { PreprocessingConfig } from "@/config/types/data_processing";
-import { DEFAULT_PREPROCESSING_CONFIG } from "@/config/types/data_processing";
-import { Switch } from "@/ui/components/core/Switch";
-import { FloatingPanel } from "@/ui/components/overlay/FloatingPanel";
 import {
-    AlertCircle,
     BrainCircuit,
     Clapperboard,
     FileCog,
     FolderOpen,
-    type LucideIcon,
-    Paintbrush,
     Search,
     Settings2,
     Wand2,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 
 interface QuickPanelProps {
     isOpen: boolean;
@@ -101,141 +82,6 @@ const NAV_QUICK_LINKS = [
 ] as const;
 
 export function QuickPanel({ isOpen, onClose }: QuickPanelProps) {
-    const [panelTab, setPanelTab] = useState<"preprocess" | "navigate">(
-        "preprocess",
-    );
-    const [config, setConfig] = useState<PreprocessingConfig>(
-        SettingsManager.get("preprocessingConfig") ||
-            DEFAULT_PREPROCESSING_CONFIG,
-    );
-    const [recallConfig, setRecallConfig] = useState<any>(
-        SettingsManager.get("apiSettings")?.recallConfig || {},
-    );
-    const [templates, setTemplates] = useState<any[]>(
-        SettingsManager.get("apiSettings")?.promptTemplates || [],
-    );
-
-    // 计算当前的启用状态
-    const isIdsEnabled = config.enabled &&
-        (recallConfig?.usePreprocessing ?? false);
-
-    // 内置预处理模板的专属图标映射
-    const BUILTIN_ICON_MAP: Record<string, LucideIcon> = {
-        builtin_agentic_recall: BrainCircuit,
-        builtin_description_enhance: Paintbrush,
-        builtin_plot_director: Clapperboard,
-        builtin_query_enhance: Search,
-    };
-
-    const availableModes = useMemo(() =>
-        templates
-            .filter((t: any) => t.category === "preprocessing")
-            .map((t: any) => ({
-                id: t.id,
-                name: t.name,
-                description:
-                    t.userPromptTemplate.slice(0, 30).replace(/\n/g, " ") +
-                    "...",
-                icon: BUILTIN_ICON_MAP[t.id] || Wand2,
-            })), [templates]);
-
-    // 使用事件订阅替代轮询同步配置机制
-    useEffect(() => {
-        if (!isOpen) return;
-
-        const syncData = () => {
-            // 1. Preprocessing Config
-            const newPre = SettingsManager.get("preprocessingConfig") ||
-                DEFAULT_PREPROCESSING_CONFIG;
-            setConfig((
-                prev,
-            ) => (JSON.stringify(prev) !== JSON.stringify(newPre)
-                ? newPre
-                : prev)
-            );
-
-            // 2. Recall Config & Templates
-            const apiSettings = SettingsManager.get("apiSettings");
-            if (apiSettings) {
-                const newRecall = apiSettings.recallConfig || {};
-                setRecallConfig((
-                    prev: any,
-                ) => (JSON.stringify(prev) !== JSON.stringify(newRecall)
-                    ? newRecall
-                    : prev)
-                );
-
-                const newTemplates = apiSettings.promptTemplates || [];
-                setTemplates((prev) =>
-                    newTemplates.length !== prev.length ? newTemplates : prev
-                );
-            }
-        };
-
-        syncData(); // 初始化读取
-
-        // 订阅设置更改事件
-        const unsubscribe = SettingsManager.subscribe(syncData);
-
-        return () => {
-            unsubscribe();
-        };
-    }, [isOpen]);
-
-    // 切换启用状态
-    const handleToggle = useCallback(() => {
-        const currentRecallState = recallConfig?.usePreprocessing ?? false;
-        const newState = !currentRecallState;
-
-        Logger.debug("QuickPanel", "切换预处理状态", {
-            from: currentRecallState,
-            to: newState,
-        });
-
-        // 读取最新设置以防覆盖
-        const apiSettings = SettingsManager.get("apiSettings");
-        if (apiSettings && apiSettings.recallConfig) {
-            const newRecallConfig = {
-                ...apiSettings.recallConfig,
-                usePreprocessing: newState,
-            };
-            SettingsManager.set("apiSettings", {
-                ...apiSettings,
-                recallConfig: newRecallConfig,
-            } as any);
-        }
-
-        // 更新 Preprocessor Config
-        const newPreConfig = { ...config, enabled: newState };
-        setConfig(newPreConfig);
-        SettingsManager.set("preprocessingConfig", newPreConfig);
-    }, [config, recallConfig]);
-
-    // 切换模式
-    const handleModeChange = useCallback((templateId: string) => {
-        Logger.debug("QuickPanel", "切换预处理模式", { templateId });
-
-        // 1. 更新 Preprocessor Config
-        const newPreConfig = { ...config, templateId, enabled: true };
-        setConfig(newPreConfig);
-        SettingsManager.set("preprocessingConfig", newPreConfig);
-
-        // 2. 确保全局 Recall Config 也是开启的
-        const apiSettings = SettingsManager.get("apiSettings");
-        if (apiSettings && apiSettings.recallConfig) {
-            if (!apiSettings.recallConfig.usePreprocessing) {
-                const newRecallConfig = {
-                    ...apiSettings.recallConfig,
-                    usePreprocessing: true,
-                };
-                SettingsManager.set("apiSettings", {
-                    ...apiSettings,
-                    recallConfig: newRecallConfig,
-                } as any);
-            }
-        }
-    }, [config]);
-
     const handleNavigate = useCallback((path: string) => {
         import("@/integrations/tavern").then(({ openMainPanel }) => {
             openMainPanel();
@@ -267,270 +113,65 @@ export function QuickPanel({ isOpen, onClose }: QuickPanelProps) {
         ];
     }, []);
 
-    // 如果当前选中的模板不在可用列表中（除了默认或未设置），给个提示
-    const isCurrentTemplateValid = !config.templateId ||
-        availableModes.some((m) => m.id === config.templateId);
+    if (!isOpen) return null;
 
     return (
-        <FloatingPanel
-            isOpen={isOpen}
-            onClose={onClose}
-            title="Engram 快捷面板"
-            width={300}
-        >
-            <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
+        <div className="fixed inset-0 z-50 flex items-start justify-end p-4 pointer-events-none">
+            <div
+                className="pointer-events-auto w-72 max-h-[80vh] overflow-y-auto rounded-xl border border-border bg-card shadow-2xl p-4 space-y-3"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold">Engram 快捷面板</h3>
                     <button
-                        onClick={() => setPanelTab("preprocess")}
-                        className={`rounded-md px-3 py-2 text-sm transition-colors ${
-                            panelTab === "preprocess"
-                                ? "bg-primary/15 text-primary border border-primary/40"
-                                : "bg-muted/30 text-muted-foreground border border-border"
-                        }`}
+                        onClick={onClose}
+                        className="text-muted-foreground hover:text-foreground text-xs"
                     >
-                        预处理
-                    </button>
-                    <button
-                        onClick={() => setPanelTab("navigate")}
-                        className={`rounded-md px-3 py-2 text-sm transition-colors ${
-                            panelTab === "navigate"
-                                ? "bg-primary/15 text-primary border border-primary/40"
-                                : "bg-muted/30 text-muted-foreground border border-border"
-                        }`}
-                    >
-                        导航
+                        关闭
                     </button>
                 </div>
 
-                {panelTab === "preprocess" && (
-                    <>
-                        <div
-                            className="flex items-center justify-between p-2 rounded-md"
-                            style={{
-                                backgroundColor:
-                                    "var(--surface, rgba(255,255,255,0.05))",
-                                border:
-                                    "1px solid var(--border, rgba(255,255,255,0.1))",
-                            }}
-                        >
-                            <div className="flex items-center gap-2">
-                                <Search
-                                    size={14}
-                                    style={{ color: "var(--primary, #ef7357)" }}
-                                />
-                                <span className="text-sm font-medium">
-                                    输入预处理
-                                </span>
-                            </div>
-                            <Switch
-                                checked={recallConfig?.usePreprocessing ??
-                                    config.enabled}
-                                onChange={handleToggle}
-                            />
-                        </div>
-
-                        {(recallConfig?.usePreprocessing ?? config.enabled) && (
-                            <div
-                                className="flex items-center justify-between p-2 rounded-md"
-                                style={{
-                                    backgroundColor:
-                                        "var(--surface, rgba(255,255,255,0.05))",
-                                    border:
-                                        "1px solid var(--border, rgba(255,255,255,0.1))",
-                                }}
-                            >
-                                <div className="flex items-center gap-2 pl-2">
-                                    <span className="text-xs text-muted-foreground">
-                                        预览修订
-                                    </span>
-                                </div>
-                                <Switch
-                                    checked={config.preview}
-                                    onChange={() => {
-                                        const newConfig = {
-                                            ...config,
-                                            preview: !config.preview,
-                                        };
-                                        setConfig(newConfig);
-                                        import("@/config/settings").then(
-                                            ({ SettingsManager }) => {
-                                                SettingsManager.set(
-                                                    "preprocessingConfig",
-                                                    newConfig,
-                                                );
-                                            },
-                                        );
-                                    }}
-                                />
-                            </div>
-                        )}
-
-                        {(recallConfig?.usePreprocessing ?? config.enabled) && (
-                            <div className="space-y-2">
-                                <div
-                                    className="text-xs px-1"
-                                    style={{
-                                        color: "var(--muted-foreground, #888)",
-                                    }}
-                                >
-                                    预处理模式
-                                </div>
-
-                                {availableModes.length === 0
-                                    ? (
-                                        <div
-                                            className="flex items-start gap-2 p-2 rounded-md text-xs mt-2"
-                                            style={{
-                                                backgroundColor:
-                                                    "rgba(var(--primary-rgb, 239,115,87), 0.1)",
-                                                border:
-                                                    "1px solid rgba(var(--primary-rgb, 239,115,87), 0.3)",
-                                                color:
-                                                    "var(--muted-foreground, #888)",
-                                            }}
-                                        >
-                                            <AlertCircle
-                                                size={14}
-                                                style={{
-                                                    color:
-                                                        "var(--primary, #ef7357)",
-                                                    flexShrink: 0,
-                                                    marginTop: 2,
-                                                }}
-                                            />
-                                            <span>
-                                                暂无预处理模板。请前往 API 配置
-                                                → 提示词模板中创建
-                                                'preprocessing' 类别的模板。
-                                            </span>
-                                        </div>
-                                    )
-                                    : (
-                                        <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-                                            {availableModes.map((mode) => {
-                                                const Icon = mode.icon;
-                                                const isSelected =
-                                                    config.templateId ===
-                                                        mode.id;
-                                                return (
-                                                    <button
-                                                        key={mode.id}
-                                                        onClick={() =>
-                                                            handleModeChange(
-                                                                mode.id,
-                                                            )}
-                                                        className="w-full flex items-center gap-3 p-2 rounded-md transition-all text-left"
-                                                        style={{
-                                                            backgroundColor:
-                                                                isSelected
-                                                                    ? "rgba(var(--primary-rgb, 239,115,87), 0.15)"
-                                                                    : "var(--surface, rgba(255,255,255,0.05))",
-                                                            border: isSelected
-                                                                ? "1px solid var(--primary, #ef7357)"
-                                                                : "1px solid var(--border, rgba(255,255,255,0.1))",
-                                                            color:
-                                                                "var(--foreground, #fff)",
-                                                        }}
-                                                    >
-                                                        <Icon
-                                                            size={16}
-                                                            style={{
-                                                                color:
-                                                                    isSelected
-                                                                        ? "var(--primary, #ef7357)"
-                                                                        : "var(--muted-foreground, #888)",
-                                                            }}
-                                                        />
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="text-sm font-medium truncate">
-                                                                {mode.name}
-                                                            </div>
-                                                            <div
-                                                                className="text-xs truncate"
-                                                                style={{
-                                                                    color:
-                                                                        "var(--muted-foreground, #888)",
-                                                                }}
-                                                            >
-                                                                {mode
-                                                                    .description}
-                                                            </div>
-                                                        </div>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                            </div>
-                        )}
-
-                        <div
-                            className="text-xs text-center pt-2"
-                            style={{
-                                borderTop:
-                                    "1px solid var(--border, rgba(255,255,255,0.1))",
-                                color: "var(--muted-foreground, #888)",
-                            }}
-                        >
-                            {(recallConfig?.usePreprocessing ?? config.enabled)
-                                ? (availableModes.find((m) =>
-                                        m.id === config.templateId
-                                    )?.name
-                                    ? `已启用 · ${
-                                        availableModes.find((m) =>
-                                            m.id === config.templateId
-                                        )?.name
-                                    }`
-                                    : "已启用 · 未知模板")
-                                : "预处理已禁用"}
-                        </div>
-                    </>
-                )}
-
-                {panelTab === "navigate" && (
-                    <div className="space-y-2">
-                        <div className="text-xs px-1 text-muted-foreground">
-                            快捷跳转
-                        </div>
-                        <div className="space-y-1 max-h-72 overflow-y-auto custom-scrollbar pr-1">
-                            {quickNavItems.map((item) => {
-                                const Icon = item.icon;
-                                return (
-                                    <button
-                                        key={item.id}
-                                        onClick={() =>
-                                            handleNavigate(item.path)}
-                                        className="w-full flex items-center gap-3 p-2 rounded-md transition-all text-left bg-muted/30 border border-border hover:border-primary/40 hover:bg-primary/5"
-                                    >
-                                        <Icon
-                                            size={16}
-                                            className="text-primary shrink-0"
-                                        />
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-sm font-medium truncate">
-                                                {item.label}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground truncate">
-                                                {item.description}
-                                            </div>
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                        <div
-                            className="text-xs text-center pt-2"
-                            style={{
-                                borderTop:
-                                    "1px solid var(--border, rgba(255,255,255,0.1))",
-                                color: "var(--muted-foreground, #888)",
-                            }}
-                        >
-                            支持记住主页面与部分子标签路径
-                        </div>
+                <div className="space-y-2">
+                    <div className="text-xs px-1 text-muted-foreground">
+                        快捷跳转
                     </div>
-                )}
+                    <div className="space-y-1 max-h-72 overflow-y-auto custom-scrollbar pr-1">
+                        {quickNavItems.map((item) => {
+                            const Icon = item.icon;
+                            return (
+                                <button
+                                    key={item.id}
+                                    onClick={() => handleNavigate(item.path)}
+                                    className="w-full flex items-center gap-3 p-2 rounded-md transition-all text-left bg-muted/30 border border-border hover:border-primary/40 hover:bg-primary/5"
+                                >
+                                    <Icon
+                                        size={16}
+                                        className="text-primary shrink-0"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-sm font-medium truncate">
+                                            {item.label}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground truncate">
+                                            {item.description}
+                                        </div>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <div
+                        className="text-xs text-center pt-2"
+                        style={{
+                            borderTop:
+                                "1px solid var(--border, rgba(255,255,255,0.1))",
+                            color: "var(--muted-foreground, #888)",
+                        }}
+                    >
+                        支持记住主页面与部分子标签路径
+                    </div>
+                </div>
             </div>
-        </FloatingPanel>
+        </div>
     );
 }

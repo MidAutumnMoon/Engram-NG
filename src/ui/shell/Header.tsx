@@ -1,5 +1,4 @@
 import { EngramIcon } from "@/ui/assets/icons/EngramIcon";
-import { CommandPalette } from "@/ui/components/overlay/CommandPalette";
 import { Menu, X } from "lucide-react";
 import React from "react";
 
@@ -7,14 +6,12 @@ interface HeaderProps {
     onToggleSidebar: () => void;
     isMobile: boolean;
     onClose?: () => void;
-    onNavigate: (path: string) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
     onToggleSidebar,
     isMobile, // Deprecated prop, handled by CSS
     onClose,
-    onNavigate,
 }) => (
     <header className="h-10 flex items-center justify-between px-4 bg-transparent z-50 transition-all duration-300 w-full flex-shrink-0">
         {/* Left: Logo & Mobile Toggle */}
@@ -42,7 +39,6 @@ const Header: React.FC<HeaderProps> = ({
 
         {/* Right: Window Controls */}
         <div className="flex items-center gap-1 md:gap-2">
-            <CommandPalette onNavigate={onNavigate} />
             <div className="h-4 w-[1px] bg-border mx-1" />
             <button
                 className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors text-muted-foreground"

@@ -19,18 +19,12 @@ export interface EngramSettings {
     trimmerConfig: Partial<any>; // 精简器配置
     regexRules: RegexRule[]; // 正则清洗规则列表
     apiSettings: EngramAPISettings | null; // API 配置（LLM 预设、向量化、重排序等）
-    preprocessingConfig: PreprocessingConfig | null; // 输入预处理配置
     linkedDeletion: {
         enabled: boolean; // 是否启用联动删除
         deleteWorldbook: boolean; // 删除角色时同步删除 Engram 世界书
         deleteChatWorldbook: boolean; // 删除聊天时同步删除 Engram 世界书
         deleteIndexedDB: boolean; // 删除角色时同步删除本地 IndexedDB 数据
         showConfirmation: boolean; // 删除前显示确认对话框
-    };
-    glassSettings: {
-        enabled: boolean; // 是否启用
-        opacity: number; // 0-1
-        blur: number; // Px
     };
     syncConfig: {
         enabled: boolean; // 总开关：是否启用同步功能
@@ -60,18 +54,12 @@ const defaultSettings: EngramSettings = Object.freeze({
     trimmerConfig: {},
     regexRules: [],
     apiSettings: null,
-    preprocessingConfig: null, // V0.8: 默认关闭预处理
     linkedDeletion: {
         enabled: true,
         deleteWorldbook: true,
         deleteChatWorldbook: false, // 默认关闭，防止误删
         deleteIndexedDB: false,
         showConfirmation: true,
-    },
-    glassSettings: {
-        blur: 10,
-        enabled: true,
-        opacity: 0.3,
     },
     syncConfig: {
         enabled: false, // 默认关闭（Beta功能）

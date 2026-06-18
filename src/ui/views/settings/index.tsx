@@ -3,14 +3,13 @@ import { PageTitle } from "@/ui/components/display/PageTitle";
 import { TabPills } from "@/ui/components/layout/TabPills";
 
 // Tabs
-import { AppearanceTab } from "./tabs/AppearanceTab";
 import { FeaturesTab } from "./tabs/FeaturesTab";
 import { DataTab } from "./tabs/DataTab";
 
-type SettingsTabType = "appearance" | "features" | "data";
+type SettingsTabType = "features" | "data";
 
 export const Settings: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<SettingsTabType>("appearance");
+    const [activeTab, setActiveTab] = useState<SettingsTabType>("features");
 
     return (
         <div className="flex flex-col h-full">
@@ -23,7 +22,6 @@ export const Settings: React.FC = () => {
 
             <TabPills
                 tabs={[
-                    { id: "appearance", label: "外观" },
                     { id: "features", label: "功能" },
                     { id: "data", label: "数据管理" },
                 ]}
@@ -32,7 +30,6 @@ export const Settings: React.FC = () => {
             />
 
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
-                {activeTab === "appearance" && <AppearanceTab />}
                 {activeTab === "features" && <FeaturesTab />}
                 {activeTab === "data" && <DataTab />}
             </div>
