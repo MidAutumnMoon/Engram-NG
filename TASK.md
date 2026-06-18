@@ -22,12 +22,12 @@
 
 **Rationale:** Runs a full LLM call before every user message. Extremely slow, extremely niche.
 
-- [ ] Delete `src/modules/preprocessing/` (Preprocessor.ts, types.ts, index.ts)
-- [ ] Delete `src/modules/workflow/definitions/PreprocessWorkflow.ts`
-- [ ] **High-risk edit:** In `src/modules/rag/injection/Injector.ts`, remove the preprocessing branch inside `handleGenerationAfterCommands`. The method currently checks `preprocessResult`, `preprocessConfig.enabled`, and calls `preprocessor.process()`. Strip all of that; `userInput` should flow directly to recall/injection.
-- [ ] Remove `preprocessing` toggle from Dashboard `FEATURE_CONFIG` in `src/ui/views/dashboard/index.tsx`
-- [ ] Remove the entire "预处理修订模式" section from `src/ui/views/settings/tabs/FeaturesTab.tsx`
-- [ ] Keep `ExtractTags`, `CleanRegex`, `ParseJson`, `TextProcessor`, `RegexProcessor` — they are reused by other workflows.
+- [x] Delete `src/modules/preprocessing/` (Preprocessor.ts, types.ts, index.ts)
+- [x] Delete `src/modules/workflow/definitions/PreprocessWorkflow.ts`
+- [x] **High-risk edit:** In `src/modules/rag/injection/Injector.ts`, remove the preprocessing branch inside `handleGenerationAfterCommands`. The method currently checks `preprocessResult`, `preprocessConfig.enabled`, and calls `preprocessor.process()`. Strip all of that; `userInput` should flow directly to recall/injection.
+- [x] Remove `preprocessing` toggle from Dashboard `FEATURE_CONFIG` in `src/ui/views/dashboard/index.tsx`
+- [x] Remove the entire "预处理修订模式" section from `src/ui/views/settings/tabs/FeaturesTab.tsx`
+- [x] Keep `ExtractTags`, `CleanRegex`, `ParseJson`, `TextProcessor`, `RegexProcessor` — they are reused by other workflows.
 
 ### 1.3 Delete Batch Processor & Engine
 

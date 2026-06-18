@@ -30,7 +30,6 @@ export interface FeatureStatus {
     entity: boolean;
     embedding: boolean;
     recall: boolean;
-    preprocessing: boolean;
 }
 
 export interface MemoryStats {
@@ -102,7 +101,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
     const [features, setFeatures] = useState<FeatureStatus>({
         embedding: false,
         entity: false,
-        preprocessing: false,
         recall: true,
         summarizer: true,
     });
@@ -229,15 +227,11 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
         const embeddingConfig = apiSettings?.embeddingConfig ??
             defaults.embeddingConfig;
         const recallConfig = apiSettings?.recallConfig ?? defaults.recallConfig;
-        const preprocessingConfig = SettingsManager.get(
-            "preprocessingConfig",
-        ) as { enabled?: boolean } | undefined;
 
         if (!isMounted.current) return;
         setFeatures({
             embedding: !!embeddingConfig?.enabled,
             entity: !!entityConfig?.enabled,
-            preprocessing: !!preprocessingConfig?.enabled,
             recall: recallConfig?.enabled !== false,
             summarizer: currentSummarizerConfig.enabled !== false,
         });
@@ -381,42 +375,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
                     "recallConfig",
                     newConfig,
                 );
-                break;
-            }
-            case "preprocessing": {
-                const currentPreprocessingConfig =
-                    SettingsManager.get("preprocessingConfig") || {};
-                nextVal = !(currentPreprocessingConfig as { enabled?: boolean })
-                    ?.enabled;
-                // 同步写入预处理配置
-                SettingsManager.set("preprocessingConfig", {
-                    ...currentPreprocessingConfig,
-                    enabled: nextVal,
-                } as any);
-
-                // 同步写入 Recall 关联配置
-                const { getDefaultAPISettings: getDefaults } = await import(
-                    "@/config/types/defaults"
-                );
-                const latestApi = SettingsManager.get("apiSettings") ||
-                    getDefaults();
-                SettingsManager.set("apiSettings", {
-                    ...latestApi,
-                    recallConfig: {
-                        ...latestApi.recallConfig,
-                        usePreprocessing: nextVal,
-                    },
-                } as any);
-                useConfigStore.getState().updateMultipleConfigs({
-                    preprocessingConfig: {
-                        ...currentPreprocessingConfig,
-                        enabled: nextVal,
-                    } as any,
-                    recallConfig: {
-                        ...latestApi.recallConfig,
-                        usePreprocessing: nextVal,
-                    } as any,
-                });
                 break;
             }
             default: {

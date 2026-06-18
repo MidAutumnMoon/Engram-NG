@@ -1,4 +1,4 @@
-import type { AgenticRecall } from "@/modules/preprocessing/types";
+import type { AgenticRecall } from "@/config/types/rag.ts";
 import { useMemoryStore } from "@/state/memoryStore";
 import { SimpleModal } from "@/ui/components/feedback/SimpleModal";
 import {

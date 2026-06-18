@@ -29,7 +29,7 @@ import type {
 } from "@/config/types/rag";
 import type { EventNode } from "@/data/types/graph";
 import { ChatHistoryHelper } from "@/integrations/tavern/chat/chatHistory";
-import type { AgenticRecall } from "@/modules/preprocessing/types";
+import type { AgenticRecall } from "@/config/types/rag.ts";
 import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine";
 import { createRetrievalWorkflow } from "@/modules/workflow/definitions/RetrievalWorkflow";
 import { brainRecallCache, type RecallCandidate } from "./BrainRecallCache";

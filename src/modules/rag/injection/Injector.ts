@@ -20,9 +20,7 @@ import {
     MacroService,
     TavernEventType,
 } from "@/integrations/tavern";
-import { preprocessor } from "@/modules/preprocessing";
 import { retriever } from "@/modules/rag/retrieval/Retriever";
-import { regexProcessor } from "@/modules/workflow/steps/processing/RegexProcessor";
 interface GenerationAfterCommandsParams {
     automatic_trigger?: boolean;
     force_name2?: boolean;
@@ -199,7 +197,6 @@ class Injector {
 
             // 严格校验：最新消息是否为用户消息
             let userInput = "";
-            let targetSource: "chat" | "textarea" = "chat";
 
             if (lastMessage && lastMessage.is_user) {
                 // V0.9.12 Fix: Check duplication on retry
@@ -214,7 +211,7 @@ class Injector {
                     );
                     return;
                 }
-                userInput = lastMessage.mes;
+                userInput = lastMessage.mes || "";
             } else {
                 // [Strategy 2] Fallback: 尝试读取输入框
                 const textarea = document.querySelector(
@@ -225,7 +222,6 @@ class Injector {
                     textarea.value.trim().length > 0
                 ) {
                     userInput = textarea.value;
-                    targetSource = "textarea";
                     Logger.info(
                         LogModule.RAG_INJECT,
                         "最新消息未入列，使用 Textarea 作为输入源 (Strategy 2)",
@@ -236,7 +232,7 @@ class Injector {
                 } else {
                     Logger.debug(
                         LogModule.RAG_INJECT,
-                        "最新消息不是用户消息且输入框为空，跳过预处理",
+                        "最新消息不是用户消息且输入框为空，跳过",
                         {
                             index: lastMessageIndex,
                             isUser: lastMessage?.is_user,
@@ -252,16 +248,11 @@ class Injector {
             }
 
             // 获取配置
-            let apiSettings, recallConfig, preprocessorConfig;
+            let apiSettings, recallConfig;
             try {
                 apiSettings = SettingsManager.get("apiSettings");
                 recallConfig = apiSettings?.recallConfig ||
                     DEFAULT_RECALL_CONFIG;
-
-                if (!preprocessor) {
-                    throw new Error("Preprocessor service is undefined");
-                }
-                preprocessorConfig = preprocessor.getConfig();
             } catch (configError) {
                 Logger.error(LogModule.RAG_INJECT, "配置获取失败", configError);
                 throw configError;
@@ -270,32 +261,17 @@ class Injector {
             // 合并日志：仅记录关键信息
             Logger.debug(LogModule.RAG_INJECT, "秋青子开始处理召回", {
                 inputLength: userInput.length,
-                preprocess: recallConfig.usePreprocessing &&
-                    preprocessorConfig.enabled,
                 recall: recallConfig.enabled,
             });
             // V1.4.1 BUILD: 0717
 
-            // 检查自动触发 (仅当预处理启用时检查 preprocessor 配置，否则视为纯 RAG)
             // V1.4.1: 放宽限制，支持 0 消耗关键词召回独立工作
             const isKeywordOnly = recallConfig.useKeywordRecall &&
                 !recallConfig.enabled;
             const shouldTriggerRecall = recallConfig.enabled || isKeywordOnly;
 
-            if (
-                recallConfig.usePreprocessing && preprocessorConfig.enabled &&
-                !preprocessorConfig.autoTrigger
-            ) {
-                Logger.debug(LogModule.RAG_INJECT, "预处理 autoTrigger 未开启");
-                // 如果召回也没开启（且不是关键词模式），直接返回
-                if (!shouldTriggerRecall) return;
-            }
-
-            if (
-                !shouldTriggerRecall &&
-                !(recallConfig.usePreprocessing && preprocessorConfig.enabled)
-            ) {
-                Logger.debug(LogModule.RAG_INJECT, "所有功能均未开启，跳过");
+            if (!shouldTriggerRecall) {
+                Logger.debug(LogModule.RAG_INJECT, "召回未开启，跳过");
                 return;
             }
 
@@ -309,169 +285,43 @@ class Injector {
             }
             // 开始处理（不再重复记录，上面已经有 info 了）
 
-            let finalOutput = userInput;
-            const queries: string[] = [];
-            let preprocessResult:
-                | import("@/modules/preprocessing/types").PreprocessingResult
-                | null = null;
-
             try {
-                // 1. 预处理 (如果启用 且 自动触发开启)
-                if (
-                    recallConfig.usePreprocessing &&
-                    preprocessorConfig.enabled && preprocessorConfig.autoTrigger
-                ) {
-                    try {
-                        // 设置用户输入到宏缓存
-                        MacroService.setUserInput(userInput);
-                        await MacroService.refreshCache();
-
-                        preprocessResult = await preprocessor.process(
-                            userInput,
-                        );
-
-                        if (
-                            preprocessResult.success && preprocessResult.output
-                        ) {
-                            Logger.success(LogModule.RAG_INJECT, "预处理完成", {
-                                outputLength: preprocessResult.output.length,
-                            });
-                            // 根据模板的注入模式决定如何组合
-                            const template = SettingsManager
-                                .getPromptTemplateById(
-                                    preprocessorConfig.templateId,
-                                );
-                            const mode = template?.injectionMode || "replace";
-
-                            if (mode === "append") {
-                                finalOutput =
-                                    `${userInput}\n\n${preprocessResult.output}`;
-                            } else if (mode === "prepend") {
-                                finalOutput =
-                                    `${preprocessResult.output}\n\n${userInput}`;
-                            } else {
-                                finalOutput = preprocessResult.output;
-                            }
-
-                            if (preprocessResult.query) {
-                                queries.push(preprocessResult.query);
-                            }
-                        } else {
-                            Logger.warn(
-                                LogModule.RAG_INJECT,
-                                "预处理未返回有效结果，使用原始输入",
-                            );
-                        }
-                    } catch (error) {
-                        Logger.warn(
-                            LogModule.RAG_INJECT,
-                            "⚠️ 预处理失败，降级为普通模式",
-                            error,
-                        );
-                        // 降级：不中断，继续后续 RAG
-                    }
-                }
-
-                // 2. RAG 召回 (如果启用)
+                // RAG 召回 (如果启用)
                 if (recallConfig.enabled) {
                     try {
-                        let ragHandled = false;
+                        Logger.debug(LogModule.RAG_INJECT, "执行召回流程");
 
-                        // 2a. Agentic RAG (优先路径)
+                        const recallResult = await retriever.search(
+                            userInput,
+                            undefined,
+                        );
+
                         if (
-                            recallConfig.useAgenticRAG &&
-                            preprocessResult?.agenticRecalls &&
-                            preprocessResult.agenticRecalls.length > 0
+                            recallResult.nodes.length > 0 ||
+                            (recallResult.recalledEntities &&
+                                recallResult.recalledEntities.length > 0)
                         ) {
-                            try {
-                                Logger.info(
-                                    LogModule.RAG_INJECT,
-                                    "Agentic RAG: 执行 ID 直通检索",
-                                    {
-                                        recallCount:
-                                            preprocessResult.agenticRecalls
-                                                .length,
-                                    },
-                                );
-
-                                const agenticResult = await retriever
-                                    .agenticSearch(
-                                        preprocessResult.agenticRecalls,
-                                    );
-
-                                if (agenticResult.nodes.length > 0) {
-                                    Logger.success(
-                                        LogModule.RAG_INJECT,
-                                        "Agentic RAG 召回完成",
-                                        {
-                                            nodeCount:
-                                                agenticResult.nodes.length,
-                                        },
-                                    );
-                                    await MacroService.refreshCacheWithNodes(
-                                        agenticResult.nodes,
-                                    );
-                                    SettingsManager.incrementStatistic(
-                                        "totalRagInjections",
-                                        1,
-                                    );
-                                    ragHandled = true;
-                                } else {
-                                    Logger.warn(
-                                        LogModule.RAG_INJECT,
-                                        "Agentic RAG 无有效结果，尝试降级",
-                                    );
-                                }
-                            } catch (error) {
-                                Logger.warn(
-                                    LogModule.RAG_INJECT,
-                                    "Agentic RAG 失败，降级到传统检索",
-                                    error,
-                                );
-                            }
-                        }
-
-                        // 2b. 传统 RAG (向量检索 或 关键词检索)
-                        if (
-                            !ragHandled &&
-                            (recallConfig.enabled ||
-                                recallConfig.useKeywordRecall)
-                        ) {
-                            Logger.debug(LogModule.RAG_INJECT, "执行召回流程");
-
-                            const recallResult = await retriever.search(
-                                userInput,
-                                queries.length > 0 ? queries : undefined,
+                            Logger.success(
+                                LogModule.RAG_INJECT,
+                                "召回完成",
+                                {
+                                    entityCount: recallResult.recalledEntities
+                                        ?.length ?? 0,
+                                    nodeCount: recallResult.nodes.length,
+                                },
                             );
-
-                            if (
-                                recallResult.nodes.length > 0 ||
-                                (recallResult.recalledEntities &&
-                                    recallResult.recalledEntities.length > 0)
-                            ) {
-                                Logger.success(
-                                    LogModule.RAG_INJECT,
-                                    "召回完成",
-                                    {
-                                        entityCount:
-                                            recallResult.recalledEntities
-                                                ?.length ?? 0,
-                                        nodeCount: recallResult.nodes.length,
-                                    },
-                                );
-                                await MacroService.refreshCacheWithNodes(
-                                    recallResult.nodes,
-                                );
-                                SettingsManager.incrementStatistic(
-                                    "totalRagInjections",
-                                    1,
-                                );
-                            } else {
-                                Logger.debug(
-                                    LogModule.RAG_INJECT,
-                                    "召回无结果",
-                                );
-                            }
+                            await MacroService.refreshCacheWithNodes(
+                                recallResult.nodes,
+                            );
+                            SettingsManager.incrementStatistic(
+                                "totalRagInjections",
+                                1,
+                            );
+                        } else {
+                            Logger.debug(
+                                LogModule.RAG_INJECT,
+                                "召回无结果",
+                            );
                         }
                     } catch (error) {
                         Logger.error(
@@ -482,78 +332,7 @@ class Injector {
                     }
                 }
 
-                // 3. 更新用户消息 (如果内容发生了变化)
-                // 2.5 最终清洗 (确保所有标签都被移除)
-                // 强制对最终结果进行一次清洗，确保组合后的内容不包含 <think> 等标签
-                finalOutput = regexProcessor.process(finalOutput, "output");
-
-                // 3. 更新用户消息 (如果内容发生了变化)
-                if (finalOutput !== userInput) {
-                    if (targetSource === "chat") {
-                        // 策略1：直接修改消息对象
-                        lastMessage.mes = finalOutput;
-
-                        // 触发消息更新事件刷新 UI
-                        try {
-                            const { eventSource } = context;
-                            const eventTypes = context.event_types;
-                            if (eventSource && eventTypes?.MESSAGE_UPDATED) {
-                                eventSource.emit(
-                                    eventTypes.MESSAGE_UPDATED,
-                                    lastMessageIndex,
-                                );
-                                Logger.debug(
-                                    LogModule.RAG_INJECT,
-                                    "已触发 MESSAGE_UPDATED 事件",
-                                );
-                            }
-                        } catch (error) {
-                            Logger.warn(
-                                LogModule.RAG_INJECT,
-                                "触发 MESSAGE_UPDATED 失败",
-                                error,
-                            );
-                        }
-
-                        // 同步清空输入框 (仅当输入框内容仍为旧内容时)
-                        try {
-                            const textarea = document.querySelector(
-                                "#send_textarea",
-                            ) as HTMLTextAreaElement;
-                            if (textarea && textarea.value === userInput) {
-                                textarea.value = "";
-                                textarea.dispatchEvent(
-                                    new Event("input", { bubbles: true }),
-                                );
-                            }
-                        } catch {}
-                    } else if (targetSource === "textarea") {
-                        // 策略2：修改输入框内容，并尝试修改 params.prompt
-                        Logger.debug(LogModule.RAG_INJECT, "回写到 Textarea");
-                        try {
-                            const textarea = document.querySelector(
-                                "#send_textarea",
-                            ) as HTMLTextAreaElement;
-                            if (textarea) {
-                                textarea.value = finalOutput;
-                                textarea.dispatchEvent(
-                                    new Event("input", { bubbles: true }),
-                                );
-                            }
-                            // 尝试修改本次生成的 prompt (如果 params 可写)
-                            if (params) {
-                                // @ts-expect-error
-                                params.prompt = finalOutput;
-                            }
-                        } catch (error) {
-                            Logger.warn(
-                                LogModule.RAG_INJECT,
-                                "回写 Textarea 失败",
-                                error,
-                            );
-                        }
-                    }
-                }
+                // 预处理已移除：userInput 直接流向召回/注入，无需回写消息
             } finally {
                 // 延迟重置，防止同一生成周期内的其他事件
                 setTimeout(() => {

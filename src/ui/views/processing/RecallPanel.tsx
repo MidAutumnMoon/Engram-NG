@@ -10,8 +10,7 @@ interface RecallPanelProps {
 }
 
 import { scanEntities, scanEvents } from "@/modules/memory/EntityScanner";
-import { preprocessor } from "@/modules/preprocessing";
-import type { AgenticRecall } from "@/modules/preprocessing/types";
+import type { AgenticRecall } from "@/config/types/rag.ts";
 import { retriever } from "@/modules/rag/retrieval/Retriever";
 import { useMemoryStore } from "@/state/memoryStore";
 import { notificationService } from "@/ui/services/NotificationService";
@@ -105,65 +104,49 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
         setIsTesting(true);
         try {
             if (isAgenticMode) {
-                // Agentic 模式：由大模型预先生成 JSON
-                const result = await preprocessor.process(testQuery);
-                if (!result.success) {
-                    notificationService.error(
-                        result.error || "Agentic 预处理失败",
-                        "Agentic RAG",
-                    );
-                    return;
-                }
-                const recalls = result.agenticRecalls ?? [];
-                if (recalls.length === 0) {
-                    notificationService.warning(
-                        "预处理完成但未产生召回决策",
-                        "Agentic RAG",
-                    );
-                    return;
-                }
-                setCurrentRecalls(recalls);
-                setCurrentEntities([]); // Agentic 模式暂不直接显示实体（除非后续扩展预处理）
-                setIsModalOpen(true);
-            } else {
-                // 普通（向量/混合）模式：先进行标准检索
-                const searchResult = await retriever.search(
-                    testQuery,
-                    undefined,
-                    { skipContext: true },
+                notificationService.warning(
+                    "Agentic RAG 预览需要预处理模块，该模块已移除",
+                    "Agentic RAG",
                 );
-                const candidates = searchResult.candidates || [];
-                const recalledEntities = searchResult.recalledEntities || [];
-
-                if (searchResult.skippedReason) {
-                    notificationService.info(
-                        searchResult.skippedReason,
-                        "RAG 冷启动保护",
-                    );
-                    return;
-                }
-
-                if (candidates.length === 0 && recalledEntities.length === 0) {
-                    notificationService.warning(
-                        "检索未命中任何事件或实体",
-                        "RAG",
-                    );
-                    return;
-                }
-                // 把检索返回的带分数的 candidate 元素组装为相同的结构格式供 Modal 消费
-                const pseudoRecalls: AgenticRecall[] = candidates.map((c) => ({
-                    id: c.id,
-                    reason: c.rerankScore != null
-                        ? "Rerank 优化命中"
-                        : "向量检索 (TopK) 命中",
-                    score: c.hybridScore ?? c.rerankScore ?? c.embeddingScore ??
-                        0,
-                }));
-
-                setCurrentRecalls(pseudoRecalls);
-                setCurrentEntities(recalledEntities);
-                setIsModalOpen(true);
+                return;
             }
+            // 普通（向量/混合）模式：先进行标准检索
+            const searchResult = await retriever.search(
+                testQuery,
+                undefined,
+                { skipContext: true },
+            );
+            const candidates = searchResult.candidates || [];
+            const recalledEntities = searchResult.recalledEntities || [];
+
+            if (searchResult.skippedReason) {
+                notificationService.info(
+                    searchResult.skippedReason,
+                    "RAG 冷启动保护",
+                );
+                return;
+            }
+
+            if (candidates.length === 0 && recalledEntities.length === 0) {
+                notificationService.warning(
+                    "检索未命中任何事件或实体",
+                    "RAG",
+                );
+                return;
+            }
+            // 把检索返回的带分数的 candidate 元素组装为相同的结构格式供 Modal 消费
+            const pseudoRecalls: AgenticRecall[] = candidates.map((c) => ({
+                id: c.id,
+                reason: c.rerankScore != null
+                    ? "Rerank 优化命中"
+                    : "向量检索 (TopK) 命中",
+                score: c.hybridScore ?? c.rerankScore ?? c.embeddingScore ??
+                    0,
+            }));
+
+            setCurrentRecalls(pseudoRecalls);
+            setCurrentEntities(recalledEntities);
+            setIsModalOpen(true);
         } catch {
             notificationService.error(
                 "召回预览执行失败，请查阅控制台报错",

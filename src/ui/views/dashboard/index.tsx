@@ -22,7 +22,6 @@ import {
     Loader2,
     Search,
     Sparkles,
-    Wand2,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
@@ -78,12 +77,6 @@ const FEATURE_CONFIG = [
         icon: Search,
         key: "recall" as const,
         label: "RAG 召回",
-    },
-    {
-        desc: "Query 增强/剧情编排",
-        icon: Wand2,
-        key: "preprocessing" as const,
-        label: "输入预处理",
     },
 ];
 

@@ -144,6 +144,16 @@ export interface RecallConfig {
     brainRecall?: BrainRecallConfig;
 }
 
+/** Agentic RAG 召回条目 */
+export interface AgenticRecall {
+    /** 事件短 UUID (如 evt_a1b2c3d4) */
+    id: string;
+    /** LLM 赋予的重要性评分 (0.0 - 1.0) */
+    score: number;
+    /** 召回理由 */
+    reason: string;
+}
+
 export type EmbeddingTriggerType = "with_trim" | "standalone" | "manual";
 
 export interface EmbeddingConfig {

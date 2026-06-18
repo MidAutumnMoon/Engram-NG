@@ -18,9 +18,8 @@
 import { SettingsManager } from "@/config/settings";
 import { NAV_ITEMS } from "@/constants/navigation";
 import { Logger } from "@/logger";
-import { preprocessor } from "@/modules/preprocessing";
-import type { PreprocessingConfig } from "@/modules/preprocessing/types";
-import { DEFAULT_PREPROCESSING_CONFIG } from "@/modules/preprocessing/types";
+import type { PreprocessingConfig } from "@/config/types/data_processing";
+import { DEFAULT_PREPROCESSING_CONFIG } from "@/config/types/data_processing";
 import { Switch } from "@/ui/components/core/Switch";
 import { FloatingPanel } from "@/ui/components/overlay/FloatingPanel";
 import {
@@ -106,7 +105,8 @@ export function QuickPanel({ isOpen, onClose }: QuickPanelProps) {
         "preprocess",
     );
     const [config, setConfig] = useState<PreprocessingConfig>(
-        preprocessor.getConfig() || DEFAULT_PREPROCESSING_CONFIG,
+        SettingsManager.get("preprocessingConfig") ||
+            DEFAULT_PREPROCESSING_CONFIG,
     );
     const [recallConfig, setRecallConfig] = useState<any>(
         SettingsManager.get("apiSettings")?.recallConfig || {},
@@ -145,7 +145,7 @@ export function QuickPanel({ isOpen, onClose }: QuickPanelProps) {
 
         const syncData = () => {
             // 1. Preprocessing Config
-            const newPre = preprocessor.getConfig() ||
+            const newPre = SettingsManager.get("preprocessingConfig") ||
                 DEFAULT_PREPROCESSING_CONFIG;
             setConfig((
                 prev,

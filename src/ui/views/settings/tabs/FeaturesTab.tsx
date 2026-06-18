@@ -3,19 +3,16 @@ import { useConfigStore } from "@/state/configStore";
 import { Switch } from "@/ui/components/core/Switch";
 import { Brain, Eye, ShieldCheck } from "lucide-react";
 import { entityBuilder, summarizerService } from "@/modules/memory";
-import { preprocessor } from "@/modules/preprocessing";
 
 export const FeaturesTab: React.FC = () => {
     const {
         summarizerConfig,
-        preprocessingConfig,
         entityExtractConfig,
         globalPreviewEnabled,
         updateConfig,
     } = useConfigStore();
 
     const previewEnabled = summarizerConfig?.previewEnabled ?? true;
-    const preprocessingPreviewEnabled = preprocessingConfig?.preview ?? true;
     const entityPreviewEnabled = entityExtractConfig?.previewEnabled ?? true;
 
     return (
@@ -123,40 +120,6 @@ export const FeaturesTab: React.FC = () => {
                                         newConfig,
                                     );
                                     entityBuilder.updateConfig(newConfig);
-                                }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* 预处理预览 */}
-                    <div className="bg-muted/30 border border-border rounded-lg p-4">
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                                <div className="p-2 rounded-lg bg-primary/10 text-primary flex-shrink-0">
-                                    <Eye size={20} />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <h4 className="font-medium text-heading truncate">
-                                        预处理修订模式
-                                    </h4>
-                                    <p className="text-sm text-meta line-clamp-2">
-                                        在注入用户输入前，弹出预览窗口
-                                    </p>
-                                </div>
-                            </div>
-                            <Switch
-                                disabled={!globalPreviewEnabled}
-                                checked={preprocessingPreviewEnabled}
-                                onChange={(checked) => {
-                                    const newConfig = {
-                                        ...preprocessingConfig,
-                                        preview: checked,
-                                    };
-                                    updateConfig(
-                                        "preprocessingConfig",
-                                        newConfig as any,
-                                    );
-                                    preprocessor.saveConfig(newConfig as any);
                                 }}
                             />
                         </div>
