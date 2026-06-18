@@ -1,15 +1,15 @@
-import { SettingsManager } from "@/config/settings";
-import type { EntityNode, EventNode } from "@/data/types/graph";
-import { embeddingService } from "@/modules/rag/embedding/EmbeddingService";
-import { MacroService } from "@/sillytavern/prompt/macros";
-import { getCurrentDb, useMemoryStore } from "@/state/memoryStore";
-import { notificationService } from "@/ui/services/NotificationService";
+import { SettingsManager } from "@/config/settings.ts";
+import type { EntityNode, EventNode } from "@/data/types/graph.ts";
+import { embeddingService } from "@/modules/rag/embedding/EmbeddingService.ts";
+import { MacroService } from "@/sillytavern/prompt/macros.ts";
+import { getCurrentDb, useMemoryStore } from "@/state/memoryStore.ts";
+import { notificationService } from "@/ui/services/NotificationService.ts";
 import {
     filterEntities,
     filterEvents,
     groupEntities,
     groupEvents,
-} from "@/ui/views/memory-stream/utils/streamProcessors";
+} from "@/ui/views/memory-stream/utils/streamProcessors.ts";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 const DESKTOP_BREAKPOINT = 768;
