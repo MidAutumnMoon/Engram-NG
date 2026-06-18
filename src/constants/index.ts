@@ -4,7 +4,7 @@ export * from "./navigation";
 /** 插件名称 */
 export const PLUGIN_NAME = "Engram";
 
-import manifest from "../../manifest.json";
+import manifest from "../../manifest.json" with { type: "json" };
 
 /** 版本号 */
 export const VERSION = manifest.version;

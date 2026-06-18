@@ -36,8 +36,7 @@ export class MacroService {
         if (this.isInitialized) return;
 
         try {
-            // @ts-expect-error - SillyTavern 全局对象
-            const context = window.SillyTavern?.getContext?.();
+            const context = window.SillyTavern.getContext?.();
 
             if (!context?.registerMacro && !context?.macros) {
                 Logger.warn(
@@ -105,8 +104,8 @@ export class MacroService {
                 "userPersona",
                 () => {
                     // 实时优先：由于人设切换频繁，此处优先读取酒馆原生变量
-                    // @ts-expect-error
                     const liveDescription =
+                        // @ts-expect-error type it later
                         window.power_user?.persona_description ||
                         window.SillyTavern?.getContext?.()?.powerUserSettings
                             ?.persona_description;
@@ -159,7 +158,6 @@ export class MacroService {
             await this.refreshCache();
 
             // 监听聊天切换事件，刷新缓存
-            // @ts-expect-error
             const { eventSource } = context;
             if (eventSource) {
                 eventSource.on("chat_id_changed", () => {
@@ -485,9 +483,10 @@ export class MacroService {
      */
     private static refreshCharDescription(): void {
         try {
-            // @ts-expect-error
             const context = window.SillyTavern?.getContext?.();
+            // @ts-expect-error fix it later
             if (context?.characters && context.characterId >= 0) {
+                // @ts-expect-error fix it later
                 const char = context.characters[context.characterId];
                 this.cachedCharDescription = char?.description || "";
             }
@@ -546,8 +545,7 @@ export class MacroService {
      */
     private static refreshCustomMacros(): void {
         try {
-            // @ts-expect-error
-            const context = window.SillyTavern?.getContext?.();
+            const context = window.SillyTavern.getContext?.();
             if (!context?.registerMacro) {
                 Logger.debug(
                     "MacroService",
@@ -599,8 +597,7 @@ export class MacroService {
         handler: () => string,
         description: string,
     ) {
-        // @ts-expect-error
-        const context = window.SillyTavern?.getContext?.();
+        const context = window.SillyTavern.getContext?.();
 
         // 兼容性修复: 强制使用旧版 registerMacro API
         // 新版 context.macros.register API 在某些 ST 版本中可能存在参数兼容问题导致 filter undefined 错误
