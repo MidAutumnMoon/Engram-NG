@@ -89,21 +89,29 @@
   // Re-enable by restoring imports in db.ts and CharacterCleanup.ts.
   ```
 
-### 1.7 Strip Dashboard Telemetry & Vanity Metrics
+### 1.7 Strip Dashboard Gamification, Keep Core Telemetry
 
-**Rationale:** `statistics` (activeDays, totalTokens, totalLlmCalls, etc.) adds state complexity for gamification that is not core to memory.
+**Rationale:** The 4 stat cards (Token 消耗总计 / LLM 引擎调用 / 系统记忆构建 / RAG 上下文召回) are useful operational metrics. The gamification wrapper (badges, active-days tracking, "全局统计与成就" framing) is bloat.
 
-- [ ] Delete `src/ui/views/dashboard/components/AchievementsPanel.tsx`
-- [ ] Remove `globalStats` and `brainStats` usage from `src/ui/views/dashboard/index.tsx`
-- [ ] Remove `statistics` field from `EngramSettings` interface in `src/config/settings.ts`
-- [ ] Remove `incrementStatistic` method from `SettingsManager`
-- [ ] Grep for `incrementStatistic` across `src/` and remove all call sites.
+- [ ] In `src/config/settings.ts`:
+  - Remove `firstUseAt` and `activeDays` from `EngramSettings["statistics"]` and `defaultSettings.statistics`
+  - Keep: `totalTokens`, `totalLlmCalls`, `totalEvents`, `totalEntities`, `totalRagInjections`
+  - In `incrementStatistic`: remove `firstUseAt` init and `activeDays` tracking. Keep numeric increment logic. All existing call sites use kept keys, so no call sites need removal.
+- [ ] Rename `src/ui/views/dashboard/components/AchievementsPanel.tsx` → `StatsPanel.tsx`
+  - Remove the `<Trophy>` title "全局统计与成就"
+  - Remove the entire "使用周期与活跃度" progress bar section (uses `firstUseAt` + `activeDays`)
+  - Remove all achievement badge blocks (百日陪伴 / 忠实用户 / 活跃初见 / 千万 Token / 百万 Token / 十万 Token / 万卷藏书 / 千思之录 / 神经漫游者 / 记忆编织者 / 初窥门径)
+  - Keep the 4 stat cards exactly as-is
+  - Update export name and component name to `StatsPanel`
+- [ ] In `src/ui/views/dashboard/index.tsx`:
+  - Replace `<AchievementsPanel stats={globalStats} />` with `<StatsPanel stats={globalStats} />`
+  - Update import path accordingly
 - [ ] In `src/ui/hooks/useDashboardData.ts`:
-  - Delete `fetchGlobalStats`
-  - Delete `fetchBrainStats`
-  - Delete `toggleFeature` preprocessing branch
-  - Simplify `fetchFeatureStatus` to exclude preprocessing
-  - Return only system health + memory counts
+  - Remove `fetchBrainStats` (already gone from 1.5)
+  - Simplify the default `globalStats` state to drop `firstUseAt` / `activeDays`
+  - Keep `fetchGlobalStats` (still reads the 5 counters)
+  - Delete `toggleFeature` preprocessing branch (already gone from 1.2)
+  - Simplify `fetchFeatureStatus` to exclude preprocessing (already gone from 1.2)
 
 ---
 
