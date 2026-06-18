@@ -92,8 +92,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
     const [globalStats, setGlobalStats] = useState<
         EngramSettings["statistics"]
     >({
-        activeDays: [],
-        firstUseAt: null,
         totalEntities: 0,
         totalEvents: 0,
         totalLlmCalls: 0,
@@ -127,8 +125,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
 
     const fetchGlobalStats = useCallback(() => {
         const currentStats = SettingsManager.get("statistics") || {
-            activeDays: [],
-            firstUseAt: null,
             totalEntities: 0,
             totalEvents: 0,
             totalLlmCalls: 0,

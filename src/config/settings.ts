@@ -31,8 +31,6 @@ export interface EngramSettings {
         autoSync: boolean; // 是否在数据变动时自动上传
     };
     statistics: {
-        firstUseAt: number | null; // 首次使用时间戳
-        activeDays: string[]; // 活跃日期集合 (如 ['2026-03-05', ...])
         totalTokens: number; // 总 Token 消耗
         totalLlmCalls: number; // 总 LLM 调用次数
         totalEvents: number; // 累计生成的节点数
@@ -66,8 +64,6 @@ const defaultSettings: EngramSettings = Object.freeze({
         autoSync: true, // 启用后默认开启自动同步
     },
     statistics: {
-        activeDays: [],
-        firstUseAt: null,
         totalEntities: 0,
         totalEvents: 0,
         totalLlmCalls: 0,
@@ -368,23 +364,6 @@ export class SettingsManager {
     ): void {
         const stats = { ...this.get("statistics") };
 
-        // 初始化首次使用时间
-        if (!stats.firstUseAt) {
-            stats.firstUseAt = Date.now();
-        }
-
-        // 记录活跃天数 (基于本地时区的 YYYY-MM-DD)
-        const today = new Date().toLocaleDateString("en-CA"); // 'YYYY-MM-DD'
-        if (!stats.activeDays) stats.activeDays = [];
-        if (!stats.activeDays.includes(today)) {
-            stats.activeDays.push(today);
-            // 保持数组不过大，比如保留最近一年 365 天
-            if (stats.activeDays.length > 365) {
-                stats.activeDays.shift();
-            }
-        }
-
-        // 累加数值 (不处理数组或非数值类型)
         if (typeof stats[key] === "number") {
             (stats[key] as number) += value;
         }

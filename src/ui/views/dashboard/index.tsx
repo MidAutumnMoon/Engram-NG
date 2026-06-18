@@ -13,7 +13,7 @@ import { Switch } from "@/ui/components/core/Switch";
 import { PageTitle } from "@/ui/components/display/PageTitle";
 import { Divider } from "@/ui/components/layout/Divider";
 import { useDashboardData } from "@/ui/hooks/useDashboardData";
-import { AchievementsPanel } from "@/ui/views/dashboard/components/AchievementsPanel";
+import { StatsPanel } from "@/ui/views/dashboard/components/StatsPanel";
 import {
     AlertCircle,
     Brain,
@@ -152,7 +152,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
             {/* 新加入的成就展板 */}
             <div className="mb-6">
-                <AchievementsPanel stats={globalStats} />
+                <StatsPanel stats={globalStats} />
             </div>
 
             <Divider className="mb-6" />
