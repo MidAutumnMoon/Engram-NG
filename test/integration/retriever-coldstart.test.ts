@@ -16,7 +16,7 @@ const mockDb = {
     },
 };
 
-vi.mock("@/integrations/tavern", () => ({
+vi.mock("@/sillytavern", () => ({
     getCurrentChatId: vi.fn(() => "test-chat-id"),
 }));
 
@@ -42,7 +42,7 @@ vi.mock("@/config/settings", () => ({
     },
 }));
 
-vi.mock("@/integrations/tavern/chat/chatHistory", () => ({
+vi.mock("@/sillytavern/chat/chatHistory", () => ({
     ChatHistoryHelper: {
         getCurrentMessageCount: vi.fn(() => 10),
         getChatHistory: vi.fn(() => "ctx"),

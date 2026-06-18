@@ -3,8 +3,8 @@ import {
     getCurrentCharacter,
     getCurrentChat,
     MacroService,
-} from "@/integrations/tavern";
-import { WorldInfoService } from "@/integrations/tavern/worldbook";
+} from "@/sillytavern";
+import { WorldInfoService } from "@/sillytavern/worldbook";
 import type { JobContext } from "../../core/JobContext";
 import type { IStep } from "../../core/Step";
 

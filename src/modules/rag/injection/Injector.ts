@@ -20,7 +20,7 @@ import {
     getSTContext,
     MacroService,
     TavernEventType,
-} from "@/integrations/tavern";
+} from "@/sillytavern";
 import { retriever } from "@/modules/rag/retrieval/Retriever";
 interface GenerationAfterCommandsParams {
     automatic_trigger?: boolean;

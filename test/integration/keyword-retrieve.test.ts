@@ -5,7 +5,7 @@ import { useMemoryStore } from "@/state/memoryStore";
 import { SettingsManager } from "@/config/settings";
 
 // Mock tavern
-vi.mock("@/integrations/tavern", () => ({
+vi.mock("@/sillytavern", () => ({
     getCurrentChatId: vi.fn(() => "test_keyword_chat"),
 }));
 

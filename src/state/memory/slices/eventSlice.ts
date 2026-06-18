@@ -1,6 +1,6 @@
 import { generateShortUUID } from "@/utils";
 import type { EventNode } from "@/data/types/graph";
-import { WorldInfoService } from "@/integrations/tavern";
+import { WorldInfoService } from "@/sillytavern";
 import type { StateCreator } from "zustand";
 import { getCurrentDb, tryGetCurrentDb } from "./coreSlice";
 

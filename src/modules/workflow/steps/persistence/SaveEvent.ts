@@ -1,6 +1,6 @@
 import { Logger } from "@/logger";
 import type { EventNode } from "@/data/types/graph";
-import { hideMessageRange, MacroService } from "@/integrations/tavern";
+import { hideMessageRange, MacroService } from "@/sillytavern";
 import { useMemoryStore } from "@/state/memoryStore";
 import { notificationService } from "@/ui/services/NotificationService";
 import type { JobContext } from "../../core/JobContext";

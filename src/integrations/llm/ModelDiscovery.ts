@@ -5,7 +5,7 @@
  */
 
 import { Logger } from "@/logger";
-import { getRequestHeaders } from "@/integrations/tavern";
+import { getRequestHeaders } from "@/sillytavern";
 
 const MODULE = "ModelService";
 

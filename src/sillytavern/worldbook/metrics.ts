@@ -1,5 +1,5 @@
 import { Logger } from "@/logger/index.ts";
-import { getEntries } from "@/integrations/tavern/worldbook/crud.ts";
+import { getEntries } from "@/sillytavern/worldbook/crud.ts";
 import type { WorldInfoEntry, WorldInfoTokenStats } from "./types.ts";
 
 const MODULE = "Worldbook";

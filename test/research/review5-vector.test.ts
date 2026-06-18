@@ -39,7 +39,7 @@ vi.mock("@/data/db", () => ({
     }),
 }));
 
-vi.mock("@/integrations/tavern", () => ({
+vi.mock("@/sillytavern", () => ({
     getCurrentChatId: () => "test-chat",
 }));
 

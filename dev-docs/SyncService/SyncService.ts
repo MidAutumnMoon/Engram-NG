@@ -2,7 +2,7 @@
 // Re-enable by restoring imports in db.ts and CharacterCleanup.ts.
 
 import { Logger, LogModule } from "@/logger";
-import { getRequestHeaders, getSTContext } from "@/integrations/tavern";
+import { getRequestHeaders, getSTContext } from "@/sillytavern";
 import type { ChatDataDump } from "@/data/db";
 import {
     ChatDatabase,
@@ -40,12 +40,12 @@ class SyncService {
         // 而是依靠外部调用 init 或在构造函数中尝试
         setTimeout(async () => {
             const { EventBus, TavernEventType } = await import(
-                "@/integrations/tavern"
+                "@/sillytavern"
             );
 
             // 监听聊天切换事件
             EventBus.on(TavernEventType.CHAT_CHANGED, async () => {
-                const { getSTContext } = await import("@/integrations/tavern");
+                const { getSTContext } = await import("@/sillytavern");
                 const chatId = getSTContext()?.chatId;
                 if (chatId) {
                     Logger.info(
@@ -58,7 +58,7 @@ class SyncService {
             });
 
             // 首次加载也检查一次
-            const { getSTContext } = await import("@/integrations/tavern");
+            const { getSTContext } = await import("@/sillytavern");
             const initialChatId = getSTContext()?.chatId;
             if (initialChatId) {
                 this.autoSyncDownload(initialChatId);

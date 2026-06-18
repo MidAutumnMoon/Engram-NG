@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useConfigStore } from "@/state/configStore";
 import { Switch } from "@/ui/components/core/Switch";
 import { useMemoryStore } from "@/state/memoryStore";
-import { getCurrentChatId } from "@/integrations/tavern";
+import { getCurrentChatId } from "@/sillytavern";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { Logger, LogModule } from "@/logger";
 

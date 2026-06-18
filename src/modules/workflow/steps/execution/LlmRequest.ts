@@ -2,7 +2,7 @@ import type { IStep, RetryConfig } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
 import { llmAdapter } from "@/integrations/llm/Adapter";
 import { ModelLogger } from "@/logger/ModelLogger";
-import { getCurrentCharacter, getCurrentModel } from "@/integrations/tavern";
+import { getCurrentCharacter, getCurrentModel } from "@/sillytavern";
 import { Logger } from "@/logger";
 import { SettingsManager } from "@/config/settings";
 

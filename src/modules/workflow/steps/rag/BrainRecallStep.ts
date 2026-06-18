@@ -6,7 +6,7 @@ import {
 import type { BrainRecallConfig, RecallConfig } from "@/config/types/rag";
 import { Logger, LogModule } from "@/logger";
 import { tryGetDbForChat } from "@/data/db";
-import { getCurrentChatId } from "@/integrations/tavern";
+import { getCurrentChatId } from "@/sillytavern";
 import {
     brainRecallCache,
     type RecallCandidate,

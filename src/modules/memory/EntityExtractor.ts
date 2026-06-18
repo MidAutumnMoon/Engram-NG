@@ -10,11 +10,11 @@ import { SettingsManager } from "@/config/settings";
 import { DEFAULT_ENTITY_CONFIG } from "@/config/types/defaults";
 import type { EntityExtractConfig } from "@/config/types/memory";
 import { EventBus } from "@/events";
-import { eventWatcher } from "@/integrations/tavern/EventWatcher";
+import { eventWatcher } from "@/sillytavern/EventWatcher";
 import { Logger, LogModule } from "@/logger";
 import { chatManager } from "@/data/ChatManager";
 import type { EntityNode } from "@/data/types/graph";
-import { MacroService } from "@/integrations/tavern";
+import { MacroService } from "@/sillytavern";
 import { useMemoryStore } from "@/state/memoryStore";
 import { notificationService } from "@/ui/services/NotificationService";
 import type { ChatContext } from "./types";
@@ -280,7 +280,7 @@ export class EntityBuilder {
             const { createEntityWorkflow } = await import(
                 "@/modules/workflow/definitions/EntityWorkflow"
             );
-            const { MacroService } = await import("@/integrations/tavern");
+            const { MacroService } = await import("@/sillytavern");
 
             // V1.4.7: 使用全局预览开关和实体独立预览开关
             const globalPreviewEnabled =

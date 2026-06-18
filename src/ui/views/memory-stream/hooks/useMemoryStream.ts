@@ -271,7 +271,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                 );
 
                 const { MacroService } = await import(
-                    "@/integrations/tavern/prompt/macros"
+                    "@/sillytavern/prompt/macros"
                 );
                 await MacroService.refreshEngramCache();
 

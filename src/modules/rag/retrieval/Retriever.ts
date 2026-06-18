@@ -15,7 +15,7 @@ import { SettingsManager } from "@/config/settings";
 import { Logger, LogModule } from "@/logger";
 import { RecallLogService } from "@/logger/RecallLogger";
 import { tryGetDbForChat } from "@/data/db";
-import { getCurrentChatId } from "@/integrations/tavern";
+import { getCurrentChatId } from "@/sillytavern";
 
 import { DEFAULT_RECALL_CONFIG } from "@/config/types/defaults";
 import type {
@@ -24,7 +24,7 @@ import type {
     VectorConfig,
 } from "@/config/types/rag";
 import type { EventNode } from "@/data/types/graph";
-import { ChatHistoryHelper } from "@/integrations/tavern/chat/chatHistory";
+import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory";
 import type { AgenticRecall } from "@/config/types/rag.ts";
 import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine";
 import { createRetrievalWorkflow } from "@/modules/workflow/definitions/RetrievalWorkflow";

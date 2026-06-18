@@ -1,6 +1,6 @@
-import { reviewService } from "@/integrations/tavern/ReviewBridge";
+import { reviewService } from "@/sillytavern/ReviewBridge";
 import { Logger } from "@/logger";
-import { WorldInfoService } from "@/integrations/tavern/worldbook";
+import { WorldInfoService } from "@/sillytavern/worldbook";
 import { notificationService } from "@/ui/services/NotificationService";
 import type { JobContext } from "../../core/JobContext";
 import type { IStep, StepResult } from "../../core/Step";

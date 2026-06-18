@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Database, RefreshCw, Trash2 } from "lucide-react";
 import type { DatabaseStats } from "@/data/db";
 import { deleteDatabase, getDatabaseStats, listAllChatIds } from "@/data/db";
-import { getCurrentChatId } from "@/integrations/tavern";
+import { getCurrentChatId } from "@/sillytavern";
 
 export const GlobalDatabaseList: React.FC = () => {
     const [dbs, setDbs] = useState<DatabaseStats[]>([]);

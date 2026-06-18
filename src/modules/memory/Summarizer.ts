@@ -3,7 +3,7 @@
  */
 
 import { SettingsManager } from "@/config/settings";
-import { eventWatcher } from "@/integrations/tavern/EventWatcher";
+import { eventWatcher } from "@/sillytavern/EventWatcher";
 import { useMemoryStore } from "@/state/memoryStore"; // Used for setLastSummarizedFloor
 import { notificationService } from "@/ui/services/NotificationService";
 import type {
@@ -495,7 +495,7 @@ class SummarizerService {
                 "@/modules/workflow/definitions/SummaryWorkflow"
             );
             const { WorldBookSlotService } = await import(
-                "@/integrations/tavern/worldbook"
+                "@/sillytavern/worldbook"
             );
             await WorldBookSlotService.init();
 

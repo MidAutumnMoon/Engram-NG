@@ -12,7 +12,7 @@ import { Logger, LogModule } from "@/logger";
 import { getDbForChat, tryGetDbForChat } from "@/data/db";
 import type { EventNode } from "@/data/types/graph";
 import { EmbeddingClient } from "@/integrations/embedding/EmbeddingClient";
-import { getCurrentChatId } from "@/integrations/tavern";
+import { getCurrentChatId } from "@/sillytavern";
 
 // ==================== 类型定义 ====================
 

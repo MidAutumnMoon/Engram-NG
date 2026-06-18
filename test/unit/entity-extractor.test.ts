@@ -50,7 +50,7 @@ vi.mock("@/data/ChatManager", () => ({
     },
 }));
 
-vi.mock("@/integrations/tavern", () => ({
+vi.mock("@/sillytavern", () => ({
     MacroService: {
         getCurrentMessageCount: vi.fn(),
         getChatHistory: vi.fn(() => "mock history"),
@@ -73,7 +73,7 @@ vi.mock("@/ui/services/NotificationService", () => ({
 }));
 
 import { chatManager } from "@/data/ChatManager";
-import { MacroService } from "@/integrations/tavern";
+import { MacroService } from "@/sillytavern";
 import { EntityBuilder } from "@/modules/memory/EntityExtractor";
 
 describe("EntityBuilder trigger/range guards", () => {

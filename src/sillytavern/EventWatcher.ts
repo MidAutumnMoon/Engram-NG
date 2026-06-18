@@ -13,7 +13,7 @@ import {
     EventBus,
     TavernEventType,
     type Unsubscribe,
-} from "@/integrations/tavern";
+} from "@/sillytavern";
 
 /** 监听回调类型 */
 interface WatcherCallbacks {

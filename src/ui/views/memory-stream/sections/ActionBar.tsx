@@ -1,4 +1,4 @@
-import { MacroService } from "@/integrations/tavern";
+import { MacroService } from "@/sillytavern";
 import {
     ArrowDownUp,
     Database,

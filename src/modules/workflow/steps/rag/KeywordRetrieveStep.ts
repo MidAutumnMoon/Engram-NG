@@ -1,7 +1,7 @@
 import { SettingsManager } from "@/config/settings";
 import { Logger, LogModule } from "@/logger";
 import { tryGetDbForChat } from "@/data/db";
-import { getCurrentChatId } from "@/integrations/tavern";
+import { getCurrentChatId } from "@/sillytavern";
 import { matchEvent, scanEntities } from "@/modules/memory/EntityScanner";
 import type { ScoredEvent } from "@/modules/rag/retrieval/HybridScorer";
 import type { JobContext } from "../../core/JobContext";

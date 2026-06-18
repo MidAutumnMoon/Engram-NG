@@ -16,7 +16,7 @@ import {
     getCurrentChatId,
     getSTContext,
     MacroService,
-} from "@/integrations/tavern";
+} from "@/sillytavern";
 import { summarizerService } from "@/modules/memory";
 
 import { useConfigStore } from "@/state/configStore";

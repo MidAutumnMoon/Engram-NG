@@ -1,5 +1,5 @@
-import type { ReviewAction, ReviewRequest } from "@/integrations/tavern/ReviewBridge";
-import { EventBus, TavernEventType } from "@/integrations/tavern"; // EventBus is from events.ts
+import type { ReviewAction, ReviewRequest } from "@/sillytavern/ReviewBridge";
+import { EventBus, TavernEventType } from "@/sillytavern"; // EventBus is from events.ts
 import { ModernButton as Button } from "@/ui/components/core/Button";
 import {
     AlertTriangle,

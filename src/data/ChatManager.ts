@@ -7,7 +7,7 @@
 
 import { Logger } from "@/logger/index.ts";
 import { type ChatDatabase, type ChatMeta, getDbForChat } from "./db";
-import { getCurrentCharacter, getCurrentChatId } from "@/integrations/tavern";
+import { getCurrentCharacter, getCurrentChatId } from "@/sillytavern";
 import { DEFAULT_SCOPE_STATE, type ScopeState } from "./types/graph";
 
 /** Meta 表中的状态 key */

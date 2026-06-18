@@ -3,8 +3,8 @@ import { useMemoryStore } from "@/state/memoryStore";
 import { getCurrentDb } from "@/state/memory/slices/coreSlice";
 
 // Mock tavern integration to return our test chat id
-vi.mock("@/integrations/tavern", async () => {
-    const actual = await vi.importActual("@/integrations/tavern") as any;
+vi.mock("@/sillytavern", async () => {
+    const actual = await vi.importActual("@/sillytavern") as any;
     return {
         ...actual,
         getCurrentChatId: vi.fn(() => "test_batch_chat"),

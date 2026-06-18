@@ -23,7 +23,7 @@ vi.mock("@/config/settings", () => ({
     },
 }));
 
-import { ChatHistoryHelper } from "@/integrations/tavern/chat/chatHistory";
+import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory";
 
 describe("ChatHistoryHelper Unit Tests", () => {
     beforeEach(() => {

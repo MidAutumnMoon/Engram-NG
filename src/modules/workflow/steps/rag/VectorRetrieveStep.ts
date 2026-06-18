@@ -2,7 +2,7 @@ import { SettingsManager } from "@/config/settings";
 import { DEFAULT_RECALL_CONFIG } from "@/config/types/defaults";
 import { Logger, LogModule } from "@/logger";
 import { tryGetDbForChat } from "@/data/db";
-import { getCurrentChatId } from "@/integrations/tavern";
+import { getCurrentChatId } from "@/sillytavern";
 import { embeddingService } from "@/modules/rag/embedding/EmbeddingService";
 import type { ScoredEvent } from "@/modules/rag/retrieval/HybridScorer";
 import type { JobContext } from "../../core/JobContext";

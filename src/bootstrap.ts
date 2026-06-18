@@ -1,9 +1,10 @@
 /**
  * Engram 启动序列
  *
- * 仅负责协调各子系统的加载与启动。对 SillyTavern 的接入由本目录其它模块
- * (context.ts / events.ts / chat/ / api/ / worldbook/ / prompt/ / ui/) 负责，
- * 统一通过 `@/integrations/tavern` barrel 暴露给外部消费。
+ * App composition root — 协调各子系统的加载与启动。本模块本身是入口
+ * (由 src/index.tsx 直接调用)，不属于 host 接入层；对 SillyTavern 的接入
+ * 由 `@/sillytavern` (context.ts / events.ts / chat/ / worldbook/ / prompt/
+ * / ui/) 负责，统一通过该 barrel 暴露给外部消费。
  */
 
 import { Logger } from "@/logger/index.ts";
@@ -13,14 +14,14 @@ import type { TrimConfig } from "@/config/types/memory.ts";
 import { getDbForChat } from "@/data/db.ts";
 import type { ChatContext } from "@/modules/memory/types.ts";
 import { regexProcessor } from "@/modules/workflow/steps/processing/RegexProcessor.ts";
-import { getCurrentChatId } from "./context.ts";
-import { eventWatcher } from "./EventWatcher.ts";
+import { getCurrentChatId } from "@/sillytavern/context.ts";
+import { eventWatcher } from "@/sillytavern/EventWatcher.ts";
 import {
     createTopBarButton,
     initQuickPanelButton,
     mountGlobalOverlay,
     toggleMainPanel,
-} from "./ui/ui.tsx";
+} from "@/sillytavern/ui/ui.tsx";
 
 /**
  * 初始化 Engram 插件
@@ -68,7 +69,7 @@ export async function initializeEngram(): Promise<void> {
             Logger.warn("Injector", "模块加载失败", { error: String(e) });
             return null;
         }),
-        import("@/integrations/tavern/worldbook/index.ts").catch((e) => {
+        import("@/sillytavern/worldbook/index.ts").catch((e) => {
             Logger.warn("Worldbook", "模块加载失败", { error: String(e) });
             return null;
         }),
@@ -194,7 +195,7 @@ export async function initializeEngram(): Promise<void> {
     if (worldbookReady) {
         try {
             const { MacroService } = await import(
-                "@/integrations/tavern/prompt/macros.ts"
+                "@/sillytavern/prompt/macros.ts"
             );
             await MacroService.init();
         } catch (error) {

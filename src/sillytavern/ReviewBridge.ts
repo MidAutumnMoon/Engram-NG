@@ -1,4 +1,4 @@
-import { EventBus, TavernEventType } from "@/integrations/tavern";
+import { EventBus, TavernEventType } from "@/sillytavern";
 
 export type ReviewAction = "confirm" | "fill" | "reject" | "reroll" | "cancel";
 

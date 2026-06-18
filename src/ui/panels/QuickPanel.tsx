@@ -84,7 +84,7 @@ const NAV_QUICK_LINKS = [
 
 export function QuickPanel({ isOpen, onClose }: QuickPanelProps) {
     const handleNavigate = useCallback((path: string) => {
-        import("@/integrations/tavern").then(({ openMainPanel }) => {
+        import("@/sillytavern").then(({ openMainPanel }) => {
             openMainPanel();
         }).finally(() => {
             window.setTimeout(() => {

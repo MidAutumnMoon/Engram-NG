@@ -56,7 +56,7 @@ vi.mock("@/data/ChatManager", () => ({
 }));
 
 // Mock MacroService
-vi.mock("@/integrations/tavern", () => ({
+vi.mock("@/sillytavern", () => ({
     MacroService: {
         getCurrentMessageCount: vi.fn(() => 100),
     },

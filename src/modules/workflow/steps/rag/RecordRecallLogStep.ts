@@ -1,6 +1,6 @@
 import { Logger, LogModule } from "@/logger";
 import { RecallLogService } from "@/logger/RecallLogger";
-import { WorldbookScannerService } from "@/integrations/tavern/worldbook/scanner";
+import { WorldbookScannerService } from "@/sillytavern/worldbook/scanner";
 import type { ScoredEvent } from "@/modules/rag/retrieval/HybridScorer";
 import type { JobContext } from "../../core/JobContext";
 import type { IStep } from "../../core/Step";

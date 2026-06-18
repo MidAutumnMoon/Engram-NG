@@ -3,7 +3,7 @@ import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine";
 import { createRetrievalWorkflow } from "@/modules/workflow/definitions/RetrievalWorkflow";
 
 // Mocks
-vi.mock("@/integrations/tavern", () => ({
+vi.mock("@/sillytavern", () => ({
     getCurrentChatId: () => "test-chat-id",
 }));
 

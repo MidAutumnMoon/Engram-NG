@@ -1,4 +1,3 @@
-export * from "./bootstrap.ts";
 export * from "./context.ts";
 export * from "./events.ts";
 

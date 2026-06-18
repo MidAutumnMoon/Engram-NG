@@ -9,7 +9,7 @@ import type { TrimConfig } from "@/config/types/memory.ts";
 import { Logger, LogModule } from "@/logger/index.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import type { ChatDatabase } from "@/data/db.ts";
-import { WorldInfoService } from "@/integrations/tavern/worldbook/index.ts";
+import { WorldInfoService } from "@/sillytavern/worldbook/index.ts";
 import { notificationService } from "@/ui/services/NotificationService.ts";
 import type { ChatContext } from "./types.ts";
 

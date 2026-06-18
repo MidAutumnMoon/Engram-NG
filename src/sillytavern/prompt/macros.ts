@@ -1,7 +1,7 @@
 import { SettingsManager } from "@/config/settings";
 import type { CustomMacro } from "@/config/types/prompt";
 import { Logger } from "@/logger";
-import { WorldInfoService } from "@/integrations/tavern";
+import { WorldInfoService } from "@/sillytavern";
 import { useMemoryStore } from "@/state/memoryStore";
 import { ChatHistoryHelper } from "../chat/chatHistory";
 import { EjsProcessor } from "./ejsProcessor";

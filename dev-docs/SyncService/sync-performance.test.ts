@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { syncService } from "@/data/sync/SyncService";
 
 // Mock Tavern
-vi.mock("@/integrations/tavern", () => ({
+vi.mock("@/sillytavern", () => ({
     getSTContext: vi.fn(() => ({ chatId: "test_sync" })),
     getRequestHeaders: vi.fn(() => ({})),
     TavernEventType: { CHAT_CHANGED: "chat_changed" },

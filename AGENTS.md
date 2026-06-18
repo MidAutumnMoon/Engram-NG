@@ -15,7 +15,7 @@ This file intentionally omits directory layouts, entry-point paths, and module-t
 - Do not read files in `dist/` — it's generated build output and is gitignored on the source branch. Run `deno task build` to (re)generate it locally.
 - Take care when reading `vendor/` or grepping for texts — third-party source may contain very large files. Check size first and avoid grepping without guards.
 - New or edited imports must be non-sloppy: include the explicit file extension (`.ts` / `.tsx`), or `/index.ts` for barrels. Existing sloppy imports across the codebase will be cleaned up incrementally — don't mass-rewrite them, but don't add new ones.
-- All SillyTavern API access goes through the tavern integration layer — don't call ST globals directly from modules or UI.
+- All SillyTavern API access goes through the `@/sillytavern` host layer — don't call ST globals directly from modules or UI.
 - Prefer a single source of truth for each kind of data. Don't shadow the existing source with module-local caches that drift out of sync.
 - Don't duplicate logic across layers. If the same query, default-config merge, or range calculation shows up in two places, one of them is wrong eventually. When fixing a bug, grep for siblings — the same query elsewhere probably has the same bug.
 - DRY means "consolidate when you see duplication", not "add an abstraction layer". Before extracting a shared helper or wrapping a lower-level API behind a facade, check whether direct call sites already serve the same callers. Wrapping for tidiness alone tends to grow back the coupling that was just removed.

@@ -3,7 +3,7 @@
  * 用于在提示词模板中直接绑定额外世界书
  */
 
-import { WorldInfoService } from "@/integrations/tavern/worldbook";
+import { WorldInfoService } from "@/sillytavern/worldbook";
 import { Book, Plus, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 

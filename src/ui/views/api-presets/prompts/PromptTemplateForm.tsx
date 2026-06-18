@@ -143,7 +143,7 @@ export const PromptTemplateForm: React.FC<PromptTemplateFormProps> = ({
         const timer = setTimeout(async () => {
             try {
                 const { WorldInfoService } = await import(
-                    "@/integrations/tavern/worldbook"
+                    "@/sillytavern/worldbook"
                 );
                 const t1 = template.systemPrompt
                     ? await WorldInfoService.countTokens(template.systemPrompt)

@@ -6,7 +6,7 @@ import {
     tryGetDbForChat,
 } from "@/data/db";
 import type { EventNode } from "@/data/types/graph";
-import { getCurrentChatId } from "@/integrations/tavern";
+import { getCurrentChatId } from "@/sillytavern";
 import type { StateCreator } from "zustand";
 
 export interface CoreState {
