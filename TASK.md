@@ -63,9 +63,13 @@
 
 **Rationale:** BrainRecallCache is kept for future review, but it is not used. Do not run dead code in the hot path.
 
-- [ ] Remove `BrainRecallStep` from `src/modules/workflow/definitions/RetrievalWorkflow.ts` steps array
-- [ ] Keep `src/modules/rag/retrieval/BrainRecallCache.ts` and `BrainRecallStep.ts` files intact for later review
-- [ ] In `MacroService`, remove the `brainRecallCache` dynamic-import fallback paths from `refreshEngramCache()` and `refreshCacheWithNodes()`. Since the cache is never populated now, these paths are unreachable.
+- [x] Remove `BrainRecallStep` from `src/modules/workflow/definitions/RetrievalWorkflow.ts` steps array
+- [x] Keep `src/modules/rag/retrieval/BrainRecallCache.ts` and `BrainRecallStep.ts` files intact for later review
+- [x] In `MacroService`, remove the `brainRecallCache` dynamic-import fallback paths from `refreshEngramCache()` and `refreshCacheWithNodes()`. Since the cache is never populated now, these paths are unreachable.
+- [x] Remove `brainRecallCache` usage from `Retriever.agenticSearch()`
+- [x] Remove `brainRecallCache` usage from `useDashboardData.ts` (`fetchBrainStats`)
+- [x] Remove `brainRecallCache` usage from `useMemoryStream.ts`
+- [x] Backed up algorithm to `docs/reference/brain_recall_algorithm.md`
 
 ### 1.6 Demote SyncService to Reference-Only
 

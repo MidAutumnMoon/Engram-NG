@@ -1,7 +1,7 @@
 import { SettingsManager } from "@/config/settings";
 import type { EntityNode, EventNode } from "@/data/types/graph";
 import { embeddingService } from "@/modules/rag/embedding/EmbeddingService";
-import { brainRecallCache } from "@/modules/rag/retrieval/BrainRecallCache";
+
 import { getCurrentDb, useMemoryStore } from "@/state/memoryStore";
 import { notificationService } from "@/ui/services/NotificationService";
 import {
@@ -105,8 +105,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             const allEvents = await store.getAllEvents();
             setEvents(allEvents.toSorted((a, b) => a.timestamp - b.timestamp));
 
-            const snapshot = brainRecallCache.getShortTermSnapshot();
-            setActiveIds(new Set(snapshot.map((s) => s.id)));
+            setActiveIds(new Set());
         } catch (error) {
             console.error("[MemoryStream] Failed to load events:", error);
         } finally {
@@ -264,10 +263,6 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
         async (id: string, isArchived: boolean) => {
             try {
                 await store.updateEntity(id, { is_archived: isArchived });
-
-                if (isArchived) {
-                    brainRecallCache.forget(id);
-                }
 
                 setEntities((prev) =>
                     prev.map((e) =>

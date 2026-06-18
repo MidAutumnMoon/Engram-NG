@@ -18,7 +18,7 @@ import {
     MacroService,
 } from "@/integrations/tavern";
 import { summarizerService } from "@/modules/memory";
-import { brainRecallCache } from "@/modules/rag/retrieval/BrainRecallCache";
+
 import { useConfigStore } from "@/state/configStore";
 import { useMemoryStore } from "@/state/memoryStore";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -237,49 +237,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
         });
     }, []);
 
-    const fetchBrainStats = useCallback(() => {
-        try {
-            const snapshot = brainRecallCache.getShortTermSnapshot();
-            const brainApiSettings = SettingsManager.get("apiSettings");
-            const brainConfig = brainApiSettings?.recallConfig?.brainRecall ||
-                DEFAULT_BRAIN_RECALL_CONFIG;
-
-            const workingItems = snapshot.filter((s) => s.tier === "working");
-            const topActiveItems = snapshot.slice(0, 3).map((s) => ({
-                id: s.id,
-                label: s.label,
-                score: s.finalScore,
-            }));
-
-            const contextText = MacroService.getSummaries();
-
-            if (!isMounted.current) return;
-            setBrainStats({
-                shortTermCount: snapshot.length,
-                shortTermLimit: brainConfig.shortTermLimit,
-                topItems: topActiveItems,
-                workingCount: workingItems.length,
-                workingLimit: brainConfig.workingLimit,
-            });
-
-            setContextStats({
-                estimatedTokens: Math.ceil(contextText.length / 4),
-                injectedLength: contextText.length,
-            });
-        } catch (error) {
-            Logger.warn(LogModule.DASHBOARD, "加载 Brain Stats 失败", error);
-            if (isMounted.current) {
-                setBrainStats({
-                    shortTermCount: 0,
-                    shortTermLimit: 0,
-                    topItems: [],
-                    workingCount: 0,
-                    workingLimit: 0,
-                });
-            }
-        }
-    }, []);
-
     // 主刷新回调，编排原子获取函数
     const refresh = useCallback(async () => {
         try {
@@ -287,7 +244,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
             fetchGlobalStats();
             await fetchMemoryStats();
             await fetchFeatureStatus();
-            fetchBrainStats();
 
             if (isMounted.current) setIsLoading(false);
         } catch (error) {
@@ -301,7 +257,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
         fetchGlobalStats,
         fetchMemoryStats,
         fetchFeatureStatus,
-        fetchBrainStats,
     ]);
 
     // 切换功能开关

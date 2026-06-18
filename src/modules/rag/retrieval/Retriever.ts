@@ -32,7 +32,7 @@ import { ChatHistoryHelper } from "@/integrations/tavern/chat/chatHistory";
 import type { AgenticRecall } from "@/config/types/rag.ts";
 import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine";
 import { createRetrievalWorkflow } from "@/modules/workflow/definitions/RetrievalWorkflow";
-import { brainRecallCache, type RecallCandidate } from "./BrainRecallCache";
+import type { RecallCandidate } from "./BrainRecallCache";
 
 // ==================== 类型定义 ====================
 
@@ -359,37 +359,9 @@ class Retriever {
                 rerankScore: r.score, // 双轨同分，让 BrainRecallCache 的门控逻辑正常工作
             }));
 
-        // 3. 送入 BrainRecallCache（自动触发 Decay Bomb）
-        const recallConfig = this.getRecallConfig();
-        const brainConfig: BrainRecallConfig = recallConfig.brainRecall ||
-            DEFAULT_BRAIN_RECALL_CONFIG;
+        // REFERENCE: BrainRecallCache step removed from hot path.
+        // The algorithm is kept in BrainRecallCache.ts for future review.
         let finalNodes = validEvents;
-
-        if (brainConfig.enabled && !options?.isManualTest) {
-            brainRecallCache.setConfig(brainConfig);
-            brainRecallCache.nextRound();
-
-            const brainResults = brainRecallCache.process(candidates);
-
-            // 根据 BrainRecallCache 输出重新排序
-            const brainIdSet = new Set(brainResults.map((s) => s.id));
-            finalNodes = validEvents.filter((e) => brainIdSet.has(e.id));
-
-            Logger.info(
-                LogModule.RAG_RETRIEVE,
-                "Agentic Search: 类脑召回已应用",
-                {
-                    inputCount: candidates.length,
-                    outputCount: brainResults.length,
-                    round: brainRecallCache.getCurrentRound(),
-                },
-            );
-        } else if (options?.isManualTest) {
-            Logger.debug(
-                LogModule.RAG_RETRIEVE,
-                "Agentic Search: 手动测试模式跳过类脑处理逻辑",
-            );
-        }
 
         // 4. 并行执行关键词扫描 (实体召回保底)
         // Agentic 模式虽然跳过了事件的语义匹配，但不能丢掉实体的关键词扫描
@@ -423,17 +395,7 @@ class Retriever {
                 if (keywordContext.data?.keywordEntityIds) {
                     recalledEntities = keywordContext.data.keywordEntityIds;
 
-                    // 将实体也送入 BrainRecallCache 注册
-                    if (brainConfig.enabled && !options?.isManualTest) {
-                        const entityCandidates: RecallCandidate[] =
-                            recalledEntities.map((re) => ({
-                                embeddingScore: re.score,
-                                id: re.id,
-                                label: "entity",
-                                rerankScore: re.score,
-                            }));
-                        brainRecallCache.process(entityCandidates);
-                    }
+                    // REFERENCE: BrainRecallCache registration removed.
                 }
             } catch (error) {
                 Logger.warn(
@@ -448,15 +410,7 @@ class Retriever {
 
         // 4. 记录召回日志 (如果是手动测试确认，则跳过日志记录)
         if (!options?.isManualTest) {
-            const brainStats = brainConfig.enabled
-                ? {
-                    round: brainRecallCache.getCurrentRound(),
-                    snapshot: brainRecallCache.getShortTermSnapshot(),
-                }
-                : undefined;
-
             RecallLogService.log({
-                brainStats,
                 mode: (options?.mode as any) || "agentic",
                 query: options?.mode === "hybrid"
                     ? "[Hybrid Preview Mode]"

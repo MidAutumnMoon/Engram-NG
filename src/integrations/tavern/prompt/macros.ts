@@ -268,56 +268,21 @@ export class MacroService {
     /**
      * 仅刷新 Engram 相关的 DB 缓存 (快速)
      * 用于 Pipeline 结束后的快速更新，避免触发全量世界书扫描
-     *
-     * V1.0.2: 当未显式传入 recalledIds 时，自动从 BrainRecallCache 获取当前短期记忆
-     * 这样所有使用 {{engramSummaries}} 的地方都能自动获得召回上下文
      */
     static async refreshEngramCache(recalledIds?: string[]): Promise<void> {
         try {
             const store = useMemoryStore.getState();
 
-            // V1.0.2: 自动绑定 BrainRecallCache
-            // 如果没有显式传入 recalledIds，则从 BrainRecallCache 获取当前短期记忆
-            let effectiveRecalledIds = recalledIds;
-            let effectiveEntityIds: string[] | undefined = undefined;
-
-            try {
-                // 动态导入避免循环依赖
-                const { brainRecallCache } = await import(
-                    "@/modules/rag/retrieval/BrainRecallCache"
-                );
-                const snapshot = brainRecallCache.getShortTermSnapshot();
-
-                if (!effectiveRecalledIds && snapshot.length > 0) {
-                    effectiveRecalledIds = snapshot
-                        .filter((slot) => slot.category === "event")
-                        .map((slot) => slot.id);
-                }
-
-                // 提取实体 ID
-                effectiveEntityIds = snapshot
-                    .filter((slot) => slot.category === "entity")
-                    .map((slot) => slot.id);
-            } catch (error) {
-                Logger.debug(
-                    "MacroService",
-                    "BrainRecallCache 获取失败，跳过",
-                    error,
-                );
-            }
-
             // 1. 刷新事件摘要（带召回 ID）
             this.cachedSummaries = await store.getEventSummaries(
-                effectiveRecalledIds,
+                recalledIds,
             );
 
             // 2. 刷新归档摘要
             await this.refreshArchivedSummaries();
 
-            // 3. V1.0.0: 刷新实体状态 (带召回 ID)
-            this.cachedEntityStates = await store.getEntityStates(
-                effectiveEntityIds,
-            );
+            // 3. V1.0.0: 刷新实体状态
+            this.cachedEntityStates = await store.getEntityStates();
 
             // 4. Agentic RAG: 刷新目录索引和纯蓝灯事件
             this.cachedAgenticIndex = await store.getAgenticIndex();
@@ -423,20 +388,8 @@ export class MacroService {
             // 1. 刷新事件摘要
             this.cachedSummaries = await store.getEventSummaries(recalledIds);
 
-            // 2. V1.4.1: 同步刷新实体状态
-            try {
-                const { brainRecallCache } = await import(
-                    "@/modules/rag/retrieval/BrainRecallCache"
-                );
-                const entityIds = brainRecallCache.getShortTermSnapshot()
-                    .filter((slot) => slot.category === "entity")
-                    .map((slot) => slot.id);
-                this.cachedEntityStates = await store.getEntityStates(
-                    entityIds,
-                );
-            } catch (error) {
-                Logger.debug("MacroService", "刷新召回实体状态失败", error);
-            }
+            // 2. 刷新实体状态
+            this.cachedEntityStates = await store.getEntityStates();
 
             // 刷新世界书上下文 (支持 EJS)
             try {
