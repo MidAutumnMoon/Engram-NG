@@ -18,7 +18,7 @@
 - [x] Removed `DocAdapter` from `src/modules/search/` (build fix — depended on deleted `@/docs`)
 - [x] Removed `@mdx-js/rollup` and `remark-gfm` dependencies from `deno.jsonc` / `vite.config.ts`
 
-### 1.2 Delete Input Preprocessor
+### 1.2 Delete Input Preprocessor ✅ Done
 
 **Rationale:** Runs a full LLM call before every user message. Extremely slow, extremely niche.
 
