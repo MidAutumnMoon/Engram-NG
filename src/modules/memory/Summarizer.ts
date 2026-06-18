@@ -165,8 +165,7 @@ class SummarizerService {
      * 获取当前真实楼层数
      */
     private getCurrentFloor(): number {
-        // @ts-expect-error
-        const context = window.SillyTavern?.getContext?.();
+        const context = window.SillyTavern.getContext();
         if (!context?.chat) {
             return 0;
         }
@@ -178,8 +177,7 @@ class SummarizerService {
      * 获取当前聊天 ID
      */
     private getCurrentChatId(): string | null {
-        // @ts-expect-error
-        const context = window.SillyTavern?.getContext?.();
+        const context = window.SillyTavern.getContext.();
         return context?.chatId || null;
     }
 
