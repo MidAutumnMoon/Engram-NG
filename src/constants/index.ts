@@ -34,6 +34,7 @@ export const UI = {
 /** Bridge 层使用的 DOM 与面板常量 */
 export const ENGRAM_PANEL_ID = "engram-panel-root";
 export const ENGRAM_DRAWER_ID = "engram-drawer";
+export const ENGRAM_DRAWER_ICON_ID = "engram-drawer-icon";
 export const ENGRAM_GLOBAL_OVERLAY_ID = "engram-global-overlay";
 
 export const DOM_IDS = {

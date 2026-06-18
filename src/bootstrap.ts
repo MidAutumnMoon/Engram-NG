@@ -20,7 +20,6 @@ import {
     createTopBarButton,
     initQuickPanelButton,
     mountGlobalOverlay,
-    toggleMainPanel,
 } from "@/sillytavern/ui/ui.tsx";
 
 /**

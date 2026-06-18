@@ -10,6 +10,7 @@
 
 import {
     DOM_IDS,
+    ENGRAM_DRAWER_ICON_ID,
     ENGRAM_DRAWER_ID,
     ENGRAM_GLOBAL_OVERLAY_ID,
     ENGRAM_PANEL_ID,
@@ -183,7 +184,7 @@ export function createTopBarButton(): void {
     toggle.className = "drawer-toggle drawer-header";
 
     const icon = document.createElement("div");
-    icon.id = "engram-drawer-icon";
+    icon.id = ENGRAM_DRAWER_ICON_ID;
     icon.className = "drawer-icon fa-solid fa-e fa-fw closedIcon";
     icon.title = "Engram - 记忆操作系统";
     icon.dataset.i18n = "[title]Engram - Memory OS";
@@ -263,7 +264,7 @@ async function createMainPanel(): Promise<HTMLElement> {
     title.textContent = "Engram 记忆管理";
 
     const closeBtn = document.createElement("button");
-    closeBtn.title = "关闭 (Ctrl+Shift+E)";
+    closeBtn.title = "关闭";
     const closeIcon = document.createElement("i");
     closeIcon.className = "fa-solid fa-times";
     closeBtn.append(closeIcon);
@@ -279,31 +280,9 @@ async function createMainPanel(): Promise<HTMLElement> {
     panel.append(header);
     panel.append(content);
 
-    const [{ default: App }] = await Promise.all([
-        import("@/App"),
-    ]);
+    const { default: App } = await import("@/App.tsx");
     reactRoot = createRoot(panel);
     reactRoot.render(<App onClose={toggleMainPanel} />);
 
     return panel;
-}
-
-/**
- * 调用 SillyTavern 原生弹窗
- * @param content 弹窗内容 (HTML)
- * @param type 弹窗类型 ('text', 'confirm', 'input')
- * @param inputValue 输入框默认值
- */
-export async function callPopup(
-    content: string,
-    type: "text" | "confirm" | "input" = "text",
-    inputValue: string = "",
-): Promise<any> {
-    // @ts-expect-error - SillyTavern global
-    if (window.callPopup) {
-        // @ts-expect-error - SillyTavern global
-        return window.callPopup(content, type, inputValue);
-    }
-    console.warn("[Engram] callPopup not available");
-    return type === "confirm" ? true : null;
 }
