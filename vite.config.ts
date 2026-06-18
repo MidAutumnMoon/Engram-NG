@@ -1,13 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import deno from "@deno/vite-plugin";
-import mdx from "@mdx-js/rollup";
-import remarkGfm from "remark-gfm";
 
 export default defineConfig(({ mode }) => ({
     plugins: [
-        // MDX 支持 - 必须在 react() 之前
-        mdx({ remarkPlugins: [remarkGfm] }),
         react(),
         deno(),
     ],

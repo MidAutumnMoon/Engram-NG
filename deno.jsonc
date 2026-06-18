@@ -37,7 +37,6 @@
         "@/": "./src/",
 
         "@deno/vite-plugin": "npm:@deno/vite-plugin@^2.0.2",
-        "@mdx-js/rollup": "npm:@mdx-js/rollup@^3.1.1",
         "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.2.3",
         "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.2.3",
         "@types/jquery": "npm:@types/jquery@^3.5.32",
@@ -64,7 +63,6 @@
         "react-dom": "npm:react-dom@^19.0.0",
         "react-markdown": "npm:react-markdown@^10.1.0",
         "react-virtuoso": "npm:react-virtuoso@^4.18.1",
-        "remark-gfm": "npm:remark-gfm@^4.0.1",
         "tailwindcss": "npm:tailwindcss@^4.2.3",
         "typescript": "npm:typescript@^5.7.3",
         "vite": "npm:vite@^8.0.9",

@@ -16,6 +16,7 @@
 - [x] Remove `docs` route from `src/App.tsx`
 - [x] Remove `docs` from `NAV_ITEMS` in `src/constants/navigation.ts`
 - [x] Removed `DocAdapter` from `src/modules/search/` (build fix — depended on deleted `@/docs`)
+- [x] Removed `@mdx-js/rollup` and `remark-gfm` dependencies from `deno.jsonc` / `vite.config.ts`
 
 ### 1.2 Delete Input Preprocessor
 
