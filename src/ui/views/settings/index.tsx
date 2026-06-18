@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { PageTitle } from "@/ui/components/display/PageTitle";
-import { LayoutTabs } from "@/ui/components/layout/LayoutTabs";
+import { TabPills } from "@/ui/components/layout/TabPills";
 
 // Tabs
 import { AppearanceTab } from "./tabs/AppearanceTab";
@@ -21,8 +21,7 @@ export const Settings: React.FC = () => {
                 className="mb-2"
             />
 
-            {/* 顶部标签栏 - 自动 Portal 到 Layout Header */}
-            <LayoutTabs
+            <TabPills
                 tabs={[
                     { id: "appearance", label: "外观" },
                     { id: "features", label: "功能" },

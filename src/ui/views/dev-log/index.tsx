@@ -34,7 +34,7 @@ import { groupLogsByModule, LogEntryItem, LogGroup } from "./LogEntryItem.tsx";
 import { ModelLog } from "./ModelLog";
 import { RecallLog } from "./RecallLog";
 import type { Tab } from "@/ui/components/layout/TabPills";
-import { LayoutTabs } from "@/ui/components/layout/LayoutTabs";
+import { TabPills } from "@/ui/components/layout/TabPills";
 import { Divider } from "@/ui/components/layout/Divider";
 
 // Tab 类型
@@ -155,8 +155,7 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
                 className="mb-2"
             />
 
-            {/* Tab 切换 - 使用 LayoutTabs */}
-            <LayoutTabs
+            <TabPills
                 tabs={TABS}
                 activeTab={activeTab}
                 onChange={(id: string) => setActiveTab(id as TabType)}

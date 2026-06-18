@@ -33,7 +33,6 @@ import { PresetCard } from "./shared/PresetCard";
 import { WorldbookConfigForm } from "./worldbook/WorldbookConfigForm";
 
 import { EmptyState } from "@/ui/components/feedback/EmptyState";
-import { LayoutTabs } from "@/ui/components/layout/LayoutTabs";
 import { MasterDetailLayout } from "@/ui/components/layout/MasterDetailLayout";
 import { MobileFullscreenForm } from "@/ui/components/layout/MobileFullscreenForm"; // Added import
 import { useResponsive } from "@/ui/hooks/useResponsive";
@@ -371,8 +370,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                 className="mb-2"
             />
 
-            {/* 顶部标签栏 - 自动 Portal 到 Layout Header */}
-            <LayoutTabs
+            <TabPills
                 tabs={[
                     { id: "model", label: "模型配置" },
                     { id: "prompt", label: "提示词模板" },

@@ -2,12 +2,12 @@
  * DocsView - 文档页视图
  * V0.9.11
  *
- * 使用 LayoutTabs (Portal 到 Header) 实现无框流体设计
+ * 使用 TabPills 实现无框流体设计
  */
 
 import React, { useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { LayoutTabs } from "@/ui/components/layout/LayoutTabs";
+import { TabPills } from "@/ui/components/layout/TabPills";
 import { DOCS } from "@/docs";
 import type { Tab } from "@/ui/components/layout/TabPills";
 
@@ -75,8 +75,7 @@ export const DocsView: React.FC<DocsViewProps> = ({ initialTab }) => {
 
     return (
         <div className="h-full flex flex-col">
-            {/* Portal 到 Header 的 Tabs */}
-            <LayoutTabs
+            <TabPills
                 tabs={tabs}
                 activeTab={activeDocId}
                 onChange={setActiveDocId}

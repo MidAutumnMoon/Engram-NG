@@ -16,7 +16,7 @@ import {
     Search,
 } from "lucide-react";
 import type { Tab } from "@/ui/components/layout/TabPills";
-import { LayoutTabs } from "@/ui/components/layout/LayoutTabs";
+import { TabPills } from "@/ui/components/layout/TabPills";
 import { Divider } from "@/ui/components/layout/Divider";
 import type { QuickLink } from "@/ui/components/layout/QuickLinks";
 import { QuickLinks } from "@/ui/components/layout/QuickLinks";
@@ -129,10 +129,7 @@ export const ProcessingView: React.FC<ProcessingViewProps> = (
                 subtitle={currentInfo.subtitle}
                 className="mb-6"
             />
-            <Divider className="mb-6" />
-
-            {/* 标签导航 - 自动 Portal 到 Header */}
-            <LayoutTabs
+            <TabPills
                 tabs={MAIN_TABS}
                 activeTab={activeTab}
                 onChange={(id: string) => setActiveTab(id as ProcessingTab)}

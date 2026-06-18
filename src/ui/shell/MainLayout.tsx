@@ -52,12 +52,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                         onNavigate={(path) =>
                             setActiveTab(path.replace("/", ""))}
                     />
-
-                    {/* Header Extension Slot (Portal Target) */}
-                    <div
-                        id="engram-header-extension"
-                        className="z-40 shrink-0 bg-transparent transition-all empty:hidden"
-                    />
                 </div>
 
                 {/* Main Content Area */}

@@ -5,7 +5,7 @@
 
 ---
 
-## 1. Kill the Portal Tab Pattern (`LayoutTabs` → `TabPills`)
+## 1. Kill the Portal Tab Pattern (`LayoutTabs` → `TabPills`) ✅ DONE
 
 **Problem:** `LayoutTabs` uses `createPortal` to teleport the tab bar into `#engram-header-extension` inside `MainLayout`. The DOM tree and React tree diverge, making debugging hard. Every view implicitly couples itself to `MainLayout`'s internal slot. The `actions` prop-blast (e.g. `MemoryStream` passing a 15-prop `ActionBar`) inflates view files.
 
@@ -19,11 +19,9 @@
 - `src/ui/views/settings/index.tsx`
 
 **Options:**
-- [ ] **Option A:** Render `TabPills` inline at the top of each view (it's already sticky via CSS). Remove `LayoutTabs` entirely.
-- [ ] **Option B:** Make `MainLayout` accept an optional `headerSlot: ReactNode` prop so the relationship is explicit and type-safe.
-- [ ] **Option C:** Keep portal but simplify — remove `LayoutTabs` wrapper and let views portal `TabPills` themselves if they really need it.
-
-**Recommended:** Option A — delete `LayoutTabs.tsx`, render `TabPills` directly in views.
+- [x] **Option A:** Render `TabPills` inline at the top of each view (it's already sticky via CSS). Remove `LayoutTabs` entirely.
+- [ ] ~~Option B~~ — skipped.
+- [ ] ~~Option C~~ — skipped.
 
 ---
 

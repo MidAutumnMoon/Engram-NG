@@ -1,6 +1,6 @@
 import { PageTitle } from "@/ui/components/display/PageTitle";
 import { Divider } from "@/ui/components/layout/Divider";
-import { LayoutTabs } from "@/ui/components/layout/LayoutTabs";
+import { TabPills } from "@/ui/components/layout/TabPills";
 import { MasterDetailLayout } from "@/ui/components/layout/MasterDetailLayout";
 import { MobileFullscreenForm } from "@/ui/components/layout/MobileFullscreenForm";
 import { Save, Trash2 } from "lucide-react";
@@ -135,10 +135,7 @@ export const MemoryStream: React.FC<MemoryStreamProps> = ({ initialTab }) => {
                 title={currentInfo.title}
                 subtitle={currentInfo.subtitle}
             />
-            <Divider className="mb-6" />
-
-            {/* Tab 导航 */}
-            <LayoutTabs
+            <TabPills
                 tabs={VIEW_TABS}
                 activeTab={ms.viewTab}
                 onChange={ms.handleTabChange}
