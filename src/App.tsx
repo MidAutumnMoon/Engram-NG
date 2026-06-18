@@ -45,13 +45,13 @@ const App: React.FC<AppProps> = ({ onClose }) => {
             }
         };
 
-        window.addEventListener(
+        globalThis.addEventListener(
             "engram:navigate",
             handleWindowNavigate as EventListener,
         );
         return () => {
             subscription.unsubscribe();
-            window.removeEventListener(
+            globalThis.removeEventListener(
                 "engram:navigate",
                 handleWindowNavigate as EventListener,
             );

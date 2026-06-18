@@ -1,24 +1,26 @@
-import { PageTitle } from "@/ui/components/display/PageTitle";
-import { Divider } from "@/ui/components/layout/Divider";
-import { TabPills } from "@/ui/components/layout/TabPills";
-import { MasterDetailLayout } from "@/ui/components/layout/MasterDetailLayout";
-import { MobileFullscreenForm } from "@/ui/components/layout/MobileFullscreenForm";
+import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
+import { TabPills } from "@/ui/components/layout/TabPills.tsx";
+import { MasterDetailLayout } from "@/ui/components/layout/MasterDetailLayout.tsx";
+import { MobileFullscreenForm } from "@/ui/components/layout/MobileFullscreenForm.tsx";
 import { Save, Trash2 } from "lucide-react";
 import React, { useRef } from "react";
 
 // Hooks
-import { useMemoryStream } from "./hooks/useMemoryStream";
+import { useMemoryStream } from "./hooks/useMemoryStream.ts";
 
 // Sections & Modals
-import { ImportModal } from "./modals/ImportModal";
-import { PreviewModal } from "./modals/PreviewModal";
-import { ActionBar } from "./sections/ActionBar";
-import { EntityList } from "./sections/EntityList";
-import { EventList } from "./sections/EventList";
+import { ImportModal } from "./modals/ImportModal.tsx";
+import { PreviewModal } from "./modals/PreviewModal.tsx";
+import { ActionBar } from "./sections/ActionBar.tsx";
+import { EntityList } from "./sections/EntityList.tsx";
+import { EventList } from "./sections/EventList.tsx";
 
 // Editor Components
-import { EntityEditor } from "./components/EntityEditor";
-import { EventEditor, type EventEditorHandle } from "./components/EventEditor";
+import { EntityEditor } from "./components/EntityEditor.tsx";
+import {
+    EventEditor,
+    type EventEditorHandle,
+} from "./components/EventEditor.tsx";
 
 const VIEW_TABS = [
     {
