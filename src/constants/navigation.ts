@@ -1,6 +1,5 @@
 // 导航配置
 import {
-    BookOpen,
     Cpu,
     Key,
     LayoutDashboard,
@@ -28,7 +27,6 @@ export const NAV_ITEMS: NavItem[] = [
     { icon: Cpu, id: "processing", label: "数据处理", path: "/processing" },
     { icon: Key, id: "presets", label: "API 预设", path: "/presets" },
     { icon: Terminal, id: "devlog", label: "开发日志", path: "/devlog" },
-    { icon: BookOpen, id: "docs", label: "帮助文档", path: "/docs" }, // V0.9.11
     { icon: Settings, id: "settings", label: "设置", path: "/settings" },
 ];
 

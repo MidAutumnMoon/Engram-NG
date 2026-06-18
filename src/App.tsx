@@ -9,7 +9,6 @@ import { APIPresets } from "@/ui/views/api-presets/APIPresetsView.tsx";
 import { Settings } from "@/ui/views/settings/index.tsx";
 import { MemoryStream } from "@/ui/views/memory-stream/index.tsx";
 import { ProcessingView } from "@/ui/views/processing/ProcessingView.tsx";
-import { DocsView } from "@/ui/views/docs/index.tsx";
 
 interface AppProps {
     onClose: () => void;
@@ -105,9 +104,6 @@ const App: React.FC<AppProps> = ({ onClose }) => {
                         | undefined}
                 />;
             }
-            case "docs": {
-                return <DocsView initialTab={subtab} />;
-            } // V0.9.11
             default: {
                 return <Dashboard onNavigate={handleNavigate} />;
             }

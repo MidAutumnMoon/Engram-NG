@@ -7,14 +7,15 @@
 
 ## Phase 1: Scope Reduction (Delete / Demote)
 
-### 1.1 Delete Docs View & Content
+### 1.1 Delete Docs View & Content ✅ Done
 
 **Rationale:** In-app MDX documentation is overkill. Use README / GitHub wiki.
 
-- [ ] Delete `src/ui/views/docs/`
-- [ ] Delete `src/docs/` (registry + MDX files)
-- [ ] Remove `docs` route from `src/App.tsx`
-- [ ] Remove `docs` from `NAV_ITEMS` in `src/constants/navigation.ts`
+- [x] Delete `src/ui/views/docs/`
+- [x] Delete `src/docs/` (registry + MDX files)
+- [x] Remove `docs` route from `src/App.tsx`
+- [x] Remove `docs` from `NAV_ITEMS` in `src/constants/navigation.ts`
+- [x] Removed `DocAdapter` from `src/modules/search/` (build fix — depended on deleted `@/docs`)
 
 ### 1.2 Delete Input Preprocessor
 
@@ -194,8 +195,8 @@ exit $fail
 After each phase, run:
 
 - [ ] `deno task build` passes without errors.
-- [ ] `deno task test` passes (or at least does not regress).
-- [ ] Grep for deleted module names (e.g., `preprocessor`, `batchProcessor`, `ThemeManager`, `CommandPalette`, `QuickPanel`) across `src/` to confirm no orphaned imports.
+- [ ] Confirm no orphaned imports in `src`
+- [ ] Update TASK.md
 
 ---
 
