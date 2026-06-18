@@ -78,7 +78,7 @@ service.setChatContext({ chatId: string, db: ChatDatabase }): void
 
 Natural stopping points exist after each step — the app should build and run at each.
 
-- [ ] **A. Design `init()` + `setChatContext()` contract.** Decide the exact signatures; add the methods to all three services as no-ops (or thin wrappers around current behavior) so the rest of the pass has a target.
+- [x] **A. Design `init()` + `setChatContext()` contract.** Decide the exact signatures; add the methods to all three services as no-ops (or thin wrappers around current behavior) so the rest of the pass has a target. ✅ Done — see contract below.
 - [ ] **B. `EventTrimmer.ts`** — smallest service, no event lifecycle, good test case. Remove both `useMemoryStore` (static + dynamic import in `getStatus`) and `SettingsManager.getSummarizerSettings()` in `getStoredConfig()`. Take `db` and `trimConfig` from the resolved context.
 - [ ] **C. `Summarizer.ts` + `EntityExtractor.ts`** — larger, have start/stop, cross-reference each other (Summarizer → `entityBuilder.extractByRange`, Summarizer → `eventTrimmer.trim`). Remove `SettingsManager.get()` in constructor + `triggerSummary`, `SettingsManager.set()` in `updateConfig`, and `useMemoryStore.getState()` in `setLastSummarizedFloor`. `setLastSummarizedFloor` writes directly to `chatManager` / `db`.
 - [ ] **D. Workflow steps.** Per-step; each step resolves what it needs from `JobContext`:

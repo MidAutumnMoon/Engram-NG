@@ -17,6 +17,7 @@ import type { EntityNode } from "@/data/types/graph";
 import { MacroService } from "@/integrations/tavern";
 import { useMemoryStore } from "@/state/memoryStore";
 import { notificationService } from "@/ui/services/NotificationService";
+import type { ChatContext } from "./types";
 
 /**
  * 实体构建结果
@@ -38,11 +39,36 @@ export class EntityBuilder {
     // V0.9.11: UI State Persistence (fix for component unmount issues)
     public pendingReviewResult: EntityBuildResult | null = null;
 
+    // Phase 2.2+2.4 step A: injected state (not yet wired into logic)
+    private globalPreviewEnabled = true;
+    private chatContext: ChatContext | null = null;
+
     constructor(config?: Partial<EntityExtractConfig>) {
         // V0.9.10: Fix - 优先从 SettingsManager 加载持久化配置
         const savedConfig = SettingsManager.get("apiSettings")
             ?.entityExtractConfig;
         this.config = { ...DEFAULT_ENTITY_CONFIG, ...savedConfig, ...config };
+    }
+
+    /**
+     * Inject resolved config. Called by bootstrap before `start()`.
+     * Replaces constructor-time `SettingsManager.get()` reads.
+     *
+     * Phase 2.2+2.4 step A — no-op storage only; logic migration in step C.
+     */
+    init(config: EntityExtractConfig, globalPreviewEnabled: boolean): void {
+        this.config = config;
+        this.globalPreviewEnabled = globalPreviewEnabled;
+    }
+
+    /**
+     * Inject chat context. Called by bootstrap at startup and on `CHAT_CHANGED`.
+     * Replaces `useMemoryStore.getState()` reads.
+     *
+     * Phase 2.2+2.4 step A — no-op storage only; logic migration in step C.
+     */
+    setChatContext(ctx: ChatContext): void {
+        this.chatContext = ctx;
     }
 
     /** Clear pending review state */

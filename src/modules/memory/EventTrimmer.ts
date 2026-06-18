@@ -11,6 +11,7 @@ import { Logger, LogModule } from "@/logger";
 import type { EventNode } from "@/data/types/graph";
 import { useMemoryStore } from "@/state/memoryStore";
 import { notificationService } from "@/ui/services/NotificationService";
+import type { ChatContext } from "./types";
 
 interface TrimResult {
     /** 精简后的事件 */
@@ -56,8 +57,33 @@ class EventTrimmer {
     private config: TrimConfig;
     private isTrimming = false;
 
+    // Phase 2.2+2.4 step A: injected state (not yet wired into logic)
+    private globalPreviewEnabled = true;
+    private chatContext: ChatContext | null = null;
+
     constructor(config?: Partial<TrimConfig>) {
         this.config = this.getEffectiveConfig(config);
+    }
+
+    /**
+     * Inject resolved config. Called by bootstrap before `start()`.
+     * Replaces constructor-time `SettingsManager.get()` reads.
+     *
+     * Phase 2.2+2.4 step A — no-op storage only; logic migration in step B.
+     */
+    init(config: TrimConfig, globalPreviewEnabled: boolean): void {
+        this.config = config;
+        this.globalPreviewEnabled = globalPreviewEnabled;
+    }
+
+    /**
+     * Inject chat context. Called by bootstrap at startup and on `CHAT_CHANGED`.
+     * Replaces `useMemoryStore.getState()` reads.
+     *
+     * Phase 2.2+2.4 step A — no-op storage only; logic migration in step B.
+     */
+    setChatContext(ctx: ChatContext): void {
+        this.chatContext = ctx;
     }
 
     /**

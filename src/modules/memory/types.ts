@@ -2,6 +2,20 @@
  * Summarizer 模块类型定义
  */
 
+import type { ChatDatabase } from "@/data/db.ts";
+
+/**
+ * Chat context injected into memory services.
+ *
+ * Phase 2.2+2.4: replaces `useMemoryStore.getState()` reads inside `modules/`.
+ * Services store this on `setChatContext()` and use `db` directly for Dexie queries.
+ * `bootstrap.ts` resolves the current chat and dispatches on startup + `CHAT_CHANGED`.
+ */
+export interface ChatContext {
+    chatId: string;
+    db: ChatDatabase;
+}
+
 /** 触发模式 */
 export type TriggerMode = "auto" | "manual";
 

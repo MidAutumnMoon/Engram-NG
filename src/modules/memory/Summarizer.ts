@@ -7,6 +7,7 @@ import { eventWatcher } from "@/integrations/tavern/EventWatcher";
 import { useMemoryStore } from "@/state/memoryStore"; // Used for setLastSummarizedFloor
 import { notificationService } from "@/ui/services/NotificationService";
 import type {
+    ChatContext,
     SummarizerConfig,
     SummarizerStatus,
     SummaryResult,
@@ -64,6 +65,10 @@ class SummarizerService {
     // 缓存最后总结的楼层，用于同步读取
     private _lastSummarizedFloor: number = 0;
 
+    // Phase 2.2+2.4 step A: injected state (not yet wired into logic)
+    private globalPreviewEnabled = true;
+    private chatContext: ChatContext | null = null;
+
     constructor(
         config?: Partial<SummarizerConfig>,
     ) {
@@ -76,6 +81,27 @@ class SummarizerService {
             ...savedConfig,
             ...config,
         };
+    }
+
+    /**
+     * Inject resolved config. Called by bootstrap before `start()`.
+     * Replaces constructor-time `SettingsManager.get()` reads.
+     *
+     * Phase 2.2+2.4 step A — no-op storage only; logic migration in step C.
+     */
+    init(config: SummarizerConfig, globalPreviewEnabled: boolean): void {
+        this.config = config;
+        this.globalPreviewEnabled = globalPreviewEnabled;
+    }
+
+    /**
+     * Inject chat context. Called by bootstrap at startup and on `CHAT_CHANGED`.
+     * Replaces `useMemoryStore.getState()` reads.
+     *
+     * Phase 2.2+2.4 step A — no-op storage only; logic migration in step C.
+     */
+    setChatContext(ctx: ChatContext): void {
+        this.chatContext = ctx;
     }
 
     // ==================== 元数据操作 ====================
