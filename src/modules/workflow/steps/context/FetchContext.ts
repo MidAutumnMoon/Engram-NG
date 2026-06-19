@@ -27,7 +27,6 @@ export class FetchContext implements IStep {
             context.input.userName = stContext.name1 || "User";
             // 显式注入人设描述，确保 BuildPrompt 不需要回退到宏系统
             context.input.userPersona =
-                window.power_user?.persona_description ||
                 stContext.powerUserSettings?.persona_description || "";
         }
 

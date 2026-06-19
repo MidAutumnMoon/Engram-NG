@@ -32,11 +32,6 @@ interface Window {
     SillyTavern: { getContext: () => typeof SillyTavern };
 
     /**
-     * SillyTavern power_user 全局配置（仅声明 src/ 实际使用的字段）。
-     */
-    power_user?: { persona_description?: string };
-
-    /**
      * JS-Slash-Runner 可选插件，仅在用户安装后存在。
      * 类型来自 vendor/JS-Slash-Runner/@types/iframe/，通过 ambient `declare const` 引用。
      */

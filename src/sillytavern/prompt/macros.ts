@@ -97,10 +97,9 @@ export class MacroService {
                 "userPersona",
                 () => {
                     // 实时优先：由于人设切换频繁，此处优先读取酒馆原生变量
-                    const liveDescription =
-                        window.power_user?.persona_description ||
-                        window.SillyTavern?.getContext?.()?.powerUserSettings
-                            ?.persona_description;
+                    const liveDescription = window.SillyTavern?.getContext?.()
+                        ?.powerUserSettings
+                        ?.persona_description;
                     return typeof liveDescription === "string"
                         ? liveDescription
                         : MacroService.cachedUserPersona;
@@ -465,14 +464,9 @@ export class MacroService {
         }
     }
 
-    /**
-     * V0.9.2: 刷新用户设定缓存
-     * 从酒馆 power_user.persona_description 读取
-     */
     private static refreshUserPersona(): void {
         try {
-            const powerUser = window.power_user ||
-                window.SillyTavern?.getContext?.()?.powerUserSettings;
+            const powerUser = window.SillyTavern.getContext().powerUserSettings;
             this.cachedUserPersona = powerUser?.persona_description || "";
             Logger.debug("MacroService", "用户设定缓存已刷新", {
                 length: this.cachedUserPersona.length,
