@@ -34,8 +34,8 @@ src/
 
 **T2 — Create new root files** (not wired yet, non-breaking)
 
-- [ ] `src/ui/root/PanelRoot.tsx`: relocate `src/App.tsx` contents. **Keep `export default`** (`React.lazy` requires it). Drop `useState(activeTab)` and the entire 30-line `useEffect` (both subscriptions, both `engram:navigate` listeners). Read `activeTab` from `useUiStore`. `PanelRoot` itself takes no props (it's the root), but still passes `closePanel` from the store down to `MainLayout` as its `onClose` prop — `Header.tsx:45` calls that prop directly on click, and Risk #4 forbids touching `MainLayout`/`Header`.
-- [ ] `src/ui/root/EngramRoot.tsx`: new. Always renders `<ReviewContainer/>` and `<QuickPanel/>`. Conditionally renders `{panelOpen && <Suspense fallback={null}><LazyPanel/></Suspense>}` where `LazyPanel = React.lazy(() => import("@/ui/root/PanelRoot.tsx"))`. The lazy boundary only defers *module evaluation* (view modules don't run until first open) — `vite.config.ts` sets `codeSplitting: false`, so there's no separate chunk.
+- [x] `src/ui/root/PanelRoot.tsx`: relocate `src/App.tsx` contents. **Keep `export default`** (`React.lazy` requires it). Drop `useState(activeTab)` and the entire 30-line `useEffect` (both subscriptions, both `engram:navigate` listeners). Read `activeTab` from `useUiStore`. `PanelRoot` itself takes no props (it's the root), but still passes `closePanel` from the store down to `MainLayout` as its `onClose` prop — `Header.tsx:45` calls that prop directly on click, and Risk #4 forbids touching `MainLayout`/`Header`.
+- [x] `src/ui/root/EngramRoot.tsx`: new. Always renders `<ReviewContainer/>` and `<QuickPanel/>`. Conditionally renders `{panelOpen && <Suspense fallback={null}><LazyPanel/></Suspense>}` where `LazyPanel = React.lazy(() => import("@/ui/root/PanelRoot.tsx"))`. The lazy boundary only defers *module evaluation* (view modules don't run until first open) — `vite.config.ts` sets `codeSplitting: false`, so there's no separate chunk.
 
 **T3 — Split the host layer**
 
