@@ -52,15 +52,15 @@ src/
 
 **T5 — Cleanup**
 
-- [ ] Delete `src/App.tsx`.
-- [ ] Delete `src/ui/overlay/GlobalOverlay.tsx` and the now-empty `src/ui/overlay/` directory.
-- [ ] Remove `"UI_NAVIGATE_REQUEST"` from `EngramEventType` in `src/events/index.ts`.
-- [ ] Grep-verify zero remaining references to: `engram:navigate`, `UI_NAVIGATE_REQUEST`, `mountGlobalOverlay`, `toggleMainPanel`, `openMainPanel`, `closeMainPanel`, `createMainPanel`, `GlobalOverlay`, `from "@/App"`.
+- [x] Delete `src/App.tsx`.
+- [x] Delete `src/ui/overlay/GlobalOverlay.tsx` and the now-empty `src/ui/overlay/` directory.
+- [x] Remove `"UI_NAVIGATE_REQUEST"` from `EngramEventType` in `src/events/index.ts`.
+- [x] Grep-verify zero remaining references to: `engram:navigate`, `UI_NAVIGATE_REQUEST`, `mountGlobalOverlay`, `toggleMainPanel`, `openMainPanel`, `closeMainPanel`, `createMainPanel`, `GlobalOverlay`, `from "@/App"`. (All remaining matches are documentation in `TASK.md` / `dev-docs/` / the `mount.tsx` docstring — no code references.)
 
 **T6 — Validate**
 
-- [ ] `deno task build` passes (source of truth per `AGENTS.md`).
-- [ ] Tests are known-broken post-fork — not run.
+- [x] `deno task build` passes (source of truth per `AGENTS.md`). Output: `dist/index.js 1,075.65 kB`, 1953 modules, ~2.1s.
+- [x] Tests are known-broken post-fork — not run. Pre-existing lint warnings (`any` types, a `@ts-expect-error`) in `NotificationService.ts` / `events.ts` are unrelated to this refactor and left untouched per project rules.
 
 ### Risks
 
