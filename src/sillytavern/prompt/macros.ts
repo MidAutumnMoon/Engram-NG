@@ -8,13 +8,6 @@ import { EjsProcessor } from "./ejsProcessor";
 
 declare global {
     interface Window {
-        EjsTemplate?: {
-            prepareContext: () => Promise<any>;
-            evalTemplate: (content: string, context: any) => Promise<string>;
-        };
-        Mvu?: {
-            getMvuData: (params: any) => any;
-        };
         // V1.2.8: 新版宏系统定义
         macros?: {
             register: (name: string, options: any) => any;

@@ -39,7 +39,6 @@
         "@deno/vite-plugin": "npm:@deno/vite-plugin@^2.0.2",
         "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.2.3",
         "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.2.3",
-        "@types/jquery": "npm:@types/jquery@^3.5.32",
         "@types/js-yaml": "npm:@types/js-yaml@^4.0.9",
         "@types/lodash": "npm:@types/lodash@^4.17.24",
         "@types/node": "npm:@types/node@^22.19.3",

@@ -5,7 +5,6 @@
     "npm:@deno/vite-plugin@^2.0.2": "2.0.2_vite@8.0.16__@types+node@22.19.21",
     "npm:@tailwindcss/postcss@^4.2.3": "4.3.1",
     "npm:@tailwindcss/vite@^4.2.3": "4.3.1_vite@8.0.16__@types+node@22.19.21_@types+node@22.19.21",
-    "npm:@types/jquery@^3.5.32": "3.5.34",
     "npm:@types/js-yaml@^4.0.9": "4.0.9",
     "npm:@types/lodash@^4.17.24": "4.17.24",
     "npm:@types/node@^22.19.3": "22.19.21",
@@ -750,12 +749,6 @@
         "@types/unist@3.0.3"
       ]
     },
-    "@types/jquery@3.5.34": {
-      "integrity": "sha512-3m3939S3erqmTLJANS/uy0B6V7BorKx7RorcGZVjZ62dF5PAGbKEDZK1CuLtKombJkFA2T1jl8LAIIs7IV6gBQ==",
-      "dependencies": [
-        "@types/sizzle"
-      ]
-    },
     "@types/js-yaml@4.0.9": {
       "integrity": "sha512-k4MGaQl5TGo/iipqb2UDG2UwjXziSWkh0uysQelTlJpX1qGlpUZYm8PnO4DxG1qBomtJUdYJ6qR6xdIah10JLg=="
     },
@@ -788,9 +781,6 @@
       "dependencies": [
         "csstype"
       ]
-    },
-    "@types/sizzle@2.3.10": {
-      "integrity": "sha512-TC0dmN0K8YcWEAEfiPi5gJP14eJe30TTGjkvek3iM/1NdHHsdCA/Td6GvNndMOo/iSnIsZ4HuuhrYPDAmbxzww=="
     },
     "@types/unist@2.0.11": {
       "integrity": "sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA=="
@@ -2088,7 +2078,6 @@
       "npm:@deno/vite-plugin@^2.0.2",
       "npm:@tailwindcss/postcss@^4.2.3",
       "npm:@tailwindcss/vite@^4.2.3",
-      "npm:@types/jquery@^3.5.32",
       "npm:@types/js-yaml@^4.0.9",
       "npm:@types/lodash@^4.17.24",
       "npm:@types/node@^22.19.3",
