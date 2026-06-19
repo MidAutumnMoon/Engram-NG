@@ -1,8 +1,11 @@
 /// <reference types="vite/client" />
+/// <reference types="npm:@types/jquery" />
+/// <reference types="./src/types/type-fest-global.d.ts" />
 /// <reference types="./vendor/JS-Slash-Runner/@types/iframe/exported.sillytavern.d.ts" />
 /// <reference types="./src/types/vendor/jsr-function.d.ts" />
 /// <reference types="./vendor/JS-Slash-Runner/@types/iframe/exported.mvu.d.ts" />
 /// <reference types="./vendor/JS-Slash-Runner/@types/iframe/exported.ejstemplate.d.ts" />
+/// <reference types="./vendor/JS-Slash-Runner/@types/iframe/event.d.ts" />
 
 /**
  * 全局类型声明

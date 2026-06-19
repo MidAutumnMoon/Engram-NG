@@ -45,18 +45,6 @@ export class CharacterDeleteService {
                 Logger.debug(LogModule.DATA_CLEANUP, "监听 CHAT_DELETED 事件");
             }
 
-            // 监听群聊删除事件
-            if (context.eventTypes.GROUP_CHAT_DELETED) {
-                context.eventSource.on(
-                    context.eventTypes.GROUP_CHAT_DELETED,
-                    this.onChatDeleted.bind(this),
-                );
-                Logger.debug(
-                    LogModule.DATA_CLEANUP,
-                    "监听 GROUP_CHAT_DELETED 事件",
-                );
-            }
-
             this.isInitialized = true;
         } catch (error) {
             Logger.error(LogModule.DATA_CLEANUP, "初始化失败", error);
@@ -67,7 +55,7 @@ export class CharacterDeleteService {
      * 角色删除回调
      */
     private static async onCharacterDeleted(
-        data: { id: number; character: any },
+        data: { id: string; character: any },
     ) {
         const settings = SettingsManager.getSettings().linkedDeletion;
         if (!settings?.enabled) return;
