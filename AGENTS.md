@@ -15,6 +15,7 @@ This file intentionally omits directory layouts, entry-point paths, and module-t
 - Do not read files in `dist/` — it's generated build output and is gitignored on the source branch. Run `deno task build` to (re)generate it locally.
 - Take care when reading `vendor/` or grepping for texts — third-party source may contain very large files. Check size first and avoid grepping without guards.
 - New or edited imports must be non-sloppy: include the explicit file extension (`.ts` / `.tsx`), or `/index.ts` for barrels. Existing sloppy imports across the codebase will be cleaned up incrementally — don't mass-rewrite them, but don't add new ones.
+- Dynamic imports do not reduce bundle size: `vite.config.ts` sets `build.rollupOptions.output.codeSplitting: false`, so everything is emitted as a single `index.js`. Only use dynamic imports to break circular dependencies or defer module evaluation; prefer static imports otherwise.
 - All SillyTavern API access goes through the `@/sillytavern` host layer — don't call ST globals directly from modules or UI.
 - Prefer a single source of truth for each kind of data. Don't shadow the existing source with module-local caches that drift out of sync.
 - Don't duplicate logic across layers. If the same query, default-config merge, or range calculation shows up in two places, one of them is wrong eventually. When fixing a bug, grep for siblings — the same query elsewhere probably has the same bug.
