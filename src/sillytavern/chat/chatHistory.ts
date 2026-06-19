@@ -12,7 +12,7 @@ export class ChatHistoryHelper {
      */
     static getChatHistory(floorRange?: [number, number]): string {
         try {
-            const context = globalThis.SillyTavern?.getContext?.();
+            const context = window.SillyTavern?.getContext?.();
             const { TavernHelper } = window;
 
             if (context?.chat && Array.isArray(context.chat)) {

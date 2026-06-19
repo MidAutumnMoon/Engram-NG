@@ -27,8 +27,8 @@ function getChatMetadata(): Record<string, unknown> | null {
     try {
         // 优先从 context 获取
         const context = window.SillyTavern.getContext();
-        if (context?.chat_metadata) {
-            return context.chat_metadata;
+        if (context?.chatMetadata) {
+            return context.chatMetadata;
         }
         // 备用：直接访问全局变量
         // @ts-expect-error - SillyTavern 全局变量

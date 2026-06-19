@@ -19,15 +19,15 @@ export class CharacterDeleteService {
 
         try {
             const context = getSTContext();
-            if (!context?.eventSource || !context?.event_types) {
+            if (!context?.eventSource || !context?.eventTypes) {
                 Logger.warn(LogModule.DATA_CLEANUP, "无法获取事件系统");
                 return;
             }
 
             // 监听角色删除事件
-            if (context.event_types.CHARACTER_DELETED) {
+            if (context.eventTypes.CHARACTER_DELETED) {
                 context.eventSource.on(
-                    context.event_types.CHARACTER_DELETED,
+                    context.eventTypes.CHARACTER_DELETED,
                     this.onCharacterDeleted.bind(this),
                 );
                 Logger.debug(
@@ -37,18 +37,18 @@ export class CharacterDeleteService {
             }
 
             // 监听聊天删除事件
-            if (context.event_types.CHAT_DELETED) {
+            if (context.eventTypes.CHAT_DELETED) {
                 context.eventSource.on(
-                    context.event_types.CHAT_DELETED,
+                    context.eventTypes.CHAT_DELETED,
                     this.onChatDeleted.bind(this),
                 );
                 Logger.debug(LogModule.DATA_CLEANUP, "监听 CHAT_DELETED 事件");
             }
 
             // 监听群聊删除事件
-            if (context.event_types.GROUP_CHAT_DELETED) {
+            if (context.eventTypes.GROUP_CHAT_DELETED) {
                 context.eventSource.on(
-                    context.event_types.GROUP_CHAT_DELETED,
+                    context.eventTypes.GROUP_CHAT_DELETED,
                     this.onChatDeleted.bind(this),
                 );
                 Logger.debug(

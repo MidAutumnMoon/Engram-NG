@@ -22,12 +22,10 @@ export class FetchContext implements IStep {
             context.input.charPersona = charAny.personality ||
                 charAny.description || "";
         }
-        // @ts-expect-error
         const stContext = window.SillyTavern?.getContext?.();
         if (stContext) {
             context.input.userName = stContext.name1 || "User";
             // 显式注入人设描述，确保 BuildPrompt 不需要回退到宏系统
-            // @ts-expect-error
             context.input.userPersona =
                 window.power_user?.persona_description ||
                 stContext.powerUserSettings?.persona_description || "";

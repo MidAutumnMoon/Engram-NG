@@ -26,7 +26,7 @@ export type TavernChatMessage = TavernContext["chat"][number];
  */
 export function getSTContext(): TavernContext | null {
     try {
-        const ctx = globalThis.SillyTavern?.getContext?.();
+        const ctx = window.SillyTavern?.getContext?.();
         return ctx || null;
     } catch (error) {
         Logger.warn(MODULE, "无法获取 ST 上下文", error);
@@ -53,7 +53,7 @@ export function getCurrentChatId(): string | null {
 /**
  * 获取当前角色信息
  */
-export function getCurrentCharacter(): { name: string; id: number } | null {
+export function getCurrentCharacter(): { name: string; id: string } | null {
     const ctx = getSTContext();
     if (!ctx) return null;
     return {
@@ -83,12 +83,10 @@ export function isSTAvailable(): boolean {
 /**
  * 获取请求头 (包含 CSRF Token)
  */
-export function getRequestHeaders(
-    options?: { omitContentType?: boolean },
-): Record<string, string> {
+export function getRequestHeaders(): Record<string, string> {
     const ctx = getSTContext();
     if (ctx?.getRequestHeaders) {
-        return ctx.getRequestHeaders(options);
+        return ctx.getRequestHeaders();
     }
     // Fallback: 如果拿不到 context，至少返回 Content-Type
     return { "Content-Type": "application/json" };

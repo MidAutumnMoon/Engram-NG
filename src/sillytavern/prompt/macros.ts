@@ -31,7 +31,7 @@ export class MacroService {
         try {
             const context = window.SillyTavern.getContext?.();
 
-            if (!context?.registerMacro && !context?.macros) {
+            if (!context?.registerMacro) {
                 Logger.warn(
                     "MacroService",
                     "SillyTavern registerMacro API 不可用",
@@ -98,7 +98,6 @@ export class MacroService {
                 () => {
                     // 实时优先：由于人设切换频繁，此处优先读取酒馆原生变量
                     const liveDescription =
-                        // @ts-expect-error type it later
                         window.power_user?.persona_description ||
                         window.SillyTavern?.getContext?.()?.powerUserSettings
                             ?.persona_description;
@@ -472,7 +471,6 @@ export class MacroService {
      */
     private static refreshUserPersona(): void {
         try {
-            // @ts-expect-error - 酒馆全局变量，优先通过 context 获取
             const powerUser = window.power_user ||
                 window.SillyTavern?.getContext?.()?.powerUserSettings;
             this.cachedUserPersona = powerUser?.persona_description || "";
