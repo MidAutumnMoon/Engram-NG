@@ -3,7 +3,10 @@
  */
 
 import { SettingsManager } from "@/config/settings.ts";
+import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine.ts";
+import { createSummaryWorkflow } from "@/modules/workflow/definitions/SummaryWorkflow.ts";
 import { eventWatcher } from "@/sillytavern/EventWatcher.ts";
+import { WorldBookSlotService } from "@/sillytavern/worldbook/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts"; // Used for setLastSummarizedFloor
 import { notificationService } from "@/ui/services/NotificationService.ts";
 import type {
@@ -107,43 +110,6 @@ class SummarizerService {
     // ==================== 元数据操作 ====================
     // 注：getInfoFromChatMetadata 和 saveToChatMetadata 原方法保留作为兼容或临时使用，
     // 但主要逻辑已迁移至 WorldBookStateService。
-
-    /**
-     * 从当前聊天元数据获取值
-     */
-    private getFromChatMetadata(key: string): unknown {
-        const metadata = getChatMetadata();
-        if (!metadata) {
-            return undefined;
-        }
-        if (!metadata.extensions) metadata.extensions = {};
-        // @ts-expect-error - 动态访问
-        if (!metadata.extensions[METADATA_KEY]) {
-            metadata.extensions[METADATA_KEY] = {};
-        }
-        // @ts-expect-error - 动态访问
-        return metadata.extensions[METADATA_KEY][key];
-    }
-
-    /**
-     * 保存值到当前聊天元数据
-     */
-    private saveToChatMetadata(key: string, value: unknown): void {
-        const metadata = getChatMetadata();
-        if (!metadata) return;
-
-        if (!metadata.extensions) metadata.extensions = {};
-        // @ts-expect-error - 动态访问
-        if (!metadata.extensions[METADATA_KEY]) {
-            metadata.extensions[METADATA_KEY] = {};
-        }
-
-        // @ts-expect-error - 动态访问
-        metadata.extensions[METADATA_KEY][key] = value;
-
-        this.log("debug", `已保存到 chat_metadata: ${key} = ${value}`);
-        saveChatDebounced();
-    }
 
     /**
      * 获取上次总结的楼层
@@ -488,15 +454,6 @@ class SummarizerService {
             });
 
             // 2. Run Workflow
-            const { WorkflowEngine } = await import(
-                "@/modules/workflow/core/WorkflowEngine"
-            );
-            const { createSummaryWorkflow } = await import(
-                "@/modules/workflow/definitions/SummaryWorkflow"
-            );
-            const { WorldBookSlotService } = await import(
-                "@/sillytavern/worldbook"
-            );
             await WorldBookSlotService.init();
 
             const globalPreviewEnabled =

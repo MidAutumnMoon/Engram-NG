@@ -6,18 +6,20 @@
  * - 输入从原始对话提取，而非 Summary
  */
 
-import { SettingsManager } from "@/config/settings";
-import { DEFAULT_ENTITY_CONFIG } from "@/config/types/defaults";
-import type { EntityExtractConfig } from "@/config/types/memory";
-import { EventBus } from "@/events";
-import { eventWatcher } from "@/sillytavern/EventWatcher";
-import { Logger, LogModule } from "@/logger";
-import { chatManager } from "@/data/ChatManager";
-import type { EntityNode } from "@/data/types/graph";
-import { MacroService } from "@/sillytavern";
-import { useMemoryStore } from "@/state/memoryStore";
-import { notificationService } from "@/ui/services/NotificationService";
-import type { ChatContext } from "./types";
+import { SettingsManager } from "@/config/settings.ts";
+import { DEFAULT_ENTITY_CONFIG } from "@/config/types/defaults.ts";
+import type { EntityExtractConfig } from "@/config/types/memory.ts";
+import { EventBus } from "@/events/index.ts";
+import { eventWatcher } from "@/sillytavern/EventWatcher.ts";
+import { Logger, LogModule } from "@/logger/index.ts";
+import { chatManager } from "@/data/ChatManager.ts";
+import type { EntityNode } from "@/data/types/graph.ts";
+import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine.ts";
+import { createEntityWorkflow } from "@/modules/workflow/definitions/EntityWorkflow.ts";
+import { MacroService } from "@/sillytavern/index.ts";
+import { useMemoryStore } from "@/state/memoryStore.ts";
+import { notificationService } from "@/ui/services/NotificationService.ts";
+import type { ChatContext } from "./types.ts";
 
 /**
  * 实体构建结果
@@ -113,7 +115,6 @@ export class EntityBuilder {
      * Handle message received event
      */
     private async handleMessageReceived(): Promise<void> {
-        // Fix P1: 移除无意义的 await import 微任务，直接使用顶部已导入的单例
         const currentFloor = MacroService.getCurrentMessageCount();
         const state = await chatManager.getState();
         const lastExtracted = state.last_extracted_floor || 0;
@@ -273,15 +274,6 @@ export class EntityBuilder {
         );
 
         try {
-            // Lazy import to avoid circular dep
-            const { WorkflowEngine } = await import(
-                "@/modules/workflow/core/WorkflowEngine"
-            );
-            const { createEntityWorkflow } = await import(
-                "@/modules/workflow/definitions/EntityWorkflow"
-            );
-            const { MacroService } = await import("@/sillytavern");
-
             // V1.4.7: 使用全局预览开关和实体独立预览开关
             const globalPreviewEnabled =
                 SettingsManager.get("globalPreviewEnabled") ?? true;

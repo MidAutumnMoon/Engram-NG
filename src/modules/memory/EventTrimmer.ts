@@ -9,6 +9,8 @@ import type { TrimConfig } from "@/config/types/memory.ts";
 import { Logger, LogModule } from "@/logger/index.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import type { ChatDatabase } from "@/data/db.ts";
+import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine.ts";
+import { createTrimmerWorkflow } from "@/modules/workflow/definitions/TrimmerWorkflow.ts";
 import { WorldInfoService } from "@/sillytavern/worldbook/index.ts";
 import { notificationService } from "@/ui/services/NotificationService.ts";
 import type { ChatContext } from "./types.ts";
@@ -199,14 +201,6 @@ class EventTrimmer {
         this.isTrimming = true;
 
         try {
-            // Lazy import
-            const { WorkflowEngine } = await import(
-                "@/modules/workflow/core/WorkflowEngine"
-            );
-            const { createTrimmerWorkflow } = await import(
-                "@/modules/workflow/definitions/TrimmerWorkflow"
-            );
-
             const config = this.getEffectiveConfig();
             const context = await WorkflowEngine.run(createTrimmerWorkflow(), {
                 config: {
