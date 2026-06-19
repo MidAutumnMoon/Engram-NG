@@ -7,6 +7,7 @@
 
 import { NAV_ITEMS } from "@/ui/navigation.ts";
 import { FloatingPanel } from "@/ui/components/overlay/FloatingPanel.tsx";
+import { useUiStore } from "@/state/uiStore.ts";
 import {
     BrainCircuit,
     Clapperboard,
@@ -84,16 +85,12 @@ const NAV_QUICK_LINKS = [
 
 export function QuickPanel({ isOpen, onClose }: QuickPanelProps) {
     const handleNavigate = useCallback((path: string) => {
-        import("@/sillytavern").then(({ openMainPanel }) => {
-            openMainPanel();
-        }).finally(() => {
-            globalThis.setTimeout(() => {
-                globalThis.dispatchEvent(
-                    new CustomEvent("engram:navigate", { detail: path }),
-                );
-            }, 0);
-            onClose();
-        });
+        // 顺序：先 navigate（设 activeTab + 持久化），再 openPanel（挂载 PanelRoot，
+        // 它读取的 activeTab 已经是目标值），最后关掉 QuickPanel 自身。无竞态、无 setTimeout。
+        const { navigate, openPanel } = useUiStore.getState();
+        navigate(path);
+        openPanel();
+        onClose();
     }, [onClose]);
 
     const quickNavItems = useMemo(() => {

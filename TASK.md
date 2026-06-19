@@ -39,15 +39,16 @@ src/
 
 **T3 — Split the host layer**
 
-- [ ] `src/sillytavern/ui/buttons.ts`: extract `createTopBarButton`, `initQuickPanelButton`, `removeQuickPanelButton`, `handleQuickPanelClick`. Drawer click → `togglePanel()`; send-form click → `openQuickPanel()` (unchanged).
-- [ ] `src/sillytavern/ui/mount.ts`: new `mountEngram()` — single `createRoot(...).render(<EngramRoot/>)` on `#engram-root`. Delete `globalRoot`, `panelVisible`, `panelElement`, `reactRoot`, `openMainPanel`, `closeMainPanel`, `createMainPanel`, `mountGlobalOverlay`, `toggleMainPanel`.
-- [ ] Delete `src/sillytavern/ui/ui.tsx`.
+- [x] `src/sillytavern/ui/buttons.ts`: extract `createTopBarButton`, `initQuickPanelButton`, `removeQuickPanelButton`, `handleQuickPanelClick`. Drawer click → `togglePanel()`; send-form click → `openQuickPanel()` (unchanged).
+- [x] `src/sillytavern/ui/mount.tsx`: new `mountEngram()` — single `createRoot(...).render(<EngramRoot/>)` on `#engram-root`. Delete `globalRoot`, `panelVisible`, `panelElement`, `reactRoot`, `openMainPanel`, `closeMainPanel`, `createMainPanel`, `mountGlobalOverlay`, `toggleMainPanel`. (Note: file is `.tsx` because it renders JSX — original `ui.tsx` was `.tsx` for the same reason.)
+- [x] Delete `src/sillytavern/ui/ui.tsx`.
 
 **T4 — Rewire callers**
 
-- [ ] `src/bootstrap.ts`: import from `buttons.ts` + `mount.ts`. Replace `await mountGlobalOverlay()` with `await mountEngram()`. Call `useUiStore.getState().hydrateFromSettings()` after `SettingsManager.initSettings()`.
-- [ ] `src/ui/panels/QuickPanel.tsx`: replace the dynamic-import-and-`dispatchEvent` dance with `useUiStore.getState().navigate(path); openPanel(); onClose()`. Delete the `setTimeout(0)` and the `engram:navigate` dispatch.
-- [ ] `src/ui/services/NotificationService.ts` (`navigate` method, ~line 192): replace `EventBus.emit({ type: "UI_NAVIGATE_REQUEST", ... })` with `useUiStore.getState().navigate(path)`.
+- [x] `src/bootstrap.ts`: import from `buttons.ts` + `mount.tsx`. Replace `await mountGlobalOverlay()` with `await mountEngram()`. Call `useUiStore.getState().hydrateFromSettings()` after `SettingsManager.initSettings()`.
+- [x] `src/ui/panels/QuickPanel.tsx`: replace the dynamic-import-and-`dispatchEvent` dance with `useUiStore.getState().navigate(path); openPanel(); onClose()`. Delete the `setTimeout(0)` and the `engram:navigate` dispatch.
+- [x] `src/ui/services/NotificationService.ts` (`navigate` method, ~line 192): replace `EventBus.emit({ type: "UI_NAVIGATE_REQUEST", ... })` with `useUiStore.getState().navigate(path)`. (Also dropped the now-unused `EventBus` import.)
+- [x] (Bonus, required for build) `src/sillytavern/index.ts`: remove the `export * from "./ui/ui.tsx"` barrel re-export.
 
 **T5 — Cleanup**
 
@@ -64,8 +65,9 @@ src/
 ### Risks
 
 1. **Lazy boundary integrity.** `PanelRoot` must be the *only* thing behind `React.lazy`, or the view modules get evaluated at bootstrap (when `EngramRoot` renders). Direct `@/ui/views` imports in `src/ui/panels/**/*.tsx` are already confirmed clean (zero matches). Only *transitive* imports through `ReviewContainer`/`QuickPanel` need a quick check before merging.
-2. **Dead DOM in old `createMainPanel`** (`src/sillytavern/ui/ui.tsx:255–295`). Imperatively builds a header + content skeleton, then `createRoot(panel).render(<App/>)` renders into the same node — `MainLayout` renders its own header over the imperative one. Likely dead code or latent bug. Confirm by deletion + successful build.
+2. **Dead DOM in old `createMainPanel`** (`src/sillytavern/ui/ui.tsx:255–295`). ✅ Confirmed + resolved in T3 — the imperative header/content skeleton was deleted with `createMainPanel`. `PanelRoot` renders its own `MainLayout`/`Header` and that is the only header.
 3. **Scope discipline.** Do *not* touch `MainLayout`, `Sidebar`, `Header`, or any view. The shell below the root is fine. Only the layer above `App` and the two cross-root callers change.
+4. **Panel container styling (caught in T4).** The old `createMainPanel` imperatively applied `fixed inset-0 z-[10000]` plus a solid `bg-background` and `100dvh`/`100vw` dimensions to the panel host `div`. `MainLayout` itself uses `absolute inset-0` with `bg-background/40` (semi-transparent) — it relied on the host `div` for positioning context, z-index, and the opaque backdrop. With the imperative host gone, that styling must be reapplied at the React layer. Fixed by wrapping `MainLayout` in a `fixed inset-0 z-[10000]` `div` with the same inline styles, inside `PanelRoot.tsx` (the layer above `MainLayout`, per Risk #3). Without this the panel rendered behind SillyTavern's z-indexed UI and ST showed through the 40%-opacity backdrop.
 
 ---
 

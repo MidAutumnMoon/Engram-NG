@@ -1,5 +1,5 @@
-import { EventBus } from "@/events/index.ts";
 import { Logger } from "@/logger";
+import { useUiStore } from "@/state/uiStore.ts";
 
 /**
  * Toastr 类型定义 (部分)
@@ -191,7 +191,7 @@ class NotificationService {
      */
     private navigate(path: string): void {
         Logger.info("Notification", `触发导航: ${path}`);
-        EventBus.emit({ payload: path, type: "UI_NAVIGATE_REQUEST" });
+        useUiStore.getState().navigate(path);
     }
 
     /**

@@ -19,8 +19,9 @@ import { eventWatcher } from "@/sillytavern/EventWatcher.ts";
 import {
     createTopBarButton,
     initQuickPanelButton,
-    mountGlobalOverlay,
-} from "@/sillytavern/ui/ui.tsx";
+} from "@/sillytavern/ui/buttons.ts";
+import { mountEngram } from "@/sillytavern/ui/mount.tsx";
+import { useUiStore } from "@/state/uiStore.ts";
 
 /**
  * 初始化 Engram 插件
@@ -32,6 +33,9 @@ export async function initializeEngram(): Promise<void> {
 
     SettingsManager.initSettings();
     Logger.info("STBridge", "SettingsManager 初始化完成");
+
+    // 持久化的 lastOpenedTab 读回 uiStore（必须在 initSettings 之后）
+    useUiStore.getState().hydrateFromSettings();
 
     // 2. 正则规则 (从具体文件加载，避免拖入 workflow/steps 整个 RAG 流水线)
     const savedRegexRules = SettingsManager.getRegexRules();
@@ -181,9 +185,9 @@ export async function initializeEngram(): Promise<void> {
     createTopBarButton();
     initQuickPanelButton();
 
-    // 6. React 全局悬浮层 (内部通过动态 import 懒加载 GlobalOverlay)
+    // 6. React 根（单一 createRoot，EngramRoot 内部按 uiStore 决定渲染什么）
     try {
-        await mountGlobalOverlay();
+        await mountEngram();
     } catch (error) {
         Logger.warn("STBridge", "全局悬浮层挂载失败", {
             error: String(error),

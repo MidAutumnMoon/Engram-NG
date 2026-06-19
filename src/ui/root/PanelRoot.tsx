@@ -75,13 +75,25 @@ const PanelRoot: React.FC = () => {
     };
 
     return (
-        <MainLayout
-            activeTab={activeTab}
-            setActiveTab={navigate}
-            onClose={closePanel}
+        <div
+            className="fixed inset-0 w-full h-full z-[10000] flex flex-col bg-background text-foreground overflow-hidden engram-app-root"
+            style={{
+                backgroundColor: "var(--background)",
+                color: "var(--foreground)",
+                height: "100dvh",
+                width: "100vw",
+                top: "0",
+                left: "0",
+            }}
         >
-            {renderContent()}
-        </MainLayout>
+            <MainLayout
+                activeTab={activeTab}
+                setActiveTab={navigate}
+                onClose={closePanel}
+            >
+                {renderContent()}
+            </MainLayout>
+        </div>
     );
 };
 

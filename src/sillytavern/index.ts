@@ -9,6 +9,4 @@ export * from "./chat/chatHistory.ts";
 export * from "./prompt/ejsProcessor.ts";
 export * from "./prompt/macros.ts";
 
-export * from "./ui/ui.tsx";
-
 export * from "./worldbook/index.ts";
