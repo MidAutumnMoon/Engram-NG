@@ -1,238 +1,72 @@
-# Engram Refactoring Plan
+# Engram Task
 
-> Strip bloat, then apply lightweight decoupling to the survivors.
-> Do not add abstractions for code that is about to be deleted.
+## UI Topology + Hierarchy Refactor
 
----
+`engram:navigate` (a `window` `CustomEvent`) and `EventBus.UI_NAVIGATE_REQUEST` are two side-channels carrying one concept ("switch active tab"), both feeding the same `handleNavigate` in `src/App.tsx`. `QuickPanel` even wraps its dispatch in `setTimeout(0)` to win a mount race.
 
-## Phase 1: Scope Reduction (Delete / Demote) ✅ Done
+Root cause: Engram renders **two sibling React roots** on `document.body` — `GlobalOverlay` (eager) and `App` (lazy). Once siblings, they can't share state, so any cross-root signal is forced to escape React's tree. The filesystem hides this: `App.tsx` sits at `src/` root and looks like the entry, but is a lazy leaf reached only through `createRoot` buried in `sillytavern/ui/ui.tsx`.
 
-Goal: strip non-core features so the remaining code fits in a single mental model.
+**Fix:** merge to one React root and regroup so the filesystem reflects the design. The navigation side-channels stop being needed.
 
-| # | Feature | Fate | Rationale |
-|---|---------|------|-----------|
-| 1.1 | Docs view + MDX pipeline | Deleted | README / wiki is enough for docs. |
-| 1.2 | Input Preprocessor | Deleted | Full LLM call before every user message — too slow, too niche. |
-| 1.3 | Batch Processor & Engine | Deleted | History backfill / text import are nice-to-have onboarding; not worth the module count. |
-| 1.4 | Global Search, Command Palette, Theme Manager | Deleted | Over-engineered for a ST extension panel. QuickPanel navigation kept; theme switched to fixed `claudeDarkTheme` colors in `variables.css`. |
-| 1.5 | BrainRecallStep | Removed from workflow | `BrainRecallCache.ts` kept for future review, but step is dead code in the hot path. |
-| 1.6 | SyncService | Demoted to reference | Moved to `dev-docs/SyncService/` with reintroduction guide. All active wiring in `db.ts`, `CharacterCleanup.ts`, `bootstrap.ts`, `DataTab.tsx` removed. |
-| 1.7 | Telemetry / "Statistics" | Deleted entirely | Counters (`totalTokens`, `totalLlmCalls`, etc.) were stored in ST extension settings JSON, triggering `saveSettingsDebounced()` on every LLM call. Misleading (don't reset with DB wipe) and duplicated live stats from IndexedDB. Dashboard now shows only current-state metrics. |
-
-**Side effects:**
-- `src/ui/styles/variables.css` colors switched to `claudeDarkTheme` (fixed fallback since ThemeManager was removed).
-- `EngramSettings` interface slimmed: removed `statistics`, `preprocessingConfig`, `glassSettings`.
-- `SettingsManager` no longer has `incrementStatistic`.
-- **Orphan test files** now import deleted modules and fail at load time. None are regressions — `test/` has not been updated post-fork:
-  - `test/integration/batch-engine.test.ts`, `batch-history.test.ts`, `import-text.test.ts` → deleted Batch modules (1.3).
-  - `test/integration/workflow-precision.test.ts` → `@/core/events/ReviewBridge` (stale path).
-  - `test/unit/json-parser.test.ts` → `@/core/utils/JsonParser` (actual path is `@/utils/JsonParser`).
-  - `test/integration/retrieval-workflow.test.ts` → still asserts `BrainRecallStep` in `stepsExecuted`; fails because 1.5 removed it.
-  Defer until a dedicated test-cleanup pass, or delete the files if not worth reviving.
-- **Orphan types** kept for compatibility: `PreprocessingConfig` / `DEFAULT_PREPROCESSING_CONFIG` in `src/config/types/data_processing.ts` (after 1.2), and the `syncConfig` field on `EngramSettings` (after 1.6). Either mark as reserved or delete in a follow-up.
-
----
-
-## Phase 2: Survivor Cleanup (Lightweight Decoupling)
-
-After Phase 1 the import graph is smaller. Fix the remaining violations with **arguments and return values**, not new abstraction layers.
-
-### 2.1 Fix Logger → UI Type Dependency ✅ Done
-
-- [x] Moved `RecallLogEntry`, `RecallResultItem`, `RecallStats` from `src/ui/views/dev-log/types.ts` to `src/logger/types.ts`.
-- [x] Re-exported the three types from `src/logger/index.ts`.
-- [x] Updated `RecallLogger.ts` to import from `./types.ts` (logger → ui violation eliminated).
-- [x] Updated `RecallLog.tsx` to import from `@/logger/index.ts`.
-- [x] Deleted `src/ui/views/dev-log/types.ts` — after the move its only remaining contents were the dead `RecallLogStore` interface and `DEFAULT_RECALL_LOG_STORE` const (unused leftovers from the V0.9.13 RecallLogger facade refactor; zero external references).
-
-### 2.2 + 2.4 — Merged Pass: `memoryStore` and `SettingsManager` Isolation
-
-**Done together, not sequenced.** Both concerns share the same files (`Summarizer.ts`, `EntityExtractor.ts`, `EventTrimmer.ts`, `ApplyTrim.ts`) and the same lifecycle moment. Splitting them means opening each file twice and risking a half-migrated state. 2.2 establishes what `setChatContext()` looks like; 2.4 establishes what `init(config)` looks like — a single pass gets both right.
-
-#### Rules
-
-- **2.2 rule:** `useMemoryStore.getState()` must not be called inside `modules/`.
-- **2.4 rule:** `SettingsManager.get()` must not be called inside `modules/` or `data/`.
-
-#### Architectural call
-
-After this, `state/memoryStore.ts` becomes a UI-only convenience wrapper. `modules/` and `data/` talk to Dexie directly via `getDbForChat(chatId)` / `tryGetDbForChat(chatId)`. Don't preserve the store as an intermediary — that re-introduces the coupling this phase removes.
-
-#### Singleton lifecycle contract
-
-`summarizerService`, `entityBuilder`, `eventTrimmer` are module-level singletons. Config and chat context change at different cadences, so they get separate entry points:
-
-```ts
-// Called once at startup (and when user edits settings).
-// Replaces constructor-time SettingsManager reads.
-service.init(config: ServiceConfig): void
-
-// Called at startup and on every CHAT_CHANGED.
-// Replaces useMemoryStore.getState() reads.
-service.setChatContext({ chatId: string, db: ChatDatabase }): void
-```
-
-`bootstrap.ts` owns both calls: it reads `SettingsManager` once to build the config objects, resolves the current chat to build the context, and dispatches. On `CHAT_CHANGED` it calls only `setChatContext()` on each service.
-
-#### Step ordering
-
-Natural stopping points exist after each step — the app should build and run at each.
-
-- [x] **A. Design `init()` + `setChatContext()` contract.** Decide the exact signatures; add the methods to all three services as no-ops (or thin wrappers around current behavior) so the rest of the pass has a target. ✅ Done — see contract below.
-- [x] **B. `EventTrimmer.ts`** — smallest service, no event lifecycle, good test case. ✅ Done. Removed both `useMemoryStore` (static + dynamic import in `getStatus`) and `SettingsManager.getSummarizerSettings()` in `getStoredConfig()`. Takes `db` and `trimConfig` from the resolved context. Also wired bootstrap (step E preview for EventTrimmer only): loads trim config, calls `init()`, resolves chat, calls `setChatContext()`, subscribes to `CHAT_CHANGED`. Notes:
-  - `getEventsToMerge` / `countEventTokens` inlined as private methods (faithful copy from `eventSlice.ts`). The store versions still exist — other consumers (workflow steps in step D) haven't been migrated yet.
-  - `WorldInfoService` import surfaced (was hidden inside the store). This is a pre-existing `modules/ → integrations/` coupling — Phase 2.7 / 3.1 will address.
-  - `notificationService` stays (step 2.3 scope, not step B).
-- [ ] **C. `Summarizer.ts` + `EntityExtractor.ts`** — larger, have start/stop, cross-reference each other (Summarizer → `entityBuilder.extractByRange`, Summarizer → `eventTrimmer.trim`). Remove `SettingsManager.get()` in constructor + `triggerSummary`, `SettingsManager.set()` in `updateConfig`, and `useMemoryStore.getState()` in `setLastSummarizedFloor`. `setLastSummarizedFloor` writes directly to `chatManager` / `db`.
-- [ ] **D. Workflow steps.** Per-step; each step resolves what it needs from `JobContext`:
-  - `SaveEvent.ts`, `FetchExistingEntities.ts`, `FetchEventsToTrim.ts`, `SaveEntity.ts` — pure 2.2: `useMemoryStore.getState()` → `getDbForChat(context.chatId)`.
-  - `VectorRetrieveStep.ts`, `KeywordRetrieveStep.ts` — pure 2.4: `SettingsManager.get("apiSettings")` → read from `context.config` (set at workflow construction).
-  - `ApplyTrim.ts` — both: remove `useMemoryStore`, `SettingsManager`, and `notificationService.*` (the last is 2.3 scope but cheap to do here since the file is open).
-- [ ] **E. `bootstrap.ts` wiring.** Load all configs once (see snippet below), resolve chat on startup, subscribe to `CHAT_CHANGED`, dispatch `init()` + `setChatContext()` to each service. Inject `recallConfig` / `vectorConfig` into `createRetrievalWorkflow({ recallConfig, vectorConfig })`.
-- [ ] **F. (Deferrable) UI hooks write-side.** Today `service.updateConfig()` internally calls `SettingsManager.set()`. The consistent pattern is: UI hooks own persistence (`SettingsManager.set` / `configStore`), `service.updateConfig()` becomes in-memory only. This ripples into `useSummarizerConfig.ts`, `useDashboardData.ts`, `EntityConfigPanel.tsx`. **Can stop at E** and defer this — it's a clean boundary.
-
-#### bootstrap.ts config snippet (for step E)
-
-```ts
-const summarizerConfig = SettingsManager.getSummarizerSettings();
-const entityConfig = SettingsManager.get("apiSettings")?.entityExtractConfig;
-const recallConfig = SettingsManager.get("apiSettings")?.recallConfig;
-const vectorConfig = SettingsManager.get("apiSettings")?.vectorConfig;
-// ...
-```
-
-#### After this pass, `SettingsManager` lives only in:
-- `bootstrap.ts` (read initial state, dispatch to services)
-- `configStore.ts` / UI hooks (persist changes)
-- Integration adapters (if they must read ST extension settings)
-
-#### Other consumers
-
-- [ ] `MacroService` / `chatHistory.ts`: if they need memory data, accept it as parameters from the caller (2.2). `chatHistory.ts` already reads `SettingsManager` and `useMemoryStore` — fold into step C or D.
-
-### 2.3 Stop `modules/` from Calling `notificationService`
-
-**Rule:** Business logic returns results; the UI/integration layer decides whether to toast.
-
-- [ ] `Summarizer.ts`: remove `notificationService.*` calls. Return `SummaryResult` with a `status` field.
-- [ ] `EntityExtractor.ts`: remove toast calls. Return `EntityBuildResult`.
-- [ ] `SaveEvent.ts`, `ApplyTrim.ts`: remove any direct `notificationService` calls.
-- [ ] `CharacterCleanup.ts`: remove toast calls. Return `{ deleted: number }`.
-
-### 2.5 Remove `EventBus.UI_NAVIGATE_REQUEST`
-
-**Rule:** UI navigation is a UI concern. Use a direct mechanism.
-
-- [ ] Rewrite `NotificationService.navigate(path)` in `src/ui/services/NotificationService.ts` to dispatch a window event instead of emitting on the bus:
-  ```ts
-  window.dispatchEvent(new CustomEvent("engram:navigate", { detail: path }));
-  ```
-  This is the sole existing emitter — the earlier draft's "no emitters found" note was wrong.
-- [ ] Remove `UI_NAVIGATE_REQUEST` from `EngramEventType` in `src/events/index.ts`.
-- [ ] In `App.tsx`, drop the `EventBus.on("UI_NAVIGATE_REQUEST", ...)` subscription; keep only the existing `window.addEventListener("engram:navigate", ...)`.
-
-### 2.6 Isolate `data/` → `integrations/tavern/` Imports
-
-**Rule:** The data layer should not know about the host UI.
-
-- [ ] `ChatManager.ts`: currently imports `getCurrentChatId` and `getCurrentCharacter`. Refactor so callers pass `chatId` and `character` as arguments. `ChatManager` becomes a stateless helper.
-- [ ] `CharacterCleanup.ts` — **this is a focused task of its own**, not a bullet. The file is 440+ lines with 6 `notificationService.*` call sites, `callPopup`, `SettingsManager` reads, and `WorldInfoService` usage. Plan:
-  1. Move popup/confirmation logic into a small adapter in `src/integrations/tavern/` that returns `{ confirmed: boolean }`.
-  2. Replace `notificationService.*` calls with return values (`{ deleted: number, failed: string[] }`); callers (in the integration layer) decide whether to toast.
-  3. Inject `WorldInfoService` and the linked-deletion config via constructor or method args; remove `SettingsManager` import.
-  4. After this, `CharacterCleanup.ts` should import only from `@/data`, `@/logger`, and `@/utils`.
-
-### 2.7 Stop `state/` from Reaching into `integrations/tavern/`
-
-**Context:** the Phase 3 import rules (below) forbid `state/ → integrations/`, but two slices currently violate this and the original plan didn't budget work for them:
-- `src/state/memory/slices/coreSlice.ts` imports `getCurrentChatId`.
-- `src/state/memory/slices/eventSlice.ts` imports `WorldInfoService`.
-
-Either complete this task **or** relax the 3.1 rule to allow `state/ → integrations/`. Don't ship 3.1 with the rule stricter than reality.
-
-- [ ] `coreSlice.ts`: have callers (bootstrap, ui) pass `chatId` in; remove `getCurrentChatId` import.
-- [ ] `eventSlice.ts`: inject `WorldInfoService` (or a thin interface) via the store's initializer; remove direct import.
-
----
-
-## Phase 3: Import Rule Enforcement
-
-### 3.1 Document Layer Rules
-
-Add to `AGENTS.md` (or create `ARCHITECTURE.md`).
-
-The earlier draft of this table referenced a `core/` layer that **does not exist** in this repo. The real top-level peers under `src/` are: `ui/`, `state/`, `modules/`, `data/`, `integrations/`, `config/`, `logger/`, `utils/`, `events/`, `constants/`. Below, "primitives" means `logger/ + utils/ + events/ + constants/`.
+### Target tree
 
 ```
-Allowed import directions (target state):
-  ui/            → anything (user-facing shell)
-  integrations/  → anything (host bridge; bootstrap.ts is the composition root)
-  state/         → data/, config/, primitives   (NOT integrations/, NOT modules/ — see 2.7)
-  modules/       → data/, config/, primitives   (NOT state/, NOT integrations/, NOT ui/)
-  data/          → primitives                   (NOT config/, NOT state/, NOT modules/, NOT integrations/)
-  config/        → primitives
+src/
+├── bootstrap.ts                        (rewired)
+├── sillytavern/ui/
+│   ├── buttons.ts                      (DOM injection — was part of ui.tsx)
+│   └── mount.ts                        (single createRoot — was part of ui.tsx)
+└── ui/root/
+    ├── EngramRoot.tsx                  (always-mounted: Review + Quick + lazy Panel)
+    └── PanelRoot.tsx                   (was App.tsx: MainLayout + view switching)
 ```
 
-Notes:
-- `integrations/tavern/bootstrap.ts` is the composition root: allowed to import everything. Other files under `integrations/` should still prefer importing through barrels, not reach across layers arbitrarily.
-- `state/ → integrations/` is currently violated (see 2.7). Resolve before enabling the 3.2 guard.
+### Phases
 
-### 3.2 (Optional) CI Guard
+**T1 — Expand `uiStore`** (additive, non-breaking)
 
-The hand-rolled grep script below only covers a subset of the 3.1 rules (it misses `state/ → integrations/`, `data/ → state/`, `data/ → config/`, etc.) and will rot quickly. **Prefer [`dependency-cruiser`](https://github.com/sverweij/dependency-cruiser) or knip** (knip is already a dev-dep in `deno.jsonc`) with a rule file derived from the 3.1 table.
+`src/state/uiStore.ts`:
+- State: `panelOpen: boolean`, `activeTab: string`.
+- Actions: `openPanel()`, `closePanel()`, `togglePanel()`, `navigate(path)` (also persists via `SettingsManager.set("lastOpenedTab", ...)`).
+- `activeTab` initializes to `"dashboard"`. A one-time `hydrateFromSettings()` is called from bootstrap after `SettingsManager.initSettings()` to load the persisted tab. This avoids a load-order coupling: without it, reading `SettingsManager` at store creation would make the `uiStore` module unsafe to import before bootstrap runs `initSettings()`.
 
-If a stop-gap grep is still wanted:
+- [ ] Add the above to `useUiStore`.
 
-```bash
-#!/bin/sh
-# Stop-gap only — prefer dependency-cruiser / knip. Run in CI or pre-commit.
-fail=0
-grep -rnE "from "@/(ui|state|integrations)/" src/modules/ && fail=1
-grep -rnE "from "@/(ui|state|config|integrations|modules)/" src/data/ && fail=1
-grep -rnE "from "@/(integrations|modules)/" src/state/ && fail=1
-exit $fail
-```
+**T2 — Create new root files** (not wired yet, non-breaking)
 
----
+- [ ] `src/ui/root/PanelRoot.tsx`: relocate `src/App.tsx` contents. **Keep `export default`** (`React.lazy` requires it). Drop `useState(activeTab)` and the entire 30-line `useEffect` (both subscriptions, both `engram:navigate` listeners). Read `activeTab` from `useUiStore`. `PanelRoot` itself takes no props (it's the root), but still passes `closePanel` from the store down to `MainLayout` as its `onClose` prop — `Header.tsx:45` calls that prop directly on click, and Risk #4 forbids touching `MainLayout`/`Header`.
+- [ ] `src/ui/root/EngramRoot.tsx`: new. Always renders `<ReviewContainer/>` and `<QuickPanel/>`. Conditionally renders `{panelOpen && <Suspense fallback={null}><LazyPanel/></Suspense>}` where `LazyPanel = React.lazy(() => import("@/ui/root/PanelRoot.tsx"))`. The lazy boundary only defers *module evaluation* (view modules don't run until first open) — `vite.config.ts` sets `codeSplitting: false`, so there's no separate chunk.
 
-## Verification Checklist
+**T3 — Split the host layer**
 
-After each phase, run:
+- [ ] `src/sillytavern/ui/buttons.ts`: extract `createTopBarButton`, `initQuickPanelButton`, `removeQuickPanelButton`, `handleQuickPanelClick`. Drawer click → `togglePanel()`; send-form click → `openQuickPanel()` (unchanged).
+- [ ] `src/sillytavern/ui/mount.ts`: new `mountEngram()` — single `createRoot(...).render(<EngramRoot/>)` on `#engram-root`. Delete `globalRoot`, `panelVisible`, `panelElement`, `reactRoot`, `openMainPanel`, `closeMainPanel`, `createMainPanel`, `mountGlobalOverlay`, `toggleMainPanel`.
+- [ ] Delete `src/sillytavern/ui/ui.tsx`.
 
-- [ ] `deno task build` passes without errors.
-- [ ] Confirm no orphaned imports in `src`.
-- [ ] `deno task test` — expected to still have pre-existing failures from the Phase 1 orphan test files (see Side effects). Any **new** failure caused by your refactor is a regression; the pre-existing list is not.
-- [ ] Update TASK.md.
+**T4 — Rewire callers**
 
-## Known Pre-existing Issues (not caused by this refactor)
+- [ ] `src/bootstrap.ts`: import from `buttons.ts` + `mount.ts`. Replace `await mountGlobalOverlay()` with `await mountEngram()`. Call `useUiStore.getState().hydrateFromSettings()` after `SettingsManager.initSettings()`.
+- [ ] `src/ui/panels/QuickPanel.tsx`: replace the dynamic-import-and-`dispatchEvent` dance with `useUiStore.getState().navigate(path); openPanel(); onClose()`. Delete the `setTimeout(0)` and the `engram:navigate` dispatch.
+- [ ] `src/ui/services/NotificationService.ts` (`navigate` method, ~line 192): replace `EventBus.emit({ type: "UI_NAVIGATE_REQUEST", ... })` with `useUiStore.getState().navigate(path)`.
 
-Don't fix these as a side-effect of Phase 2 work; call them out in review instead:
-- `src/modules/rag/retrieval/Retriever.ts`: references undefined `RecallCandidate` and `recallConfig`; calls `.toReversed()` on a Dexie `Collection` (method does not exist on that type).
-- `src/modules/memory/Summarizer.ts`: uses `chat_metadata` where the ST context type is `chatMetadata`.
-- Many sloppy imports across `src/` (imports without `.ts` suffix). Don't mass-rewrite; only fix lines you touch.
+**T5 — Cleanup**
 
----
+- [ ] Delete `src/App.tsx`.
+- [ ] Delete `src/ui/overlay/GlobalOverlay.tsx` and the now-empty `src/ui/overlay/` directory.
+- [ ] Remove `"UI_NAVIGATE_REQUEST"` from `EngramEventType` in `src/events/index.ts`.
+- [ ] Grep-verify zero remaining references to: `engram:navigate`, `UI_NAVIGATE_REQUEST`, `mountGlobalOverlay`, `toggleMainPanel`, `openMainPanel`, `closeMainPanel`, `createMainPanel`, `GlobalOverlay`, `from "@/App"`.
 
-## Suggested Order
+**T6 — Validate**
 
-1. **Phase 1.1 – 1.4** (Deletes) — mechanical, reduces file count immediately. ✅ Done.
-2. **Phase 1.5 – 1.7** (Demotes & strips) — removes active dependencies on kept-for-reference code. ✅ Done.
-3. **Phase 2.1** (Logger types) — trivial, good warm-up. ✅ Done.
-4. **Phase 2.2 + 2.4 merged** (`memoryStore` + `SettingsManager` isolation) — see unified pass. Steps A–E; step F (UI write-side) deferrable.
-5. **Phase 2.3** (notificationService removal) — medium, repetitive. Note: `ApplyTrim.ts` already done as part of step D above.
-6. **Phase 2.5 – 2.6** (EventBus cleanup, data layer isolation) — 2.6 is a focused task of its own.
-7. **Phase 2.7** (state/ → integrations/ cleanup) — required before 3.2's guard can be enabled.
-8. **Phase 3** (Documentation + guard) — final guardrail.
+- [ ] `deno task build` passes (source of truth per `AGENTS.md`).
+- [ ] Tests are known-broken post-fork — not run.
+
+### Risks
+
+1. **Lazy boundary integrity.** `PanelRoot` must be the *only* thing behind `React.lazy`, or the view modules get evaluated at bootstrap (when `EngramRoot` renders). Direct `@/ui/views` imports in `src/ui/panels/**/*.tsx` are already confirmed clean (zero matches). Only *transitive* imports through `ReviewContainer`/`QuickPanel` need a quick check before merging.
+2. **Dead DOM in old `createMainPanel`** (`src/sillytavern/ui/ui.tsx:255–295`). Imperatively builds a header + content skeleton, then `createRoot(panel).render(<App/>)` renders into the same node — `MainLayout` renders its own header over the imperative one. Likely dead code or latent bug. Confirm by deletion + successful build.
+3. **Scope discipline.** Do *not* touch `MainLayout`, `Sidebar`, `Header`, or any view. The shell below the root is fine. Only the layer above `App` and the two cross-root callers change.
 
 ---
 
-## Kept-for-Refactor Items (do not delete)
-
-| Item | Status | Notes |
-|---|---|---|
-| Dev Log view | Keep | Refactor types per 2.1 |
-| BrainRecallCache | Keep (inactive) | Step removed from workflow, file stays |
-| UserReview step | Keep | Used by SummaryWorkflow and EntityWorkflow |
-| CharacterCleanup | Keep | Refactor per 2.6 |
-| API Presets view | Keep | Large, refactor separately when touched |
-| SyncService | Reference-only | File stays, all active wiring removed |
+Older decoupling work (Phases 2.2/2.4, 2.3, 2.6, 2.7, Phase 3) and known pre-existing issues live in [`dev-docs/refactoring-backlog.md`](./dev-docs/refactoring-backlog.md).
