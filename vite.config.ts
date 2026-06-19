@@ -38,7 +38,6 @@ export default defineConfig(({ mode }) => ({
             output: {
                 codeSplitting: false,
                 entryFileNames: "index.js",
-                chunkFileNames: "[name].js",
                 assetFileNames: (assetInfo) => {
                     if (assetInfo.name?.endsWith(".css")) {
                         return "style.css";
@@ -48,7 +47,7 @@ export default defineConfig(({ mode }) => ({
             },
         },
 
-        minify: mode === "production",
+        minify: "oxc",
         sourcemap: true,
     },
 

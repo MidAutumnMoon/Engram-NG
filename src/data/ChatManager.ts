@@ -6,9 +6,9 @@
  */
 
 import { Logger } from "@/logger/index.ts";
-import { type ChatDatabase, type ChatMeta, getDbForChat } from "./db";
-import { getCurrentCharacter, getCurrentChatId } from "@/sillytavern";
-import { DEFAULT_SCOPE_STATE, type ScopeState } from "./types/graph";
+import { type ChatDatabase, getDbForChat } from "./db.ts";
+import { getCurrentCharacter, getCurrentChatId } from "@/sillytavern/index.ts";
+import { DEFAULT_SCOPE_STATE, type ScopeState } from "./types/graph.ts";
 
 /** Meta 表中的状态 key */
 const STATE_KEY = "scope_state";
@@ -126,9 +126,3 @@ class ChatManager {
 }
 
 export const chatManager = new ChatManager();
-
-/**
- * @deprecated V0.6: 使用 chatManager 替代
- * 保留以便定位迁移点
- */
-const scopeManager = chatManager;

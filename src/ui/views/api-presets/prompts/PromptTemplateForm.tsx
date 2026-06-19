@@ -1,15 +1,16 @@
 /**
  * 提示词模板编辑表单
  */
-import type { LLMPreset } from "@/config/types/llm";
-import type { PromptCategory, PromptTemplate } from "@/config/types/prompt";
-import { PROMPT_CATEGORIES } from "@/config/types/prompt";
+import type { LLMPreset } from "@/config/types/llm.ts";
+import type { PromptCategory, PromptTemplate } from "@/config/types/prompt.ts";
+import { PROMPT_CATEGORIES } from "@/config/types/prompt.ts";
 import {
     FormSection,
     SelectField,
     TextField,
-} from "@/ui/components/form/FormComponents";
-import { WorldbookBindingField } from "@/ui/components/form/WorldbookBindingField";
+} from "@/ui/components/form/FormComponents.tsx";
+import { WorldbookBindingField } from "@/ui/components/form/WorldbookBindingField.tsx";
+import { WorldInfoService } from "@/sillytavern/worldbook/index.ts";
 import { Check, Copy } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
@@ -142,9 +143,6 @@ export const PromptTemplateForm: React.FC<PromptTemplateFormProps> = ({
     useEffect(() => {
         const timer = setTimeout(async () => {
             try {
-                const { WorldInfoService } = await import(
-                    "@/sillytavern/worldbook"
-                );
                 const t1 = template.systemPrompt
                     ? await WorldInfoService.countTokens(template.systemPrompt)
                     : 0;

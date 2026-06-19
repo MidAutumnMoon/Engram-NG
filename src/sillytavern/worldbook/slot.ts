@@ -5,9 +5,9 @@
  * 这是 WorldBook 在新架构中的唯一用途：作为宏注入的载体
  */
 
-import { Logger } from "@/logger";
-import { createEntry, findEntryByKey } from "./crud";
-import { WorldbookEngramService } from "./engram";
+import { Logger } from "@/logger/index.ts";
+import { createEntry, findEntryByKey } from "./crud.ts";
+import { WorldbookEngramService } from "./engram.ts";
 
 /** 槽位条目 Key */
 export const SLOT_ENTRY_KEY = "engram_macro_slot";

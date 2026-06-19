@@ -1,4 +1,4 @@
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/index.ts";
 
 export class EjsProcessor {
     /**
@@ -10,8 +10,8 @@ export class EjsProcessor {
 
         // 检查 ST-Prompt-Template 是否可用
         if (
-            !window.EjsTemplate ||
-            typeof window.EjsTemplate.evalTemplate !== "function"
+            !EjsTemplate ||
+            typeof EjsTemplate.evaltemplate !== "function"
         ) {
             Logger.debug(
                 "EjsProcessor",
@@ -22,12 +22,12 @@ export class EjsProcessor {
 
         try {
             // 1. 准备上下文 (自动包含 {{user}}, {{char}} 及所有酒馆变量)
-            const context = await window.EjsTemplate.prepareContext();
+            const context = await EjsTemplate.prepareContext();
 
             // 2. 尝试获取 MVU 变量并合并
-            if (window.Mvu !== undefined && window.Mvu.getMvuData) {
+            if (Mvu !== undefined && Mvu.getMvuData) {
                 try {
-                    const mvuObj = window.Mvu.getMvuData({
+                    const mvuObj = Mvu.getMvuData({
                         message_id: "latest",
                         type: "message",
                     });
@@ -42,7 +42,7 @@ export class EjsProcessor {
             // 3. 逐条渲染
             const processed = await Promise.all(entries.map(async (content) => {
                 try {
-                    return await window.EjsTemplate!.evalTemplate(
+                    return await EjsTemplate.evaltemplate(
                         content,
                         context,
                     );

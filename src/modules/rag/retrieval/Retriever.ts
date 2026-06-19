@@ -11,23 +11,23 @@
  * - keyword_only: 仅关键词扫描
  */
 
-import { SettingsManager } from "@/config/settings";
-import { Logger, LogModule } from "@/logger";
-import { RecallLogService } from "@/logger/RecallLogger";
-import { tryGetDbForChat } from "@/data/db";
-import { getCurrentChatId } from "@/sillytavern";
+import { SettingsManager } from "@/config/settings.ts";
+import { Logger, LogModule } from "@/logger/index.ts";
+import { RecallLogService } from "@/logger/RecallLogger.ts";
+import { tryGetDbForChat } from "@/data/db.ts";
+import { getCurrentChatId } from "@/sillytavern/index.ts";
 
-import { DEFAULT_RECALL_CONFIG } from "@/config/types/defaults";
+import { DEFAULT_RECALL_CONFIG } from "@/config/types/defaults.ts";
 import type {
     RecallConfig,
     RerankConfig,
     VectorConfig,
-} from "@/config/types/rag";
-import type { EventNode } from "@/data/types/graph";
-import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory";
+} from "@/config/types/rag.ts";
+import type { EventNode } from "@/data/types/graph.ts";
+import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
 import type { AgenticRecall } from "@/config/types/rag.ts";
-import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine";
-import { createRetrievalWorkflow } from "@/modules/workflow/definitions/RetrievalWorkflow";
+import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine.ts";
+import { createRetrievalWorkflow } from "@/modules/workflow/definitions/RetrievalWorkflow.ts";
 
 // ==================== 类型定义 ====================
 
@@ -364,10 +364,10 @@ class Retriever {
         if (recallConfig.useKeywordRecall) {
             try {
                 const { WorkflowEngine } = await import(
-                    "@/modules/workflow/core/WorkflowEngine"
+                    "@/modules/workflow/core/WorkflowEngine.ts"
                 );
                 const { KeywordRetrieveStep } = await import(
-                    "@/modules/workflow/steps/rag/KeywordRetrieveStep"
+                    "@/modules/workflow/steps/rag/KeywordRetrieveStep.ts"
                 );
 
                 // 确保有扫描背景

@@ -1,7 +1,8 @@
-import { Logger } from "@/logger";
-import { getTavernHelper } from "./adapter";
-import { getEntries } from "./crud";
-import type { WorldInfoEntry } from "./types";
+import { Logger } from "@/logger/index.ts";
+import { SettingsManager } from "@/config/settings.ts";
+import { getTavernHelper } from "./adapter.ts";
+import { getEntries } from "./crud.ts";
+import type { WorldInfoEntry } from "./types.ts";
 
 const MODULE = "Worldbook";
 
@@ -59,11 +60,10 @@ async function getConstantWorldInfo(): Promise<string> {
  * 加载过滤所需的所有状态配置
  * @private
  */
-async function loadFilteringState() {
+function loadFilteringState() {
     const helper = getTavernHelper();
     const globalWorldbooks = helper?.getGlobalWorldbookNames?.() || [];
 
-    const { SettingsManager } = await import("@/config/settings");
     const settings = SettingsManager.getSettings();
     const config = settings.apiSettings?.worldbookConfig;
     const disabledGlobalBooks = config?.disabledWorldbooks || [];

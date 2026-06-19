@@ -9,11 +9,6 @@ export type WorldInfoPosition =
     | "at_depth";
 
 /**
- * WorldInfoStrategy - 世界书条目策略类型
- */
-type WorldInfoStrategy = "constant" | "selective" | "vectorized";
-
-/**
  * WorldInfoRole - 世界书条目角色
  */
 export type WorldInfoRole = "system" | "assistant" | "user";

@@ -5,9 +5,9 @@
  * 支持 OpenAI 兼容格式的 Rerank API
  */
 
-import { SettingsManager } from "@/config/settings";
-import type { RerankConfig } from "@/config/types/rag";
-import { Logger, LogModule } from "@/logger";
+import { SettingsManager } from "@/config/settings.ts";
+import type { RerankConfig } from "@/config/types/rag.ts";
+import { Logger, LogModule } from "@/logger/index.ts";
 
 // ==================== 类型定义 ====================
 

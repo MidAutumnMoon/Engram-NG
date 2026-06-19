@@ -1,9 +1,10 @@
-import { SettingsManager } from "@/config/settings";
-import { Logger, LogModule } from "@/logger";
-import { getSTContext } from "@/sillytavern";
-import { callPopup } from "@/sillytavern";
-import { WorldInfoService } from "@/sillytavern/worldbook";
-import { notificationService } from "@/ui/services/NotificationService";
+import { SettingsManager } from "@/config/settings.ts";
+import { Logger, LogModule } from "@/logger/index.ts";
+import { getSTContext } from "@/sillytavern/index.ts";
+import { callPopup } from "@/sillytavern/index.ts";
+import { WorldInfoService } from "@/sillytavern/worldbook/index.ts";
+import { notificationService } from "@/ui/services/NotificationService.ts";
+import { deleteDatabase, hasDbForChat, listAllChatIds } from "@/data/db.ts";
 
 /**
  * CharacterDeleteService - 联动删除服务
@@ -86,7 +87,6 @@ export class CharacterDeleteService {
         let matchedChatIds: string[] = [];
         if (settings.deleteIndexedDB) {
             try {
-                const { listAllChatIds } = await import("@/data/db");
                 const allIds = await listAllChatIds();
 
                 // 逃逸正则字符，匹配前缀
@@ -184,8 +184,6 @@ export class CharacterDeleteService {
 
         // 清理聊天数据
         if (settings.deleteIndexedDB && matchedChatIds.length > 0) {
-            const { deleteDatabase } = await import("@/data/db");
-
             for (const chatId of matchedChatIds) {
                 try {
                     await deleteDatabase(chatId);
@@ -268,7 +266,6 @@ export class CharacterDeleteService {
         // 1. 删除 IndexedDB (V0.6+ Sharding)
         // 只要启用了联动删除，就清理该聊天的数据库，因为它是隔离的，不会影响其他聊天
         try {
-            const { deleteDatabase, hasDbForChat } = await import("@/data/db");
             if (hasDbForChat(chatId)) {
                 await deleteDatabase(chatId);
                 Logger.info(

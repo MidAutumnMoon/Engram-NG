@@ -63,7 +63,7 @@ export type EventCallback = (...args: unknown[]) => void | Promise<void>;
 /** 取消订阅函数类型 */
 export type Unsubscribe = () => void;
 
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/index.ts";
 
 const MODULE = "TavernEventBus";
 
@@ -172,10 +172,10 @@ export class EventBus {
      * @param event 事件名称
      * @param args 参数
      */
-    static async emit(
+    static emit(
         event: TavernEventTypeValue | string,
         ...args: unknown[]
-    ): Promise<any> {
+    ): any {
         const eventSource = getEventSource();
 
         if (eventSource) {

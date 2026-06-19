@@ -1,5 +1,6 @@
 import { reviewService } from "@/sillytavern/ReviewBridge";
 import { Logger } from "@/logger";
+import { RobustJsonParser } from "@/utils/JsonParser.ts";
 import { WorldInfoService } from "@/sillytavern/worldbook";
 import { notificationService } from "@/ui/services/NotificationService";
 import type { JobContext } from "../../core/JobContext";
@@ -84,9 +85,6 @@ export class UserReview implements IStep {
                 }
                 if (context.extractedTags.recall_decision) {
                     try {
-                        const { RobustJsonParser } = await import(
-                            "@/utils/JsonParser"
-                        );
                         const parsed = RobustJsonParser.parse(
                             context.extractedTags.recall_decision,
                         );

@@ -10,18 +10,18 @@
  * - 酒馆会 await 事件处理器，确保预处理完成后再继续
  */
 
-import { SettingsManager } from "@/config/settings";
-import { DEFAULT_RECALL_CONFIG } from "@/config/types/defaults";
-import type { AgenticRecall } from "@/config/types/rag.ts";
-import { Logger, LogModule } from "@/logger";
+import { SettingsManager } from "@/config/settings.ts";
+import { DEFAULT_RECALL_CONFIG } from "@/config/types/defaults.ts";
+import { Logger, LogModule } from "@/logger/index.ts";
 import {
     EventBus,
     getCurrentChatId,
     getSTContext,
     MacroService,
     TavernEventType,
-} from "@/sillytavern";
-import { retriever } from "@/modules/rag/retrieval/Retriever";
+} from "@/sillytavern/index.ts";
+import { retriever } from "@/modules/rag/retrieval/Retriever.ts";
+
 interface GenerationAfterCommandsParams {
     automatic_trigger?: boolean;
     force_name2?: boolean;

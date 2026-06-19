@@ -42,10 +42,3 @@ export function getTavernHelper(): {
         return null;
     }
 }
-
-/**
- * 检查 WorldInfo 功能是否可用
- */
-function isWorldInfoAvailable(): boolean {
-    return getTavernHelper() !== null;
-}

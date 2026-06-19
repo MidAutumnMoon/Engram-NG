@@ -1,6 +1,6 @@
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/index.ts";
 import { getSTContext } from "../context.ts";
-import { getTavernHelper } from "./adapter";
+import { getTavernHelper } from "./adapter.ts";
 
 const MODULE = "Worldbook";
 

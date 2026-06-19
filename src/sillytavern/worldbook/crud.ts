@@ -1,10 +1,10 @@
-import { Logger } from "@/logger";
-import { getTavernHelper } from "./adapter";
+import { Logger } from "@/logger/index.ts";
+import { getTavernHelper } from "./adapter.ts";
 import type {
     CreateWorldInfoEntryParams,
     WorldInfoEntry,
     WorldInfoPosition,
-} from "./types";
+} from "./types.ts";
 
 const MODULE = "Worldbook";
 

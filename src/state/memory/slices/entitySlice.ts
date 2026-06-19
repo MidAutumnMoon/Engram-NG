@@ -1,7 +1,7 @@
-import { generateShortUUID } from "@/utils";
-import type { EntityNode } from "@/data/types/graph";
+import { generateShortUUID } from "@/utils/index.ts";
+import type { EntityNode } from "@/data/types/graph.ts";
 import type { StateCreator } from "zustand";
-import { getCurrentDb, tryGetCurrentDb } from "./coreSlice";
+import { getCurrentDb, tryGetCurrentDb } from "./coreSlice.ts";
 
 export interface EntityState {
     // V0.9 实体相关

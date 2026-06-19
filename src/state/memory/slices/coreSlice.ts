@@ -1,12 +1,12 @@
-import { chatManager } from "@/data/ChatManager";
+import { chatManager } from "@/data/ChatManager.ts";
 import {
     type ChatDatabase,
     deleteDatabase,
     getDbForChat,
     tryGetDbForChat,
-} from "@/data/db";
-import type { EventNode } from "@/data/types/graph";
-import { getCurrentChatId } from "@/sillytavern";
+} from "@/data/db.ts";
+import type { EventNode } from "@/data/types/graph.ts";
+import { getCurrentChatId } from "@/sillytavern/index.ts";
 import type { StateCreator } from "zustand";
 
 export interface CoreState {

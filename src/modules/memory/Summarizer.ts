@@ -2,17 +2,17 @@
  * SummarizerService - 剧情总结核心服务
  */
 
-import { SettingsManager } from "@/config/settings";
-import { eventWatcher } from "@/sillytavern/EventWatcher";
-import { useMemoryStore } from "@/state/memoryStore"; // Used for setLastSummarizedFloor
-import { notificationService } from "@/ui/services/NotificationService";
+import { SettingsManager } from "@/config/settings.ts";
+import { eventWatcher } from "@/sillytavern/EventWatcher.ts";
+import { useMemoryStore } from "@/state/memoryStore.ts"; // Used for setLastSummarizedFloor
+import { notificationService } from "@/ui/services/NotificationService.ts";
 import type {
     ChatContext,
     SummarizerConfig,
     SummarizerStatus,
     SummaryResult,
-} from "./types";
-import { DEFAULT_SUMMARIZER_CONFIG } from "./types";
+} from "./types.ts";
+import { DEFAULT_SUMMARIZER_CONFIG } from "./types.ts";
 
 /** 元数据 key */
 const METADATA_KEY = "engram";
@@ -23,7 +23,7 @@ const METADATA_KEY = "engram";
 function getChatMetadata(): Record<string, unknown> | null {
     try {
         // 优先从 context 获取
-        const context = window.SillyTavern?.getContext?.();
+        const context = window.SillyTavern.getContext();
         if (context?.chat_metadata) {
             return context.chat_metadata;
         }

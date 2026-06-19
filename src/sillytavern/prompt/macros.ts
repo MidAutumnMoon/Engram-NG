@@ -1,10 +1,10 @@
-import { SettingsManager } from "@/config/settings";
-import type { CustomMacro } from "@/config/types/prompt";
-import { Logger } from "@/logger";
-import { WorldInfoService } from "@/sillytavern";
-import { useMemoryStore } from "@/state/memoryStore";
-import { ChatHistoryHelper } from "../chat/chatHistory";
-import { EjsProcessor } from "./ejsProcessor";
+import { SettingsManager } from "@/config/settings.ts";
+import type { CustomMacro } from "@/config/types/prompt.ts";
+import { Logger } from "@/logger/index.ts";
+import { WorldInfoService } from "@/sillytavern/index.ts";
+import { useMemoryStore } from "@/state/memoryStore.ts";
+import { ChatHistoryHelper } from "../chat/chatHistory.ts";
+import { EjsProcessor } from "./ejsProcessor.ts";
 
 declare global {
     interface Window {

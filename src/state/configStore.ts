@@ -1,4 +1,4 @@
-import { type EngramSettings, SettingsManager } from "@/config/settings";
+import { type EngramSettings, SettingsManager } from "@/config/settings.ts";
 import {
     type CustomMacro,
     DEFAULT_EMBEDDING_CONFIG,
@@ -8,8 +8,8 @@ import {
     type RecallConfig,
     type RerankConfig,
     type VectorConfig,
-} from "@/config/types/defaults";
-import type { EntityExtractConfig } from "@/config/types/memory";
+} from "@/config/types/defaults.ts";
+import type { EntityExtractConfig } from "@/config/types/memory.ts";
 import { create } from "zustand";
 
 // 采用 debounce，防止高频 UI 调整（如滑块）导致的存取风暴

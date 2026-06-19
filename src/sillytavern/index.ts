@@ -11,4 +11,4 @@ export * from "./prompt/macros.ts";
 
 export * from "./ui/ui.tsx";
 
-export * from "./worldbook";
+export * from "./worldbook/index.ts";
