@@ -30,7 +30,7 @@ src/
 - Actions: `openPanel()`, `closePanel()`, `togglePanel()`, `navigate(path)` (also persists via `SettingsManager.set("lastOpenedTab", ...)`).
 - `activeTab` initializes to `"dashboard"`. A one-time `hydrateFromSettings()` is called from bootstrap after `SettingsManager.initSettings()` to load the persisted tab. This avoids a load-order coupling: without it, reading `SettingsManager` at store creation would make the `uiStore` module unsafe to import before bootstrap runs `initSettings()`.
 
-- [ ] Add the above to `useUiStore`.
+- [x] Add the above to `useUiStore`.
 
 **T2 — Create new root files** (not wired yet, non-breaking)
 
