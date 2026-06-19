@@ -1,18 +1,17 @@
 /**
  * PanelErrorBoundary - 隔离 PanelRoot 渲染错误
  *
- * 设计意图：复刻旧双根架构下的错误隔离。以前 PanelRoot 是独立的 createRoot，
- * 抛错只会卸载面板根，QuickPanel / ReviewContainer 仍存活。现在三者共用一个根，
- * 没有 boundary 的话 PanelRoot 抛错会把整个 EngramRoot 卸掉。
+ * PanelRoot 与 ReviewContainer / QuickPanel 共用一个 React 根。如果没有 boundary，
+ * PanelRoot 内部任一视图抛错会卸载整根 EngramRoot，连带丢掉 ReviewContainer 的
+ * EventBus 订阅。本 boundary 捕获这类错误后渲染 null（面板表现为关上），让其它子树存活。
  *
- * 行为：捕获错误后渲染 null（面板看起来是关上的），不影响 EngramRoot 的其它子树。
- * 当 panelOpen 翻回 false 时重置错误状态，下次开面板会重新尝试挂载 PanelRoot。
+ * 当 panelOpen 从 true 翻回 false 时重置错误状态，下次开面板会重新尝试挂载。
  */
 import React from "react";
 
 interface Props {
-    /** 当外部判定面板应关闭（panelOpen=false）时改变，触发错误状态重置。 */
-    resetKey: boolean;
+    /** 当前 panelOpen 值。true→false 的下降沿触发错误状态重置。 */
+    panelOpen: boolean;
     children: React.ReactNode;
 }
 
@@ -28,8 +27,9 @@ export class PanelErrorBoundary extends React.Component<Props, State> {
     }
 
     override componentDidUpdate(prevProps: Props): void {
-        // resetKey 翻为 false 时清空错误状态——下次开面板可重新尝试挂载。
-        if (prevProps.resetKey && !this.props.resetKey && this.state.hasError) {
+        // 关闭面板时清空错误状态，下次开面板可重新尝试挂载。
+        const closed = prevProps.panelOpen && !this.props.panelOpen;
+        if (closed && this.state.hasError) {
             this.setState({ hasError: false });
         }
     }

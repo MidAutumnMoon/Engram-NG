@@ -2,7 +2,7 @@
  * SillyTavern DOM 注入
  *
  * 把 Engram 的两个宿主入口（顶栏 drawer、发送栏快捷面板按钮）塞进酒馆的 DOM。
- * 这里只负责 DOM：按钮点击后翻 uiStore 的状态，由 mount.ts + React 决定渲染什么。
+ * 这里只负责 DOM：按钮点击后翻 uiStore 的状态，由 mount.tsx + React 决定渲染什么。
  *
  * 不导入任何 React —— 这一层和 React 解耦，bootstrap 可以在 React 挂载之前就注入按钮。
  */

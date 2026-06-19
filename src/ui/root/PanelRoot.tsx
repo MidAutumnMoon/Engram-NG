@@ -1,11 +1,11 @@
 /**
- * PanelRoot - 主面板根组件（原 src/App.tsx）
+ * PanelRoot - 主面板根组件
  *
- * 由 EngramRoot 通过 React.lazy 懒挂载：当 uiStore.panelOpen 翻为 true 时首次求值
- * 本模块，视图模块（dashboard/devlog/...）的副作用随之首次执行。
+ * 由 EngramRoot 通过 React.lazy 懒挂载：只有 uiStore.panelOpen 翻为 true 时本模块
+ * 才被求值，视图模块（dashboard/devlog/...）的副作用随之首次执行。
  *
- * 页面切换状态不再放在 useState / 跨根事件里——统一从 uiStore 读取。closePanel
- * 透传给 MainLayout 的 onClose prop（Header 的关闭按钮直接调用该 prop）。
+ * 页面状态统一从 uiStore 读写；onClose 由 uiStore.closePanel 提供，透传给
+ * MainLayout 的 onClose prop（Header 的关闭按钮直接调用该 prop）。
  */
 import { useUiStore } from "@/state/uiStore.ts";
 import { MainLayout } from "@/ui/shell/MainLayout.tsx";
@@ -75,6 +75,8 @@ const PanelRoot: React.FC = () => {
     };
 
     return (
+        // 容器承担定位/层叠/不透明背景：MainLayout 自己用 absolute inset-0 +
+        // bg-background/40，需要一个已定位、不透明的祖先作为参考与衬底。
         <div
             className="fixed inset-0 w-full h-full z-[10000] flex flex-col bg-background text-foreground overflow-hidden engram-app-root"
             style={{

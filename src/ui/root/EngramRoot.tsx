@@ -28,7 +28,7 @@ export const EngramRoot: React.FC = () => {
             <ReviewContainer />
             <QuickPanel isOpen={quickOpen} onClose={closeQuickPanel} />
             {panelOpen && (
-                <PanelErrorBoundary resetKey={panelOpen}>
+                <PanelErrorBoundary panelOpen={panelOpen}>
                     <Suspense fallback={null}>
                         <LazyPanel />
                     </Suspense>
