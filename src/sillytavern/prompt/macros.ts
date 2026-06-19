@@ -6,15 +6,6 @@ import { useMemoryStore } from "@/state/memoryStore.ts";
 import { ChatHistoryHelper } from "../chat/chatHistory.ts";
 import { EjsProcessor } from "./ejsProcessor.ts";
 
-declare global {
-    interface Window {
-        // V1.2.8: 新版宏系统定义
-        macros?: {
-            register: (name: string, options: any) => any;
-        };
-    }
-}
-
 /**
  * MacroService 类
  * V0.8: 支持预处理使用的宏，包括 {{engramSummaries}} 和 {{worldbookContext}}
