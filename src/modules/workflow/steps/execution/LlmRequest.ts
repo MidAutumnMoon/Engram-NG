@@ -1,7 +1,7 @@
 import type { IStep, RetryConfig } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
 import { llmAdapter } from "@/integrations/llm/Adapter";
-import { ModelLogger } from "@/logger/ModelLogger";
+import { useModelLogStore } from "@/logger/modelLog.ts";
 import { getCurrentCharacter } from "@/sillytavern";
 import { Logger } from "@/logger";
 import { SettingsManager } from "@/config/settings";
@@ -44,7 +44,7 @@ export class LlmRequest implements IStep {
         const { system, user } = context.prompt;
 
         // 1. 记录发送日志
-        const logId = ModelLogger.logSend({
+        const logId = useModelLogStore.getState().logSend({
             type: context.config.logType || "generation", // 允许 config 覆盖
             systemPrompt: system,
             userPrompt: user,
@@ -65,7 +65,7 @@ export class LlmRequest implements IStep {
             });
 
             // 3. 记录接收日志
-            ModelLogger.logReceive(logId, {
+            useModelLogStore.getState().logReceive(logId, {
                 duration: Date.now() - startTime,
                 error: response.error,
                 response: response.content,
@@ -93,7 +93,7 @@ export class LlmRequest implements IStep {
             const isCancelled = error.isCancellation ||
                 errorMsg === "UserCancelled";
 
-            ModelLogger.logReceive(logId, {
+            useModelLogStore.getState().logReceive(logId, {
                 status: isCancelled ? "cancelled" : "error",
                 error: isCancelled ? "用户手动取消" : errorMsg,
                 duration: Date.now() - startTime,

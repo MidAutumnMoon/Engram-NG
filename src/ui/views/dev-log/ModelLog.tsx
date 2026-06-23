@@ -3,8 +3,8 @@
  *
  * 伪聊天式布局展示 LLM 调用记录
  */
-import type { ModelLogEntry } from "@/logger/ModelLogger";
-import { ModelLogger } from "@/logger/ModelLogger";
+import type { ModelLogEntry } from "@/logger/modelLog.ts";
+import { useModelLogStore } from "@/logger/modelLog.ts";
 import {
     AlertCircle,
     Bot,
@@ -250,14 +250,8 @@ const LogCard: React.FC<{
 
 /** ModelLog 主组件 */
 export const ModelLog: React.FC = () => {
-    const [logs, setLogs] = useState(ModelLogger.getPaired());
-
-    useEffect(() => {
-        const unsubscribe = ModelLogger.subscribe(() => {
-            setLogs(ModelLogger.getPaired());
-        });
-        return unsubscribe;
-    }, []);
+    const logs = useModelLogStore((s) => s.pairs);
+    const clear = useModelLogStore((s) => s.clear);
 
     return (
         <div className="flex flex-col h-full">
@@ -274,7 +268,7 @@ export const ModelLog: React.FC = () => {
                 </div>
                 <button
                     className="p-1.5 rounded-md text-muted-foreground hover:text-destructive transition-colors"
-                    onClick={() => ModelLogger.clear()}
+                    onClick={() => clear()}
                     title="清除日志"
                 >
                     <Trash2 size={14} />

@@ -1,9 +1,11 @@
 /**
  * Logger - 日志核心服务
  *
- * 统一的日志记录与广播。所有日志（app / model / recall）流经同一份缓存、
- * 同一份订阅链路、同一套 trim 策略。ModelLogger 与 RecallLogService 作为
- * 薄门面调用本模块的 `log()` / `clear(category)` 写入或清空。
+ * 统一的日志记录与广播。RecallLogService 作为薄门面调用本模块的 `log()` /
+ * `clear(category)` 写入或清空。
+ *
+ * 注：Model 调用日志已迁到同目录下的 useModelLogStore（见 ./modelLog.ts）。
+ * `LogCategory` 中的 "model" 仍保留为允许值，当前无写入点。
  */
 
 import { generateShortUUID } from "@/utils";
