@@ -5,6 +5,7 @@ import { getSTContext } from "@/sillytavern/index.ts";
 import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
+import { regexProcessor } from "@/domain/workflow/steps/index.ts";
 import { EjsProcessor } from "@/sillytavern/prompt/ejsProcessor.ts";
 
 /**
@@ -404,7 +405,10 @@ export class MacroService {
      * 获取对话历史的代理
      */
     static getChatHistory(floorRange?: [number, number]): string {
-        return ChatHistoryHelper.getChatHistory(floorRange);
+        return ChatHistoryHelper.getChatHistory(
+            floorRange,
+            (t) => regexProcessor.process(t, "both"),
+        );
     }
 
     /**

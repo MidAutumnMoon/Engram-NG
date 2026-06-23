@@ -1,7 +1,6 @@
 import { SettingsManager } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import type { SummarizerConfig } from "@/domain/memory/types.ts";
-import { regexProcessor } from "@/domain/workflow/steps/index.ts";
 import { getSTContext } from "@/sillytavern/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 
@@ -11,7 +10,10 @@ export class ChatHistoryHelper {
      * @param floorRange 可选：指定楼层范围 [start, end] (1-based, inclusive)
      * 如果未指定，则从配置读取 limit 获取最近消息
      */
-    static getChatHistory(floorRange?: [number, number]): string {
+    static getChatHistory(
+        floorRange?: [number, number],
+        cleaner?: (text: string) => string,
+    ): string {
         try {
             const context = getSTContext();
             const { TavernHelper } = window;
@@ -166,7 +168,7 @@ export class ChatHistoryHelper {
 
                     const preRegex = content;
                     // 2. Engram 内部正则清洗 (关键：逐条清洗)
-                    content = regexProcessor.process(content, "both");
+                    if (cleaner) content = cleaner(content);
 
                     if (!content && preRegex) {
                         Logger.warn(

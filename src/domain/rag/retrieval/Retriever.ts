@@ -26,6 +26,7 @@ import type {
 } from "@/config/types/rag.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
+import { regexProcessor } from "@/domain/workflow/steps/index.ts";
 import type { AgenticRecall } from "@/config/types/rag.ts";
 import { WorkflowEngine } from "@/domain/workflow/core/WorkflowEngine.ts";
 import { KeywordRetrieveStep } from "@/domain/workflow/steps/rag/KeywordRetrieveStep.ts";
@@ -85,10 +86,13 @@ class Retriever {
             const currentCount = ChatHistoryHelper.getCurrentMessageCount();
             if (currentCount <= 0) return null;
 
-            return ChatHistoryHelper.getChatHistory([
-                Math.max(1, currentCount - count),
-                currentCount,
-            ]);
+            return ChatHistoryHelper.getChatHistory(
+                [
+                    Math.max(1, currentCount - count),
+                    currentCount,
+                ],
+                (t) => regexProcessor.process(t, "both"),
+            );
         } catch {
             return null;
         }
