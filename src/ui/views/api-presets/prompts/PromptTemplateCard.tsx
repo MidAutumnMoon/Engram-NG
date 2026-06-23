@@ -7,7 +7,7 @@ import type { PromptCategory, PromptTemplate } from "@/config/types/prompt";
 import { PROMPT_CATEGORIES } from "@/config/types/prompt";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { notificationService } from "@/ui/services/NotificationService";
+import { notify } from "@/sillytavern/notify.ts";
 import { dump, load } from "js-yaml";
 import {
     Copy,
@@ -130,7 +130,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                     // 保持原 ID
                     importedTemplate.id = template.id;
                     onImport(importedTemplate);
-                    notificationService.success(
+                    notify("success", 
                         `模板 "${importedTemplate.name}" 导入成功`,
                     );
                     Logger.info(
@@ -143,7 +143,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                         "Invalid template format during import",
                         data,
                     );
-                    notificationService.error("导入失败: 无效的模板文件格式");
+                    notify("error", "导入失败: 无效的模板文件格式");
                 }
             } catch (error) {
                 Logger.error(
@@ -151,7 +151,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                     "Failed to parse template file",
                     error,
                 );
-                notificationService.error("导入失败: 无法解析文件");
+                notify("error", "导入失败: 无法解析文件");
             }
         };
         reader.readAsText(file);

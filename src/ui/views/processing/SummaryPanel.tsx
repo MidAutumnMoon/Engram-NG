@@ -20,7 +20,7 @@ import { SliderField } from "@/ui/components/core/SliderField.tsx";
 import { SwitchField } from "@/ui/components/form/FormComponents.tsx";
 import { Divider } from "@/ui/components/layout/Divider.tsx";
 import type { UseSummarizerConfigReturn } from "@/ui/hooks/useSummarizerConfig.ts";
-import { notificationService } from "@/ui/services/NotificationService.ts";
+import { notify } from "@/sillytavern/notify.ts";
 import {
     AlertCircle,
     Calculator,
@@ -118,7 +118,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
         try {
             await summarizerService.setLastSummarizedFloor(editSummarizedFloor);
             await loadStatus();
-            notificationService.success(
+            notify("success", 
                 `总结指针已更新至 ${editSummarizedFloor}`,
                 "Engram",
             );
@@ -133,7 +133,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                 last_extracted_floor: editExtractedFloor,
             });
             await loadStatus();
-            notificationService.success(
+            notify("success", 
                 `提取指针已更新至 ${editExtractedFloor}`,
                 "Engram",
             );

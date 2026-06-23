@@ -11,7 +11,7 @@ import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
 import { getSTContext, onTavernEvent } from "@/sillytavern/index.ts";
 import { WorldBookSlotService } from "@/domain/worldbook/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts"; // Used for setLastSummarizedFloor
-import { notificationService } from "@/ui/services/NotificationService.ts";
+import { dismissNotify, notify, notifyRunning } from "@/sillytavern/notify.ts";
 import type {
     ChatContext,
     SummarizerConfig,
@@ -298,13 +298,13 @@ class SummarizerService {
         const cancelSignal = { cancelled: false };
 
         // 显示运行中通知
-        const runningToast = notificationService.running(
+        const runningToast = notifyRunning(
             "总结运行中...",
             "Engram",
             () => {
                 cancelSignal.cancelled = true;
                 this.log("info", "用户请求取消总结");
-                notificationService.warning("正在取消总结...", "Engram");
+                notify("warning", "正在取消总结...", "Engram");
             },
         );
 
@@ -327,7 +327,7 @@ class SummarizerService {
 
                 if (startFloor > maxProcessableFloor) {
                     if (manual) {
-                        notificationService.info(
+                        notify("info", 
                             "暂无足够的新内容需要总结 (缓冲期内)",
                             "Engram",
                         );
@@ -350,7 +350,7 @@ class SummarizerService {
 
                 if (processCount <= 0) {
                     if (manual) {
-                        notificationService.info(
+                        notify("info", 
                             "暂无足够的新内容需要总结 (缓冲期内)",
                             "Engram",
                         );
@@ -476,10 +476,10 @@ class SummarizerService {
             }
 
             this.log("error", "总结执行异常", { error: errorMsg });
-            notificationService.error(`总结异常: ${errorMsg}`, "Engram 错误");
+            notify("error", `总结异常: ${errorMsg}`, "Engram 错误");
             return null;
         } finally {
-            notificationService.remove(runningToast);
+            dismissNotify(runningToast);
             this.isSummarizing = false;
         }
     }

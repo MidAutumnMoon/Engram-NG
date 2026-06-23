@@ -3,7 +3,7 @@ import type { EventNode } from "@/data/types/graph";
 import { hideMessageRange } from "@/sillytavern";
 import { MacroService } from "@/domain/macros/index.ts";
 import { useMemoryStore } from "@/state/memoryStore";
-import { notificationService } from "@/ui/services/NotificationService";
+import { notify } from "@/sillytavern/notify.ts";
 import { RobustJsonParser } from "@/utils/JsonParser";
 import type { JobContext } from "../../core/JobContext";
 import type { IStep } from "../../core/Step";
@@ -153,7 +153,7 @@ export class SaveEvent implements IStep {
         }
 
         Logger.success("SaveEvent", `已保存 ${savedEvents.length} 个事件`);
-        notificationService.success(
+        notify("success", 
             `已保存 ${savedEvents.length} 个事件`,
             "Engram",
         );

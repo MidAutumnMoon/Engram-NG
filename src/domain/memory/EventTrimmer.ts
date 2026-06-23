@@ -13,7 +13,7 @@ import type { ChatDatabase } from "@/data/db.ts";
 import { WorkflowEngine } from "@/domain/workflow/core/WorkflowEngine.ts";
 import { createTrimmerWorkflow } from "@/domain/workflow/definitions/TrimmerWorkflow.ts";
 import { WorldInfoService } from "@/domain/worldbook/index.ts";
-import { notificationService } from "@/ui/services/NotificationService.ts";
+import { notify } from "@/sillytavern/notify.ts";
 import type { ChatContext } from "./types.ts";
 
 interface TrimResult {
@@ -232,7 +232,7 @@ class EventTrimmer {
                 error: errorMsg,
             });
             if (manual) {
-                notificationService.error(
+                notify("error", 
                     `精简异常: ${errorMsg}`,
                     "Engram 错误",
                 );

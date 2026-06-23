@@ -19,7 +19,7 @@ import { createEntityWorkflow } from "@/domain/workflow/definitions/EntityWorkfl
 import { MacroService } from "@/domain/macros/index.ts";
 import { onTavernEvent } from "@/sillytavern/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
-import { notificationService } from "@/ui/services/NotificationService.ts";
+import { dismissNotify, notify, notifyRunning } from "@/sillytavern/notify.ts";
 import type { ChatContext } from "./types.ts";
 
 /**
@@ -289,7 +289,7 @@ export class EntityBuilder {
             // 显示运行中通知 (支持取消)
             let runningToast: any = null;
             if (manual) {
-                runningToast = notificationService.running(
+                runningToast = notifyRunning(
                     "正在进行实体提取...",
                     "Engram",
                     () => {
@@ -298,7 +298,7 @@ export class EntityBuilder {
                             LogModule.MEMORY_ENTITY,
                             "用户请求取消实体提取",
                         );
-                        notificationService.warning(
+                        notify("warning", 
                             "正在取消实体提取...",
                             "Engram",
                         );
@@ -323,7 +323,7 @@ export class EntityBuilder {
             });
 
             const context = await contextPromise;
-            if (runningToast) notificationService.remove(runningToast);
+            if (runningToast) dismissNotify(runningToast);
 
             const result = context.output; // From SaveEntity
 
@@ -341,7 +341,7 @@ export class EntityBuilder {
                 });
 
                 if (manual) {
-                    notificationService.success(
+                    notify("success", 
                         `实体提取完成: 新增 ${
                             result?.newEntities?.length || 0
                         }, 更新 ${result?.updatedEntities?.length || 0}`,
@@ -365,7 +365,7 @@ export class EntityBuilder {
                     updatedEntities: result?.updatedEntities || [],
                 };
 
-                notificationService.success(
+                notify("success", 
                     `实体预览就绪: 发现 ${
                         result?.newEntities?.length || 0
                     } 个新实体`,
@@ -398,7 +398,7 @@ export class EntityBuilder {
             });
 
             if (manual) {
-                notificationService.error(
+                notify("error", 
                     `实体提取异常: ${errorMsg}`,
                     "Engram 错误",
                 );
@@ -530,7 +530,7 @@ export class EntityBuilder {
                 last_extracted_floor: currentFloor,
             });
 
-            notificationService.success(
+            notify("success", 
                 `已保存 ${newEntities.length} 个新实体，更新 ${updatedEntities.length} 个实体`,
                 "Engram",
             );

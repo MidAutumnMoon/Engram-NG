@@ -4,7 +4,7 @@ import { LogModule } from "@/logger/LogModule.ts";
 import { getSTContext } from "@/sillytavern/index.ts";
 import { callPopup } from "@/sillytavern/index.ts";
 import { WorldInfoService } from "@/domain/worldbook/index.ts";
-import { notificationService } from "@/ui/services/NotificationService.ts";
+import { notify } from "@/sillytavern/notify.ts";
 import { deleteDatabase, hasDbForChat, listAllChatIds } from "@/data/db.ts";
 
 /**
@@ -184,7 +184,7 @@ export class CharacterDeleteService {
                     );
                 }
             }
-            notificationService.success(
+            notify("success", 
                 `已清理 ${matchedChatIds.length} 个关联聊天数据`,
                 "Engram",
             );
@@ -235,7 +235,7 @@ export class CharacterDeleteService {
         }
 
         if (deletedCount > 0) {
-            notificationService.success(
+            notify("success", 
                 `已清理 ${deletedCount} 个关联记忆库`,
                 "Engram",
             );
@@ -261,7 +261,7 @@ export class CharacterDeleteService {
                     LogModule.DATA_CLEANUP,
                     `已删除 IndexedDB: ${chatId}`,
                 );
-                notificationService.info(
+                notify("info", 
                     "已清理关联的 Engram 数据库",
                     "Engram",
                 );
@@ -388,7 +388,7 @@ export class CharacterDeleteService {
         let deletedCount = 0;
         const failedBooks: string[] = [];
 
-        notificationService.info("正在清理 Engram 记忆库...", "Engram");
+        notify("info", "正在清理 Engram 记忆库...", "Engram");
 
         for (const wbName of booksToDelete) {
             try {
@@ -413,14 +413,14 @@ export class CharacterDeleteService {
         }
 
         if (deletedCount > 0) {
-            notificationService.success(
+            notify("success", 
                 `已清理 ${deletedCount} 个关联记忆库`,
                 "Engram",
             );
         }
 
         if (failedBooks.length > 0) {
-            notificationService.warning(
+            notify("warning", 
                 `部分记忆库删除失败: ${failedBooks.join(", ")}`,
                 "Engram",
             );

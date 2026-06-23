@@ -4,7 +4,7 @@ import type { EventNode } from "@/data/types/graph";
 import { MacroService } from "@/domain/macros/index.ts";
 import { embeddingService } from "@/domain/rag";
 import { useMemoryStore } from "@/state/memoryStore";
-import { notificationService } from "@/ui/services/NotificationService";
+import { notify } from "@/sillytavern/notify.ts";
 import type { JobContext } from "../../core/JobContext";
 import type { IStep } from "../../core/Step";
 
@@ -95,7 +95,7 @@ export class ApplyTrim implements IStep {
                 Logger.error("ApplyTrim", "联动嵌入失败", {
                     error: embedError,
                 });
-                notificationService.warning(
+                notify("warning", 
                     "联动嵌入失败，但精简已完成",
                     "Engram",
                 );

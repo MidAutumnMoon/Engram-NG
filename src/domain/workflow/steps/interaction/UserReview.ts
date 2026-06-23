@@ -2,7 +2,7 @@ import { reviewService } from "@/domain/review/ReviewBridge";
 import { Logger } from "@/logger/Logger.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
 import { WorldInfoService } from "@/domain/worldbook";
-import { notificationService } from "@/ui/services/NotificationService";
+import { notify } from "@/sillytavern/notify.ts";
 import type { JobContext } from "../../core/JobContext";
 import type { IStep, StepResult } from "../../core/Step";
 
@@ -198,7 +198,7 @@ export class UserReview implements IStep {
             return { action: "next" };
         } catch {
             Logger.warn("UserReview", "用户取消操作");
-            notificationService.info("已取消操作", "操作取消");
+            notify("info", "已取消操作", "操作取消");
             throw new Error("UserCancelled", { cause: e });
         }
     }
