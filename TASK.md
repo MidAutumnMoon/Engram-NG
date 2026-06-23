@@ -1,109 +1,71 @@
-# Structural Cleanup — TASK.md
+# Config → Zod Migration — TASK.md
 
 ## Diagnosis
 
-The codebase has a **bidirectional circular dependency** between `modules/` (domain logic) and `sillytavern/` (host layer). Each imports from the other. Neither is "below" the other, so every refactor risks touching both.
+`src/config` has three concerns crammed together. Only one is genuinely a mess.
 
-Naming note: throughout this doc, the target name for the domain-logic directory is `domain/` (renamed from `modules/`).
+1. **Type definitions (`config/types/*.ts`) — mostly fine.** Six pure type modules co-located by domain. The smell: `defaults.ts` is simultaneously a re-export barrel, the home of `EngramAPISettings`, all the `DEFAULT_*` constants, factory functions, *and* imports `@/integrations/llm/PromptLoader`. That's a layer violation — config depends on integrations.
 
-Specific tangles:
+2. **`SettingsManager` — over-engineered and leaky.** This is where the real complexity lives:
+   - `getSettings()` lies about its type. Returns `EngramSettings` but the actual return is `context.extensionSettings.engram` — an untyped blob ST persists across versions and upgrades. No validation. A field-shape change silently produces `undefined` and crashes far from the cause.
+   - `initSettings` reimplements (badly) what a schema-parse does. Its "ensure all fields exist" loop is a shallow merge — nested defaults aren't handled, which is why callers like `EventTrimmer.init` redo `{ ...DEFAULT_TRIM_CONFIG, ...storedTrim }` themselves. Merge logic is duplicated at every nested-config call site.
+   - Typed accessors are half-and-half. `getSummarizerSettings` / `getRegexRules` exist; `getTrimConfig` / `getRecallConfig` don't. Callers fall back to `SettingsManager.get("trimConfig")` which returns `any`.
+   - `summarizerConfig: Partial<any>` and `trimmerConfig: Partial<any>` are escape hatches that became permanent untyped global state.
+   - `SettingsManager` is a class with no instance state — a namespace in disguise.
 
-1. **`sillytavern/` is two layers sharing one directory** — thin host wrappers (`context.ts`, `chat/Message.ts`, `prompt/ejsProcessor.ts`) live alongside full domain features (`prompt/macros.ts` 540L, `worldbook/` 8 files ~2,500L, `ReviewBridge.ts`).
-2. **Entry point is a fragile procedural script** — `src/index.ts` (160L) manually wires 10+ services with ordering dependencies and try/catch blocks. No lifecycle abstraction.
-3. **`modules/` is a junk-drawer name** — contains three unrelated subsystems (memory, rag, workflow).
-4. **Workflow steps are coupled to the host** — all 14 step files in `modules/workflow/steps/` import from `@/sillytavern/` directly instead of receiving host services as parameters.
-
----
+3. **The mirroring tax.** Every shape is defined twice: once as a TS interface in `types/*.ts`, once as a hand-written `DEFAULT_*` constant in `defaults.ts`. They drift. Field added to interface → forgot to update default → runtime hole.
 
 ## Plan
 
-### Phase 1 — Relocate: put things where they belong
+Migrate config types to Zod schemas with `.default(...)`. This collapses interface + default into one source of truth, centralizes migration/validation at the ST boundary, and deletes the manual merge code.
 
-No dependency direction changes. Just move files so the existing tangle is honest about itself.
+Zod v4 is already in `deno.jsonc` (`zod@^4.3.5`) and already used in `SaveEntity.ts`.
 
-#### 1a. Move `sillytavern/worldbook/` → `domain/worldbook/`
+### Phase 1 — Convert type files one domain at a time
 
-It's domain logic (world book entry management, metrics, scanning) that happens to call ST's world book API. The domain already imports from ST anyway — this just stops pretending worldbook is a host concern.
+Each `config/types/*.ts` file: replace `interface X { ... }` + sibling `DEFAULT_X` constant with one `z.object({ ... })` schema using `.default()` on every field. Export `type X = z.infer<typeof xSchema>` for ergonomics.
 
-- `sillytavern/worldbook/adapter.ts`
-- `sillytavern/worldbook/crud.ts`
-- `sillytavern/worldbook/engram.ts`
-- `sillytavern/worldbook/index.ts`
-- `sillytavern/worldbook/metrics.ts`
-- `sillytavern/worldbook/scanner.ts`
-- `sillytavern/worldbook/slot.ts`
-- `sillytavern/worldbook/types.ts`
+Order (smallest / best-understood first):
 
-Update all `@/sillytavern/worldbook/` imports to `@/domain/worldbook/`.
+- [ ] **1a. `memory.ts`** — `TrimConfig`, `EntityExtractConfig`, `GlobalRegexConfig`. Delete `DEFAULT_TRIM_CONFIG` from `defaults.ts` (its defaults move into the schema).
+- [ ] **1b. `rag.ts`** — `VectorConfig`, `RerankConfig`, `RecallConfig`, `EmbeddingConfig`, `BrainRecallConfig` (the last is reference-only but typed here). Delete the matching `DEFAULT_*` constants. Keep `AgenticRecall` as a schema too — it's an LLM-output DTO.
+- [ ] **1c. `llm.ts`** — `LLMPreset`, `CustomAPIConfig`, `SamplingParameters`, `ContextSettings`. Fold `createDefaultLLMPreset` into `llmPreset.parse({ name })`.
+- [ ] **1d. `prompt.ts`** — `PromptTemplate`, `CustomMacro`, `WorldbookConfig`, `WorldbookConfigProfile`. Fold `createPromptTemplate` into `promptTemplate.parse({ name, category, ... })`. Keep `PromptTemplateSingleExport` / `PromptTemplateExport` as schemas — import/export DTOs benefit from validation.
+- [ ] **1e. `data_processing.ts`** — `RegexRule`, `PreprocessingConfig`. `REGEX_SCOPE_OPTIONS` and `DEFAULT_REGEX_RULES` stay as constants (UI metadata / seed data, not validation); they just reference `z.infer<typeof regexScope>` instead of a hand-written union.
 
-#### 1b. Move `sillytavern/prompt/macros.ts` → `domain/macros/`
+After each file: `deno task build`. `z.infer` errors will surface every consumer that depended on the old shape.
 
-540-line domain feature. Not a thin ST wrapper.
+### Phase 2 — Collapse `defaults.ts`
 
-#### 1c. Move `sillytavern/ReviewBridge.ts` → `domain/review/`
+Once Phase 1 is done, `defaults.ts` is mostly empty.
 
-Domain service for review workflow. Not a host wrapper.
+- [ ] **2a.** Move `EngramAPISettings` schema + `getDefaultAPISettings` (now `engramApiSettings.parse({})`) into `settings.ts`. This kills the `config → integrations/llm/PromptLoader` layer violation — `getBuiltInPromptTemplates` / `getBuiltInTemplateById` / `getBuiltInTemplateByCategory` move with it or get inlined into their callers.
+- [ ] **2b.** Delete `defaults.ts` as a barrel. Its re-exports either disappear (types now come from their schema files directly) or move to `settings.ts`.
 
-#### 1d. Move `data/cleanup/CharacterCleanup.ts` → `domain/cleanup/`
+### Phase 3 — Rewrite `SettingsManager` around the root schema
 
-Domain logic (reacts to character deletion by cleaning up DB). Not a data layer concern.
+- [ ] **3a.** Define `engramSettingsSchema` in `settings.ts` — composition of all the per-domain schemas from Phase 1 plus the top-level scalars (`theme`, `hasSeenWelcome`, `linkedDeletion`, `syncConfig`, etc.). Every field has `.default()`.
+- [ ] **3b.** `getSettings()` becomes `engramSettingsSchema.parse(stored)`. One line. Validation + migration + defaults all handled. Delete `initSettings`'s hand-rolled merge loop.
+- [ ] **3c.** Strip `getSummarizerSettings` / `setSummarizerSettings` / `getRegexRules`. Callers read typed fields directly off the parsed settings object.
+- [ ] **3d.** Decide on `summarizerConfig` / `trimmerConfig` — these are `Partial<any>` escape hatches. Either type them properly via schemas or delete them if unused.
+- [ ] **3e.** Optionally de-class `SettingsManager` → bare functions (`getSettings`, `get`, `set`). No instance state; the class is ceremony. Match the pattern set by `LinkedCleanup.ts`.
 
-#### 1e. Rename `modules/` → `domain/`
+### Phase 4 — Clean up call sites
 
-`modules/` is meaningless. `domain/` signals "all business logic lives here, zero host imports." Self-enforcing when adding new files.
+- [ ] **4a.** Grep for `{ ...DEFAULT_X, ...stored }` spreads — these should all be deletable now that the schema applies defaults.
+- [ ] **4b.** Grep for `SettingsManager.get("...")` returning `any` — replace with typed reads off `getSettings()`.
+- [ ] **4c.** Grep for `as any` / `Partial<any>` in config consumers — most should be removable.
 
-(Chose `domain/` over `core/` because `core/` is ambiguous — could mean "infrastructure everything depends on" — and would risk becoming a junk drawer again. DDD baggage with `domain/` is acceptable since the team isn't using strict DDD patterns.)
+## Non-goals
 
----
+- Don't convert UI dropdown metadata (`REGEX_SCOPE_OPTIONS`, `PROMPT_CATEGORIES`) to schemas — they're display constants, not validation.
+- Don't touch `state/configStore.ts` beyond what's needed to compile. Its reactive subscription model is orthogonal to how defaults are defined.
+- Don't fix `test/` — broken post-fork per `AGENTS.md`.
 
-### Phase 2 — Entry point: condense, don't abstract
+## Decisions
 
-No new class or lifecycle framework. The composition root stays procedural; just shrink the noise.
+- **Use regular Zod 4** (`import { z } from "zod"`), not Zod Mini. `vite.config.ts` sets `codeSplitting: false`, so Mini's tree-shaking benefit doesn't apply. `.default()` chaining (the core of this migration) reads cleanly on regular Zod and awkwardly on Mini. `SaveEntity.ts` already uses regular Zod — stay consistent.
 
-#### 2a. Add a `tryInit` helper
+## Open questions
 
-```ts
-async function tryInit(name: string, fn: () => Promise<void> | void): Promise<boolean> {
-    try { await fn(); return true; }
-    catch (e) { Logger.warn(name, "init failed", { error: String(e) }); return false; }
-}
-```
-
-Single file, 5 lines, no new abstraction. Registered nowhere.
-
-#### 2b. Rewrite `src/index.ts` to use it
-
-Drops from ~160 lines to ~30. The 10 try/catch blocks become one-liners.
-
----
-
-### Phase 3 — Decouple: break the circular dependency
-
-#### 3a. Inject host services into workflow steps via `JobContext`
-
-Currently:
-```ts
-// FetchContext.ts
-import { getSTContext, MacroService } from "@/sillytavern";
-```
-
-Target:
-```ts
-// FetchContext.ts — receives host services from context
-context.host.getSTContext();
-context.host.macroService;
-```
-
-Workflow steps become pure and testable. The `WorkflowEngine` or workflow definition injects the host adapter.
-
-#### 3b. Resolve `sillytavern/chat/chatHistory.ts` → `@/domain/` import
-
-`chatHistory.ts` imports `regexProcessor` from `domain/workflow/steps/`. This is the only `sillytavern/` → `domain/` import. Options:
-- Accept regex processor as a parameter
-- Move the chat-history-cleaning logic into a workflow step
-
----
-
-## Open Questions
-
-- [ ] Phase 1 then Phase 2 then Phase 3? Or Phase 1+2 together (low-risk) then Phase 3 separately (touches workflow internals)?
+- [ ] `summarizerConfig` / `trimmerConfig` — type them or delete them? Grep for readers first.
