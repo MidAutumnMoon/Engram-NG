@@ -8,38 +8,37 @@ export default defineConfig(({ mode }) => ({
         deno(),
     ],
 
-    // 开发服务器配置
-    server: {
-        port: 5173,
-        cors: true, // 允许跨域（ST 需要访问）
-        headers: {
-            "Access-Control-Allow-Origin": "*",
-        },
-        // HMR 配置
-        hmr: {
-            overlay: false, // 禁用错误遮罩，避免在 ST 中遮挡太严重
-        },
-        // 允许访问项目根目录的 assets
-        fs: {
-            allow: [".."],
-        },
+    // Gotcha:
+    // Lib 模式下 Vite 不会自动将 process.env.NODE_ENV 替换为 "production"（它假定
+    // 消费方会做这一步）。但我们直接发到浏览器、由 SillyTavern 加载，没有下游构建。
+    // 不定义则 React CJS 入口会走进 .development.js 分支，bundle 体积翻倍。
+    define: {
+        "process.env.NODE_ENV": JSON.stringify(mode),
     },
 
-    // public 目录作为静态资源目录
     publicDir: "public",
 
     build: {
         outDir: "dist",
         emptyDirOnBuild: true,
 
-        // 单一 chunk 是有意的（codeSplitting: false），故关闭 chunk 体积告警。
+        // Because of `codeSplitting: false` we increase the warning threshold.
         chunkSizeWarningLimit: 1500,
 
+        // Lib 模式：扩展由 SillyTavern 以 <script type="module"> 加载 dist/index.js，
+        // 不需要 index.html。此前一度改用 App 模式是为绕开 Tailwind v4.0 的
+        // lib 模式不输出 CSS 的 bug；该问题在 v4.2 已修复，当前锁定 v4.3+。
+        lib: {
+            entry: "src/index.ts",
+            formats: ["es"],
+            fileName: "index",
+        },
+
         rollupOptions: {
-            // 模式转型：移除 build.lib 后的新入口定义依赖于 index.html
-            // 这里我们配置输出，确保尽管是 App 模式，最终产物名仍为 index.js
             output: {
                 codeSplitting: false,
+                // Lib 模式默认按 format 添加扩展名（es→.mjs），但 SillyTavern 按
+                // manifest.json 固定加载 dist/index.js，必须强制为 .js。
                 entryFileNames: "index.js",
                 assetFileNames: (assetInfo) => {
                     if (assetInfo.name?.endsWith(".css")) {

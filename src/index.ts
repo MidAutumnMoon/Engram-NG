@@ -1,17 +1,3 @@
-/**
- * Engram - Graph RAG 记忆操作系统
- *
- * 入口文件 + composition root。加载全局样式，协调各子系统的加载与启动。
- * 对 SillyTavern 的接入由 `@/sillytavern` (context.ts / chat/ / worldbook/ /
- * prompt/ / ui/) 负责，统一通过该 barrel 暴露给外部消费。UI 状态由 uiStore
- * 统一管理，React 挂载由 @/sillytavern/ui/mount.tsx 完成。
- *
- * 注：build.rollupOptions.output.codeSplitting = false（见 vite.config.ts），
- * 所有模块最终打包进单一 index.js。因此动态 import 在此处无法延迟加载或拆 chunk，
- * 只会增加无谓的 Promise 包装。所有子系统改用静态 import；运行时错误由各
- * init()/start() 调用处的 try/catch 隔离。
- */
-
 import "@/ui/styles/main.css";
 import { Logger } from "@/logger/index.ts";
 import { SettingsManager } from "@/config/settings.ts";
