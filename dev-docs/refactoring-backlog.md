@@ -156,7 +156,7 @@ Don't fix these as a side-effect of other work; call them out in review instead:
 | Item | Status | Notes |
 |---|---|---|
 | Dev Log view | Keep | Types refactored (Phase 2.1 done) |
-| BrainRecallCache | Keep (inactive) | Step removed from workflow, file stays |
+| BrainRecallCache | Keep (inactive) | Step removed from workflow; files moved to `dev-docs/BrainRecall/` |
 | UserReview step | Keep | Used by SummaryWorkflow and EntityWorkflow |
 | CharacterCleanup | Keep | Refactor per 2.6 |
 | API Presets view | Keep | Large, refactor separately when touched |

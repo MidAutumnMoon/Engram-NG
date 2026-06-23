@@ -8,7 +8,6 @@ import {
     FileText,
     Filter,
     GitBranch,
-    Inbox,
     Link as LinkIcon,
     type LucideIcon,
     MessageSquare,
@@ -82,9 +81,7 @@ export const MODULE_META: Record<LogModule, ModuleMeta> = {
     [LogModule.RAG_RETRIEVE]: { icon: Search, domain: "RAG" },
     [LogModule.RAG_RERANK]: { icon: Filter, domain: "RAG" },
     [LogModule.RAG_INJECT]: { icon: Send, domain: "RAG" },
-    [LogModule.RAG_CACHE]: { icon: Inbox, domain: "RAG" },
     [LogModule.INJECTOR]: { icon: Send, domain: "RAG" },
-    [LogModule.BRAIN_RECALL_CACHE]: { icon: Inbox, domain: "RAG" },
 
     // ===== 预处理 =====
     [LogModule.PREPROCESS]: { icon: Cpu, domain: "Preprocess" },

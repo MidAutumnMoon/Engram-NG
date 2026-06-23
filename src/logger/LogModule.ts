@@ -50,9 +50,7 @@ export enum LogModule {
     RAG_RETRIEVE = "RAG/Retrieve",
     RAG_RERANK = "RAG/Rerank",
     RAG_INJECT = "RAG/Inject",
-    RAG_CACHE = "RAG/Cache",
     INJECTOR = "Injector",
-    BRAIN_RECALL_CACHE = "BrainRecallCache",
 
     // ===== Preprocess =====
     PREPROCESS = "Preprocess",

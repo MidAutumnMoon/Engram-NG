@@ -2,8 +2,7 @@
  * RAG Configuration Schemas
  *
  * Schemas with `.default()` replace the old interface + DEFAULT_* constant pair.
- * `BrainRecallConfig` is reference-only (not on the hot path) but typed here
- * for `BrainRecallCache.ts`. `AgenticRecall` is an LLM-output DTO.
+ * `AgenticRecall` is an LLM-output DTO.
  */
 
 import { z } from "zod";
@@ -67,58 +66,6 @@ export const rerankConfigSchema = z.object({
 });
 
 export type RerankConfig = z.infer<typeof rerankConfigSchema>;
-
-// ==================== Brain Recall Config (reference-only) ====================
-
-export const brainRecallConfigSchema = z.object({
-    /** 是否启用 */
-    enabled: z.boolean().default(false), // 默认关闭，实验性功能
-
-    // 容量配置
-    /** 工作记忆容量 (当前轮使用的) */
-    workingLimit: z.number().int().positive().default(10),
-    /** 短期记忆容量 (近几轮召回过的) */
-    shortTermLimit: z.number().int().positive().default(35),
-
-    /**
-     * P2 Fix: 工作记忆分配额（实体/事件分池）
-     * - 避免实体候选把事件全部挤出 WorkingMemory
-     * - 若不填写，则回退到 workingLimit（保持旧行为）
-     */
-    eventWorkingLimit: z.number().int().positive().optional(),
-    entityWorkingLimit: z.number().int().positive().optional(),
-
-    // 强化/衰减参数
-    /** 再次召回的强化系数 */
-    reinforceFactor: z.number().default(0.2),
-    /** 每轮衰减速率 */
-    decayRate: z.number().default(0.08),
-    /** 淘汰阈值 (低于此值移出短期记忆) */
-    evictionThreshold: z.number().default(0.25),
-
-    // 上下文感知
-    /** 上下文切换阈值 (当前分/首次分 < 此值触发 softReset) */
-    contextSwitchThreshold: z.number().default(0.4),
-
-    // V1.2 新算法参数
-    /** Rerank 强化门控阈值 (Rerank分数 < 此值不强化) */
-    gateThreshold: z.number().default(0.6),
-    /** 强化阻尼 (单次强化最大增量) */
-    maxDamping: z.number().default(0.1),
-    /** Sigmoid 温度系数 (越小S曲线越陡) */
-    sigmoidTemperature: z.number().default(0.15),
-
-    // V1.3 进阶参数
-    /** 厌倦惩罚与动态衰减 (V1.3) */
-    boredomThreshold: z.number().int().positive().default(5), // 连续进入工作记忆 N 次触发厌倦
-    boredomPenalty: z.number().default(0.1), // 厌倦时的额外衰减
-
-    /** 多样性与冷启动 (V1.3) */
-    mmrThreshold: z.number().default(0.85), // MMR 相似度阈值 (>此值为了多样性会降权)
-    newcomerBoost: z.number().default(0.2), // 新人红利 (给新条目的起始 boost)
-});
-
-export type BrainRecallConfig = z.infer<typeof brainRecallConfigSchema>;
 
 // ==================== Recall Config ====================
 
@@ -199,8 +146,6 @@ export type EmbeddingTriggerType = EmbeddingConfig["trigger"];
 
 export const DEFAULT_VECTOR_CONFIG: VectorConfig = vectorConfigSchema.parse({});
 export const DEFAULT_RERANK_CONFIG: RerankConfig = rerankConfigSchema.parse({});
-export const DEFAULT_BRAIN_RECALL_CONFIG: BrainRecallConfig =
-    brainRecallConfigSchema.parse({});
 export const DEFAULT_RECALL_CONFIG: RecallConfig = recallConfigSchema.parse({});
 export const DEFAULT_EMBEDDING_CONFIG: EmbeddingConfig = embeddingConfigSchema
     .parse({});

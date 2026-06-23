@@ -15,7 +15,6 @@ export * from "./processing/ParseJson.ts";
 // Processors moved to steps/processing
 export * from "./processing/RegexProcessor.ts";
 export * from "./processing/TextProcessor.ts";
-export * from "./rag/BrainRecallStep.ts";
 export * from "./rag/KeywordRetrieveStep.ts";
 export * from "./rag/RecordRecallLogStep.ts";
 export * from "./rag/RerankMergeStep.ts";
