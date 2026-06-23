@@ -12,27 +12,21 @@ export async function hideMessageRange(
     end: number,
 ): Promise<void> {
     try {
-        const command = `/hide ${start}-${end}`;
+        const result = await SillyTavern.executeSlashCommandsWithOptions(
+            `/hide ${start}-${end}`,
+        );
 
-        // 优先使用官方扩展支持的斜杠指令触发器（高兼容性）
-        if (typeof window.TavernHelper?.triggerSlash === "function") {
-            window.TavernHelper.triggerSlash(command);
-            Logger.debug(MODULE, `Slash command execution: ${command}`);
-        } else {
-            // 降级：如果不可用，尝试兼容之前的做法
-            Logger.warn(
-                MODULE,
-                "TavernHelper.triggerSlash is unavailable. Executing fallback hiding.",
-            );
-            const importPath = "/scripts/chats.js";
-            const chatsModule = await import(/* @vite-ignore */ importPath);
-            if (
-                chatsModule &&
-                typeof chatsModule.hideChatMessageRange === "function"
-            ) {
-                await chatsModule.hideChatMessageRange(start, end, false);
-            }
+        if (result.isAborted || result.isError) {
+            Logger.warn(MODULE, "Hide command did not execute", {
+                abortReason: result.abortReason,
+                errorMessage: result.errorMessage,
+                isAborted: result.isAborted,
+                isError: result.isError,
+            });
+            return;
         }
+
+        Logger.debug(MODULE, `Slash command executed: /hide ${start}-${end}`);
 
         // 统一在执行隐藏后尝试强制保存聊天状态，避免刷新后隐藏失效（SillyTavern 的常见坑）
         setTimeout(async () => {
