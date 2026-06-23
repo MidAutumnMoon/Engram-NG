@@ -553,7 +553,7 @@ export const RecallLog: React.FC = () => {
         return (
             <DetailPanel
                 entry={selectedEntry}
-                isFullScreen={true}
+                isFullScreen
                 onClose={handleCloseDetail}
             />
         );

@@ -36,7 +36,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             <Sidebar
                 activeTab={activeTab}
                 onNavigate={setActiveTab}
-                isMobile={true}
+                isMobile
                 isOpen={isMobileMenuOpen}
                 onClose={() => setIsMobileMenuOpen(false)}
             />
