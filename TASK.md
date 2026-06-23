@@ -9,10 +9,9 @@ Naming note: throughout this doc, the target name for the domain-logic directory
 Specific tangles:
 
 1. **`sillytavern/` is two layers sharing one directory** — thin host wrappers (`context.ts`, `chat/Message.ts`, `prompt/ejsProcessor.ts`) live alongside full domain features (`prompt/macros.ts` 540L, `worldbook/` 8 files ~2,500L, `ReviewBridge.ts`).
-2. **Domain services import from UI** — `modules/memory/*` imports `notificationService` from `@/ui/services/`.
-3. **Entry point is a fragile procedural script** — `src/index.ts` (160L) manually wires 10+ services with ordering dependencies and try/catch blocks. No lifecycle abstraction.
-4. **`modules/` is a junk-drawer name** — contains three unrelated subsystems (memory, rag, workflow).
-5. **Workflow steps are coupled to the host** — all 14 step files in `modules/workflow/steps/` import from `@/sillytavern/` directly instead of receiving host services as parameters.
+2. **Entry point is a fragile procedural script** — `src/index.ts` (160L) manually wires 10+ services with ordering dependencies and try/catch blocks. No lifecycle abstraction.
+3. **`modules/` is a junk-drawer name** — contains three unrelated subsystems (memory, rag, workflow).
+4. **Workflow steps are coupled to the host** — all 14 step files in `modules/workflow/steps/` import from `@/sillytavern/` directly instead of receiving host services as parameters.
 
 ---
 
@@ -80,20 +79,7 @@ Drops from ~160 lines to ~30. The 10 try/catch blocks become one-liners.
 
 ### Phase 3 — Decouple: break the circular dependency
 
-#### 3a. Extract `NotificationPort` interface
-
-```ts
-// src/domain/ports.ts
-export interface NotificationPort {
-    info(title: string, message: string): void;
-    warn(title: string, message: string): void;
-    error(title: string, message: string): void;
-}
-```
-
-`domain/memory/*` depends on `NotificationPort` (injected). `ui/services/NotificationService.ts` implements it. Breaks domain→UI dependency.
-
-#### 3b. Inject host services into workflow steps via `JobContext`
+#### 3a. Inject host services into workflow steps via `JobContext`
 
 Currently:
 ```ts
@@ -110,7 +96,7 @@ context.host.macroService;
 
 Workflow steps become pure and testable. The `WorkflowEngine` or workflow definition injects the host adapter.
 
-#### 3c. Resolve `sillytavern/chat/chatHistory.ts` → `@/domain/` import
+#### 3b. Resolve `sillytavern/chat/chatHistory.ts` → `@/domain/` import
 
 `chatHistory.ts` imports `regexProcessor` from `domain/workflow/steps/`. This is the only `sillytavern/` → `domain/` import. Options:
 - Accept regex processor as a parameter
@@ -121,4 +107,3 @@ Workflow steps become pure and testable. The `WorkflowEngine` or workflow defini
 ## Open Questions
 
 - [ ] Phase 1 then Phase 2 then Phase 3? Or Phase 1+2 together (low-risk) then Phase 3 separately (touches workflow internals)?
-- [ ] `ui/services/NotificationService.ts` — move to `domain/` as the port implementation, or keep in `ui/` and register via DI?

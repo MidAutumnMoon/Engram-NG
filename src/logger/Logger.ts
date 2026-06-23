@@ -36,7 +36,7 @@ export interface LogEntry {
  * RAG 召回日志见 ./recallLog.ts（useRecallLogStore）。
  */
 
-import { generateShortUUID } from "@/utils";
+import { generateShortUUID } from "@/utils/shortUUID.ts";
 import type { LogModule } from "./LogModule.ts";
 
 // 订阅者集合。回调中若抛异常，会被 pushEntry 中的 try/catch 隔离，

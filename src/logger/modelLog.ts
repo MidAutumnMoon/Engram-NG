@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { generateShortUUID } from "@/utils/index.ts";
+import { generateShortUUID } from "@/utils/shortUUID.ts";
 
 export interface ModelLogEntry {
     id: string;

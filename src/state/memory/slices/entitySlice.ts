@@ -1,4 +1,4 @@
-import { generateShortUUID } from "@/utils/index.ts";
+import { generateShortUUID } from "@/utils/shortUUID.ts";
 import type { EntityNode } from "@/data/types/graph.ts";
 import type { StateCreator } from "zustand";
 import { getCurrentDb, tryGetCurrentDb } from "./coreSlice.ts";

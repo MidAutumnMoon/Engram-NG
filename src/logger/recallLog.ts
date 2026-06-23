@@ -7,7 +7,7 @@
  */
 
 import { create } from "zustand";
-import { generateShortUUID } from "@/utils";
+import { generateShortUUID } from "@/utils/shortUUID.ts";
 
 export interface RecallResultItem {
     eventId: string;

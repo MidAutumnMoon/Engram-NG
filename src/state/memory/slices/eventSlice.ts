@@ -1,4 +1,4 @@
-import { generateShortUUID } from "@/utils/index.ts";
+import { generateShortUUID } from "@/utils/shortUUID.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import type { StateCreator } from "zustand";

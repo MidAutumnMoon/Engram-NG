@@ -1,6 +1,6 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { generateShortUUID, sleep } from "@/utils";
+import { generateShortUUID } from "@/utils/shortUUID.ts";
 import type { JobContext } from "./JobContext";
 import type { IStep, StepResult } from "./Step";
 
@@ -61,7 +61,7 @@ export class WorkflowEngine {
                 );
 
                 // 等待指定的延迟
-                await sleep(delay);
+                await new Promise((resolve) => setTimeout(resolve, delay));
 
                 // 取消检查点：如果等待期间被取消，则终止重试并抛出上次的错误
                 if (context.signal && context.signal.cancelled) {
