@@ -48,7 +48,8 @@ function convertMessage(msg: TavernChatMessage, index: number): ChatMessage {
     return {
         content: msg.mes || "",
         id: index,
-        isHidden: msg.is_hidden ?? false,
+        // N.B. This is a SillyTvaner legacy quirk: hidden messages are marked as is_system, wtf
+        isHidden: msg.is_system,
         name: msg.name || "",
         raw: msg,
         role,
