@@ -19,7 +19,7 @@ export class StopGeneration implements IStep {
     /**
      * 静态方法：直接终止生成
      */
-    static async abort(): Promise<void> {
+    static abort(): void {
         try {
             // 路径 1: 使用官方 Context 接口 (Engram 集成层)
             const stCtx = getSTContext();
@@ -32,21 +32,12 @@ export class StopGeneration implements IStep {
                 return;
             }
 
-            // 路径 2: 尝试全局作用域下的 stopGeneration (酒馆主脚本可能导出到全局)
-            // @ts-expect-error
-            if (typeof window.stopGeneration === "function") {
-                // @ts-expect-error
-                window.stopGeneration();
-                Logger.info(
-                    LogModule.SYSTEM,
-                    "通过 window.stopGeneration 成功调用",
-                );
-                return;
-            }
+            // 路径 2: 暴力模拟 UI 点击 (最后的兜底，只要按钮在 DOM 中就有效)
+            const stopButton = document.querySelector(
+                "#mes_stop",
+            ) as HTMLButtonElement | null;
 
-            // 路径 3: 暴力模拟 UI 点击 (最后的兜底，只要按钮在 DOM 中就有效)
-            const stopButton = document.querySelector("#mes_stop");
-            if (stopButton && stopButton.offsetParent !== null) { // 确保按钮可见/在文档中
+            if (stopButton && stopButton.offsetParent !== null) {
                 stopButton.click();
                 Logger.info(
                     LogModule.SYSTEM,
