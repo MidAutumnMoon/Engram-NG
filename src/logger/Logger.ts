@@ -69,9 +69,6 @@ function writeAppLog(
     return entry.id;
 }
 
-/**
- * Logger 公共 API
- */
 export const Logger = {
     /**
      * 初始化 Logger。清空所有 category 的缓存。
@@ -83,17 +80,14 @@ export const Logger = {
         Logger.info("System", "Logger 初始化完成");
     },
 
-    /** DEBUG 级别日志 (调试信息) */
     debug(module: LogModule | string, message: string, data?: unknown): string {
         return writeAppLog(LogLevel.DEBUG, module as string, message, data);
     },
 
-    /** INFO 级别日志 (常规信息) */
     info(module: LogModule | string, message: string, data?: unknown): string {
         return writeAppLog(LogLevel.INFO, module as string, message, data);
     },
 
-    /** SUCCESS 级别日志 (操作成功) */
     success(
         module: LogModule | string,
         message: string,
@@ -102,12 +96,10 @@ export const Logger = {
         return writeAppLog(LogLevel.SUCCESS, module as string, message, data);
     },
 
-    /** WARN 级别日志 (警告信息) */
     warn(module: LogModule | string, message: string, data?: unknown): string {
         return writeAppLog(LogLevel.WARN, module as string, message, data);
     },
 
-    /** ERROR 级别日志 (错误信息) */
     error(module: LogModule | string, message: string, data?: unknown): string {
         return writeAppLog(LogLevel.ERROR, module as string, message, data);
     },

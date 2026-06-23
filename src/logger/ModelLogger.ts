@@ -12,13 +12,9 @@ import { generateShortUUID } from "@/utils";
 import { Logger } from "./Logger.ts";
 import { LogLevel } from "./types.ts";
 
-/** 模型日志条目（数据载荷形状） */
 export interface ModelLogEntry {
-    /** 唯一 ID */
     id: string;
-    /** 时间戳 */
     timestamp: number;
-    /** 调用类型 */
     type:
         | "summarize"
         | "trim"
@@ -31,40 +27,29 @@ export interface ModelLogEntry {
     direction: "sent" | "received";
 
     // 发送信息
-    /** 系统提示词 */
     systemPrompt?: string;
-    /** 用户提示词 */
     userPrompt?: string;
     /** 发送的 token 数（估算） */
     tokensSent?: number;
 
     // 接收信息
-    /** 响应内容 */
     response?: string;
     /** 接收的 token 数（估算） */
     tokensReceived?: number;
 
     // 状态
-    /** 状态 */
     status: "pending" | "success" | "error" | "cancelled";
-    /** 错误信息 */
     error?: string;
-    /** 耗时 (ms) */
     duration?: number;
 
     // 元数据
-    /** 模型名称 */
     model?: string;
-    /** 角色名称 */
     character?: string;
     /** 楼层范围（如适用） */
     floorRange?: [number, number];
 }
 
 class ModelLoggerClass {
-    /**
-     * 创建新的日志条目（发送阶段）
-     */
     logSend(data: {
         type: ModelLogEntry["type"];
         systemPrompt?: string;
@@ -190,9 +175,6 @@ class ModelLoggerClass {
         return result;
     }
 
-    /**
-     * 清除所有模型日志
-     */
     clear(): void {
         Logger.clear("model");
     }
@@ -206,9 +188,6 @@ class ModelLoggerClass {
         });
     }
 
-    /**
-     * 获取发送条目数量
-     */
     getCount(): number {
         return Logger.getFiltered(
             (e) =>
@@ -218,5 +197,4 @@ class ModelLoggerClass {
     }
 }
 
-/** 单例实例 */
 export const ModelLogger = new ModelLoggerClass();

@@ -1,10 +1,3 @@
-/**
- * Logger 类型定义
- */
-
-/**
- * 日志级别枚举
- */
 export enum LogLevel {
     DEBUG = 0,
     INFO = 1,
@@ -25,9 +18,6 @@ export enum LogLevel {
  */
 export type LogCategory = "app" | "model" | "recall";
 
-/**
- * 日志级别显示配置
- */
 export const LogLevelConfig: Record<
     LogLevel,
     { label: string; color: string }
@@ -39,9 +29,6 @@ export const LogLevelConfig: Record<
     [LogLevel.ERROR]: { color: "#dc3545", label: "ERROR" },
 };
 
-/**
- * 日志条目接口
- */
 export interface LogEntry {
     id: string;
     timestamp: number;
@@ -56,13 +43,6 @@ export interface LogEntry {
     status?: "pending" | "success" | "error" | "cancelled";
 }
 
-// ==================== Recall Log (召回日志) ====================
-// V2.0: 从 src/ui/views/dev-log/types.ts 迁入，消除 logger → ui 反向依赖。
-// 详见 TASK.md Phase 2.1。
-
-/**
- * 单条召回结果
- */
 export interface RecallResultItem {
     eventId: string;
     summary: string;
@@ -77,26 +57,20 @@ export interface RecallResultItem {
     reason?: string; // Agentic 召回理由
 }
 
-/**
- * 召回统计
- */
 export interface RecallStats {
-    totalCandidates: number; // 候选总数
-    topKCount: number; // TopK 数量
-    rerankCount: number; // Rerank 后数量
-    latencyMs: number; // 耗时 (ms)
+    totalCandidates: number;
+    topKCount: number;
+    rerankCount: number;
+    latencyMs: number;
 }
 
-/**
- * 召回日志条目
- */
 export interface RecallLogEntry {
     id: string;
     timestamp: number;
-    query: string; // 检索查询
-    preprocessedQuery?: string; // 预处理后的查询
+    query: string;
+    preprocessedQuery?: string;
     mode: "embedding" | "hybrid" | "agentic"; // (Disabled in V0.8.5)
-    results: RecallResultItem[]; // 召回结果
+    results: RecallResultItem[];
     recalledEntities?: any[]; // V1.4: 被激活的实体列表
-    stats: RecallStats; // 统计信息
+    stats: RecallStats;
 }

@@ -20,9 +20,6 @@ import type { RecallLogEntry, RecallResultItem, RecallStats } from "./types.ts";
 type RecallLogSubscriber = (logs: RecallLogEntry[]) => void;
 
 class RecallLogServiceClass {
-    /**
-     * 记录一次召回
-     */
     log(entry: Omit<RecallLogEntry, "id" | "timestamp">): void {
         const fullEntry: RecallLogEntry = {
             ...entry,
@@ -49,9 +46,6 @@ class RecallLogServiceClass {
             .reverse();
     }
 
-    /**
-     * 清空日志
-     */
     clear(): void {
         Logger.clear("recall");
     }

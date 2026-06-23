@@ -118,9 +118,6 @@ const MODULE_GROUPS: Record<string, LogModule[]> = {
     "System": [LogModule.SYSTEM, LogModule.EVENTS],
 };
 
-/**
- * 获取模块所属的域
- */
 function getModuleDomain(module: LogModule): string {
     const value = module as string;
     return value.includes("/") ? value.split("/")[0] : value;
