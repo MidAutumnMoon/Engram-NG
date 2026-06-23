@@ -5,7 +5,7 @@
     "js": "dist/index.js",
     "css": "dist/style.css",
     "author": "MidAutumnMoon",
-    "version": "1.5.5",
+    "version": "1.5.6",
     "homePage": "https://github.com/shiyue137mh-netizen/Engram.git",
     "description": "Graph RAG 记忆操作系统 - Where memories leave their trace."
 }
