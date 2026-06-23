@@ -169,8 +169,6 @@ class SyncService {
                 dump.meta["lastModified"] = lastModified;
             }
 
-            const timestamp = lastModified;
-
             Logger.debug(
                 MODULE,
                 `导出中: ${dump.events.length} 事件, ${dump.entities.length} 实体`,

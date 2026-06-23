@@ -13,6 +13,7 @@
 import { SettingsManager } from "@/config/settings";
 import type { LLMPreset } from "@/config/types/llm";
 import { Logger } from "@/logger/Logger.ts";
+import { regexProcessor } from "@/domain/workflow/steps/processing/RegexProcessor";
 
 const MODULE = "LLMAdapter";
 
@@ -224,10 +225,6 @@ class LLMAdapter {
         let finalUserPrompt = request.userPrompt || "";
 
         // Engram Pipeline (RegexProcessor)
-        // Fix P1: 移除导致循环依赖的 @/domain/workflow/steps 导入，改为直接导入
-        const { regexProcessor } = await import(
-            "@/domain/workflow/steps/processing/RegexProcessor"
-        );
         finalUserPrompt = regexProcessor.process(finalUserPrompt, "input");
 
         // =========================================================================

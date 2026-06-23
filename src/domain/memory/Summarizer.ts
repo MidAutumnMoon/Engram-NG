@@ -3,9 +3,11 @@
  */
 
 import { SettingsManager } from "@/config/settings.ts";
+import { chatManager } from "@/data/ChatManager.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { WorkflowEngine } from "@/domain/workflow/core/WorkflowEngine.ts";
 import { createSummaryWorkflow } from "@/domain/workflow/definitions/SummaryWorkflow.ts";
+import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
 import { getSTContext, onTavernEvent } from "@/sillytavern/index.ts";
 import { WorldBookSlotService } from "@/domain/worldbook/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts"; // Used for setLastSummarizedFloor
@@ -89,7 +91,6 @@ class SummarizerService {
 
         // 直接从 IndexedDB 读取，避免 memoryStore 缓存未初始化的问题
         try {
-            const { chatManager } = await import("@/data/ChatManager");
             const state = await chatManager.getState();
             this._lastSummarizedFloor = state.last_summarized_floor;
             this.log("debug", "从 DB 读取 lastSummarizedFloor", {
@@ -424,9 +425,6 @@ class SummarizerService {
 
             // V1.0.5: 联动触发精简 - 总结完成后检查是否需要精简
             try {
-                const { eventTrimmer } = await import(
-                    "@/domain/memory/EventTrimmer"
-                );
                 const trimStatus = await eventTrimmer.getStatus();
                 const trimConfig = eventTrimmer.getConfig();
                 const trimAvailability = await eventTrimmer.canTrim();

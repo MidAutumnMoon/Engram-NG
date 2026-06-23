@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { RegexRule } from "@/domain/workflow/steps";
-import { DEFAULT_REGEX_RULES } from "@/domain/workflow/steps";
+import { DEFAULT_REGEX_RULES, regexProcessor } from "@/domain/workflow/steps";
 import { SettingsManager } from "@/config/settings";
 
 export interface UseRegexRulesReturn {
@@ -94,7 +94,6 @@ export function useRegexRules(): UseRegexRulesReturn {
     const saveRegexRules = useCallback(async () => {
         SettingsManager.setRegexRules(regexRules);
         // 同步更新 Processor
-        const { regexProcessor } = await import("@/domain/workflow/steps");
         regexProcessor.setRules(regexRules);
         setHasChanges(false);
     }, [regexRules]);

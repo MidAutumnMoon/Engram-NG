@@ -1,6 +1,8 @@
+import { SettingsManager } from "@/config/settings";
 import { Logger } from "@/logger/Logger.ts";
 import { getCurrentCharacter, getSTContext } from "@/sillytavern";
 import { MacroService } from "@/domain/macros/index.ts";
+import { PromptLoader } from "@/integrations/llm/PromptLoader";
 import { WorldInfoService } from "@/domain/worldbook";
 import type { JobContext } from "../../core/JobContext";
 import type { IStep } from "../../core/Step";
@@ -85,11 +87,6 @@ export class FetchContext implements IStep {
         // V1.2.10: 尝试从当前提示词模板中获取绑定的额外世界书
         // 因为 FetchContext 在 BuildPrompt 之前运行，我们需要提前预判或查找模板
         try {
-            const { SettingsManager } = await import("@/config/settings");
-            const { PromptLoader } = await import(
-                "@/integrations/llm/PromptLoader"
-            );
-
             // 确定 templateId (逻辑同 BuildPrompt)
             let { templateId } = context.config;
             const { category } = context.config;

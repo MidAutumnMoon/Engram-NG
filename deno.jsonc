@@ -23,7 +23,7 @@
     },
     "nodeModulesDir": "auto",
     "exclude": [
-        "docs",
+        "dev-docs",
         "vendor",
         "src/types/vendor",
         "*.md",

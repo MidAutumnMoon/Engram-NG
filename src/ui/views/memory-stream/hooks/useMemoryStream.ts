@@ -4,6 +4,7 @@ import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
 import { MacroService } from "@/domain/macros/index.ts";
 import { getCurrentDb, useMemoryStore } from "@/state/memoryStore.ts";
 import { notificationService } from "@/ui/services/NotificationService.ts";
+import Dexie from "dexie";
 import {
     filterEntities,
     filterEvents,
@@ -580,7 +581,6 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             }
         }
         try {
-            const Dexie = (await import("dexie")).default;
             const names = await Dexie.getDatabaseNames();
             const currentDbName = getCurrentDb()?.name || "";
             const engramDbs = names.filter((n) =>

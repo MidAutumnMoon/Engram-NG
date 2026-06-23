@@ -2,6 +2,7 @@ import { generateShortUUID } from "@/utils/index.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import type { StateCreator } from "zustand";
+import Dexie from "dexie";
 import { getCurrentDb, tryGetCurrentDb } from "./coreSlice.ts";
 
 export interface EventState {
@@ -95,7 +96,6 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
             );
         }
 
-        const Dexie = (await import("dexie")).default;
         const sourceDb = new Dexie(sourceDbName);
         sourceDb.version(3).stores({
             entities: "id, name, last_updated_at",

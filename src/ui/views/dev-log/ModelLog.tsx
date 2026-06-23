@@ -5,6 +5,7 @@
  */
 import type { ModelLogEntry } from "@/logger/modelLog.ts";
 import { useModelLogStore } from "@/logger/modelLog.ts";
+import { WorldInfoService } from "@/domain/worldbook";
 import {
     AlertCircle,
     Bot,
@@ -90,9 +91,6 @@ const LogCard: React.FC<{
 
         const countTokens = async () => {
             try {
-                const { WorldInfoService } = await import(
-                    "@/domain/worldbook"
-                );
                 if (
                     !sent.tokensSent && (sent.systemPrompt || sent.userPrompt)
                 ) {

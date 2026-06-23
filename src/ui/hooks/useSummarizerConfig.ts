@@ -7,6 +7,8 @@ import { useCallback, useEffect, useState } from "react";
 import { SettingsManager } from "@/config/settings";
 import { DEFAULT_TRIM_CONFIG } from "@/config/types/defaults";
 import type { TrimConfig } from "@/config/types/memory";
+import { summarizerService } from "@/domain/memory";
+import { eventTrimmer } from "@/domain/memory/EventTrimmer";
 
 // 兼容旧的 Summarizer Config 接口
 interface SummarizerSettings {
@@ -52,7 +54,6 @@ export function useSummarizerConfig(): UseSummarizerConfigReturn {
     const loadConfig = async () => {
         try {
             // 加载 Summarizer Service 状态
-            const { summarizerService } = await import("@/domain/memory");
             const config = summarizerService.getConfig();
             setSummarizerSettings({
                 autoEnabled: config.enabled,
@@ -93,7 +94,6 @@ export function useSummarizerConfig(): UseSummarizerConfigReturn {
     const saveSummarizerConfig = useCallback(async () => {
         try {
             // 1. 保存 Summarizer Service 配置
-            const { summarizerService } = await import("@/domain/memory");
             summarizerService.updateConfig({
                 autoHide: summarizerSettings.autoHide,
                 bufferSize: summarizerSettings.bufferSize,
@@ -105,9 +105,6 @@ export function useSummarizerConfig(): UseSummarizerConfigReturn {
             SettingsManager.setSummarizerSettings({ trimConfig });
 
             // 3. 同步运行态 EventTrimmer，避免自动触发仍使用旧阈值
-            const { eventTrimmer } = await import(
-                "@/domain/memory/EventTrimmer"
-            );
             eventTrimmer.updateConfig(trimConfig);
 
             setHasChanges(false);

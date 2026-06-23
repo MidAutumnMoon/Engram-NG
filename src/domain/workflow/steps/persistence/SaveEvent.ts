@@ -4,6 +4,7 @@ import { hideMessageRange } from "@/sillytavern";
 import { MacroService } from "@/domain/macros/index.ts";
 import { useMemoryStore } from "@/state/memoryStore";
 import { notificationService } from "@/ui/services/NotificationService";
+import { RobustJsonParser } from "@/utils/JsonParser";
 import type { JobContext } from "../../core/JobContext";
 import type { IStep } from "../../core/Step";
 
@@ -27,9 +28,6 @@ export class SaveEvent implements IStep {
             eventsToSave = context.parsedData.events;
         } else {
             try {
-                const { RobustJsonParser } = await import(
-                    "@/utils/JsonParser"
-                );
                 const parsed = RobustJsonParser.parse<any>(content);
                 if (parsed && parsed.events) {
                     eventsToSave = parsed.events;

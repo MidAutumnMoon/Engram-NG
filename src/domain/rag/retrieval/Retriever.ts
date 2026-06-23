@@ -28,6 +28,7 @@ import type { EventNode } from "@/data/types/graph.ts";
 import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
 import type { AgenticRecall } from "@/config/types/rag.ts";
 import { WorkflowEngine } from "@/domain/workflow/core/WorkflowEngine.ts";
+import { KeywordRetrieveStep } from "@/domain/workflow/steps/rag/KeywordRetrieveStep.ts";
 import { createRetrievalWorkflow } from "@/domain/workflow/definitions/RetrievalWorkflow.ts";
 
 // ==================== 类型定义 ====================
@@ -331,13 +332,6 @@ class Retriever {
         let recalledEntities: any[] = [];
         if (recallConfig.useKeywordRecall) {
             try {
-                const { WorkflowEngine } = await import(
-                    "@/domain/workflow/core/WorkflowEngine.ts"
-                );
-                const { KeywordRetrieveStep } = await import(
-                    "@/domain/workflow/steps/rag/KeywordRetrieveStep.ts"
-                );
-
                 // 确保有扫描背景
                 const scanQuery = options?.scanQuery ||
                     this.getRecentContext(5) || "";

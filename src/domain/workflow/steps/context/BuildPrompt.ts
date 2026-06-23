@@ -1,6 +1,8 @@
 import { getBuiltInTemplateByCategory } from "@/config/types/defaults";
+import { SettingsManager } from "@/config/settings";
 import { Logger } from "@/logger/Logger.ts";
 import { PromptLoader } from "@/integrations/llm/PromptLoader";
+import { tryGetDbForChat } from "@/data/db";
 import { getCurrentChatId, getSTContext } from "@/sillytavern";
 import type { JobContext } from "../../core/JobContext";
 import type { IStep } from "../../core/Step";
@@ -24,7 +26,6 @@ export class BuildPrompt implements IStep {
 
         // V0.9.11: Use SettingsManager as Source of Truth to include User Custom Templates
         // PromptLoader only has built-ins.
-        const { SettingsManager } = await import("@/config/settings");
         const allTemplates =
             SettingsManager.get("apiSettings")?.promptTemplates || [];
 
@@ -141,7 +142,6 @@ export class BuildPrompt implements IStep {
         ) {
             // 这里我们只需要名称
             const chatId = getCurrentChatId();
-            const { tryGetDbForChat } = await import("@/data/db");
             const db = chatId ? tryGetDbForChat(chatId) : null;
             if (db) {
                 const names: string[] = [];

@@ -16,6 +16,7 @@ import { LogModule } from "@/logger/LogModule.ts";
 import { getCurrentChatId, getSTContext } from "@/sillytavern";
 import { MacroService } from "@/domain/macros/index.ts";
 import { summarizerService } from "@/domain/memory";
+import { tryGetDbForChat } from "@/data/db";
 
 import { useConfigStore } from "@/state/configStore";
 import { useMemoryStore } from "@/state/memoryStore";
@@ -114,8 +115,7 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
         const chatId = getCurrentChatId();
         if (!chatId) return;
 
-        const dbModule = await import("@/data/db");
-        const db = dbModule.tryGetDbForChat(chatId);
+        const db = tryGetDbForChat(chatId);
         if (!db) return;
 
         const metaMod = await db.meta.get("lastModified");

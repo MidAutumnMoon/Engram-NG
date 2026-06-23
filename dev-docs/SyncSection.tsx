@@ -27,16 +27,13 @@ export const SyncSection: React.FC = () => {
             setSyncStatus("check");
             setSyncMessage("检查中...");
 
-            const { getSTContext } = await import("@/sillytavern");
-            const context = getSTContext();
-            if (!context.chatId) {
+            if (!chatId) {
                 alert("请先打开一个聊天以进行同步测试");
                 setSyncStatus("idle");
                 setSyncMessage("");
                 return;
             }
 
-            const { chatId } = context;
             setSyncStatus("syncing");
             setSyncMessage("同步中...");
 
@@ -197,10 +194,6 @@ export const SyncSection: React.FC = () => {
                         try {
                             setSyncStatus("syncing");
                             setSyncMessage("强制上传中...");
-                            const { getSTContext } = await import(
-                                "@/sillytavern"
-                            );
-                            const chatId = getSTContext().chatId;
                             if (!chatId) throw new Error("未连接到聊天");
 
                             const { syncService } = await import(
@@ -234,10 +227,6 @@ export const SyncSection: React.FC = () => {
                         try {
                             setSyncStatus("syncing");
                             setSyncMessage("强制下载中...");
-                            const { getSTContext } = await import(
-                                "@/sillytavern"
-                            );
-                            const chatId = getSTContext().chatId;
                             if (!chatId) throw new Error("未连接到聊天");
 
                             const { syncService } = await import(
