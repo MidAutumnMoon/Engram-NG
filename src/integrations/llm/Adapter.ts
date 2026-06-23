@@ -301,14 +301,6 @@ class LLMAdapter {
     }
 
     /**
-     * 检查 LLM API 是否可用
-     */
-    isAvailable(): boolean {
-        const helper = getTavernHelper();
-        return Boolean(helper?.generate || helper?.generateRaw);
-    }
-
-    /**
      * 估算文本 Token 数（简单估算）
      * @param text 文本
      */

@@ -5,10 +5,6 @@
  * 负责从 window.SillyTavern 对象中安全地提取状态。
  */
 
-import { Logger } from "@/logger/index.ts";
-
-const MODULE = "TavernContext";
-
 /**
  * SillyTavern getContext() 的返回类型。
  * 类型由 vendor/SillyTavern 的声明驱动，通过 global.d.ts 暴露。
@@ -21,33 +17,28 @@ export type TavernContext = ReturnType<typeof window.SillyTavern.getContext>;
 export type TavernChatMessage = TavernContext["chat"][number];
 
 /**
- * 获取 SillyTavern 上下文
- * @returns ST 上下文对象，或 null（如果不可用）
+ * 获取 SillyTavern 上下文。
+ *
+ * SillyTavern 在任何扩展脚本执行前已就绪（见 global.d.ts 的 Window 声明），
+ * 故此函数不返回 null——调用方无需判空。扩展不在 ST 环境内运行时，
+ * 整个 bundle 本就不会加载。
  */
-export function getSTContext(): TavernContext | null {
-    try {
-        const ctx = window.SillyTavern?.getContext?.();
-        return ctx || null;
-    } catch (error) {
-        Logger.warn(MODULE, "无法获取 ST 上下文", error);
-        return null;
-    }
+export function getSTContext(): TavernContext {
+    return window.SillyTavern.getContext();
 }
 
 /**
  * 获取当前聊天 ID
  */
 export function getCurrentChatId(): string | null {
-    const ctx = getSTContext();
-    return ctx?.chatId || null;
+    return getSTContext().chatId || null;
 }
 
 /**
  * 获取当前角色信息
  */
-export function getCurrentCharacter(): { name: string; id: string } | null {
+export function getCurrentCharacter(): { name: string; id: string } {
     const ctx = getSTContext();
-    if (!ctx) return null;
     return {
         id: ctx.characterId,
         name: ctx.name2,
@@ -60,30 +51,19 @@ export type Unsubscribe = () => void;
 /**
  * 订阅 SillyTavern 事件。
  * 直接转发给 ST 的 eventSource；返回取消订阅函数。
- * 若 ST 上下文不可用，返回无操作函数（调用方无需判空）。
  */
 export function onTavernEvent(
     event: string,
     cb: (...args: unknown[]) => void,
 ): Unsubscribe {
-    const src = getSTContext()?.eventSource;
-    if (!src) return () => {};
+    const src = getSTContext().eventSource;
     src.on(event, cb);
     return () => src.removeListener(event, cb);
 }
 
 /**
  * 获取请求头 (包含 CSRF Token)
- *
- * FIXME: 当前的 fallback 在生产中是安全戏剧——如果 ST 上下文拿不到，整个扩展本来就
- * 无法工作，且没有 CSRF header 的请求会被 ST 拒绝。这个 fallback 只是把硬失败
- * 变成软失败，反而更难排查。考虑直接抛错或返回 null 由调用方处理。
  */
 export function getRequestHeaders(): Record<string, string> {
-    const ctx = getSTContext();
-    if (ctx?.getRequestHeaders) {
-        return ctx.getRequestHeaders();
-    }
-    // Fallback: 如果拿不到 context，至少返回 Content-Type
-    return { "Content-Type": "application/json" };
+    return getSTContext().getRequestHeaders();
 }

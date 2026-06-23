@@ -2,6 +2,7 @@ import type { RegexRule } from "@/config/types/data_processing.ts";
 import type { EngramAPISettings } from "@/config/types/defaults.ts";
 import type { PromptTemplate } from "@/config/types/prompt.ts";
 import { Logger } from "@/logger/index.ts";
+import { getSTContext } from "@/sillytavern/index.ts";
 
 export interface EngramSettings {
     theme: string;
@@ -67,19 +68,12 @@ export class SettingsManager {
     private static readonly EXTENSION_NAME = "engram";
 
     /**
-     * 获取 SillyTavern context
-     */
-    private static getContext(): any {
-        return window.SillyTavern?.getContext?.();
-    }
-
-    /**
      * 获取扩展设置对象
      * 如果不存在则创建
      */
     public static getSettings(): EngramSettings {
-        const context = this.getContext();
-        if (!context?.extensionSettings) {
+        const context = getSTContext();
+        if (!context.extensionSettings) {
             Logger.warn(
                 "SettingsManager",
                 "SillyTavern context.extensionSettings not available",
@@ -108,8 +102,8 @@ export class SettingsManager {
      * 确保所有必需的字段都存在
      */
     public static initSettings(): void {
-        const context = this.getContext();
-        if (!context?.extensionSettings) {
+        const context = getSTContext();
+        if (!context.extensionSettings) {
             Logger.warn(
                 "SettingsManager",
                 "Cannot init settings: context not available",
@@ -167,8 +161,8 @@ export class SettingsManager {
         key: K,
         value: EngramSettings[K],
     ): void {
-        const context = this.getContext();
-        if (!context?.extensionSettings) {
+        const context = getSTContext();
+        if (!context.extensionSettings) {
             Logger.warn(
                 "SettingsManager",
                 "Cannot set: context.extensionSettings not available",
@@ -198,8 +192,8 @@ export class SettingsManager {
      * 保存设置到服务器
      */
     private static save(): void {
-        const context = this.getContext();
-        if (context?.saveSettingsDebounced) {
+        const context = getSTContext();
+        if (context.saveSettingsDebounced) {
             context.saveSettingsDebounced();
             Logger.debug(
                 "SettingsManager",

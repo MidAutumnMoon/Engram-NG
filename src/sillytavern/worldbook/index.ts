@@ -1,14 +1,14 @@
-export * from "./adapter";
-export * from "./crud";
-export * from "./engram";
-export * from "./metrics";
-export * from "./scanner";
-export * from "./slot";
-export * from "./types";
+export * from "./adapter.ts";
+export * from "./crud.ts";
+export * from "./engram.ts";
+export * from "./metrics.ts";
+export * from "./scanner.ts";
+export * from "./slot.ts";
+export * from "./types.ts";
 
 // Facade Implementation moved here
 import { getSTContext } from "../context.ts";
-import { getTavernHelper } from "./adapter";
+import { getTavernHelper } from "./adapter.ts";
 import {
     createEntry,
     deleteEntries,
@@ -18,15 +18,15 @@ import {
     getEntries,
     getWorldbookNames,
     updateEntry,
-} from "./crud";
-import { WorldbookEngramService } from "./engram";
-import { WorldbookMetricsService } from "./metrics";
-import { WorldbookScannerService } from "./scanner";
+} from "./crud.ts";
+import { WorldbookEngramService } from "./engram.ts";
+import { WorldbookMetricsService } from "./metrics.ts";
+import { WorldbookScannerService } from "./scanner.ts";
 import type {
     CreateWorldInfoEntryParams,
     WorldInfoEntry,
     WorldInfoTokenStats,
-} from "./types";
+} from "./types.ts";
 
 /**
  * WorldInfoService (Facade)
@@ -39,25 +39,21 @@ export class WorldInfoService {
     // Metrics 代理 (metrics.ts)
     // =========================================================================
 
-    static async countTokens(text: string): Promise<number> {
+    static countTokens(text: string): Promise<number> {
         return WorldbookMetricsService.countTokens(text);
     }
 
-    static async countTokensBatch(texts: string[]): Promise<number[]> {
+    static countTokensBatch(texts: string[]): Promise<number[]> {
         return WorldbookMetricsService.countTokensBatch(texts);
     }
 
-    static async getWorldbookTokenStats(
+    static getWorldbookTokenStats(
         worldbookName: string,
     ): Promise<WorldInfoTokenStats> {
         return WorldbookMetricsService.getWorldbookTokenStats(worldbookName);
     }
 
-    static isAvailable(): boolean {
-        return getTavernHelper() !== null;
-    }
-
-    static async isNativeTokenCountAvailable(): Promise<boolean> {
+    static isNativeTokenCountAvailable(): Promise<boolean> {
         return WorldbookMetricsService.isNativeTokenCountAvailable();
     }
 
@@ -65,26 +61,26 @@ export class WorldInfoService {
     // CRUD 代理 (crud.ts)
     // =========================================================================
 
-    static async getEntries(worldbookName: string): Promise<WorldInfoEntry[]> {
+    static getEntries(worldbookName: string): Promise<WorldInfoEntry[]> {
         return getEntries(worldbookName);
     }
 
-    static async getWorldbookNames(): Promise<string[]> {
+    static getWorldbookNames(): Promise<string[]> {
         return getWorldbookNames();
     }
 
-    static async deleteWorldbook(worldbookName: string): Promise<boolean> {
+    static deleteWorldbook(worldbookName: string): Promise<boolean> {
         return deleteWorldbook(worldbookName);
     }
 
-    static async createEntry(
+    static createEntry(
         worldbookName: string,
         params: CreateWorldInfoEntryParams,
     ): Promise<boolean> {
         return createEntry(worldbookName, params);
     }
 
-    static async updateEntry(
+    static updateEntry(
         worldbookName: string,
         uid: number,
         updates: Partial<WorldInfoEntry>,
@@ -92,21 +88,21 @@ export class WorldInfoService {
         return updateEntry(worldbookName, uid, updates);
     }
 
-    static async deleteEntry(
+    static deleteEntry(
         worldbookName: string,
         uid: number,
     ): Promise<boolean> {
         return deleteEntry(worldbookName, uid);
     }
 
-    static async deleteEntries(
+    static deleteEntries(
         worldbookName: string,
         uids: number[],
     ): Promise<boolean> {
         return deleteEntries(worldbookName, uids);
     }
 
-    static async findEntryByKey(
+    static findEntryByKey(
         worldbookName: string,
         key: string,
     ): Promise<WorldInfoEntry | null> {
@@ -117,7 +113,7 @@ export class WorldInfoService {
     // Scanner 代理 (scanner.ts)
     // =========================================================================
 
-    static async getActivatedWorldInfo(
+    static getActivatedWorldInfo(
         chatMessages?: string[],
         options?: { floorRange?: [number, number] },
     ): Promise<string> {
@@ -127,7 +123,7 @@ export class WorldInfoService {
         );
     }
 
-    static async scanWorldbook(
+    static scanWorldbook(
         worldbookName: string,
         contextText: string,
         options?: { forceInclude?: boolean },
@@ -155,8 +151,7 @@ export class WorldInfoService {
         if (helper.getCharWorldbookNames) {
             // V1.4.6 Fix: 只有在已选择角色时才尝试获取角色世界书，防止酒馆在首页报错
             const stContext = getSTContext();
-            const hasCharacter = stContext &&
-                stContext.characterId !== undefined &&
+            const hasCharacter = stContext.characterId !== undefined &&
                 stContext.characterId !== -1;
 
             if (hasCharacter) {
@@ -200,11 +195,11 @@ export class WorldInfoService {
         return WorldbookEngramService.findExistingWorldbook();
     }
 
-    static async getOrCreateWorldbook(): Promise<string | null> {
+    static getOrCreateWorldbook(): Promise<string | null> {
         return WorldbookEngramService.getOrCreateWorldbook();
     }
 
-    static async getChatWorldbook(): Promise<string | null> {
+    static getChatWorldbook(): Promise<string | null> {
         return WorldbookEngramService.getOrCreateWorldbook();
     }
 }

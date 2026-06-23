@@ -5,7 +5,7 @@
 import { SettingsManager } from "@/config/settings.ts";
 import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine.ts";
 import { createSummaryWorkflow } from "@/modules/workflow/definitions/SummaryWorkflow.ts";
-import { onTavernEvent } from "@/sillytavern/index.ts";
+import { getSTContext, onTavernEvent } from "@/sillytavern/index.ts";
 import { WorldBookSlotService } from "@/sillytavern/worldbook/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts"; // Used for setLastSummarizedFloor
 import { notificationService } from "@/ui/services/NotificationService.ts";
@@ -157,8 +157,8 @@ class SummarizerService {
      * 获取当前真实楼层数
      */
     private getCurrentFloor(): number {
-        const context = window.SillyTavern.getContext();
-        if (!context?.chat) {
+        const context = getSTContext();
+        if (!context.chat) {
             return 0;
         }
         // 楼层从0开始计数，所以 length - 1 是最后一楼的索引

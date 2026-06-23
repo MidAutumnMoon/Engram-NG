@@ -12,11 +12,7 @@ import {
     getDefaultAPISettings,
 } from "@/config/types/defaults";
 import { Logger, LogModule } from "@/logger";
-import {
-    getCurrentChatId,
-    getSTContext,
-    MacroService,
-} from "@/sillytavern";
+import { getCurrentChatId, getSTContext, MacroService } from "@/sillytavern";
 import { summarizerService } from "@/modules/memory";
 
 import { useConfigStore } from "@/state/configStore";
@@ -102,10 +98,10 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
 
         if (!isMounted.current) return;
         setSystem({
-            characterName: stContext?.name2 || "Unknown",
+            characterName: stContext.name2,
             currentFloor: summarizerStatus.currentFloor,
             floorInterval: summarizerConfig.floorInterval || 10,
-            isConnected: !!stContext,
+            isConnected: true,
             isSummarizing: summarizerStatus.isSummarizing,
             lastSummarizedFloor: summarizerStatus.lastSummarizedFloor,
             pendingFloors: summarizerStatus.pendingFloors,

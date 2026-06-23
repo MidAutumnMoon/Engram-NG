@@ -66,7 +66,7 @@ export class MessageService {
      */
     static getAllMessages(options: GetMessagesOptions = {}): ChatMessage[] {
         const context = getSTContext();
-        if (!context?.chat) {
+        if (!context.chat) {
             return [];
         }
 
@@ -142,7 +142,7 @@ export class MessageService {
      */
     static getCurrentCharacterName(): string | null {
         const context = getSTContext();
-        if (!context?.characters || context.characterId < 0) {
+        if (!context.characters || context.characterId < 0) {
             return null;
         }
         return context.characters[context.characterId]?.name || null;
@@ -166,12 +166,5 @@ export class MessageService {
         return messages
             .map((m) => `[${m.role.toUpperCase()}] ${m.name}:\n${m.content}`)
             .join("\n\n---\n\n");
-    }
-
-    /**
-     * 检查 MessageService 是否可用
-     */
-    static isAvailable(): boolean {
-        return getSTContext() !== null;
     }
 }

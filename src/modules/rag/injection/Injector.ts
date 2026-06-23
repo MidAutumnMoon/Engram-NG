@@ -86,7 +86,7 @@ class Injector {
         onTavernEvent("message_edited", (...args: unknown[]) => {
             const msgIndex = args[0] as number;
             const context = getSTContext();
-            const msg = context?.chat?.[msgIndex];
+            const msg = context.chat?.[msgIndex];
             if (msg?.is_user) {
                 this.cacheInvalid = true;
                 Logger.info(
@@ -183,7 +183,7 @@ class Injector {
 
             // 获取 SillyTavern 上下文
             const context = getSTContext();
-            if (!context || !context.chat || context.chat.length === 0) {
+            if (!context.chat || context.chat.length === 0) {
                 Logger.warn(LogModule.RAG_INJECT, "无法获取聊天上下文");
                 return;
             }

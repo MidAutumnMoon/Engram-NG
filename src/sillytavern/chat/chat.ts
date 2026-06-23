@@ -78,7 +78,6 @@ export async function injectMessage(
 ): Promise<void> {
     try {
         const ctx = getSTContext();
-        if (!ctx) throw new Error("ST Context unavailable");
 
         const senderName = name || (role === "user" ? ctx.name1 : ctx.name2);
 

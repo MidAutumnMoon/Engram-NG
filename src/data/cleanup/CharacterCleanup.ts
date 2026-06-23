@@ -19,7 +19,7 @@ export class CharacterDeleteService {
 
         try {
             const context = getSTContext();
-            if (!context?.eventSource || !context?.eventTypes) {
+            if (!context.eventSource || !context.eventTypes) {
                 Logger.warn(LogModule.DATA_CLEANUP, "无法获取事件系统");
                 return;
             }

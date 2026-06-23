@@ -158,7 +158,7 @@ export class FetchContext implements IStep {
         // 4. 获取扫描文本
         let scanText = "";
         if (range) {
-            const chat = getSTContext()?.chat;
+            const chat = getSTContext().chat;
             if (chat && Array.isArray(chat)) {
                 // Range is 1-based
                 const msgs = chat.slice(Math.max(0, range[0] - 1), range[1]);
