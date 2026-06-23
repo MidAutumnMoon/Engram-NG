@@ -12,6 +12,8 @@
     "npm:@types/node@^22.19.3": "22.19.21",
     "npm:@types/react-dom@19": "19.2.3_@types+react@19.2.17",
     "npm:@types/react@19": "19.2.17",
+    "npm:@types/toastr@*": "2.1.43",
+    "npm:@types/toastr@^2.1.43": "2.1.43",
     "npm:@vitejs/plugin-react@5": "5.2.0_vite@8.0.16__@types+node@22.19.21_@types+node@22.19.21",
     "npm:@vitest/coverage-v8@4": "4.1.9_vitest@4.1.9_@types+node@22.19.21_vite@8.0.16__@types+node@22.19.21",
     "npm:autoprefixer@^10.5.0": "10.5.0_postcss@8.5.15",
@@ -786,6 +788,12 @@
       "integrity": "sha512-MXfmqaVPEVgkBT/aY0aGCkRWWtByiYQXo3xdQ8r5RzuFrPiRn8Gar2tQdXSUQ2GKV3bkXckek89V8wQBY2Q/Aw==",
       "dependencies": [
         "csstype"
+      ]
+    },
+    "@types/toastr@2.1.43": {
+      "integrity": "sha512-sLC2fr2OXeE1iyhUixpQ64wQ2tA26awmLidn4tXTLBz4yP/VhtYUKHpmiIyDtztKkHjucdiTLH8F5uRRyhNi2Q==",
+      "dependencies": [
+        "@types/jquery"
       ]
     },
     "@types/unist@2.0.11": {
@@ -2099,6 +2107,7 @@
       "npm:@types/node@^22.19.3",
       "npm:@types/react-dom@19",
       "npm:@types/react@19",
+      "npm:@types/toastr@^2.1.43",
       "npm:@vitejs/plugin-react@5",
       "npm:@vitest/coverage-v8@4",
       "npm:autoprefixer@^10.5.0",

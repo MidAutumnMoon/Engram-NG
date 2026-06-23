@@ -54,6 +54,7 @@
         "@types/node": "npm:@types/node@^22.19.3",
         "@types/react": "npm:@types/react@^19.0.0",
         "@types/react-dom": "npm:@types/react-dom@^19.0.0",
+        "@types/toastr": "npm:@types/toastr@^2.1.43",
         "@vitejs/plugin-react": "npm:@vitejs/plugin-react@^5.0.0",
         "@vitest/coverage-v8": "npm:@vitest/coverage-v8@^4.0.0",
         "autoprefixer": "npm:autoprefixer@^10.5.0",
