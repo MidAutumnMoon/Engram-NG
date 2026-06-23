@@ -25,22 +25,6 @@ interface TrimResult {
     sourceEventIds: string[];
 }
 
-/** JSON 响应格式 */
-interface TrimResponse {
-    events: {
-        summary: string;
-        meta: {
-            time_anchor?: string;
-            role?: string[];
-            location?: string;
-            event?: string;
-            logic?: string[];
-            causality?: string;
-        };
-        significance_score: number;
-    }[];
-}
-
 /**
  * 精简状态
  */
@@ -232,10 +216,7 @@ class EventTrimmer {
                 error: errorMsg,
             });
             if (manual) {
-                notify("error", 
-                    `精简异常: ${errorMsg}`,
-                    "Engram 错误",
-                );
+                notify("error", `精简异常: ${errorMsg}`, "Engram 错误");
             }
             return null;
         } finally {

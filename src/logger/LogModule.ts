@@ -5,8 +5,9 @@
  * 格式: `域/功能` 或 `域`
  *
  * 这是日志模块名的**唯一真源**。所有 Logger.* 调用都应使用本枚举成员，
- * 而非裸字符串。新增成员时，moduleMeta.ts 中的 MODULE_META 必须同步补全
- * （TS 会通过 Record<LogModule, ...> 的完整性检查强制执行）。
+ * 而非裸字符串。新增成员时，ui/views/dev-log/moduleMeta.ts 中的
+ * MODULE_META 必须同步补全（TS 会通过 Record<LogModule, ...> 的完整性检查
+ * 强制执行）。
  */
 
 export enum LogModule {
@@ -86,7 +87,6 @@ export enum LogModule {
     DATA_DB = "Data/DB",
     DATABASE = "Database",
     CHAT_MANAGER = "ChatManager",
-    CHARACTER_CLEANUP = "CharacterCleanup",
 }
 
 /**

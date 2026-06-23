@@ -1,23 +1,11 @@
-import { Logger } from "@/logger/Logger.ts";
 import { SettingsManager } from "@/config/settings.ts";
 import { getSTContext } from "@/sillytavern/context.ts";
 import { getTavernHelper } from "./adapter.ts";
 import { getEntries } from "./crud.ts";
 import type { WorldInfoEntry } from "./types.ts";
+import { Logger } from "@/logger/Logger.ts";
 
 const MODULE = "Worldbook";
-
-// 动态加载 world-info.js 中模块的类型 definition (近似)
-interface WorldInfoModule {
-    checkWorldInfo: (
-        chat: string[],
-        maxContext: number,
-        isConnected: boolean,
-        options: { trigger: string },
-    ) => Promise<{ allActivatedEntries: Set<any> }>;
-    getWorldInfoPrompt: (message: string) => Promise<string>;
-    getSortedEntries: () => Promise<any[]>;
-}
 
 /**
  * 获取常驻激活的世界书条目（蓝灯）

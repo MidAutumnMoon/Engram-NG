@@ -1,7 +1,3 @@
-/**
- * Summarizer 模块类型定义
- */
-
 import type { ChatDatabase } from "@/data/db.ts";
 
 /**

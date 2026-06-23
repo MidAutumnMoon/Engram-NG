@@ -1,13 +1,3 @@
-/**
- * MODULE_META - 日志模块元数据
- *
- * 与 `LogModule` 一一对应（`Record<LogModule, ...>` 强制完整性）。
- * 新增 LogModule 成员时，TS 会在此处报错直至补全图标和域。
- *
- * 此文件依赖 `lucide-react`（UI 层），与日志核心 `Logger.ts` / `LogModule.ts`
- * 解耦——后者保持纯数据，可被任何运行时安全引入。
- */
-
 import {
     Brain,
     Cloud,
@@ -37,12 +27,11 @@ import {
     Workflow,
     Zap,
 } from "lucide-react";
-import { LogModule } from "./LogModule.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 
 export interface ModuleMeta {
-    /** UI 中显示的图标 */
     icon: LucideIcon;
-    /** 所属业务域（用于分组、过滤、筛选 UI） */
+    /** Domain (for grouping, filtering, and UI filtering) */
     domain: string;
 }
 
@@ -134,7 +123,6 @@ export const MODULE_META: Record<LogModule, ModuleMeta> = {
     [LogModule.DATA_DB]: { icon: Database, domain: "Data" },
     [LogModule.DATABASE]: { icon: Database, domain: "Data" },
     [LogModule.CHAT_MANAGER]: { icon: MessageSquare, domain: "Data" },
-    [LogModule.CHARACTER_CLEANUP]: { icon: Trash2, domain: "Data" },
 };
 
 /**

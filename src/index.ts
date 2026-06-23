@@ -19,7 +19,7 @@ import { entityBuilder } from "@/domain/memory/EntityExtractor.ts";
 import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
 import { injector } from "@/domain/rag/injection/Injector.ts";
 import { WorldBookSlotService } from "@/domain/worldbook/slot.ts";
-import { CharacterDeleteService } from "@/domain/cleanup/CharacterCleanup.ts";
+import { initLinkedCleanup } from "@/domain/cleanup/LinkedCleanup.ts";
 import { MacroService } from "@/domain/macros/index.ts";
 
 /** Initialize a service with error isolation. Returns true on success. */
@@ -83,7 +83,7 @@ const worldbookReady = await tryInit(
     "Worldbook",
     () => WorldBookSlotService.init(),
 );
-await tryInit("Cleanup", () => CharacterDeleteService.init());
+await tryInit("Cleanup", () => initLinkedCleanup());
 
 // 5. UI shell
 createTopBarButton();
