@@ -68,8 +68,8 @@ import { Logger } from "@/logger/index.ts";
 const MODULE = "TavernEventBus";
 
 /**
- * 获取 SillyTavern 的 eventSource
- * 注意：这个函数需要在运行时调用，因为 SillyTavern 的模块是动态加载的
+ * Retrieve SillyTavern's eventSource from the host context.
+ * Resolved at call time because context data is not fully populated at module load.
  */
 function getEventSource(): {
     on: (event: string, callback: EventCallback) => void;
@@ -78,14 +78,10 @@ function getEventSource(): {
     removeListener: (event: string, callback: EventCallback) => void;
 } | null {
     try {
-        const { SillyTavern } = window;
-        if (SillyTavern?.getContext) {
-            const context = SillyTavern.getContext();
-            return context?.eventSource || null;
-        }
-        return null;
+        const context = window.SillyTavern.getContext();
+        return context?.eventSource || null;
     } catch {
-        Logger.warn(MODULE, "无法获取 SillyTavern eventSource");
+        Logger.warn(MODULE, "Failed to retrieve SillyTavern eventSource");
         return null;
     }
 }

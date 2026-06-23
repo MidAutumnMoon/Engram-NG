@@ -25,9 +25,7 @@ interface Window {
     eventSource: EventTarget;
 
     /**
-     * 酒馆宿主对象，扩展加载时必然存在。
-     * `getContext()` 返回类型复用 JS-Slash-Runner 的 `declare const SillyTavern`（即 ST 上下文形状），
-     * 因此无需手写 context 接口。
+     * SillyTavern host object. Present before any extension script executes (verified by reading SillyTavern's source code).
      */
     SillyTavern: { getContext: () => typeof SillyTavern };
 
