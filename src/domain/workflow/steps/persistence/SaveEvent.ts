@@ -1,6 +1,6 @@
 import { Logger } from "@/logger/Logger.ts";
 import type { EventNode } from "@/data/types/graph";
-import { hideMessageRange } from "@/sillytavern";
+import { hideMessageRange } from "@/sillytavern/chat/hideMessageRange.ts";
 import { MacroService } from "@/domain/macros/index.ts";
 import { useMemoryStore } from "@/state/memoryStore";
 import { notify } from "@/sillytavern/notify.ts";
@@ -153,9 +153,6 @@ export class SaveEvent implements IStep {
         }
 
         Logger.success("SaveEvent", `已保存 ${savedEvents.length} 个事件`);
-        notify("success", 
-            `已保存 ${savedEvents.length} 个事件`,
-            "Engram",
-        );
+        notify("success", `已保存 ${savedEvents.length} 个事件`, "Engram");
     }
 }

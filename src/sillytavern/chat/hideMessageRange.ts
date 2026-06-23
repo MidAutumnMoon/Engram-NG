@@ -2,11 +2,6 @@ import { Logger } from "@/logger/Logger.ts";
 
 const MODULE = "TavernChat";
 
-/**
- * 隐藏指定范围的消息
- * @param start 起始楼层
- * @param end 结束楼层
- */
 export async function hideMessageRange(
     start: number,
     end: number,
