@@ -32,6 +32,9 @@ export default defineConfig(({ mode }) => ({
         outDir: "dist",
         emptyDirOnBuild: true,
 
+        // 单一 chunk 是有意的（codeSplitting: false），故关闭 chunk 体积告警。
+        chunkSizeWarningLimit: 1500,
+
         rollupOptions: {
             // 模式转型：移除 build.lib 后的新入口定义依赖于 index.html
             // 这里我们配置输出，确保尽管是 App 模式，最终产物名仍为 index.js
