@@ -15,11 +15,6 @@
 
 interface Window {
     /**
-     * 当前选择的模型名称
-     */
-    selected_model?: string;
-
-    /**
      * SillyTavern 事件源
      */
     eventSource: EventTarget;

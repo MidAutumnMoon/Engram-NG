@@ -63,17 +63,6 @@ export function getCurrentCharacter(): { name: string; id: string } | null {
 }
 
 /**
- * 获取当前模型名称 (尝试从全局变量获取)
- */
-export function getCurrentModel(): string | undefined {
-    try {
-        return window.selected_model || undefined;
-    } catch {
-        return undefined;
-    }
-}
-
-/**
  * 检查 ST 上下文是否可用
  */
 export function isSTAvailable(): boolean {

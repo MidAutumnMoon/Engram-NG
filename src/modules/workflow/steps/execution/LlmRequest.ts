@@ -2,7 +2,7 @@ import type { IStep, RetryConfig } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
 import { llmAdapter } from "@/integrations/llm/Adapter";
 import { ModelLogger } from "@/logger/ModelLogger";
-import { getCurrentCharacter, getCurrentModel } from "@/sillytavern";
+import { getCurrentCharacter } from "@/sillytavern";
 import { Logger } from "@/logger";
 import { SettingsManager } from "@/config/settings";
 
@@ -48,7 +48,7 @@ export class LlmRequest implements IStep {
             type: context.config.logType || "generation", // 允许 config 覆盖
             systemPrompt: system,
             userPrompt: user,
-            model: getCurrentModel() || "Unknown",
+            model: "Unknown", // TODO: fix later; get model from context if needed
             character: getCurrentCharacter()?.name,
             floorRange: context.input.range,
         });
