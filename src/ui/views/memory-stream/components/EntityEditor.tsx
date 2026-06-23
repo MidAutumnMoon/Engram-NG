@@ -6,9 +6,9 @@
  * 2. 编辑 Profile JSON (核心)
  * 3. 自动同步/手动修改 Description (YAML from Profile)
  */
-import type { EntityNode, EntityType } from "@/data/types/graph";
-import { Divider } from "@/ui/components/layout/Divider";
-import { useResponsive } from "@/ui/hooks/useResponsive";
+import type { EntityNode, EntityType } from "@/data/types/graph.ts";
+import { Divider } from "@/ui/components/layout/Divider.tsx";
+import { useResponsive } from "@/ui/hooks/useResponsive.ts";
 import yaml from "js-yaml"; // 需要确认项目是否已安装 js-yaml，如果没有则需要简单实现或引入
 import { debounce } from "lodash"; // Phase 3 Performance Add: 引入防抖
 import { AlertTriangle, ArrowLeft, RefreshCw, Trash2 } from "lucide-react";

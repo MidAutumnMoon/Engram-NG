@@ -5,7 +5,7 @@
  */
 import type { ModelLogEntry } from "@/logger/modelLog.ts";
 import { useModelLogStore } from "@/logger/modelLog.ts";
-import { WorldInfoService } from "@/domain/worldbook";
+import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import {
     AlertCircle,
     Bot,

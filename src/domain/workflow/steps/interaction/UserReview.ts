@@ -1,11 +1,11 @@
-import { reviewService } from "@/domain/review/ReviewBridge";
+import { reviewService } from "@/domain/review/ReviewBridge.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
-import { WorldInfoService } from "@/domain/worldbook";
+import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import { notify } from "@/sillytavern/notify.ts";
-import type { JobContext } from "../../core/JobContext";
-import type { IStep, StepResult } from "../../core/Step";
+import type { JobContext } from "../../core/JobContext.ts";
+import type { IStep, StepResult } from "../../core/Step.ts";
 
 interface UserReviewConfig {
     title: string;

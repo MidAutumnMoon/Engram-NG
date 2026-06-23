@@ -4,11 +4,11 @@
  * 管理 summarizerConfig (自动总结) 和 trimConfig (精简)
  */
 import { useCallback, useEffect, useState } from "react";
-import { getSetting, setSetting } from "@/config/settings";
-import { trimConfigSchema } from "@/config/types/memory";
-import type { TrimConfig } from "@/config/types/memory";
-import { summarizerService } from "@/domain/memory";
-import { eventTrimmer } from "@/domain/memory/EventTrimmer";
+import { getSetting, setSetting } from "@/config/settings.ts";
+import { trimConfigSchema } from "@/config/types/memory.ts";
+import type { TrimConfig } from "@/config/types/memory.ts";
+import { summarizerService } from "@/domain/memory/index.ts";
+import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
 
 // 兼容旧的 Summarizer Config 接口
 interface SummarizerSettings {

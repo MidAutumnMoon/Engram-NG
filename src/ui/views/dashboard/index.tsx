@@ -6,13 +6,13 @@
  * - 状态项按重要性分层
  * - 双栏布局：左侧系统状态，右侧功能开关
  */
-import { NAV_ITEMS } from "@/ui/navigation";
+import { NAV_ITEMS } from "@/ui/navigation.ts";
 import { Logger } from "@/logger/Logger.ts";
 import type { LogEntry } from "@/logger/types";
-import { Switch } from "@/ui/components/core/Switch";
-import { PageTitle } from "@/ui/components/display/PageTitle";
-import { Divider } from "@/ui/components/layout/Divider";
-import { useDashboardData } from "@/ui/hooks/useDashboardData";
+import { Switch } from "@/ui/components/core/Switch.tsx";
+import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
+import { Divider } from "@/ui/components/layout/Divider.tsx";
+import { useDashboardData } from "@/ui/hooks/useDashboardData.ts";
 import {
     AlertCircle,
     Brain,

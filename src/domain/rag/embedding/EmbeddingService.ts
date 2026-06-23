@@ -7,13 +7,13 @@
  * - 可用于 EventNode 和 EntityNode
  */
 
-import type { VectorConfig } from "@/config/types/rag";
+import type { VectorConfig } from "@/config/types/rag.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getDbForChat, tryGetDbForChat } from "@/data/db";
-import type { EventNode } from "@/data/types/graph";
-import { EmbeddingClient } from "@/integrations/embedding/EmbeddingClient";
-import { getCurrentChatId } from "@/sillytavern";
+import { getDbForChat, tryGetDbForChat } from "@/data/db.ts";
+import type { EventNode } from "@/data/types/graph.ts";
+import { EmbeddingClient } from "@/integrations/embedding/EmbeddingClient.ts";
+import { getCurrentChatId } from "@/sillytavern/index.ts";
 
 // ==================== 类型定义 ====================
 

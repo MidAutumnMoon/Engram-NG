@@ -5,4 +5,4 @@
  */
 
 // Export * from './types'; // Deprecated and removed
-export * from "./Adapter";
+export * from "./Adapter.ts";

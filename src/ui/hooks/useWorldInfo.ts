@@ -2,13 +2,13 @@ import {
     getDefaultAPISettings,
     getSetting,
     setSetting,
-} from "@/config/settings";
+} from "@/config/settings.ts";
 import type {
     WorldbookConfig,
     WorldbookConfigProfile,
-} from "@/config/types/prompt";
-import type { EngramAPISettings } from "@/config/settings";
-import { getTavernHelper, WorldInfoService } from "@/domain/worldbook";
+} from "@/config/types/prompt.ts";
+import type { EngramAPISettings } from "@/config/settings.ts";
+import { getTavernHelper, WorldInfoService } from "@/domain/worldbook/index.ts";
 import { useCallback, useEffect, useState } from "react";
 
 export interface UseWorldInfoReturn {

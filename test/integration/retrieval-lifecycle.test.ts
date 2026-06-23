@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { retriever } from "@/modules/rag/retrieval/Retriever";
-import { getDbForChat } from "@/data/db";
-import { useMemoryStore } from "@/state/memoryStore";
+import { getDbForChat } from "@/data/db.ts";
+import { useMemoryStore } from "@/state/memoryStore.ts";
 import {
     EmbeddingService,
     embeddingService,
 } from "@/modules/rag/embedding/EmbeddingService";
-import { SettingsManager } from "@/config/settings";
+import { SettingsManager } from "@/config/settings.ts";
 import { brainRecallCache } from "@/modules/rag/retrieval/BrainRecallCache";
 
 // Mock Dependencies - 在 beforeEach 中定义监听器

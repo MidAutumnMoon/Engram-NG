@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine";
 import { createSummaryWorkflow } from "@/modules/workflow/definitions/SummaryWorkflow";
-import { getDbForChat } from "@/data/db";
-import { useMemoryStore } from "@/state/memoryStore";
+import { getDbForChat } from "@/data/db.ts";
+import { useMemoryStore } from "@/state/memoryStore.ts";
 
 // Mock TavernHelper
 const mockGenerate = vi.fn();

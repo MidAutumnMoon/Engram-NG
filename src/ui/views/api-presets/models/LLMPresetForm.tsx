@@ -1,16 +1,16 @@
 /**
  * LLM 预设编辑表单
  */
-import type { APISource, LLMPreset } from "@/config/types/llm";
-import type { ModelInfo } from "@/integrations/llm/ModelDiscovery";
-import { ModelService } from "@/integrations/llm/ModelDiscovery";
-import { SliderField } from "@/ui/components/core/SliderField";
+import type { APISource, LLMPreset } from "@/config/types/llm.ts";
+import type { ModelInfo } from "@/integrations/llm/ModelDiscovery.ts";
+import { ModelService } from "@/integrations/llm/ModelDiscovery.ts";
+import { SliderField } from "@/ui/components/core/SliderField.tsx";
 import {
     FormSection,
     SelectField,
     SwitchField,
     TextField,
-} from "@/ui/components/form/FormComponents";
+} from "@/ui/components/form/FormComponents.tsx";
 import { Loader2, RefreshCw } from "lucide-react";
 import React, { useState } from "react";
 

@@ -1,14 +1,14 @@
-import type { EntityNode } from "@/data/types/graph";
-import { EmptyState } from "@/ui/components/feedback/EmptyState";
+import type { EntityNode } from "@/data/types/graph.ts";
+import { EmptyState } from "@/ui/components/feedback/EmptyState.tsx";
 import { ChevronDown, RefreshCw, Search, Users } from "lucide-react";
 import React from "react";
-import { EntityCard } from "../components/EntityCard";
+import { EntityCard } from "../components/EntityCard.tsx";
 import type {
     EntityGroupMode,
     EntitySortMode,
     ViewMode,
-} from "../hooks/useMemoryStream";
-import type { EntityGroup } from "../utils/streamProcessors";
+} from "../hooks/useMemoryStream.ts";
+import type { EntityGroup } from "../utils/streamProcessors.ts";
 
 interface EntityListProps {
     viewMode: ViewMode;

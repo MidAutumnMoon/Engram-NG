@@ -1,7 +1,7 @@
-import { createPromptTemplate } from "@/config/settings";
-import type { PromptCategory, PromptTemplate } from "@/config/types/prompt";
-import { PROMPT_CATEGORIES } from "@/config/types/prompt";
-import { PromptLoader } from "@/integrations/llm/PromptLoader";
+import { createPromptTemplate } from "@/config/settings.ts";
+import type { PromptCategory, PromptTemplate } from "@/config/types/prompt.ts";
+import { PROMPT_CATEGORIES } from "@/config/types/prompt.ts";
+import { PromptLoader } from "@/integrations/llm/PromptLoader.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { notify } from "@/sillytavern/notify.ts";

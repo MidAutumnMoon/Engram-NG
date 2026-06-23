@@ -1,6 +1,6 @@
-import type { IStep } from "../../core/Step";
-import type { JobContext } from "../../core/JobContext";
-import type { EventNode } from "@/data/types/graph";
+import type { IStep } from "../../core/Step.ts";
+import type { JobContext } from "../../core/JobContext.ts";
+import type { EventNode } from "@/data/types/graph.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 

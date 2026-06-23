@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { PageTitle } from "@/ui/components/display/PageTitle";
-import { TabPills } from "@/ui/components/layout/TabPills";
+import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
+import { TabPills } from "@/ui/components/layout/TabPills.tsx";
 
 // Tabs
-import { FeaturesTab } from "./tabs/FeaturesTab";
-import { DataTab } from "./tabs/DataTab";
+import { FeaturesTab } from "./tabs/FeaturesTab.tsx";
+import { DataTab } from "./tabs/DataTab.tsx";
 
 type SettingsTabType = "features" | "data";
 

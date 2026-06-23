@@ -10,11 +10,11 @@
  * - 支持 tavern_profile 临时切换模式
  */
 
-import { getSettings } from "@/config/settings";
-import type { LLMPreset } from "@/config/types/llm";
+import { getSettings } from "@/config/settings.ts";
+import type { LLMPreset } from "@/config/types/llm.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { regexProcessor } from "@/domain/workflow/steps/processing/RegexProcessor";
+import { regexProcessor } from "@/domain/workflow/steps/processing/RegexProcessor.ts";
 
 /** LLM 生成请求 */
 interface LLMRequest {

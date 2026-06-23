@@ -1,4 +1,4 @@
-import type { WorkflowDefinition } from "../core/WorkflowEngine";
+import type { WorkflowDefinition } from "../core/WorkflowEngine.ts";
 import {
     ApplyTrim,
     BuildPrompt,
@@ -8,7 +8,7 @@ import {
     LlmRequest,
     ParseJson,
     StopGeneration,
-} from "../steps";
+} from "../steps/index.ts";
 
 export const createTrimmerWorkflow = (): WorkflowDefinition => ({
     name: "TrimmerWorkflow",

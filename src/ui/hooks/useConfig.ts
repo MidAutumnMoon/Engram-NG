@@ -9,15 +9,15 @@
 import type {
     EntityExtractConfig,
     GlobalRegexConfig,
-} from "@/config/types/memory";
+} from "@/config/types/memory.ts";
 import type {
     EmbeddingConfig,
     RecallConfig,
     RerankConfig,
     VectorConfig,
-} from "@/config/types/rag";
-import type { CustomMacro } from "@/config/types/prompt";
-import { useConfigStore } from "@/state/configStore";
+} from "@/config/types/rag.ts";
+import type { CustomMacro } from "@/config/types/prompt.ts";
+import { useConfigStore } from "@/state/configStore.ts";
 
 export interface UseConfigReturn {
     vectorConfig: VectorConfig;

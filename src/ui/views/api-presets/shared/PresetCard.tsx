@@ -3,8 +3,8 @@
  */
 import React from "react";
 import { Cloud, Copy, Edit2, Server, Trash2 } from "lucide-react";
-import { ItemCard } from "@/ui/components/display/ItemCard";
-import type { LLMPreset } from "@/config/types/llm";
+import { ItemCard } from "@/ui/components/display/ItemCard.tsx";
+import type { LLMPreset } from "@/config/types/llm.ts";
 
 interface PresetCardProps {
     preset: LLMPreset;

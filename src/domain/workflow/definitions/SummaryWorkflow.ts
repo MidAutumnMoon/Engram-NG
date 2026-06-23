@@ -1,4 +1,4 @@
-import type { WorkflowDefinition } from "../core/WorkflowEngine";
+import type { WorkflowDefinition } from "../core/WorkflowEngine.ts";
 import {
     BuildPrompt,
     CleanRegex,
@@ -7,7 +7,7 @@ import {
     SaveEvent,
     StopGeneration,
     UserReview,
-} from "../steps";
+} from "../steps/index.ts";
 
 export const createSummaryWorkflow = (): WorkflowDefinition => ({
     name: "SummaryWorkflow",

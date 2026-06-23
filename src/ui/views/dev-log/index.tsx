@@ -26,17 +26,17 @@ import {
     Trash2,
     Zap,
 } from "lucide-react";
-import { PageTitle } from "@/ui/components/display/PageTitle";
+import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
 import type { LogEntry, LogLevel } from "@/logger/Logger.ts";
 import { Logger, LogLevelConfig } from "@/logger/Logger.ts";
 import { ALL_MODULES } from "@/logger/LogModule.ts";
 import { exportLogsToMarkdown, getExportFilename } from "./export.ts";
 import { groupLogsByModule, LogEntryItem, LogGroup } from "./LogEntryItem.tsx";
-import { ModelLog } from "./ModelLog";
-import { RecallLog } from "./RecallLog";
-import type { Tab } from "@/ui/components/layout/TabPills";
-import { TabPills } from "@/ui/components/layout/TabPills";
-import { Divider } from "@/ui/components/layout/Divider";
+import { ModelLog } from "./ModelLog.tsx";
+import { RecallLog } from "./RecallLog.tsx";
+import type { Tab } from "@/ui/components/layout/TabPills.tsx";
+import { TabPills } from "@/ui/components/layout/TabPills.tsx";
+import { Divider } from "@/ui/components/layout/Divider.tsx";
 
 // Tab 类型
 type TabType = "runtime" | "model" | "recall";

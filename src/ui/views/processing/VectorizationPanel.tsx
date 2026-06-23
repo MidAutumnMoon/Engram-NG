@@ -7,15 +7,15 @@
  * - 批量嵌入控制
  * - 进度显示
  */
-import type { EmbeddingConfig, VectorConfig } from "@/config/types/rag";
-import { embeddingService } from "@/domain/rag";
+import type { EmbeddingConfig, VectorConfig } from "@/config/types/rag.ts";
+import { embeddingService } from "@/domain/rag/index.ts";
 import {
     NumberField,
     SelectField,
     SwitchField,
     TextField,
-} from "@/ui/components/form/FormComponents";
-import { Divider } from "@/ui/components/layout/Divider";
+} from "@/ui/components/form/FormComponents.tsx";
+import { Divider } from "@/ui/components/layout/Divider.tsx";
 import {
     AlertCircle,
     CheckCircle2,

@@ -1,8 +1,8 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { generateShortUUID } from "@/utils/shortUUID.ts";
-import type { JobContext } from "./JobContext";
-import type { IStep, StepResult } from "./Step";
+import type { JobContext } from "./JobContext.ts";
+import type { IStep, StepResult } from "./Step.ts";
 
 export interface WorkflowDefinition {
     name: string;

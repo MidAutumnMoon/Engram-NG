@@ -1,5 +1,8 @@
-import type { WorldbookConfig } from "@/config/types/prompt";
-import { FormSection, SwitchField } from "@/ui/components/form/FormComponents";
+import type { WorldbookConfig } from "@/config/types/prompt.ts";
+import {
+    FormSection,
+    SwitchField,
+} from "@/ui/components/form/FormComponents.tsx";
 import {
     AlertCircle,
     Book,

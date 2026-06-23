@@ -1,4 +1,4 @@
-import { EngramIcon } from "@/ui/assets/icons/EngramIcon";
+import { EngramIcon } from "@/ui/assets/icons/EngramIcon.tsx";
 import { Menu, X } from "lucide-react";
 import React from "react";
 

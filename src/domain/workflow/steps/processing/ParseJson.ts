@@ -1,8 +1,8 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { RobustJsonParser } from "@/utils/JsonParser";
-import type { JobContext } from "../../core/JobContext";
-import type { IStep } from "../../core/Step";
+import { RobustJsonParser } from "@/utils/JsonParser.ts";
+import type { JobContext } from "../../core/JobContext.ts";
+import type { IStep } from "../../core/Step.ts";
 
 export class ParseJson implements IStep {
     name = "ParseJson";

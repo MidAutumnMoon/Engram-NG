@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { useConfigStore } from "@/state/configStore";
-import { Switch } from "@/ui/components/core/Switch";
-import { useMemoryStore } from "@/state/memoryStore";
-import { getCurrentChatId } from "@/sillytavern";
+import { useConfigStore } from "@/state/configStore.ts";
+import { Switch } from "@/ui/components/core/Switch.tsx";
+import { useMemoryStore } from "@/state/memoryStore.ts";
+import { getCurrentChatId } from "@/sillytavern/index.ts";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 
 // V1.4.6 Extracted imported components
-import { GlobalDatabaseList } from "../components/GlobalDatabaseList";
+import { GlobalDatabaseList } from "../components/GlobalDatabaseList.tsx";
 
 export const DataTab: React.FC = () => {
     const memoryStore = useMemoryStore();

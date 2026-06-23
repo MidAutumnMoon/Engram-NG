@@ -1,12 +1,12 @@
-import { getSetting } from "@/config/settings";
+import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getCurrentCharacter, getSTContext } from "@/sillytavern";
+import { getCurrentCharacter, getSTContext } from "@/sillytavern/index.ts";
 import { MacroService } from "@/domain/macros/index.ts";
-import { PromptLoader } from "@/integrations/llm/PromptLoader";
-import { WorldInfoService } from "@/domain/worldbook";
-import type { JobContext } from "../../core/JobContext";
-import type { IStep } from "../../core/Step";
+import { PromptLoader } from "@/integrations/llm/PromptLoader.ts";
+import { WorldInfoService } from "@/domain/worldbook/index.ts";
+import type { JobContext } from "../../core/JobContext.ts";
+import type { IStep } from "../../core/Step.ts";
 
 export class FetchContext implements IStep {
     name = "FetchContext";

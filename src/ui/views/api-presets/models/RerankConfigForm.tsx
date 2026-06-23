@@ -6,11 +6,11 @@ import {
     SelectField,
     SwitchField,
     TextField,
-} from "@/ui/components/form/FormComponents";
-import type { RerankConfig } from "@/config/types/rag";
+} from "@/ui/components/form/FormComponents.tsx";
+import type { RerankConfig } from "@/config/types/rag.ts";
 import { Loader2, RefreshCw } from "lucide-react";
-import type { ModelInfo } from "@/integrations/llm/ModelDiscovery";
-import { ModelService } from "@/integrations/llm/ModelDiscovery";
+import type { ModelInfo } from "@/integrations/llm/ModelDiscovery.ts";
+import { ModelService } from "@/integrations/llm/ModelDiscovery.ts";
 
 interface RerankConfigFormProps {
     config: RerankConfig;

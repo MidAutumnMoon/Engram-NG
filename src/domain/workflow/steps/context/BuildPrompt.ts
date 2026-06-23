@@ -1,11 +1,11 @@
-import { getSetting } from "@/config/settings";
+import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { PromptLoader } from "@/integrations/llm/PromptLoader";
-import { tryGetDbForChat } from "@/data/db";
-import { getCurrentChatId, getSTContext } from "@/sillytavern";
-import type { JobContext } from "../../core/JobContext";
-import type { IStep } from "../../core/Step";
+import { PromptLoader } from "@/integrations/llm/PromptLoader.ts";
+import { tryGetDbForChat } from "@/data/db.ts";
+import { getCurrentChatId, getSTContext } from "@/sillytavern/index.ts";
+import type { JobContext } from "../../core/JobContext.ts";
+import type { IStep } from "../../core/Step.ts";
 
 interface BuildPromptConfig {
     templateId?: string; // 指定模板 ID

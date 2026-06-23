@@ -1,4 +1,4 @@
-import type { JobContext } from "./JobContext";
+import type { JobContext } from "./JobContext.ts";
 
 /**
  * IStep - 步骤接口

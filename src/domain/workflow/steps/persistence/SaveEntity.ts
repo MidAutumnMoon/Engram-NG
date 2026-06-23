@@ -1,14 +1,14 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { RobustJsonParser } from "@/utils/JsonParser";
-import type { EntityNode } from "@/data/types/graph";
-import { EntityType } from "@/data/types/graph";
-import { useMemoryStore } from "@/state/memoryStore";
+import { RobustJsonParser } from "@/utils/JsonParser.ts";
+import type { EntityNode } from "@/data/types/graph.ts";
+import { EntityType } from "@/data/types/graph.ts";
+import { useMemoryStore } from "@/state/memoryStore.ts";
 import * as jsonpatch from "fast-json-patch";
 import * as yaml from "js-yaml";
 import { z } from "zod";
-import type { JobContext } from "../../core/JobContext";
-import type { IStep } from "../../core/Step";
+import type { JobContext } from "../../core/JobContext.ts";
+import type { IStep } from "../../core/Step.ts";
 
 // V1.3: 统一 JSON Patch 格式
 // 新实体: { op: "add", path: "/entities/{name}", value: {...} }

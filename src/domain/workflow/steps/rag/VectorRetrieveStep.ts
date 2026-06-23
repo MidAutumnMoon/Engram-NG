@@ -1,13 +1,13 @@
-import { getSetting } from "@/config/settings";
-import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag";
+import { getSetting } from "@/config/settings.ts";
+import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { tryGetDbForChat } from "@/data/db";
-import { getCurrentChatId } from "@/sillytavern";
-import { embeddingService } from "@/domain/rag/embedding/EmbeddingService";
-import type { ScoredEvent } from "@/domain/rag/retrieval/HybridScorer";
-import type { JobContext } from "../../core/JobContext";
-import type { IStep, RetryConfig } from "../../core/Step";
+import { tryGetDbForChat } from "@/data/db.ts";
+import { getCurrentChatId } from "@/sillytavern/index.ts";
+import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
+import type { ScoredEvent } from "@/domain/rag/retrieval/HybridScorer.ts";
+import type { JobContext } from "../../core/JobContext.ts";
+import type { IStep, RetryConfig } from "../../core/Step.ts";
 
 export class VectorRetrieveStep implements IStep {
     name = "VectorRetrieveStep";

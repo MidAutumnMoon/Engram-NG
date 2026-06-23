@@ -3,8 +3,11 @@
  * V0.9.2: 右侧详情页编辑（类似提示词模板）
  */
 import React from "react";
-import { FormSection, TextField } from "@/ui/components/form/FormComponents";
-import type { CustomMacro } from "@/config/types/prompt";
+import {
+    FormSection,
+    TextField,
+} from "@/ui/components/form/FormComponents.tsx";
+import type { CustomMacro } from "@/config/types/prompt.ts";
 
 interface CustomMacroFormProps {
     macro: CustomMacro;

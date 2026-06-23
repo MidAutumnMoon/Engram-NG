@@ -6,12 +6,12 @@ import {
     createDefaultLLMPreset,
     createPromptTemplate,
     getDefaultAPISettings,
-} from "@/config/settings";
-import type { EngramAPISettings } from "@/config/settings";
-import { getSetting, setSetting } from "@/config/settings";
-import type { LLMPreset } from "@/config/types/llm";
-import type { PromptTemplate } from "@/config/types/prompt";
-import { PromptLoader } from "@/integrations/llm/PromptLoader";
+} from "@/config/settings.ts";
+import type { EngramAPISettings } from "@/config/settings.ts";
+import { getSetting, setSetting } from "@/config/settings.ts";
+import type { LLMPreset } from "@/config/types/llm.ts";
+import type { PromptTemplate } from "@/config/types/prompt.ts";
+import { PromptLoader } from "@/integrations/llm/PromptLoader.ts";
 import { useCallback, useEffect, useState } from "react";
 
 export interface UseLLMPresetsReturn {

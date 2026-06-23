@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { KeywordRetrieveStep } from "@/modules/workflow/steps/rag/KeywordRetrieveStep";
 import { JobContext } from "@/modules/workflow/core/JobContext";
-import { useMemoryStore } from "@/state/memoryStore";
-import { SettingsManager } from "@/config/settings";
+import { useMemoryStore } from "@/state/memoryStore.ts";
+import { SettingsManager } from "@/config/settings.ts";
 
 // Mock tavern
 vi.mock("@/sillytavern", () => ({

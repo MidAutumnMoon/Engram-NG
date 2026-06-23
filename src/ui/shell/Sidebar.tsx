@@ -3,8 +3,8 @@
  *
  * 支持 PC 端和移动端两种模式，复用导航配置和底部功能区
  */
-import { NAV_ITEMS } from "@/ui/navigation";
-import { EngramTextLogo } from "@/ui/assets/icons/EngramTextLogo";
+import { NAV_ITEMS } from "@/ui/navigation.ts";
+import { EngramTextLogo } from "@/ui/assets/icons/EngramTextLogo.tsx";
 import { Github, X } from "lucide-react";
 import React from "react";
 import manifest from "../../../manifest.json" with { type: "json" };

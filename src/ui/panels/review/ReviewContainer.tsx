@@ -1,6 +1,9 @@
-import type { ReviewAction, ReviewRequest } from "@/domain/review/ReviewBridge";
+import type {
+    ReviewAction,
+    ReviewRequest,
+} from "@/domain/review/ReviewBridge.ts";
 import { useReviewStore } from "@/state/reviewStore.ts";
-import { ModernButton as Button } from "@/ui/components/core/Button";
+import { ModernButton as Button } from "@/ui/components/core/Button.tsx";
 import {
     AlertTriangle,
     ArrowDownToLine,
@@ -13,10 +16,10 @@ import {
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import { EntityReview } from "./EntityReview";
-import { MessageReview } from "./MessageReview";
-import { RecallDecisionModal } from "./RecallDecisionModal";
-import { SummaryReview } from "./SummaryReview"; // V1.2
+import { EntityReview } from "./EntityReview.tsx";
+import { MessageReview } from "./MessageReview.tsx";
+import { RecallDecisionModal } from "./RecallDecisionModal.tsx";
+import { SummaryReview } from "./SummaryReview.tsx"; // V1.2
 
 // --- Sub-component: ReviewSession ---
 // Encapsulates state and logic for a SINGLE review request

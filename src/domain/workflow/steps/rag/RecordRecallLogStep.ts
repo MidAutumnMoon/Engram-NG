@@ -1,10 +1,10 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { useRecallLogStore } from "@/logger/recallLog.ts";
-import { WorldbookScannerService } from "@/domain/worldbook/scanner";
-import type { ScoredEvent } from "@/domain/rag/retrieval/HybridScorer";
-import type { JobContext } from "../../core/JobContext";
-import type { IStep } from "../../core/Step";
+import { WorldbookScannerService } from "@/domain/worldbook/scanner.ts";
+import type { ScoredEvent } from "@/domain/rag/retrieval/HybridScorer.ts";
+import type { JobContext } from "../../core/JobContext.ts";
+import type { IStep } from "../../core/Step.ts";
 
 export class RecordRecallLogStep implements IStep {
     name = "RecordRecallLogStep";

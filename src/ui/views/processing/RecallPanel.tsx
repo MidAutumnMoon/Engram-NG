@@ -1,6 +1,6 @@
-import type { RecallConfig, RerankConfig } from "@/config/types/rag";
+import type { RecallConfig, RerankConfig } from "@/config/types/rag.ts";
 import React from "react";
-import { RecallConfigForm } from "./components/RecallConfigForm";
+import { RecallConfigForm } from "./components/RecallConfigForm.tsx";
 
 interface RecallPanelProps {
     recallConfig: RecallConfig;
@@ -9,10 +9,10 @@ interface RecallPanelProps {
     onRerankConfigChange: (config: RerankConfig) => void;
 }
 
-import { scanEntities, scanEvents } from "@/domain/memory/EntityScanner";
+import { scanEntities, scanEvents } from "@/domain/memory/EntityScanner.ts";
 import type { AgenticRecall } from "@/config/types/rag.ts";
-import { retriever } from "@/domain/rag/retrieval/Retriever";
-import { useMemoryStore } from "@/state/memoryStore";
+import { retriever } from "@/domain/rag/retrieval/Retriever.ts";
+import { useMemoryStore } from "@/state/memoryStore.ts";
 import { notify } from "@/sillytavern/notify.ts";
 import { RecallDecisionModal } from "@/ui/panels/review/RecallDecisionModal.tsx";
 import {

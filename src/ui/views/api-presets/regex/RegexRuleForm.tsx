@@ -5,7 +5,7 @@ import {
     REGEX_SCOPE_OPTIONS,
     RegexProcessor,
     type RegexRule,
-} from "@/domain/workflow/steps";
+} from "@/domain/workflow/steps/index.ts";
 import { AlertCircle, CheckCircle, Info, Play } from "lucide-react";
 import React, { useEffect, useState } from "react";
 

@@ -1,18 +1,18 @@
 /**
  * 向量化配置表单
  */
-import type { VectorConfig, VectorSource } from "@/config/types/rag";
+import type { VectorConfig, VectorSource } from "@/config/types/rag.ts";
 import type {
     ModelAPIType,
     ModelInfo,
-} from "@/integrations/llm/ModelDiscovery";
-import { ModelService } from "@/integrations/llm/ModelDiscovery";
+} from "@/integrations/llm/ModelDiscovery.ts";
+import { ModelService } from "@/integrations/llm/ModelDiscovery.ts";
 import {
     FormSection,
     SearchableSelectField,
     SelectField,
     TextField,
-} from "@/ui/components/form/FormComponents";
+} from "@/ui/components/form/FormComponents.tsx";
 import { AlertCircle, AlertTriangle, Loader2, RefreshCw } from "lucide-react";
 import React, { useState } from "react";
 

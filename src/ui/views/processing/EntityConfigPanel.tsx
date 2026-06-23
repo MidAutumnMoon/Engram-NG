@@ -7,12 +7,12 @@
  * - 去卡片化，使用细线分割
  * V1.4.2: 增加自动归档与手动清理功能
  */
-import type { EntityExtractConfig } from "@/config/types/memory";
-import { EventBus } from "@/events";
-import { entityBuilder } from "@/domain/memory/EntityExtractor";
-import { SliderField } from "@/ui/components/core/SliderField";
-import { SwitchField } from "@/ui/components/form/FormComponents";
-import { Divider } from "@/ui/components/layout/Divider";
+import type { EntityExtractConfig } from "@/config/types/memory.ts";
+import { EventBus } from "@/events/index.ts";
+import { entityBuilder } from "@/domain/memory/EntityExtractor.ts";
+import { SliderField } from "@/ui/components/core/SliderField.tsx";
+import { SwitchField } from "@/ui/components/form/FormComponents.tsx";
+import { Divider } from "@/ui/components/layout/Divider.tsx";
 import { Archive, RefreshCw } from "lucide-react";
 import React, { useEffect, useState } from "react";
 

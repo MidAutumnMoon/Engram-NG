@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { summarizerService } from "@/modules/memory/Summarizer";
-import { getDbForChat } from "@/data/db";
-import { useMemoryStore } from "@/state/memoryStore";
-import { SettingsManager } from "@/config/settings";
+import { getDbForChat } from "@/data/db.ts";
+import { useMemoryStore } from "@/state/memoryStore.ts";
+import { SettingsManager } from "@/config/settings.ts";
 import { reviewService } from "@/core/events/ReviewBridge";
-import { llmAdapter } from "@/integrations/llm/Adapter";
+import { llmAdapter } from "@/integrations/llm/Adapter.ts";
 import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine";
 
 // Mock Dependencies

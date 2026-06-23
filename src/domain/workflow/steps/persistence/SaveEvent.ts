@@ -1,13 +1,13 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import type { EventNode } from "@/data/types/graph";
+import type { EventNode } from "@/data/types/graph.ts";
 import { hideMessageRange } from "@/sillytavern/chat/hideMessageRange.ts";
 import { MacroService } from "@/domain/macros/index.ts";
-import { useMemoryStore } from "@/state/memoryStore";
+import { useMemoryStore } from "@/state/memoryStore.ts";
 import { notify } from "@/sillytavern/notify.ts";
-import { RobustJsonParser } from "@/utils/JsonParser";
-import type { JobContext } from "../../core/JobContext";
-import type { IStep } from "../../core/Step";
+import { RobustJsonParser } from "@/utils/JsonParser.ts";
+import type { JobContext } from "../../core/JobContext.ts";
+import type { IStep } from "../../core/Step.ts";
 
 // Replaces Pipeline.ts logic
 export class SaveEvent implements IStep {

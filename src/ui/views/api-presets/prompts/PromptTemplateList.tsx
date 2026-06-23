@@ -1,9 +1,9 @@
-import { createPromptTemplate } from "@/config/settings";
-import type { PromptTemplate } from "@/config/types/prompt";
-import { PROMPT_CATEGORIES } from "@/config/types/prompt";
+import { createPromptTemplate } from "@/config/settings.ts";
+import type { PromptTemplate } from "@/config/types/prompt.ts";
+import { PROMPT_CATEGORIES } from "@/config/types/prompt.ts";
 import { FileText, Plus, RotateCcw } from "lucide-react";
 import React from "react";
-import { PromptTemplateCard } from "./PromptTemplateCard";
+import { PromptTemplateCard } from "./PromptTemplateCard.tsx";
 
 interface PromptTemplateListProps {
     templates: PromptTemplate[];

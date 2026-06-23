@@ -1,12 +1,12 @@
-import { getSetting } from "@/config/settings";
+import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { tryGetDbForChat } from "@/data/db";
-import { getCurrentChatId } from "@/sillytavern";
-import { matchEvent, scanEntities } from "@/domain/memory/EntityScanner";
-import type { ScoredEvent } from "@/domain/rag/retrieval/HybridScorer";
-import type { JobContext } from "../../core/JobContext";
-import type { IStep } from "../../core/Step";
+import { tryGetDbForChat } from "@/data/db.ts";
+import { getCurrentChatId } from "@/sillytavern/index.ts";
+import { matchEvent, scanEntities } from "@/domain/memory/EntityScanner.ts";
+import type { ScoredEvent } from "@/domain/rag/retrieval/HybridScorer.ts";
+import type { JobContext } from "../../core/JobContext.ts";
+import type { IStep } from "../../core/Step.ts";
 
 export class KeywordRetrieveStep implements IStep {
     name = "KeywordRetrieveStep";

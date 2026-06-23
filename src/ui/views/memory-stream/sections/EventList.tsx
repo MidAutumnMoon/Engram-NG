@@ -1,11 +1,11 @@
-import type { EventNode } from "@/data/types/graph";
-import { ErrorBoundary } from "@/ui/components/core/ErrorBoundary";
-import { EmptyState } from "@/ui/components/feedback/EmptyState";
+import type { EventNode } from "@/data/types/graph.ts";
+import { ErrorBoundary } from "@/ui/components/core/ErrorBoundary.tsx";
+import { EmptyState } from "@/ui/components/feedback/EmptyState.tsx";
 import { Brain, RefreshCw, Search } from "lucide-react";
 import React from "react";
 import { GroupedVirtuoso } from "react-virtuoso";
-import { EventCard } from "../components/EventCard";
-import type { GroupedEvent, ViewMode } from "../hooks/useMemoryStream";
+import { EventCard } from "../components/EventCard.tsx";
+import type { GroupedEvent, ViewMode } from "../hooks/useMemoryStream.ts";
 
 interface EventListProps {
     viewMode: ViewMode;

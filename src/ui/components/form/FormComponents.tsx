@@ -1,4 +1,4 @@
-import { Switch } from "@/ui/components/core/Switch";
+import { Switch } from "@/ui/components/core/Switch.tsx";
 import { ChevronDown, Search, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 

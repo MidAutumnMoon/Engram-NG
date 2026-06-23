@@ -1,16 +1,16 @@
-import { getSetting } from "@/config/settings";
-import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag";
-import type { RecallConfig } from "@/config/types/rag";
+import { getSetting } from "@/config/settings.ts";
+import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag.ts";
+import type { RecallConfig } from "@/config/types/rag.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import {
     mergeResults,
     scoreAndSort,
     type ScoredEvent,
-} from "@/domain/rag/retrieval/HybridScorer";
-import { rerankService } from "@/domain/rag/retrieval/Reranker";
-import type { JobContext } from "../../core/JobContext";
-import type { IStep, RetryConfig } from "../../core/Step";
+} from "@/domain/rag/retrieval/HybridScorer.ts";
+import { rerankService } from "@/domain/rag/retrieval/Reranker.ts";
+import type { JobContext } from "../../core/JobContext.ts";
+import type { IStep, RetryConfig } from "../../core/Step.ts";
 
 export class RerankMergeStep implements IStep {
     name = "RerankMergeStep";

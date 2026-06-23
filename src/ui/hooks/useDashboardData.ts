@@ -10,17 +10,17 @@ import {
     getDefaultAPISettings,
     getSetting,
     setSetting,
-} from "@/config/settings";
-import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag";
+} from "@/config/settings.ts";
+import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getCurrentChatId, getSTContext } from "@/sillytavern";
+import { getCurrentChatId, getSTContext } from "@/sillytavern/index.ts";
 import { MacroService } from "@/domain/macros/index.ts";
-import { summarizerService } from "@/domain/memory";
-import { tryGetDbForChat } from "@/data/db";
+import { summarizerService } from "@/domain/memory/index.ts";
+import { tryGetDbForChat } from "@/data/db.ts";
 
-import { useConfigStore } from "@/state/configStore";
-import { useMemoryStore } from "@/state/memoryStore";
+import { useConfigStore } from "@/state/configStore.ts";
+import { useMemoryStore } from "@/state/memoryStore.ts";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 // ==================== 类型定义 ====================

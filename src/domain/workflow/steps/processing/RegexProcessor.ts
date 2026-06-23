@@ -8,11 +8,11 @@
 
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import type { RegexRule, RegexScope } from "@/config/types/data_processing";
+import type { RegexRule, RegexScope } from "@/config/types/data_processing.ts";
 import {
     DEFAULT_REGEX_RULES,
     REGEX_SCOPE_OPTIONS,
-} from "@/config/types/data_processing";
+} from "@/config/types/data_processing.ts";
 
 // 重新导出以便其他模块使用
 export type { RegexRule, RegexScope };

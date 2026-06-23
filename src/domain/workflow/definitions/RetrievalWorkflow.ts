@@ -1,8 +1,8 @@
-import type { WorkflowDefinition } from "../core/WorkflowEngine";
-import { KeywordRetrieveStep } from "../steps/rag/KeywordRetrieveStep";
-import { RecordRecallLogStep } from "../steps/rag/RecordRecallLogStep";
-import { RerankMergeStep } from "../steps/rag/RerankMergeStep";
-import { VectorRetrieveStep } from "../steps/rag/VectorRetrieveStep";
+import type { WorkflowDefinition } from "../core/WorkflowEngine.ts";
+import { KeywordRetrieveStep } from "../steps/rag/KeywordRetrieveStep.ts";
+import { RecordRecallLogStep } from "../steps/rag/RecordRecallLogStep.ts";
+import { RerankMergeStep } from "../steps/rag/RerankMergeStep.ts";
+import { VectorRetrieveStep } from "../steps/rag/VectorRetrieveStep.ts";
 
 export const createRetrievalWorkflow = (): WorkflowDefinition => ({
     name: "RetrievalWorkflow",

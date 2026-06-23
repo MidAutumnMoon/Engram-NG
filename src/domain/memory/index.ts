@@ -1,3 +1,3 @@
-export { summarizerService } from "./Summarizer";
-export { entityBuilder } from "./EntityExtractor";
-export { eventTrimmer, type TrimmerStatus } from "./EventTrimmer";
+export { summarizerService } from "./Summarizer.ts";
+export { entityBuilder } from "./EntityExtractor.ts";
+export { eventTrimmer, type TrimmerStatus } from "./EventTrimmer.ts";

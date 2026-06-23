@@ -1,4 +1,4 @@
-import type { WorkflowDefinition } from "../core/WorkflowEngine";
+import type { WorkflowDefinition } from "../core/WorkflowEngine.ts";
 import {
     BuildPrompt,
     CleanRegex,
@@ -8,7 +8,7 @@ import {
     ParseJson,
     SaveEntity,
     UserReview,
-} from "../steps";
+} from "../steps/index.ts";
 
 export const createEntityWorkflow = (): WorkflowDefinition => ({
     name: "EntityWorkflow",

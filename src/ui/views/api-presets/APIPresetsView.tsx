@@ -18,29 +18,29 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 // Components
-import { PageTitle } from "@/ui/components/display/PageTitle";
-import { TabPills } from "@/ui/components/layout/TabPills";
-import { LLMPresetForm } from "./models/LLMPresetForm";
-import { RerankConfigForm } from "./models/RerankConfigForm";
-import { VectorConfigForm } from "./models/VectorConfigForm";
-import { CustomMacroForm } from "./prompts/CustomMacroForm"; // V0.9.2
-import { CustomMacroList } from "./prompts/CustomMacroList"; // V0.9.2
-import { PromptTemplateForm } from "./prompts/PromptTemplateForm";
-import { PromptTemplateList } from "./prompts/PromptTemplateList";
-import { RegexRuleForm } from "./regex/RegexRuleForm";
-import { RegexRuleList } from "./regex/RegexRuleList";
-import { PresetCard } from "./shared/PresetCard";
-import { WorldbookConfigForm } from "./worldbook/WorldbookConfigForm";
+import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
+import { TabPills } from "@/ui/components/layout/TabPills.tsx";
+import { LLMPresetForm } from "./models/LLMPresetForm.tsx";
+import { RerankConfigForm } from "./models/RerankConfigForm.tsx";
+import { VectorConfigForm } from "./models/VectorConfigForm.tsx";
+import { CustomMacroForm } from "./prompts/CustomMacroForm.tsx"; // V0.9.2
+import { CustomMacroList } from "./prompts/CustomMacroList.tsx"; // V0.9.2
+import { PromptTemplateForm } from "./prompts/PromptTemplateForm.tsx";
+import { PromptTemplateList } from "./prompts/PromptTemplateList.tsx";
+import { RegexRuleForm } from "./regex/RegexRuleForm.tsx";
+import { RegexRuleList } from "./regex/RegexRuleList.tsx";
+import { PresetCard } from "./shared/PresetCard.tsx";
+import { WorldbookConfigForm } from "./worldbook/WorldbookConfigForm.tsx";
 
-import { EmptyState } from "@/ui/components/feedback/EmptyState";
-import { MasterDetailLayout } from "@/ui/components/layout/MasterDetailLayout";
-import { MobileFullscreenForm } from "@/ui/components/layout/MobileFullscreenForm"; // Added import
-import { useResponsive } from "@/ui/hooks/useResponsive";
+import { EmptyState } from "@/ui/components/feedback/EmptyState.tsx";
+import { MasterDetailLayout } from "@/ui/components/layout/MasterDetailLayout.tsx";
+import { MobileFullscreenForm } from "@/ui/components/layout/MobileFullscreenForm.tsx"; // Added import
+import { useResponsive } from "@/ui/hooks/useResponsive.ts";
 // Hooks
-import { useConfig } from "../../hooks/useConfig";
-import { useLLMPresets } from "../../hooks/useLLMPresets";
-import { useRegexRules } from "../../hooks/useRegexRules";
-import { useWorldInfo } from "../../hooks/useWorldInfo";
+import { useConfig } from "../../hooks/useConfig.ts";
+import { useLLMPresets } from "../../hooks/useLLMPresets.ts";
+import { useRegexRules } from "../../hooks/useRegexRules.ts";
+import { useWorldInfo } from "../../hooks/useWorldInfo.ts";
 
 // 响应式断点
 const DESKTOP_BREAKPOINT = 768;

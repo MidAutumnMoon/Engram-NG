@@ -14,19 +14,19 @@ import {
     ScrollText,
     Search,
 } from "lucide-react";
-import type { Tab } from "@/ui/components/layout/TabPills";
-import { TabPills } from "@/ui/components/layout/TabPills";
-import { Divider } from "@/ui/components/layout/Divider";
-import type { QuickLink } from "@/ui/components/layout/QuickLinks";
-import { QuickLinks } from "@/ui/components/layout/QuickLinks";
-import { PageTitle } from "@/ui/components/display/PageTitle";
-import { useConfig } from "@/ui/hooks/useConfig";
-import { useSummarizerConfig } from "@/ui/hooks/useSummarizerConfig";
+import type { Tab } from "@/ui/components/layout/TabPills.tsx";
+import { TabPills } from "@/ui/components/layout/TabPills.tsx";
+import { Divider } from "@/ui/components/layout/Divider.tsx";
+import type { QuickLink } from "@/ui/components/layout/QuickLinks.tsx";
+import { QuickLinks } from "@/ui/components/layout/QuickLinks.tsx";
+import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
+import { useConfig } from "@/ui/hooks/useConfig.ts";
+import { useSummarizerConfig } from "@/ui/hooks/useSummarizerConfig.ts";
 
-import { SummaryPanel } from "./SummaryPanel";
-import { VectorizationPanel } from "./VectorizationPanel";
-import { RecallPanel } from "./RecallPanel";
-import { EntityConfigPanel } from "./EntityConfigPanel";
+import { SummaryPanel } from "./SummaryPanel.tsx";
+import { VectorizationPanel } from "./VectorizationPanel.tsx";
+import { RecallPanel } from "./RecallPanel.tsx";
+import { EntityConfigPanel } from "./EntityConfigPanel.tsx";
 
 type ProcessingTab =
     | "summary"

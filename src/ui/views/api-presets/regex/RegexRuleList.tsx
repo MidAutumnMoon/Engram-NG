@@ -1,5 +1,5 @@
-import type { RegexRule } from "@/domain/workflow/steps";
-import { Switch } from "@/ui/components/core/Switch";
+import type { RegexRule } from "@/domain/workflow/steps/index.ts";
+import { Switch } from "@/ui/components/core/Switch.tsx";
 import { GripVertical, Plus, Power, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 

@@ -1,11 +1,11 @@
-import type { IStep, RetryConfig } from "../../core/Step";
-import type { JobContext } from "../../core/JobContext";
-import { llmAdapter } from "@/integrations/llm/Adapter";
+import type { IStep, RetryConfig } from "../../core/Step.ts";
+import type { JobContext } from "../../core/JobContext.ts";
+import { llmAdapter } from "@/integrations/llm/Adapter.ts";
 import { useModelLogStore } from "@/logger/modelLog.ts";
-import { getCurrentCharacter } from "@/sillytavern";
+import { getCurrentCharacter } from "@/sillytavern/index.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getSetting } from "@/config/settings";
+import { getSetting } from "@/config/settings.ts";
 
 export class LlmRequest implements IStep {
     name = "LlmRequest";

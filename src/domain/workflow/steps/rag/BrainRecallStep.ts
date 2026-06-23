@@ -1,20 +1,20 @@
-import { getSetting } from "@/config/settings";
+import { getSetting } from "@/config/settings.ts";
 import {
     DEFAULT_BRAIN_RECALL_CONFIG,
     DEFAULT_RECALL_CONFIG,
-} from "@/config/types/rag";
-import type { BrainRecallConfig, RecallConfig } from "@/config/types/rag";
+} from "@/config/types/rag.ts";
+import type { BrainRecallConfig, RecallConfig } from "@/config/types/rag.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { tryGetDbForChat } from "@/data/db";
-import { getCurrentChatId } from "@/sillytavern";
+import { tryGetDbForChat } from "@/data/db.ts";
+import { getCurrentChatId } from "@/sillytavern/index.ts";
 import {
     brainRecallCache,
     type RecallCandidate,
-} from "@/domain/rag/retrieval/BrainRecallCache";
-import type { ScoredEvent } from "@/domain/rag/retrieval/HybridScorer";
-import type { JobContext } from "../../core/JobContext";
-import type { IStep } from "../../core/Step";
+} from "@/domain/rag/retrieval/BrainRecallCache.ts";
+import type { ScoredEvent } from "@/domain/rag/retrieval/HybridScorer.ts";
+import type { JobContext } from "../../core/JobContext.ts";
+import type { IStep } from "../../core/Step.ts";
 
 export class BrainRecallStep implements IStep {
     name = "BrainRecallStep";

@@ -1,6 +1,6 @@
-import type { RecallConfig, RerankConfig } from "@/config/types/rag";
-import { Switch } from "@/ui/components/core/Switch";
-import { NumberField } from "@/ui/components/form/FormComponents";
+import type { RecallConfig, RerankConfig } from "@/config/types/rag.ts";
+import { Switch } from "@/ui/components/core/Switch.tsx";
+import { NumberField } from "@/ui/components/form/FormComponents.tsx";
 import {
     AlertTriangle,
     BrainCircuit,

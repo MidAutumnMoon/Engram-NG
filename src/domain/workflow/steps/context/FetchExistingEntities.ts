@@ -1,6 +1,6 @@
-import type { IStep } from "../../core/Step";
-import type { JobContext } from "../../core/JobContext";
-import { useMemoryStore } from "@/state/memoryStore";
+import type { IStep } from "../../core/Step.ts";
+import type { JobContext } from "../../core/JobContext.ts";
+import { useMemoryStore } from "@/state/memoryStore.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 

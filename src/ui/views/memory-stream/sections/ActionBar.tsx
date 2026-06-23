@@ -11,7 +11,7 @@ import {
     Trash2,
 } from "lucide-react";
 import React from "react";
-import type { SortOrder, ViewTab } from "../hooks/useMemoryStream";
+import type { SortOrder, ViewTab } from "../hooks/useMemoryStream.ts";
 
 interface ActionBarProps {
     viewTab: ViewTab;

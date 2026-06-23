@@ -1,10 +1,10 @@
-import type { EntityNode, EventNode } from "@/data/types/graph";
+import type { EntityNode, EventNode } from "@/data/types/graph.ts";
 import type {
     EntityGroupMode,
     EntitySortMode,
     GroupedEvent,
     SortOrder,
-} from "../hooks/useMemoryStream";
+} from "../hooks/useMemoryStream.ts";
 
 /**
  * 过滤事件列表
