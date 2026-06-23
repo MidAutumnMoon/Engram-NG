@@ -3,6 +3,7 @@
  */
 
 import { SettingsManager } from "@/config/settings.ts";
+import { Logger } from "@/logger/Logger.ts";
 import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine.ts";
 import { createSummaryWorkflow } from "@/modules/workflow/definitions/SummaryWorkflow.ts";
 import { getSTContext, onTavernEvent } from "@/sillytavern/index.ts";
@@ -17,39 +18,6 @@ import type {
 } from "./types.ts";
 import { DEFAULT_SUMMARIZER_CONFIG } from "./types.ts";
 
-/** 元数据 key */
-const METADATA_KEY = "engram";
-
-/**
- * 获取 chat_metadata
- */
-function getChatMetadata(): Record<string, unknown> | null {
-    try {
-        // 优先从 context 获取
-        const context = getSTContext();
-        if (context.chatMetadata) {
-            return context.chatMetadata;
-        }
-        // 备用：直接访问全局变量
-        // @ts-expect-error - SillyTavern 全局变量
-        return window.chat_metadata || null;
-    } catch {
-        return null;
-    }
-}
-
-/**
- * 保存聊天（防抖）
- */
-function saveChatDebounced(): void {
-    try {
-        // @ts-expect-error - SillyTavern 全局函数
-        window.saveChatDebounced?.();
-    } catch {
-        console.warn("[Engram] saveChatDebounced 不可用");
-    }
-}
-
 /**
  * SummarizerService 类
  * 核心总结服务
@@ -60,7 +28,6 @@ class SummarizerService {
     private currentChatId: string | null = null;
     private isRunning = false;
     private isSummarizing = false;
-    private cancelRequested = false; // 用户请求取消总结
     private unsubscribeMessage: (() => void) | null = null;
     private unsubscribeChat: (() => void) | null = null;
     private summaryHistory: SummaryResult[] = [];
@@ -363,7 +330,6 @@ class SummarizerService {
         const currentFloor = this.getCurrentFloor();
 
         this.isSummarizing = true;
-        this.cancelRequested = false; // 重置取消标志
 
         // 创建取消信号（引用对象，传递给 WorkflowEngine）
         const cancelSignal = { cancelled: false };
@@ -374,7 +340,6 @@ class SummarizerService {
             "Engram",
             () => {
                 cancelSignal.cancelled = true;
-                this.cancelRequested = true;
                 this.log("info", "用户请求取消总结");
                 notificationService.warning("正在取消总结...", "Engram");
             },
@@ -626,17 +591,12 @@ class SummarizerService {
     /**
      * 记录日志
      */
-    private async log(
+    private log(
         level: "debug" | "info" | "success" | "warn" | "error",
         message: string,
         data?: unknown,
-    ): Promise<void> {
-        try {
-            const { Logger } = await import("@/logger/Logger.ts");
-            Logger[level]("Summarizer", message, data);
-        } catch {
-            console.log(`[Summarizer] ${level}: ${message}`, data);
-        }
+    ): void {
+        Logger[level]("Summarizer", message, data);
     }
 }
 

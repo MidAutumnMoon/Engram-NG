@@ -137,9 +137,6 @@ export const Logger = {
         return () => subscribers.delete(callback);
     },
 
-    /**
-     * 清空日志。
-     */
     clear(): void {
         logCache = [];
         Logger.info("Logger", "日志已清空");
