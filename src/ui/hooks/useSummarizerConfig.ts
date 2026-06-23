@@ -52,7 +52,7 @@ export function useSummarizerConfig(): UseSummarizerConfigReturn {
     const loadConfig = async () => {
         try {
             // 加载 Summarizer Service 状态
-            const { summarizerService } = await import("@/modules/memory");
+            const { summarizerService } = await import("@/domain/memory");
             const config = summarizerService.getConfig();
             setSummarizerSettings({
                 autoEnabled: config.enabled,
@@ -93,7 +93,7 @@ export function useSummarizerConfig(): UseSummarizerConfigReturn {
     const saveSummarizerConfig = useCallback(async () => {
         try {
             // 1. 保存 Summarizer Service 配置
-            const { summarizerService } = await import("@/modules/memory");
+            const { summarizerService } = await import("@/domain/memory");
             summarizerService.updateConfig({
                 autoHide: summarizerSettings.autoHide,
                 bufferSize: summarizerSettings.bufferSize,
@@ -106,7 +106,7 @@ export function useSummarizerConfig(): UseSummarizerConfigReturn {
 
             // 3. 同步运行态 EventTrimmer，避免自动触发仍使用旧阈值
             const { eventTrimmer } = await import(
-                "@/modules/memory/EventTrimmer"
+                "@/domain/memory/EventTrimmer"
             );
             eventTrimmer.updateConfig(trimConfig);
 

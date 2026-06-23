@@ -1,4 +1,4 @@
-import type { ReviewAction, ReviewRequest } from "@/sillytavern/ReviewBridge";
+import type { ReviewAction, ReviewRequest } from "@/domain/review/ReviewBridge";
 import { useReviewStore } from "@/state/reviewStore.ts";
 import { ModernButton as Button } from "@/ui/components/core/Button";
 import {

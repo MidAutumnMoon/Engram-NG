@@ -8,7 +8,7 @@ import { getDefaultAPISettings } from "@/config/types/defaults";
 import {
     getTavernHelper,
     WorldInfoService,
-} from "@/sillytavern/worldbook";
+} from "@/domain/worldbook";
 import { useCallback, useEffect, useState } from "react";
 
 export interface UseWorldInfoReturn {

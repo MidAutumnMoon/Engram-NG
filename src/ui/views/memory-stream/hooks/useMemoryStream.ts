@@ -1,7 +1,7 @@
 import { SettingsManager } from "@/config/settings.ts";
 import type { EntityNode, EventNode } from "@/data/types/graph.ts";
-import { embeddingService } from "@/modules/rag/embedding/EmbeddingService.ts";
-import { MacroService } from "@/sillytavern/prompt/macros.ts";
+import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
+import { MacroService } from "@/domain/macros/index.ts";
 import { getCurrentDb, useMemoryStore } from "@/state/memoryStore.ts";
 import { notificationService } from "@/ui/services/NotificationService.ts";
 import {

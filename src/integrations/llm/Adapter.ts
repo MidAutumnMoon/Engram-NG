@@ -224,9 +224,9 @@ class LLMAdapter {
         let finalUserPrompt = request.userPrompt || "";
 
         // Engram Pipeline (RegexProcessor)
-        // Fix P1: 移除导致循环依赖的 @/modules/workflow/steps 导入，改为直接导入
+        // Fix P1: 移除导致循环依赖的 @/domain/workflow/steps 导入，改为直接导入
         const { regexProcessor } = await import(
-            "@/modules/workflow/steps/processing/RegexProcessor"
+            "@/domain/workflow/steps/processing/RegexProcessor"
         );
         finalUserPrompt = regexProcessor.process(finalUserPrompt, "input");
 

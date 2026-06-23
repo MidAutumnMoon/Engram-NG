@@ -13,8 +13,9 @@ import {
 } from "@/config/types/defaults";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getCurrentChatId, getSTContext, MacroService } from "@/sillytavern";
-import { summarizerService } from "@/modules/memory";
+import { getCurrentChatId, getSTContext } from "@/sillytavern";
+import { MacroService } from "@/domain/macros/index.ts";
+import { summarizerService } from "@/domain/memory";
 
 import { useConfigStore } from "@/state/configStore";
 import { useMemoryStore } from "@/state/memoryStore";

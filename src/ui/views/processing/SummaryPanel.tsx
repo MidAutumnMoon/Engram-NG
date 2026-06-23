@@ -13,8 +13,8 @@ import {
     entityBuilder,
     eventTrimmer,
     summarizerService,
-} from "@/modules/memory/index.ts";
-import type { TrimmerStatus } from "@/modules/memory/index.ts";
+} from "@/domain/memory/index.ts";
+import type { TrimmerStatus } from "@/domain/memory/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { SliderField } from "@/ui/components/core/SliderField.tsx";
 import { SwitchField } from "@/ui/components/form/FormComponents.tsx";

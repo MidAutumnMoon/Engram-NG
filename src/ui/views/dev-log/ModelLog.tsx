@@ -91,7 +91,7 @@ const LogCard: React.FC<{
         const countTokens = async () => {
             try {
                 const { WorldInfoService } = await import(
-                    "@/sillytavern/worldbook"
+                    "@/domain/worldbook"
                 );
                 if (
                     !sent.tokensSent && (sent.systemPrompt || sent.userPrompt)

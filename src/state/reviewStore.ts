@@ -6,7 +6,7 @@
  * 这取代了此前用 EventBus 做"邮箱"的间接通信——它本就是应用状态，而非广播。
  */
 import { create } from "zustand";
-import type { ReviewRequest } from "@/sillytavern/ReviewBridge.ts";
+import type { ReviewRequest } from "@/domain/review/ReviewBridge.ts";
 
 interface ReviewState {
     requests: ReviewRequest[];

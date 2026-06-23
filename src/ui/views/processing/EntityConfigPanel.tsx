@@ -9,7 +9,7 @@
  */
 import type { EntityExtractConfig } from "@/config/types/memory";
 import { EventBus } from "@/events";
-import { entityBuilder } from "@/modules/memory/EntityExtractor";
+import { entityBuilder } from "@/domain/memory/EntityExtractor";
 import { SliderField } from "@/ui/components/core/SliderField";
 import { SwitchField } from "@/ui/components/form/FormComponents";
 import { Divider } from "@/ui/components/layout/Divider";

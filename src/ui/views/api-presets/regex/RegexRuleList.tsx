@@ -1,4 +1,4 @@
-import type { RegexRule } from "@/modules/workflow/steps";
+import type { RegexRule } from "@/domain/workflow/steps";
 import { Switch } from "@/ui/components/core/Switch";
 import { GripVertical, Plus, Power, Trash2 } from "lucide-react";
 import React, { useState } from "react";

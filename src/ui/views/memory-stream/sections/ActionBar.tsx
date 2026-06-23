@@ -1,4 +1,4 @@
-import { MacroService } from "@/sillytavern";
+import { MacroService } from "@/domain/macros/index.ts";
 import {
     ArrowDownUp,
     Database,

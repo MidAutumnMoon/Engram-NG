@@ -1,6 +1,6 @@
 import { generateShortUUID } from "@/utils/index.ts";
 import type { EventNode } from "@/data/types/graph.ts";
-import { WorldInfoService } from "@/sillytavern/index.ts";
+import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import type { StateCreator } from "zustand";
 import { getCurrentDb, tryGetCurrentDb } from "./coreSlice.ts";
 

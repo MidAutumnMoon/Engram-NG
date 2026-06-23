@@ -2,7 +2,7 @@ import React from "react";
 import { useConfigStore } from "@/state/configStore";
 import { Switch } from "@/ui/components/core/Switch";
 import { Brain, Eye, ShieldCheck } from "lucide-react";
-import { entityBuilder, summarizerService } from "@/modules/memory";
+import { entityBuilder, summarizerService } from "@/domain/memory";
 
 export const FeaturesTab: React.FC = () => {
     const {
