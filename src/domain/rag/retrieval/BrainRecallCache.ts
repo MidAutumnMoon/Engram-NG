@@ -11,7 +11,6 @@ import type { BrainRecallConfig } from "@/config/types/rag";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 
-const MODULE = "BrainRecallCache";
 
 /**
  * 记忆槽位
@@ -431,7 +430,7 @@ export class BrainRecallCache {
     forget(id: string): void {
         if (this.shortTermMemory.has(id)) {
             this.shortTermMemory.delete(id);
-            Logger.debug(MODULE, `已将 ${id} 从热点记忆中抹除`);
+            Logger.debug(LogModule.BRAIN_RECALL_CACHE, `已将 ${id} 从热点记忆中抹除`);
         }
     }
 }

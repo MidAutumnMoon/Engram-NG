@@ -1,4 +1,5 @@
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { RobustJsonParser } from "@/utils/JsonParser";
 import type { EntityNode } from "@/data/types/graph";
 import { EntityType } from "@/data/types/graph";
@@ -91,7 +92,7 @@ export class SaveEntity implements IStep {
 
         if (hasProcessedData) {
             Logger.debug(
-                "SaveEntity",
+                LogModule.WF_SAVE_ENTITY,
                 "Detected processed data structure, bypassing extraction logic",
             );
             await this.saveProcessedEntities(
@@ -143,7 +144,7 @@ export class SaveEntity implements IStep {
 
         context.output = { newEntities, updatedEntities };
         Logger.info(
-            "SaveEntity",
+            LogModule.WF_SAVE_ENTITY,
             `完成: 新增 ${newEntities.length}, 更新 ${updatedEntities.length} (DryRun: ${isDryRun})`,
         );
     }
@@ -192,7 +193,7 @@ export class SaveEntity implements IStep {
                         outUpdatedEntities.push(entity);
                     } else {
                         Logger.warn(
-                            "SaveEntity",
+                            LogModule.WF_SAVE_ENTITY,
                             "Skipping update for entity without valid ID",
                             entity,
                         );
@@ -268,7 +269,7 @@ export class SaveEntity implements IStep {
                 } else {
                     existing = conflict;
                     Logger.debug(
-                        "SaveEntity",
+                        LogModule.WF_SAVE_ENTITY,
                         `🔭 Duplicate entity detected for "${entityName}", redirecting to merge mode.`,
                     );
                     this.convertRootAddToPatches(
@@ -309,7 +310,7 @@ export class SaveEntity implements IStep {
             return aliasMatches[0];
         } else if (aliasMatches.length > 1) {
             Logger.warn(
-                "SaveEntity",
+                LogModule.WF_SAVE_ENTITY,
                 `⚠️ Alias conflict detected for "${entityName}". Multiple entities share this alias. Falling back to first match to avoid crash, but data overwrite may occur.`,
                 { matches: aliasMatches.map((e) => e.name) },
             );
@@ -397,7 +398,7 @@ export class SaveEntity implements IStep {
 
             if (relativeOps.length > 0) {
                 Logger.debug(
-                    "SaveEntity",
+                    LogModule.WF_SAVE_ENTITY,
                     `Applying ${relativeOps.length} patches to ${entityName}`,
                     { ops: relativeOps },
                 );
@@ -443,7 +444,7 @@ export class SaveEntity implements IStep {
                 }
             }
         } catch (error) {
-            Logger.warn("SaveEntity", `Patch failed for ${entityName}`, error);
+            Logger.warn(LogModule.WF_SAVE_ENTITY, `Patch failed for ${entityName}`, error);
         }
     }
 
@@ -526,7 +527,7 @@ export class SaveEntity implements IStep {
                             : realAnchorPath;
                         if (newPath !== relPath) {
                             Logger.debug(
-                                "SaveEntity",
+                                LogModule.WF_SAVE_ENTITY,
                                 `🔭 Smart Pointer Redirect: ${relPath} -> ${newPath}`,
                             );
                             relPath = newPath;
@@ -584,7 +585,7 @@ export class SaveEntity implements IStep {
             for (const patch of data.patches) {
                 if (!patch.name) {
                     Logger.warn(
-                        "SaveEntity",
+                        LogModule.WF_SAVE_ENTITY,
                         "Skipping legacy patch due to missing name field",
                         { patch },
                     );
@@ -632,7 +633,7 @@ export class SaveEntity implements IStep {
                     }
                 } catch (error) {
                     Logger.warn(
-                        "SaveEntity",
+                        LogModule.WF_SAVE_ENTITY,
                         `Patch failed for ${patch.name}`,
                         error,
                     );
@@ -652,7 +653,7 @@ export class SaveEntity implements IStep {
             });
             return `${name}\n${yamlContent.trim()}`;
         } catch (error) {
-            Logger.warn("SaveEntity", "YAML Dump failed", error);
+            Logger.warn(LogModule.WF_SAVE_ENTITY, "YAML Dump failed", error);
             return `${name} (${type})\n${JSON.stringify(profile, null, 2)}`;
         }
     }

@@ -1,5 +1,6 @@
 import { getSetting } from "@/config/settings";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph";
 import { MacroService } from "@/domain/macros/index.ts";
 import { embeddingService } from "@/domain/rag";
@@ -79,7 +80,7 @@ export class ApplyTrim implements IStep {
         if (
             embeddingConfig?.enabled && embeddingConfig.trigger === "with_trim"
         ) {
-            Logger.info("ApplyTrim", "触发联动嵌入", {
+            Logger.info(LogModule.WF_APPLY_TRIM, "触发联动嵌入", {
                 count: eventsToMerge.length,
             });
             try {
@@ -92,7 +93,7 @@ export class ApplyTrim implements IStep {
                 await embeddingService.embedEvents(eventsToMerge);
                 await store.markEventsAsEmbedded(sourceEventIds);
             } catch (embedError) {
-                Logger.error("ApplyTrim", "联动嵌入失败", {
+                Logger.error(LogModule.WF_APPLY_TRIM, "联动嵌入失败", {
                     error: embedError,
                 });
                 notify("warning", 
@@ -108,7 +109,7 @@ export class ApplyTrim implements IStep {
         // 4. 刷新缓存
         await MacroService.refreshCache();
 
-        Logger.success("ApplyTrim", "精简完成", {
+        Logger.success(LogModule.WF_APPLY_TRIM, "精简完成", {
             merged: eventsToMerge.length,
             newEventId: newEvent.id,
         });

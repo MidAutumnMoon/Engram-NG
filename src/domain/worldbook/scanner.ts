@@ -4,8 +4,8 @@ import { getTavernHelper } from "./adapter.ts";
 import { getEntries } from "./crud.ts";
 import type { WorldInfoEntry } from "./types.ts";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 
-const MODULE = "Worldbook";
 
 /**
  * 获取常驻激活的世界书条目（蓝灯）
@@ -36,7 +36,7 @@ async function getConstantWorldInfo(): Promise<string> {
             return "";
         }
 
-        Logger.debug(MODULE, `回退获取 ${constantEntries.length} 个常驻条目`);
+        Logger.debug(LogModule.WORLDBOOK, `回退获取 ${constantEntries.length} 个常驻条目`);
         return constantEntries.map((e: { content: string }) => e.content).join(
             "\n\n",
         );
@@ -133,7 +133,7 @@ export class WorldbookScannerService {
         // Check if disabled globally and not forced
         const isDisabled = disabledGlobalBooks.includes(worldbookName);
         if (isDisabled && !options?.forceInclude) {
-            Logger.debug(MODULE, `世界书 [${worldbookName}] 全局已禁用`, {
+            Logger.debug(LogModule.WORLDBOOK, `世界书 [${worldbookName}] 全局已禁用`, {
                 forceInclude: false,
             });
             return "";
@@ -161,13 +161,13 @@ export class WorldbookScannerService {
                     config,
                 )
             ) {
-                // Logger.debug(MODULE, `Entry excluded by filter`, { name: entry.name, world: entry.world });
+                // Logger.debug(LogModule.WORLDBOOK, `Entry excluded by filter`, { name: entry.name, world: entry.world });
                 continue;
             }
 
             // 1. 必须启用
             if (!entry.enabled) {
-                // Logger.debug(MODULE, `Entry not enabled`, { name: entry.name });
+                // Logger.debug(LogModule.WORLDBOOK, `Entry not enabled`, { name: entry.name });
                 continue;
             }
 
@@ -196,7 +196,7 @@ export class WorldbookScannerService {
                     activeEntries.push(entry);
                 } else {
                     // Log failed match for specific bound books if needed, but might be spammy
-                    // Logger.warn(MODULE, 'Entry key mismatch', { name: entry.name, keys: entry.keys });
+                    // Logger.warn(LogModule.WORLDBOOK, 'Entry key mismatch', { name: entry.name, keys: entry.keys });
                 }
             } else {
                 // No keys and not constant -> Not activated
@@ -204,7 +204,7 @@ export class WorldbookScannerService {
         }
 
         if (activeEntries.length > 0) {
-            Logger.debug(MODULE, `扫描白名单世界书 [${worldbookName}]`, {
+            Logger.debug(LogModule.WORLDBOOK, `扫描白名单世界书 [${worldbookName}]`, {
                 matched: activeEntries.length,
                 matchedEntries: activeEntries.map((e) => e.name),
                 total: entries.length,
@@ -215,7 +215,7 @@ export class WorldbookScannerService {
         }
         // Log output for bound books that yielded 0 result
         Logger.debug(
-            MODULE,
+            LogModule.WORLDBOOK,
             `扫描白名单世界书 [${worldbookName}] - 无匹配条目`,
             {
                 total: entries.length,
@@ -252,7 +252,7 @@ export class WorldbookScannerService {
 
             if (typeof getWorldInfoPrompt !== "function") {
                 Logger.warn(
-                    MODULE,
+                    LogModule.WORLDBOOK,
                     "getWorldInfoPrompt 不可用，回退到常驻条目",
                 );
                 return getConstantWorldInfo();
@@ -274,7 +274,7 @@ export class WorldbookScannerService {
                         m.mes || ""
                     ).toReversed();
                     if (messages) {
-                        Logger.debug(MODULE, "使用楼层范围扫描", {
+                        Logger.debug(LogModule.WORLDBOOK, "使用楼层范围扫描", {
                             floorRange: options.floorRange,
                             messageCount: messages.length,
                         });
@@ -287,7 +287,7 @@ export class WorldbookScannerService {
                         m.mes || ""
                     ).toReversed();
                     if (messages) {
-                        Logger.debug(MODULE, "使用默认最近消息扫描", {
+                        Logger.debug(LogModule.WORLDBOOK, "使用默认最近消息扫描", {
                             messageCount: messages.length,
                             scanLimit: DEFAULT_SCAN_LIMIT,
                         });
@@ -296,7 +296,7 @@ export class WorldbookScannerService {
             }
 
             if (!messages || messages.length === 0) {
-                Logger.warn(MODULE, "无聊天消息，回退到常驻条目");
+                Logger.warn(LogModule.WORLDBOOK, "无聊天消息，回退到常驻条目");
                 return getConstantWorldInfo();
             }
 
@@ -309,7 +309,7 @@ export class WorldbookScannerService {
             const checkWorldInfo = worldInfoModule?.checkWorldInfo;
 
             if (typeof checkWorldInfo !== "function") {
-                Logger.error(MODULE, "checkWorldInfo 不可用");
+                Logger.error(LogModule.WORLDBOOK, "checkWorldInfo 不可用");
                 return getConstantWorldInfo();
             }
 
@@ -326,7 +326,7 @@ export class WorldbookScannerService {
             const allEntriesSet: Set<any> = result?.allActivatedEntries;
             const entries = allEntriesSet ? [...allEntriesSet.values()] : [];
 
-            Logger.info(MODULE, `扫描完成，共激活 ${entries.length} 个条目`);
+            Logger.info(LogModule.WORLDBOOK, `扫描完成，共激活 ${entries.length} 个条目`);
 
             const filterState = await loadFilteringState();
             const {
@@ -346,7 +346,7 @@ export class WorldbookScannerService {
                 )
             );
 
-            Logger.info(MODULE, "筛选结果", {
+            Logger.info(LogModule.WORLDBOOK, "筛选结果", {
                 filteredOut: entries.length - filteredEntries.length,
                 kept: filteredEntries.length,
                 total: entries.length,
@@ -359,7 +359,7 @@ export class WorldbookScannerService {
                 .filter(Boolean)
                 .join("\n\n");
         } catch (error) {
-            Logger.error(MODULE, "获取激活世界书失败", error);
+            Logger.error(LogModule.WORLDBOOK, "获取激活世界书失败", error);
             return getConstantWorldInfo();
         }
     }

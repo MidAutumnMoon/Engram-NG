@@ -1,5 +1,6 @@
 import "@/ui/styles/main.css";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { getSetting, initSettings } from "@/config/settings.ts";
 import { trimConfigSchema } from "@/config/types/memory.ts";
 import { getDbForChat } from "@/data/db.ts";
@@ -30,14 +31,18 @@ async function tryInit(
         await fn();
         return true;
     } catch (e) {
-        Logger.warn(name, "init failed", { error: String(e) });
+        Logger.warn(
+            LogModule.STBRIDGE,
+            `${name} init failed`,
+            { error: String(e) },
+        );
         return false;
     }
 }
 
 // 1. Core infrastructure
 Logger.init();
-Logger.info("STBridge", "Engram 插件正在初始化...");
+Logger.info(LogModule.STBRIDGE, "Engram 插件正在初始化...");
 
 initSettings();
 
@@ -48,7 +53,10 @@ useUiStore.getState().hydrateFromSettings();
 const savedRegexRules = getSetting("regexRules");
 if (savedRegexRules && savedRegexRules.length > 0) {
     regexProcessor.setRules(savedRegexRules);
-    Logger.info("STBridge", `已加载 ${savedRegexRules.length} 条正则规则`);
+    Logger.info(
+        LogModule.STBRIDGE,
+        `已加载 ${savedRegexRules.length} 条正则规则`,
+    );
 }
 
 // 3. Injection config and chat context
@@ -67,7 +75,9 @@ const injectChatContext = (): void => {
     summarizerService.setChatContext(ctx);
     entityBuilder.setChatContext(ctx);
     eventTrimmer.setChatContext(ctx);
-    Logger.debug("STBridge", "Chat context injected", { chatId: ctx.chatId });
+    Logger.debug(LogModule.STBRIDGE, "Chat context injected", {
+        chatId: ctx.chatId,
+    });
 };
 
 injectChatContext();
@@ -95,6 +105,6 @@ await tryInit("Mount", () => mountEngram());
 if (worldbookReady) await tryInit("MacroService", () => MacroService.init());
 
 Logger.success(
-    "STBridge",
+    LogModule.STBRIDGE,
     "Engram 初始化完成 - Where memories leave their trace.",
 );

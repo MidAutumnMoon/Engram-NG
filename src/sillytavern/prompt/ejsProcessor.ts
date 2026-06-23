@@ -1,4 +1,5 @@
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 
 export class EjsProcessor {
     /**
@@ -14,7 +15,7 @@ export class EjsProcessor {
             typeof EjsTemplate.evaltemplate !== "function"
         ) {
             Logger.debug(
-                "EjsProcessor",
+                LogModule.EJS_PROCESSOR,
                 "ST-Prompt-Template 未检测到，跳过 EJS 处理",
             );
             return entries;
@@ -35,7 +36,7 @@ export class EjsProcessor {
                         context.mvu = mvuObj.stat_data;
                     }
                 } catch (error) {
-                    Logger.warn("EjsProcessor", "获取 MVU 数据失败", error);
+                    Logger.warn(LogModule.EJS_PROCESSOR, "获取 MVU 数据失败", error);
                 }
             }
 
@@ -48,7 +49,7 @@ export class EjsProcessor {
                     );
                 } catch (error) {
                     Logger.warn(
-                        "EjsProcessor",
+                        LogModule.EJS_PROCESSOR,
                         "EJS 渲染单条失败，保留原内容",
                         error,
                     );
@@ -58,7 +59,7 @@ export class EjsProcessor {
 
             return processed;
         } catch (error) {
-            Logger.warn("EjsProcessor", "EJS 预处理失败", error);
+            Logger.warn(LogModule.EJS_PROCESSOR, "EJS 预处理失败", error);
             return entries;
         }
     }

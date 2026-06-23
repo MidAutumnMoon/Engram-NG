@@ -26,8 +26,8 @@ export interface ChatMeta {
 }
 
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 
-const MODULE = "Database";
 
 /**
  * ChatDatabase - 单个聊天的数据库类
@@ -97,7 +97,7 @@ export class ChatDatabase extends Dexie {
                         value: Date.now(),
                     });
                 } catch (error) {
-                    Logger.error(MODULE, "异步更新 lastModified 失败", error);
+                    Logger.error(LogModule.DATABASE, "异步更新 lastModified 失败", error);
                 }
             });
         }, 500);
@@ -118,7 +118,7 @@ export function getDbForChat(chatId: string): ChatDatabase {
     }
 
     if (!dbCache.has(chatId)) {
-        Logger.debug(MODULE, `Creating database for chat: ${chatId}`);
+        Logger.debug(LogModule.DATABASE, `Creating database for chat: ${chatId}`);
         dbCache.set(chatId, new ChatDatabase(chatId));
     }
     return dbCache.get(chatId)!;
@@ -132,7 +132,7 @@ function closeDb(chatId: string): void {
     if (db) {
         db.close();
         dbCache.delete(chatId);
-        Logger.debug(MODULE, `Closed database for chat: ${chatId}`);
+        Logger.debug(LogModule.DATABASE, `Closed database for chat: ${chatId}`);
     }
 }
 
@@ -156,7 +156,7 @@ export function tryGetDbForChat(chatId: string): ChatDatabase | null {
 export async function deleteDatabase(chatId: string): Promise<void> {
     closeDb(chatId);
     await Dexie.delete(`Engram_${chatId}`);
-    Logger.info(MODULE, `Deleted database for chat: ${chatId}`);
+    Logger.info(LogModule.DATABASE, `Deleted database for chat: ${chatId}`);
 }
 
 /**
@@ -197,7 +197,7 @@ export async function getDatabaseStats(chatId: string): Promise<DatabaseStats> {
                 : 0,
         };
     } catch (error) {
-        Logger.error(MODULE, `Failed to get stats for chat ${chatId}`, error);
+        Logger.error(LogModule.DATABASE, `Failed to get stats for chat ${chatId}`, error);
         return { chatId, lastUpdateTime: 0 };
     }
 }

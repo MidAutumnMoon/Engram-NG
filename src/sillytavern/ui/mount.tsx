@@ -8,9 +8,9 @@
  * 如果未来需要热重载或拆卸，需要重新设计这个模块。
  */
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { createRoot } from "react-dom/client";
 
-const MODULE = "TavernMount";
 const ROOT_ID = "engram-root";
 
 let mounted = false;
@@ -37,5 +37,5 @@ export async function mountEngram(): Promise<void> {
     const { EngramRoot } = await import("@/ui/root/EngramRoot.tsx");
     createRoot(root).render(<EngramRoot />);
     mounted = true;
-    Logger.info(MODULE, "React 根已挂载 (#engram-root)");
+    Logger.info(LogModule.TAVERN_UI, "React 根已挂载 (#engram-root)");
 }

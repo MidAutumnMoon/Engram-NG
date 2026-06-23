@@ -2,6 +2,7 @@ import type { IStep } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
 import { regexProcessor } from "./RegexProcessor";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 
 export class CleanRegex implements IStep {
     name = "CleanRegex";
@@ -20,6 +21,6 @@ export class CleanRegex implements IStep {
 
         context.cleanedContent = cleaned;
 
-        Logger.debug("CleanRegex", "正则清洗完成");
+        Logger.debug(LogModule.WF_CLEAN_REGEX, "正则清洗完成");
     }
 }

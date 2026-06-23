@@ -142,7 +142,7 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
         a.download = filename;
         a.click();
         URL.revokeObjectURL(url);
-        Logger.success("DevLog", `日志已导出: ${filename}`);
+        Logger.success(LogModule.DEV_LOG, `日志已导出: ${filename}`);
     }, []);
 
     return (

@@ -4,8 +4,8 @@
  * V0.9.10: 统一模块命名，按业务域划分
  * 格式: `域/功能` 或 `域`
  *
- * 这是日志模块名的**唯一真源**。所有 Logger.* 调用都应使用本枚举成员，
- * 而非裸字符串。新增成员时，ui/views/dev-log/moduleMeta.ts 中的
+ * 这是日志模块名的**唯一真源**。`Logger.*` 签名为 `module: LogModule`，
+ * 编译器会拒绝裸字符串。新增成员时，ui/views/dev-log/moduleMeta.ts 中的
  * MODULE_META 必须同步补全（TS 会通过 Record<LogModule, ...> 的完整性检查
  * 强制执行）。
  */
@@ -63,6 +63,7 @@ export enum LogModule {
 
     // ===== Workflow Steps =====
     WF_FETCH_CONTEXT = "FetchContext",
+    WF_FETCH_EXISTING_ENTITIES = "FetchExistingEntities",
     WF_FETCH_EVENTS_TO_TRIM = "FetchEventsToTrim",
     WF_BUILD_PROMPT = "BuildPrompt",
     WF_LLM_REQUEST = "LlmRequest",
@@ -72,6 +73,8 @@ export enum LogModule {
     WF_KEYWORD_RETRIEVE = "KeywordRetrieveStep",
     WF_USER_REVIEW = "UserReview",
     WF_APPLY_TRIM = "ApplyTrim",
+    WF_EXTRACT_TAGS = "ExtractTags",
+    WF_FORMAT_TRIM_INPUT = "FormatTrimInput",
     WF_SAVE_ENTITY = "SaveEntity",
     WF_SAVE_EVENT = "SaveEvent",
 

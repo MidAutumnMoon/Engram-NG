@@ -21,7 +21,7 @@ export interface LogEntry {
     id: string;
     timestamp: number;
     level: LogLevel;
-    module: string;
+    module: LogModule;
     message: string;
     data?: unknown;
 }
@@ -37,7 +37,7 @@ export interface LogEntry {
  */
 
 import { generateShortUUID } from "@/utils/shortUUID.ts";
-import type { LogModule } from "./LogModule.ts";
+import { LogModule } from "./LogModule.ts";
 
 // 订阅者集合。回调中若抛异常，会被 pushEntry 中的 try/catch 隔离，
 // 不会影响其他订阅者。
@@ -55,7 +55,7 @@ const MAX_LOG_ENTRIES = 5000;
 
 function write(
     level: LogLevel,
-    module: string,
+    module: LogModule,
     message: string,
     data?: unknown,
 ): string {
@@ -94,31 +94,31 @@ export const Logger = {
      */
     init(): void {
         logCache = [];
-        Logger.info("System", "Logger 初始化完成");
+        Logger.info(LogModule.SYSTEM, "Logger 初始化完成");
     },
 
-    debug(module: LogModule | string, message: string, data?: unknown): string {
-        return write(LogLevel.DEBUG, module as string, message, data);
+    debug(module: LogModule, message: string, data?: unknown): string {
+        return write(LogLevel.DEBUG, module, message, data);
     },
 
-    info(module: LogModule | string, message: string, data?: unknown): string {
-        return write(LogLevel.INFO, module as string, message, data);
+    info(module: LogModule, message: string, data?: unknown): string {
+        return write(LogLevel.INFO, module, message, data);
     },
 
     success(
-        module: LogModule | string,
+        module: LogModule,
         message: string,
         data?: unknown,
     ): string {
-        return write(LogLevel.SUCCESS, module as string, message, data);
+        return write(LogLevel.SUCCESS, module, message, data);
     },
 
-    warn(module: LogModule | string, message: string, data?: unknown): string {
-        return write(LogLevel.WARN, module as string, message, data);
+    warn(module: LogModule, message: string, data?: unknown): string {
+        return write(LogLevel.WARN, module, message, data);
     },
 
-    error(module: LogModule | string, message: string, data?: unknown): string {
-        return write(LogLevel.ERROR, module as string, message, data);
+    error(module: LogModule, message: string, data?: unknown): string {
+        return write(LogLevel.ERROR, module, message, data);
     },
 
     /**
@@ -139,6 +139,6 @@ export const Logger = {
 
     clear(): void {
         logCache = [];
-        Logger.info("Logger", "日志已清空");
+        Logger.info(LogModule.LOGGER, "日志已清空");
     },
 };

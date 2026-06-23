@@ -7,9 +7,9 @@
  * 不导入任何 React —— 这一层和 React 解耦，bootstrap 可以在 React 挂载之前就注入按钮。
  */
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { useUiStore } from "@/state/uiStore.ts";
 
-const MODULE = "TavernButtons";
 
 // SillyTavern DOM hooks
 const LEFT_SEND_FORM_SELECTOR = "#leftSendForm";
@@ -66,7 +66,7 @@ let isInjected = false;
 const handleQuickPanelClick = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    Logger.debug(MODULE, "点击打开快捷面板");
+    Logger.debug(LogModule.TAVERN_UI, "点击打开快捷面板");
     useUiStore.getState().openQuickPanel();
 };
 
@@ -76,7 +76,7 @@ const handleQuickPanelClick = (e: MouseEvent) => {
  */
 function injectQuickPanelButton(): boolean {
     if (isInjected) {
-        Logger.debug(MODULE, "按钮已存在，跳过注入");
+        Logger.debug(LogModule.TAVERN_UI, "按钮已存在，跳过注入");
         return true;
     }
 
@@ -85,7 +85,7 @@ function injectQuickPanelButton(): boolean {
     ) as HTMLElement | null;
     if (!leftSendForm) {
         Logger.debug(
-            MODULE,
+            LogModule.TAVERN_UI,
             `${LEFT_SEND_FORM_SELECTOR} 未找到，延迟重试`,
         );
         return false;
@@ -109,7 +109,7 @@ function injectQuickPanelButton(): boolean {
     leftSendForm.append(button);
     isInjected = true;
 
-    Logger.info(MODULE, "按钮注入成功 (#leftSendForm)");
+    Logger.info(LogModule.TAVERN_UI, "按钮注入成功 (#leftSendForm)");
     return true;
 }
 
@@ -125,7 +125,7 @@ export function removeQuickPanelButton(): void {
         );
         button.remove();
         isInjected = false;
-        Logger.debug(MODULE, "按钮已移除");
+        Logger.debug(LogModule.TAVERN_UI, "按钮已移除");
     }
 }
 
@@ -149,7 +149,7 @@ export function initQuickPanelButton(): void {
         if (retryCount < maxRetries) {
             setTimeout(retryInjection, retryInterval);
         } else {
-            Logger.warn(MODULE, "注入超时，已达到最大重试次数");
+            Logger.warn(LogModule.TAVERN_UI, "注入超时，已达到最大重试次数");
         }
     };
 

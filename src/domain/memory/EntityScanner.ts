@@ -1,7 +1,7 @@
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import type { EntityNode, EventNode } from "@/data/types/graph";
 
-const MODULE = "EntityScanner";
 
 /**
  * 封装酒馆原生的正则解析方法
@@ -15,7 +15,7 @@ function parseRegexFromString(input: string): RegExp | null {
         }
     } catch (error) {
         Logger.warn(
-            MODULE,
+            LogModule.ENTITY_SCANNER,
             "无法获取酒馆原生 parseRegexFromString，降级为普通正则",
             error,
         );

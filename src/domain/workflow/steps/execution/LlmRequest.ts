@@ -4,6 +4,7 @@ import { llmAdapter } from "@/integrations/llm/Adapter";
 import { useModelLogStore } from "@/logger/modelLog.ts";
 import { getCurrentCharacter } from "@/sillytavern";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { getSetting } from "@/config/settings";
 
 export class LlmRequest implements IStep {
@@ -83,7 +84,7 @@ export class LlmRequest implements IStep {
                 tokenUsage: response.tokenUsage,
             };
 
-            Logger.debug("LlmRequest", "LLM 请求成功", {
+            Logger.debug(LogModule.WF_LLM_REQUEST, "LLM 请求成功", {
                 duration: Date.now() - startTime,
             });
         } catch (error: any) {

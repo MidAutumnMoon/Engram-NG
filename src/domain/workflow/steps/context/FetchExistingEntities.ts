@@ -2,6 +2,7 @@ import type { IStep } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
 import { useMemoryStore } from "@/state/memoryStore";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 
 export class FetchExistingEntities implements IStep {
     name = "FetchExistingEntities";
@@ -27,7 +28,7 @@ export class FetchExistingEntities implements IStep {
         context.input._rawExistingEntities = entities;
 
         Logger.debug(
-            "FetchExistingEntities",
+            LogModule.WF_FETCH_EXISTING_ENTITIES,
             `获取了 ${entities.length} 个现有实体`,
         );
     }

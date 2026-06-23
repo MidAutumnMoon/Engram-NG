@@ -1,4 +1,5 @@
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 
 const DEFAULTS: ToastrOptions = {
     closeButton: true,
@@ -47,7 +48,7 @@ export function notifyRunning(
         escapeHtml: false,
         onclick: onCancel
             ? () => {
-                Logger.info("Notification", "用户取消操作");
+                Logger.info(LogModule.NOTIFICATION, "用户取消操作");
                 t.remove(toast);
                 onCancel();
             }

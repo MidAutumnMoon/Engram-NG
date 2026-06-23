@@ -1,8 +1,8 @@
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { getSTContext } from "@/sillytavern/context.ts";
 import { getTavernHelper } from "./adapter.ts";
 
-const MODULE = "Worldbook";
 
 /**
  * WorldbookEngramService - Engram 特定的业务逻辑
@@ -35,7 +35,7 @@ export class WorldbookEngramService {
 
             const helper = getTavernHelper();
             if (!helper) {
-                Logger.warn(MODULE, "TavernHelper 不可用");
+                Logger.warn(LogModule.WORLDBOOK, "TavernHelper 不可用");
                 return null;
             }
 
@@ -44,7 +44,7 @@ export class WorldbookEngramService {
             // 先检查是否已经存在该名字的实体世界书
             const allInstalled = helper.getWorldbookNames?.() || [];
             if (!allInstalled.includes(worldbookName)) {
-                Logger.debug(MODULE, "创建新全局世界书", worldbookName);
+                Logger.debug(LogModule.WORLDBOOK, "创建新全局世界书", worldbookName);
                 if (helper.createWorldbook) {
                     await helper.createWorldbook(worldbookName);
                 } else {
@@ -60,7 +60,7 @@ export class WorldbookEngramService {
                 if (!currentGlobal.includes(worldbookName)) {
                     currentGlobal.push(worldbookName);
                     await helper.rebindGlobalWorldbooks(currentGlobal);
-                    Logger.info(MODULE, "世界书已绑定到全局配置", {
+                    Logger.info(LogModule.WORLDBOOK, "世界书已绑定到全局配置", {
                         worldbook: worldbookName,
                     });
                 }
@@ -68,7 +68,7 @@ export class WorldbookEngramService {
 
             return worldbookName;
         } catch (error) {
-            Logger.error(MODULE, "获取/创建全局世界书失败", error);
+            Logger.error(LogModule.WORLDBOOK, "获取/创建全局世界书失败", error);
             return null;
         }
     }

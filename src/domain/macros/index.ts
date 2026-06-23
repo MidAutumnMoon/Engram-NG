@@ -1,6 +1,7 @@
 import { getSetting } from "@/config/settings.ts";
 import type { CustomMacro } from "@/config/types/prompt.ts";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { getSTContext } from "@/sillytavern/index.ts";
 import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
@@ -26,7 +27,7 @@ export class MacroService {
 
             if (!context.registerMacro) {
                 Logger.warn(
-                    "MacroService",
+                    LogModule.MACRO_SERVICE,
                     "SillyTavern registerMacro API 不可用",
                 );
                 return;
@@ -122,7 +123,7 @@ export class MacroService {
             );
 
             this.isInitialized = true;
-            Logger.success("MacroService", "全局宏已注册", {
+            Logger.success(LogModule.MACRO_SERVICE, "全局宏已注册", {
                 macros: [
                     "{{engramSummaries}}",
                     "{{worldbookContext}}",
@@ -145,10 +146,10 @@ export class MacroService {
             const { eventSource } = context;
             if (eventSource) {
                 eventSource.on("chat_id_changed", () => {
-                    Logger.info("MacroService", "聊天切换，清理旧缓存");
+                    Logger.info(LogModule.MACRO_SERVICE, "聊天切换，清理旧缓存");
                     this.clearCache();
                     this.refreshCache().catch((error) =>
-                        Logger.warn("MacroService", "刷新缓存失败", error)
+                        Logger.warn(LogModule.MACRO_SERVICE, "刷新缓存失败", error)
                     );
                 });
 
@@ -156,7 +157,7 @@ export class MacroService {
                 eventSource.on("settings_updated", () => {
                     this.refreshCache().catch((error) =>
                         Logger.warn(
-                            "MacroService",
+                            LogModule.MACRO_SERVICE,
                             "设置更新后刷新缓存失败",
                             error,
                         )
@@ -164,7 +165,7 @@ export class MacroService {
                 });
             }
         } catch (error) {
-            Logger.error("MacroService", "初始化失败", error);
+            Logger.error(LogModule.MACRO_SERVICE, "初始化失败", error);
         }
     }
 
@@ -275,12 +276,12 @@ export class MacroService {
             // 5. 刷新图谱数据 (可选，视性能而定)
             // Await this.refreshGraphCache();
 
-            Logger.debug("MacroService", "Engram DB 缓存已刷新", {
+            Logger.debug(LogModule.MACRO_SERVICE, "Engram DB 缓存已刷新", {
                 recalledCount: effectiveRecalledIds?.length ?? 0,
                 summariesLength: this.cachedSummaries.length,
             });
         } catch (error) {
-            Logger.warn("MacroService", "刷新 Engram DB 缓存失败", error);
+            Logger.warn(LogModule.MACRO_SERVICE, "刷新 Engram DB 缓存失败", error);
         }
     }
 
@@ -298,11 +299,11 @@ export class MacroService {
             // 刷新角色描述
             this.refreshCharDescription();
 
-            Logger.debug("MacroService", "世界书上下文已刷新", {
+            Logger.debug(LogModule.MACRO_SERVICE, "世界书上下文已刷新", {
                 worldbookLength: this.cachedWorldbookContext.length,
             });
         } catch (error) {
-            Logger.debug("MacroService", "获取世界书内容失败", error);
+            Logger.debug(LogModule.MACRO_SERVICE, "获取世界书内容失败", error);
             this.cachedWorldbookContext = "";
         }
     }
@@ -344,12 +345,12 @@ export class MacroService {
                 2,
             );
 
-            Logger.debug("MacroService", "图谱缓存已刷新", {
+            Logger.debug(LogModule.MACRO_SERVICE, "图谱缓存已刷新", {
                 entityCount: entities.length,
                 eventCount: events.length,
             });
         } catch (error) {
-            Logger.warn("MacroService", "刷新图谱缓存失败", error);
+            Logger.warn(LogModule.MACRO_SERVICE, "刷新图谱缓存失败", error);
             this.cachedGraphData = JSON.stringify({
                 events: [],
                 existingEntities: [],
@@ -384,20 +385,20 @@ export class MacroService {
                 ]);
                 this.cachedWorldbookContext = sanitized[0] || "";
             } catch (error) {
-                Logger.debug("MacroService", "获取世界书内容失败", error);
+                Logger.debug(LogModule.MACRO_SERVICE, "获取世界书内容失败", error);
                 this.cachedWorldbookContext = "";
             }
 
             // 刷新角色描述
             this.refreshCharDescription();
 
-            Logger.debug("MacroService", "RAG 召回缓存已全面刷新", {
+            Logger.debug(LogModule.MACRO_SERVICE, "RAG 召回缓存已全面刷新", {
                 entityStatesLength: this.cachedEntityStates.length,
                 recalledCount: recalledIds.length,
                 summariesLength: this.cachedSummaries.length,
             });
         } catch (error) {
-            Logger.warn("MacroService", "刷新 RAG 召回缓存失败", error);
+            Logger.warn(LogModule.MACRO_SERVICE, "刷新 RAG 召回缓存失败", error);
         }
     }
 
@@ -429,7 +430,7 @@ export class MacroService {
                 this.cachedCharDescription = char?.description || "";
             }
         } catch (error) {
-            Logger.debug("MacroService", "刷新角色描述失败", error);
+            Logger.debug(LogModule.MACRO_SERVICE, "刷新角色描述失败", error);
         }
     }
 
@@ -449,11 +450,11 @@ export class MacroService {
             const store = useMemoryStore.getState();
             this.cachedArchivedSummaries = await store
                 .getArchivedEventSummaries();
-            Logger.debug("MacroService", "归档摘要缓存已刷新", {
+            Logger.debug(LogModule.MACRO_SERVICE, "归档摘要缓存已刷新", {
                 length: this.cachedArchivedSummaries.length,
             });
         } catch (error) {
-            Logger.warn("MacroService", "刷新归档摘要失败", error);
+            Logger.warn(LogModule.MACRO_SERVICE, "刷新归档摘要失败", error);
             this.cachedArchivedSummaries = "";
         }
     }
@@ -462,11 +463,11 @@ export class MacroService {
         try {
             const powerUser = getSTContext().powerUserSettings;
             this.cachedUserPersona = powerUser?.persona_description || "";
-            Logger.debug("MacroService", "用户设定缓存已刷新", {
+            Logger.debug(LogModule.MACRO_SERVICE, "用户设定缓存已刷新", {
                 length: this.cachedUserPersona.length,
             });
         } catch (error) {
-            Logger.debug("MacroService", "刷新用户设定失败", error);
+            Logger.debug(LogModule.MACRO_SERVICE, "刷新用户设定失败", error);
             this.cachedUserPersona = "";
         }
     }
@@ -480,7 +481,7 @@ export class MacroService {
             const context = getSTContext();
             if (!context.registerMacro) {
                 Logger.debug(
-                    "MacroService",
+                    LogModule.MACRO_SERVICE,
                     "酒馆 registerMacro 不可用，跳过自定义宏注册",
                 );
                 return;
@@ -509,12 +510,12 @@ export class MacroService {
                 );
             }
 
-            Logger.debug("MacroService", "自定义宏已刷新", {
+            Logger.debug(LogModule.MACRO_SERVICE, "自定义宏已刷新", {
                 count: this.cachedCustomMacros.size,
                 names: [...this.cachedCustomMacros.keys()],
             });
         } catch (error) {
-            Logger.warn("MacroService", "刷新自定义宏失败", error);
+            Logger.warn(LogModule.MACRO_SERVICE, "刷新自定义宏失败", error);
         }
     }
 
@@ -537,7 +538,7 @@ export class MacroService {
             context.registerMacro(name, handler);
         } else {
             Logger.warn(
-                "MacroService",
+                LogModule.MACRO_SERVICE,
                 `无法注册宏 ${name}: 没有可用的 registerMacro API`,
             );
         }

@@ -7,13 +7,13 @@
  */
 
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import type { RegexRule, RegexScope } from "@/config/types/data_processing";
 import {
     DEFAULT_REGEX_RULES,
     REGEX_SCOPE_OPTIONS,
 } from "@/config/types/data_processing";
 
-const MODULE = "RegexProcessor";
 
 // 重新导出以便其他模块使用
 export type { RegexRule, RegexScope };
@@ -48,7 +48,7 @@ export class RegexProcessor {
             return regex;
         } catch (error) {
             Logger.warn(
-                MODULE,
+                LogModule.WF_REGEX_PROCESSOR,
                 `Invalid regex pattern for rule "${rule.name}":`,
                 error,
             );
@@ -78,7 +78,7 @@ export class RegexProcessor {
                     result = result.replace(regex, rule.replacement);
                 } catch (error) {
                     Logger.warn(
-                        MODULE,
+                        LogModule.WF_REGEX_PROCESSOR,
                         `Rule "${rule.name}" execution failed:`,
                         error,
                     );
@@ -98,7 +98,7 @@ export class RegexProcessor {
             try {
                 return text.replace(regex, rule.replacement);
             } catch (error) {
-                Logger.warn(MODULE, `Rule execution failed:`, error);
+                Logger.warn(LogModule.WF_REGEX_PROCESSOR, `Rule execution failed:`, error);
             }
         }
         return text;
@@ -235,7 +235,7 @@ export class RegexProcessor {
             const match = text.match(regex);
             return match?.[1]?.trim() || null;
         } catch (error) {
-            Logger.warn(MODULE, `Failed to capture tag: ${tagName}`, error);
+            Logger.warn(LogModule.WF_REGEX_PROCESSOR, `Failed to capture tag: ${tagName}`, error);
             return null;
         }
     }
@@ -250,7 +250,7 @@ export class RegexProcessor {
             const regex = this.getCachedTagRegex(tagName, "remove");
             return text.replace(regex, "").trim();
         } catch (error) {
-            Logger.warn(MODULE, `Failed to remove tag: ${tagName}`, error);
+            Logger.warn(LogModule.WF_REGEX_PROCESSOR, `Failed to remove tag: ${tagName}`, error);
             return text;
         }
     }

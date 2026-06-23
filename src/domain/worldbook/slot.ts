@@ -6,6 +6,7 @@
  */
 
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { createEntry, findEntryByKey } from "./crud.ts";
 import { WorldbookEngramService } from "./engram.ts";
 
@@ -14,7 +15,6 @@ export const SLOT_ENTRY_KEY = "engram_macro_slot";
 /** 槽位条目外部展示名称 */
 export const SLOT_ENTRY_NAME = "Engram Memory Context";
 
-const MODULE = "Worldbook";
 
 /**
  * WorldBookSlotService 类
@@ -33,7 +33,7 @@ export class WorldBookSlotService {
             const worldbookName = await WorldbookEngramService
                 .getOrCreateWorldbook();
             if (!worldbookName) {
-                Logger.warn(MODULE, "无法获取或创建世界书");
+                Logger.warn(LogModule.WORLDBOOK, "无法获取或创建世界书");
                 return;
             }
 
@@ -44,7 +44,7 @@ export class WorldBookSlotService {
             );
 
             if (existingEntry) {
-                Logger.debug(MODULE, "宏槽位条目已存在", {
+                Logger.debug(LogModule.WORLDBOOK, "宏槽位条目已存在", {
                     name: existingEntry.name,
                     uid: existingEntry.uid,
                 });
@@ -73,16 +73,16 @@ export class WorldBookSlotService {
             });
 
             if (success) {
-                Logger.success(MODULE, "宏槽位条目已创建", {
+                Logger.success(LogModule.WORLDBOOK, "宏槽位条目已创建", {
                     name: SLOT_ENTRY_NAME,
                     worldbook: worldbookName,
                 });
                 this.isInitialized = true;
             } else {
-                Logger.error(MODULE, "创建宏槽位条目失败");
+                Logger.error(LogModule.WORLDBOOK, "创建宏槽位条目失败");
             }
         } catch (error) {
-            Logger.error(MODULE, "初始化失败", error);
+            Logger.error(LogModule.WORLDBOOK, "初始化失败", error);
         }
     }
 

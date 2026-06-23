@@ -2,6 +2,7 @@ import type { IStep } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
 import type { EventNode } from "@/data/types/graph";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 
 export class FormatTrimInput implements IStep {
     name = "FormatTrimInput";
@@ -39,7 +40,7 @@ Significance: ${e.significance_score}`;
         context.input.eventCount = events.length.toString();
 
         Logger.debug(
-            "FormatTrimInput",
+            LogModule.WF_FORMAT_TRIM_INPUT,
             `格式化完成 (${formattedText.length} chars)`,
         );
     }

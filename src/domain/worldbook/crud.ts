@@ -1,4 +1,5 @@
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { getTavernHelper } from "./adapter.ts";
 import type {
     CreateWorldInfoEntryParams,
@@ -6,7 +7,6 @@ import type {
     WorldInfoPosition,
 } from "./types.ts";
 
-const MODULE = "Worldbook";
 
 /**
  * 获取世界书的所有条目
@@ -17,7 +17,7 @@ export async function getEntries(
 ): Promise<WorldInfoEntry[]> {
     const helper = getTavernHelper();
     if (!helper?.getWorldbook) {
-        Logger.warn(MODULE, "TavernHelper 不可用");
+        Logger.warn(LogModule.WORLDBOOK, "TavernHelper 不可用");
         return [];
     }
 
@@ -76,7 +76,7 @@ export async function getEntries(
             };
         });
     } catch (error) {
-        Logger.error(MODULE, "获取世界书条目失败", error);
+        Logger.error(LogModule.WORLDBOOK, "获取世界书条目失败", error);
         return [];
     }
 }
@@ -92,7 +92,7 @@ export async function getWorldbookNames(): Promise<string[]> {
         }
         return [];
     } catch (error) {
-        Logger.error(MODULE, "获取世界书列表失败", error);
+        Logger.error(LogModule.WORLDBOOK, "获取世界书列表失败", error);
         return [];
     }
 }
@@ -104,18 +104,18 @@ export async function getWorldbookNames(): Promise<string[]> {
 export async function deleteWorldbook(worldbookName: string): Promise<boolean> {
     const helper = getTavernHelper();
     if (!helper?.deleteWorldbook) {
-        Logger.warn(MODULE, "TavernHelper.deleteWorldbook 不可用");
+        Logger.warn(LogModule.WORLDBOOK, "TavernHelper.deleteWorldbook 不可用");
         return false;
     }
 
     try {
         const success = await helper.deleteWorldbook(worldbookName);
         if (success) {
-            Logger.info(MODULE, "已删除世界书", worldbookName);
+            Logger.info(LogModule.WORLDBOOK, "已删除世界书", worldbookName);
         }
         return success;
     } catch (error) {
-        Logger.error(MODULE, "删除世界书失败", error);
+        Logger.error(LogModule.WORLDBOOK, "删除世界书失败", error);
         return false;
     }
 }
@@ -132,7 +132,7 @@ export async function createEntry(
     try {
         const helper = getTavernHelper();
         if (!helper?.createWorldbookEntries) {
-            Logger.error(MODULE, "TavernHelper.createWorldbookEntries 不可用");
+            Logger.error(LogModule.WORLDBOOK, "TavernHelper.createWorldbookEntries 不可用");
             return false;
         }
 
@@ -158,7 +158,7 @@ export async function createEntry(
             },
         };
 
-        Logger.debug(MODULE, "创建条目", {
+        Logger.debug(LogModule.WORLDBOOK, "创建条目", {
             contentLength: params.content.length,
             name: params.name,
             worldbook: worldbookName,
@@ -166,10 +166,10 @@ export async function createEntry(
 
         await helper.createWorldbookEntries(worldbookName, [entryData]);
 
-        Logger.info(MODULE, "条目已保存到世界书", worldbookName);
+        Logger.info(LogModule.WORLDBOOK, "条目已保存到世界书", worldbookName);
         return true;
     } catch (error) {
-        Logger.error(MODULE, "创建世界书条目失败", error);
+        Logger.error(LogModule.WORLDBOOK, "创建世界书条目失败", error);
         return false;
     }
 }
@@ -187,7 +187,7 @@ export async function updateEntry(
 ): Promise<boolean> {
     const helper = getTavernHelper();
     if (!helper?.updateWorldbookWith) {
-        Logger.warn(MODULE, "TavernHelper.updateWorldbookWith 不可用");
+        Logger.warn(LogModule.WORLDBOOK, "TavernHelper.updateWorldbookWith 不可用");
         return false;
     }
 
@@ -257,18 +257,18 @@ export async function updateEntry(
                     recursion,
                 };
 
-                Logger.debug(MODULE, "条目已更新 (In-Place)", {
+                Logger.debug(LogModule.WORLDBOOK, "条目已更新 (In-Place)", {
                     name: entries[index].name,
                     uid,
                 });
             } else {
-                Logger.warn(MODULE, "updateEntry 未找到条目", uid);
+                Logger.warn(LogModule.WORLDBOOK, "updateEntry 未找到条目", uid);
             }
             return entries;
         });
         return true;
     } catch (error) {
-        Logger.error(MODULE, "更新世界书条目失败", error);
+        Logger.error(LogModule.WORLDBOOK, "更新世界书条目失败", error);
         return false;
     }
 }
@@ -284,7 +284,7 @@ export async function deleteEntry(
 ): Promise<boolean> {
     const helper = getTavernHelper();
     if (!helper?.deleteWorldbookEntries) {
-        Logger.warn(MODULE, "TavernHelper.deleteWorldbookEntries 不可用");
+        Logger.warn(LogModule.WORLDBOOK, "TavernHelper.deleteWorldbookEntries 不可用");
         return false;
     }
 
@@ -293,10 +293,10 @@ export async function deleteEntry(
             worldbookName,
             (entry: any) => entry.uid === uid,
         );
-        Logger.debug(MODULE, "已删除条目", { uid, worldbook: worldbookName });
+        Logger.debug(LogModule.WORLDBOOK, "已删除条目", { uid, worldbook: worldbookName });
         return true;
     } catch (error) {
-        Logger.error(MODULE, "删除世界书条目失败", error);
+        Logger.error(LogModule.WORLDBOOK, "删除世界书条目失败", error);
         return false;
     }
 }
@@ -312,7 +312,7 @@ export async function deleteEntries(
 ): Promise<boolean> {
     const helper = getTavernHelper();
     if (!helper?.deleteWorldbookEntries) {
-        Logger.warn(MODULE, "TavernHelper.deleteWorldbookEntries 不可用");
+        Logger.warn(LogModule.WORLDBOOK, "TavernHelper.deleteWorldbookEntries 不可用");
         return false;
     }
 
@@ -322,13 +322,13 @@ export async function deleteEntries(
             worldbookName,
             (entry: any) => uidSet.has(entry.uid),
         );
-        Logger.debug(MODULE, "已批量删除条目", {
+        Logger.debug(LogModule.WORLDBOOK, "已批量删除条目", {
             count: uids.length,
             worldbook: worldbookName,
         });
         return true;
     } catch (error) {
-        Logger.error(MODULE, "批量删除世界书条目失败", error);
+        Logger.error(LogModule.WORLDBOOK, "批量删除世界书条目失败", error);
         return false;
     }
 }

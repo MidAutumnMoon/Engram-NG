@@ -1,8 +1,8 @@
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { getEntries } from "@/domain/worldbook/crud.ts";
 import type { WorldInfoEntry, WorldInfoTokenStats } from "./types.ts";
 
-const MODULE = "Worldbook";
 
 /**
  * 获取 SillyTavern 的 tokenizers 模块
@@ -20,7 +20,7 @@ async function getTokenCountAsync(text: string): Promise<number> {
         // Fallback: 字符估算 (约 4 字符 = 1 token)
         return Math.ceil(text.length / 4);
     } catch {
-        Logger.warn(MODULE, "无法使用酒馆 Token 计数，使用估算");
+        Logger.warn(LogModule.WORLDBOOK, "无法使用酒馆 Token 计数，使用估算");
         return Math.ceil(text.length / 4);
     }
 }

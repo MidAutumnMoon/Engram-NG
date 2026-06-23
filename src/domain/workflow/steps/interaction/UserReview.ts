@@ -1,5 +1,6 @@
 import { reviewService } from "@/domain/review/ReviewBridge";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
 import { WorldInfoService } from "@/domain/worldbook";
 import { notify } from "@/sillytavern/notify.ts";
@@ -19,7 +20,7 @@ export class UserReview implements IStep {
 
     async execute(context: JobContext): Promise<StepResult> {
         // V1.0.5: 调试日志
-        Logger.debug("UserReview", "previewEnabled check", {
+        Logger.debug(LogModule.WF_USER_REVIEW, "previewEnabled check", {
             configKeys: Object.keys(context.config),
             previewEnabled: context.config.previewEnabled,
         });
@@ -29,7 +30,7 @@ export class UserReview implements IStep {
             // 如果未启用，直接使用 cleanedContent 或 llmResponse.content
             context.output = context.cleanedContent ||
                 context.llmResponse?.content;
-            Logger.info("UserReview", "Preview disabled, skipping review");
+            Logger.info(LogModule.WF_USER_REVIEW, "Preview disabled, skipping review");
             return; // 默认 next
         }
 
@@ -38,7 +39,7 @@ export class UserReview implements IStep {
 
         // V1.2.1: 如果内容为空，视为生成失败，抛出错误中止流程 (不进入预览)
         if (!contentToReview || !contentToReview.trim()) {
-            Logger.warn("UserReview", "Content is empty, skipping review");
+            Logger.warn(LogModule.WF_USER_REVIEW, "Content is empty, skipping review");
             throw new Error(
                 "生成的摘要内容为空，请检查模型输出或 Token 限制。",
             );
@@ -50,7 +51,7 @@ export class UserReview implements IStep {
             ? `${context.input.range[0]} - ${context.input.range[1]} 楼`
             : "未知范围";
 
-        Logger.info("UserReview", "等待用户修订...");
+        Logger.info(LogModule.WF_USER_REVIEW, "等待用户修订...");
 
         try {
             // 默认动作：确认，取消 (implicit in modal close)
@@ -93,7 +94,7 @@ export class UserReview implements IStep {
                         }
                     } catch (error) {
                         Logger.warn(
-                            "UserReview",
+                            LogModule.WF_USER_REVIEW,
                             "解析 recall_decision 供审阅失败",
                             error,
                         );
@@ -120,14 +121,14 @@ export class UserReview implements IStep {
                 // If user clicks "Fill", they mean "Take this text and put it in chat".
                 // Confirm -> "Take this text and continue flow" (which usually puts it in chat).
                 // So they act similarly here, but intent differs.
-                Logger.info("UserReview", "User chose to Fill/Skip");
+                Logger.info(LogModule.WF_USER_REVIEW, "User chose to Fill/Skip");
                 context.output = result.content;
                 context.metadata.skipToInjection = true;
                 return { action: "finish" };
             }
 
             if (result.action === "reroll") {
-                Logger.info("UserReview", "用户选择重抽 (无反馈)");
+                Logger.info(LogModule.WF_USER_REVIEW, "用户选择重抽 (无反馈)");
                 // 清空旧数据以触发重生成
                 context.input.feedback = "";
                 // V1.3.2: 显式清除输出缓存，防止流程跳回后若 LLM 未生成新内容，SaveEntity 错误读取上一轮的 ProcessedResult
@@ -140,7 +141,7 @@ export class UserReview implements IStep {
             }
 
             if (result.action === "reject") {
-                Logger.info("UserReview", "用户选择打回重生成");
+                Logger.info(LogModule.WF_USER_REVIEW, "用户选择打回重生成");
                 context.input.feedback = result.feedback;
                 context.input.previousOutput = contentToReview;
                 // V1.3.2: 显式清除输出缓存
@@ -154,7 +155,7 @@ export class UserReview implements IStep {
 
             if (result.action === "cancel") {
                 Logger.info(
-                    "UserReview",
+                    LogModule.WF_USER_REVIEW,
                     "User explicitly cancelled via Review UI",
                 );
                 throw new Error("UserCancelled");
@@ -169,7 +170,7 @@ export class UserReview implements IStep {
                 if (context.extractedTags) {
                     if (result.data.query !== undefined) {
                         context.extractedTags.query = result.data.query;
-                        Logger.debug("UserReview", "Query 已更新", {
+                        Logger.debug(LogModule.WF_USER_REVIEW, "Query 已更新", {
                             query: result.data.query,
                         });
                     }
@@ -177,7 +178,7 @@ export class UserReview implements IStep {
                         context.extractedTags.recall_decision = JSON.stringify({
                             recalls: result.data.agenticRecalls,
                         });
-                        Logger.debug("UserReview", "Agentic 召回决策已更新", {
+                        Logger.debug(LogModule.WF_USER_REVIEW, "Agentic 召回决策已更新", {
                             count: result.data.agenticRecalls.length,
                         });
                     }
@@ -194,10 +195,10 @@ export class UserReview implements IStep {
                 context.output = result.content;
             }
 
-            Logger.info("UserReview", "用户确认修订");
+            Logger.info(LogModule.WF_USER_REVIEW, "用户确认修订");
             return { action: "next" };
         } catch {
-            Logger.warn("UserReview", "用户取消操作");
+            Logger.warn(LogModule.WF_USER_REVIEW, "用户取消操作");
             notify("info", "已取消操作", "操作取消");
             throw new Error("UserCancelled", { cause: e });
         }

@@ -1,5 +1,6 @@
 import { getSetting } from "@/config/settings";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { getCurrentCharacter, getSTContext } from "@/sillytavern";
 import { MacroService } from "@/domain/macros/index.ts";
 import { PromptLoader } from "@/integrations/llm/PromptLoader";
@@ -11,7 +12,7 @@ export class FetchContext implements IStep {
     name = "FetchContext";
 
     async execute(context: JobContext): Promise<void> {
-        Logger.debug("FetchContext", "开始获取上下文数据...");
+        Logger.debug(LogModule.WF_FETCH_CONTEXT, "开始获取上下文数据...");
 
         // 1. 获取基础实体信息 (User, Char)
         const char = getCurrentCharacter();
@@ -31,7 +32,7 @@ export class FetchContext implements IStep {
         // 优先使用任务输入中传入的明确范围 (range)，常用于批处理切片执行。
         // 如果未传入 range，则回退到 MacroService 的默认逻辑（通常是获取最近的 N 条消息）。
         const range = context.input.range as [number, number] | undefined;
-        Logger.debug("FetchContext", "开始获取聊天记录", {
+        Logger.debug(LogModule.WF_FETCH_CONTEXT, "开始获取聊天记录", {
             currentStep: context.metadata.currentStep,
             range: range ?? null,
             trigger: context.trigger,
@@ -46,7 +47,7 @@ export class FetchContext implements IStep {
             // V1.0.8: 如果是外部导入模式，跳过向 ST 索取聊天记录，直接使用传入的文本切片
             history = (context.input.text || context.input.chatHistory ||
                 "") as string;
-            Logger.debug("FetchContext", "使用外部导入文本作为上下文", {
+            Logger.debug(LogModule.WF_FETCH_CONTEXT, "使用外部导入文本作为上下文", {
                 bytes: history.length,
             });
         } else {
@@ -59,7 +60,7 @@ export class FetchContext implements IStep {
 
         if (!history && !isImport) {
             Logger.warn(
-                "FetchContext",
+                LogModule.WF_FETCH_CONTEXT,
                 "未获取到任何聊天记录，这可能导致提示词中出现空上下文",
             );
         }
@@ -120,7 +121,7 @@ export class FetchContext implements IStep {
                     template.extraWorldbooks.length > 0
                 ) {
                     Logger.debug(
-                        "FetchContext",
+                        LogModule.WF_FETCH_CONTEXT,
                         `发现模板 [${template.name}] 绑定的额外世界书`,
                         {
                             books: template.extraWorldbooks,
@@ -130,7 +131,7 @@ export class FetchContext implements IStep {
                 }
             }
         } catch (error) {
-            Logger.warn("FetchContext", "获取模板绑定世界书失败", error);
+            Logger.warn(LogModule.WF_FETCH_CONTEXT, "获取模板绑定世界书失败", error);
         }
 
         // 2. 合并并去重
@@ -143,7 +144,7 @@ export class FetchContext implements IStep {
             !name.startsWith("[Engram]")
         );
 
-        Logger.debug("FetchContext", "世界书扫描列表", {
+        Logger.debug(LogModule.WF_FETCH_CONTEXT, "世界书扫描列表", {
             char: charBooks.length,
             extra: extraBooks.length,
             global: globalBooks.length,
@@ -216,7 +217,7 @@ export class FetchContext implements IStep {
         const entityStatesContent = MacroService.getEntityStates();
         context.input.engramEntityStates = entityStatesContent;
 
-        Logger.debug("FetchContext", "上下文获取完成", {
+        Logger.debug(LogModule.WF_FETCH_CONTEXT, "上下文获取完成", {
             historyLen: history?.length || 0,
             summaryLen: summaryContent.length,
             wiLen: wiContent.length,

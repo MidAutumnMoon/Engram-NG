@@ -6,6 +6,7 @@
  */
 
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { type ChatDatabase, getDbForChat } from "./db.ts";
 import { getCurrentCharacter, getCurrentChatId } from "@/sillytavern/index.ts";
 import { DEFAULT_SCOPE_STATE, type ScopeState } from "./types/graph.ts";
@@ -13,7 +14,6 @@ import { DEFAULT_SCOPE_STATE, type ScopeState } from "./types/graph.ts";
 /** Meta 表中的状态 key */
 const STATE_KEY = "scope_state";
 const CHARACTER_KEY = "character_name";
-const MODULE = "ChatManager";
 
 class ChatManager {
     private currentChatId: string | null = null;
@@ -26,7 +26,7 @@ class ChatManager {
     getCurrentDb(): ChatDatabase | null {
         const chatId = getCurrentChatId();
         if (!chatId) {
-            Logger.warn(MODULE, "无法获取 chat_id，上下文可能未就绪");
+            Logger.warn(LogModule.CHAT_MANAGER, "无法获取 chat_id，上下文可能未就绪");
             return null;
         }
 
@@ -34,7 +34,7 @@ class ChatManager {
         if (chatId !== this.currentChatId) {
             this.currentChatId = chatId;
             this.currentDb = getDbForChat(chatId);
-            Logger.debug(MODULE, `切换数据库: Engram_${chatId}`);
+            Logger.debug(LogModule.CHAT_MANAGER, `切换数据库: Engram_${chatId}`);
         }
 
         return this.currentDb;
@@ -71,7 +71,7 @@ class ChatManager {
             }
             return DEFAULT_SCOPE_STATE;
         } catch (error) {
-            Logger.error(MODULE, "获取状态失败:", error);
+            Logger.error(LogModule.CHAT_MANAGER, "获取状态失败:", error);
             return DEFAULT_SCOPE_STATE;
         }
     }
@@ -88,7 +88,7 @@ class ChatManager {
             const newState = { ...currentState, ...partialState };
             await db.meta.put({ key: STATE_KEY, value: newState });
         } catch (error) {
-            Logger.error(MODULE, "更新状态失败:", error);
+            Logger.error(LogModule.CHAT_MANAGER, "更新状态失败:", error);
         }
     }
 

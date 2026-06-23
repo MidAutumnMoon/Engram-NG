@@ -13,9 +13,9 @@
 import { getSettings } from "@/config/settings";
 import type { LLMPreset } from "@/config/types/llm";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { regexProcessor } from "@/domain/workflow/steps/processing/RegexProcessor";
 
-const MODULE = "LLMAdapter";
 
 /** LLM 生成请求 */
 interface LLMRequest {
@@ -158,7 +158,7 @@ class LLMAdapter {
             const errorMsg = error instanceof Error
                 ? error.message
                 : String(error);
-            Logger.error(MODULE, "调用失败", error);
+            Logger.error(LogModule.LLM_ADAPTER, "调用失败", error);
 
             return {
                 content: "",

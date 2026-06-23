@@ -5,9 +5,9 @@
  */
 
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { getRequestHeaders } from "@/sillytavern";
 
-const MODULE = "ModelService";
 
 /**
  * 模型信息
@@ -68,7 +68,7 @@ export class ModelService {
                 return this.getPresetModels(type);
             }
             default: {
-                Logger.warn(MODULE, `Unknown API type: ${type}`);
+                Logger.warn(LogModule.MODEL_SERVICE, `Unknown API type: ${type}`);
                 return [];
             }
         }
@@ -124,15 +124,15 @@ export class ModelService {
                 }));
 
             Logger.info(
-                MODULE,
+                LogModule.MODEL_SERVICE,
                 `Fetched ${models.length} models through Backend Proxy`,
             );
             return models.toSorted((a, b) => a.id.localeCompare(b.id));
         } catch (error: any) {
             if (error.name === "AbortError") {
-                Logger.error(MODULE, "Backend Proxy request timeout");
+                Logger.error(LogModule.MODEL_SERVICE, "Backend Proxy request timeout");
             } else {
-                Logger.error(MODULE, `Backend Proxy error: ${error.message}`);
+                Logger.error(LogModule.MODEL_SERVICE, `Backend Proxy error: ${error.message}`);
             }
             throw error;
         }
@@ -174,10 +174,10 @@ export class ModelService {
                 name: m.name || m.model,
             }));
 
-            Logger.info(MODULE, `Fetched ${models.length} models from Ollama`);
+            Logger.info(LogModule.MODEL_SERVICE, `Fetched ${models.length} models from Ollama`);
             return models;
         } catch (error: any) {
-            Logger.error(MODULE, `Ollama API error: ${error.message}`);
+            Logger.error(LogModule.MODEL_SERVICE, `Ollama API error: ${error.message}`);
             throw error;
         }
     }
@@ -201,7 +201,7 @@ export class ModelService {
         const { apiKey, timeout = this.DEFAULT_TIMEOUT } = config;
 
         if (!apiKey) {
-            Logger.warn(MODULE, "Cohere API key required");
+            Logger.warn(LogModule.MODEL_SERVICE, "Cohere API key required");
             return this.getPresetModels("cohere");
         }
 
@@ -236,12 +236,12 @@ export class ModelService {
                 }));
 
             Logger.info(
-                MODULE,
+                LogModule.MODEL_SERVICE,
                 `Fetched ${models.length} embed models from Cohere`,
             );
             return models;
         } catch (error: any) {
-            Logger.error(MODULE, `Cohere API error: ${error.message}`);
+            Logger.error(LogModule.MODEL_SERVICE, `Cohere API error: ${error.message}`);
             return this.getPresetModels("cohere");
         }
     }

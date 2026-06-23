@@ -2,6 +2,7 @@ import type { IStep } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
 import { useMemoryStore } from "@/state/memoryStore";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph";
 
 export class FetchEventsToTrim implements IStep {
@@ -19,7 +20,7 @@ export class FetchEventsToTrim implements IStep {
             if (context.trigger === "manual") {
                 throw new Error("待合并的事件不足 (需要至少 2 条)");
             } else {
-                Logger.debug("FetchEventsToTrim", "事件不足，无需精简");
+                Logger.debug(LogModule.WF_FETCH_EVENTS_TO_TRIM, "事件不足，无需精简");
                 // 可以设置一个标志让后续步骤跳过
                 context.data = context.data || {};
                 context.data.skipTrimming = true;
@@ -31,7 +32,7 @@ export class FetchEventsToTrim implements IStep {
         context.data.sourceEventIds = eventsToMerge.map((e: EventNode) => e.id);
 
         Logger.debug(
-            "FetchEventsToTrim",
+            LogModule.WF_FETCH_EVENTS_TO_TRIM,
             `获取了 ${eventsToMerge.length} 条待合并事件`,
         );
     }

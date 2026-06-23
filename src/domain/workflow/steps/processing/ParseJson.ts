@@ -1,4 +1,5 @@
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { RobustJsonParser } from "@/utils/JsonParser";
 import type { JobContext } from "../../core/JobContext";
 import type { IStep } from "../../core/Step";
@@ -23,13 +24,13 @@ export class ParseJson implements IStep {
 
         // 防御性校验：如果解析出的对象包含 events 字段，确保它是数组
         if (parsed.events !== undefined && !Array.isArray(parsed.events)) {
-            Logger.warn("ParseJson", "events 字段不是数组，尝试修正", {
+            Logger.warn(LogModule.WF_PARSE_JSON, "events 字段不是数组，尝试修正", {
                 type: typeof parsed.events,
             });
             parsed.events = [];
         }
 
         context.parsedData = parsed;
-        Logger.debug("ParseJson", "JSON 解析成功");
+        Logger.debug(LogModule.WF_PARSE_JSON, "JSON 解析成功");
     }
 }

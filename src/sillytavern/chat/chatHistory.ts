@@ -1,5 +1,6 @@
 import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import type { SummarizerConfig } from "@/domain/memory/types.ts";
 import { getSTContext } from "@/sillytavern/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
@@ -33,7 +34,7 @@ export class ChatHistoryHelper {
                     const sliceEnd = end;
                     messages = context.chat.slice(sliceStart, sliceEnd);
                     Logger.info(
-                        "ChatHistoryHelper",
+                        LogModule.CHAT_HISTORY,
                         "getChatHistory 调试信息",
                         {
                             calcSlice: [sliceStart, sliceEnd],
@@ -56,7 +57,7 @@ export class ChatHistoryHelper {
                         // Slice(lastFloor) 刚好是从 lastFloor (index) 开始，即 floor lastFloor + 1
                         messages = context.chat.slice(lastFloor);
                         Logger.debug(
-                            "ChatHistoryHelper",
+                            LogModule.CHAT_HISTORY,
                             "getChatHistory (Smart Incremental)",
                             {
                                 count: messages.length,
@@ -68,7 +69,7 @@ export class ChatHistoryHelper {
                         const limit = this.getDynamicChatHistoryLimit();
                         messages = context.chat.slice(-limit);
                         Logger.debug(
-                            "ChatHistoryHelper",
+                            LogModule.CHAT_HISTORY,
                             "getChatHistory (Recent Fallback)",
                             { count: messages.length, limit },
                         );
@@ -91,7 +92,7 @@ export class ChatHistoryHelper {
 
                     // 只在第一条消息输出一次诊断信息
                     if (index === 0) {
-                        Logger.debug("ChatHistoryHelper", "TavernHelper 诊断", {
+                        Logger.debug(LogModule.CHAT_HISTORY, "TavernHelper 诊断", {
                             availableMethods: TavernHelper
                                 ? Object.keys(TavernHelper).slice(0, 10)
                                 : [],
@@ -128,7 +129,7 @@ export class ChatHistoryHelper {
                             const didChange = prev !== content;
                             if (index === 0) {
                                 Logger.debug(
-                                    "ChatHistoryHelper",
+                                    LogModule.CHAT_HISTORY,
                                     "TavernHelper 正则结果",
                                     {
                                         afterLength: content.length,
@@ -141,7 +142,7 @@ export class ChatHistoryHelper {
                             if (!content && prev) {
                                 if (index === 0) {
                                     Logger.debug(
-                                        "ChatHistoryHelper",
+                                        LogModule.CHAT_HISTORY,
                                         "TavernHelper stripped content empty! (Recovered)",
                                         { content, prev },
                                     );
@@ -150,14 +151,14 @@ export class ChatHistoryHelper {
                             }
                         } catch (error) {
                             Logger.warn(
-                                "ChatHistoryHelper",
+                                LogModule.CHAT_HISTORY,
                                 "酒馆原生正则清洗失败",
                                 error,
                             );
                         }
                     } else if (index === 0) {
                         Logger.warn(
-                            "ChatHistoryHelper",
+                            LogModule.CHAT_HISTORY,
                             "TavernHelper.formatAsTavernRegexedString 不可用",
                             {
                                 hasFormatFunc,
@@ -172,7 +173,7 @@ export class ChatHistoryHelper {
 
                     if (!content && preRegex) {
                         Logger.warn(
-                            "ChatHistoryHelper",
+                            LogModule.CHAT_HISTORY,
                             "RegexProcessor 清洗后内容为空!",
                             { content, preRegex },
                         );
@@ -180,7 +181,7 @@ export class ChatHistoryHelper {
 
                     // 仅记录第一条和最后一条消息的处理情况以供调试
                     if (index === 0 || index === messages.length - 1) {
-                        Logger.debug("ChatHistoryHelper", "消息处理详情", {
+                        Logger.debug(LogModule.CHAT_HISTORY, "消息处理详情", {
                             index,
                             original: originalContent.slice(0, 50),
                             step1_tavern: preRegex.slice(0, 50),
@@ -193,12 +194,12 @@ export class ChatHistoryHelper {
                 }).join("\n\n"); // 使用双换行分隔，更清晰
             }
             Logger.warn(
-                "ChatHistoryHelper",
+                LogModule.CHAT_HISTORY,
                 "Context chat is empty or invalid",
             );
             return "";
         } catch (error) {
-            Logger.debug("ChatHistoryHelper", "获取对话历史失败", error);
+            Logger.debug(LogModule.CHAT_HISTORY, "获取对话历史失败", error);
             return "";
         }
     }
@@ -235,14 +236,14 @@ export class ChatHistoryHelper {
             // 使用 floorInterval 确保完整覆盖可能出现在上下文中的内容
             const limit = Math.max(1, floorInterval);
             Logger.debug(
-                "ChatHistoryHelper",
+                LogModule.CHAT_HISTORY,
                 "动态计算 chatHistory limit (FloorInterval)",
                 { bufferSize, floorInterval, limit },
             );
             return limit;
         } catch (error) {
             Logger.warn(
-                "ChatHistoryHelper",
+                LogModule.CHAT_HISTORY,
                 "动态计算 limit 失败，使用默认值 20",
                 error,
             );

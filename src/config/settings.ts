@@ -8,6 +8,7 @@
 
 import { z } from "zod";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { getSTContext } from "@/sillytavern/index.ts";
 import { PromptLoader } from "@/integrations/llm/PromptLoader.ts";
 
@@ -181,7 +182,7 @@ export function initSettings(): void {
     const context = getSTContext();
     if (!context.extensionSettings) {
         Logger.warn(
-            "Settings",
+            LogModule.SETTINGS,
             "Cannot init: context.extensionSettings not available",
         );
         return;
@@ -190,7 +191,7 @@ export function initSettings(): void {
     const parsed = engramSettingsSchema.parse(raw ?? {});
     context.extensionSettings[EXTENSION_NAME] = parsed;
     save();
-    Logger.debug("Settings", "Settings initialized and validated");
+    Logger.debug(LogModule.SETTINGS, "Settings initialized and validated");
 }
 
 /**
@@ -213,7 +214,7 @@ export function setSetting<K extends keyof EngramSettings>(
     const context = getSTContext();
     if (!context.extensionSettings) {
         Logger.warn(
-            "Settings",
+            LogModule.SETTINGS,
             "Cannot set: context.extensionSettings not available",
         );
         return;
@@ -227,7 +228,7 @@ export function setSetting<K extends keyof EngramSettings>(
 
     settings[key] = value;
     Logger.debug(
-        "Settings",
+        LogModule.SETTINGS,
         `Set ${String(key)} = ${JSON.stringify(value)}`,
     );
     save();
@@ -240,8 +241,8 @@ function save(): void {
     const context = getSTContext();
     if (context.saveSettingsDebounced) {
         context.saveSettingsDebounced();
-        Logger.debug("Settings", "Saved via context.saveSettingsDebounced");
+        Logger.debug(LogModule.SETTINGS, "Saved via context.saveSettingsDebounced");
     } else {
-        Logger.warn("Settings", "saveSettingsDebounced not available");
+        Logger.warn(LogModule.SETTINGS, "saveSettingsDebounced not available");
     }
 }

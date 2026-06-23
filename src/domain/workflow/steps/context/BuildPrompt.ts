@@ -1,5 +1,6 @@
 import { getSetting } from "@/config/settings";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { PromptLoader } from "@/integrations/llm/PromptLoader";
 import { tryGetDbForChat } from "@/data/db";
 import { getCurrentChatId, getSTContext } from "@/sillytavern";
@@ -62,7 +63,7 @@ export class BuildPrompt implements IStep {
 
             if (template) {
                 Logger.debug(
-                    "BuildPrompt",
+                    LogModule.WF_BUILD_PROMPT,
                     `Using auto-detected enabled template: ${template.name}`,
                 );
             }
@@ -72,7 +73,7 @@ export class BuildPrompt implements IStep {
             // Priority 3: Fallback to builtin default
             template = PromptLoader.getByCategory(category as any);
             Logger.debug(
-                "BuildPrompt",
+                LogModule.WF_BUILD_PROMPT,
                 `Fallback to builtin template: ${template?.name}`,
             );
         }
@@ -111,7 +112,7 @@ export class BuildPrompt implements IStep {
 {{feedback}}
 `;
             userPrompt += feedbackTemplate;
-            Logger.debug("BuildPrompt", "检测到反馈，已自动附加反馈模板");
+            Logger.debug(LogModule.WF_BUILD_PROMPT, "检测到反馈，已自动附加反馈模板");
         }
 
         for (const [key, value] of Object.entries(variables)) {
@@ -187,7 +188,7 @@ export class BuildPrompt implements IStep {
                 userPrompt = substituteParams(userPrompt);
             }
         } catch (error) {
-            Logger.warn("BuildPrompt", "酒馆原生宏替换失败", error);
+            Logger.warn(LogModule.WF_BUILD_PROMPT, "酒馆原生宏替换失败", error);
         }
 
         // 保存结果到 Context
@@ -199,7 +200,7 @@ export class BuildPrompt implements IStep {
         };
 
         Logger.debug(
-            "BuildPrompt",
+            LogModule.WF_BUILD_PROMPT,
             `Prompt 构建完成 (Template: ${template.name})`,
             {
                 systemLen: systemPrompt.length,

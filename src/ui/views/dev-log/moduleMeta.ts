@@ -9,7 +9,6 @@ import {
     Filter,
     GitBranch,
     Inbox,
-    Layers,
     Link as LinkIcon,
     type LucideIcon,
     MessageSquare,
@@ -96,6 +95,10 @@ export const MODULE_META: Record<LogModule, ModuleMeta> = {
 
     // ===== Workflow Steps =====
     [LogModule.WF_FETCH_CONTEXT]: { icon: Workflow, domain: "Workflow" },
+    [LogModule.WF_FETCH_EXISTING_ENTITIES]: {
+        icon: Workflow,
+        domain: "Workflow",
+    },
     [LogModule.WF_FETCH_EVENTS_TO_TRIM]: {
         icon: Workflow,
         domain: "Workflow",
@@ -108,6 +111,8 @@ export const MODULE_META: Record<LogModule, ModuleMeta> = {
     [LogModule.WF_KEYWORD_RETRIEVE]: { icon: Tag, domain: "Workflow" },
     [LogModule.WF_USER_REVIEW]: { icon: MessageSquare, domain: "Workflow" },
     [LogModule.WF_APPLY_TRIM]: { icon: Workflow, domain: "Workflow" },
+    [LogModule.WF_EXTRACT_TAGS]: { icon: Tag, domain: "Workflow" },
+    [LogModule.WF_FORMAT_TRIM_INPUT]: { icon: Workflow, domain: "Workflow" },
     [LogModule.WF_SAVE_ENTITY]: { icon: Save, domain: "Workflow" },
     [LogModule.WF_SAVE_EVENT]: { icon: Save, domain: "Workflow" },
 
@@ -126,20 +131,8 @@ export const MODULE_META: Record<LogModule, ModuleMeta> = {
 };
 
 /**
- * 默认元数据（当模块名不在 MODULE_META 中——例如遗留的字符串调用——时使用）
- */
-export const DEFAULT_MODULE_META: ModuleMeta = {
-    domain: "Unknown",
-    icon: Layers,
-};
-
-/**
  * 按模块名查询元数据。
- *
- * 入参为 `string` 而非 `LogModule`，因为 `LogEntry.module` 当前仍是 string
- * 类型——遗留调用未迁移完毕。返回默认元数据作为兜底。
  */
-export function getModuleMeta(module: string): ModuleMeta {
-    return (MODULE_META as Record<string, ModuleMeta>)[module] ??
-        DEFAULT_MODULE_META;
+export function getModuleMeta(module: LogModule): ModuleMeta {
+    return MODULE_META[module];
 }

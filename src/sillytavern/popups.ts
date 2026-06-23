@@ -5,8 +5,8 @@
  */
 
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 
-const MODULE = "TavernPopup";
 
 export type PopupType = "text" | "confirm" | "input";
 
@@ -35,6 +35,6 @@ export async function callPopup(
         return fn(content, type, inputValue);
     }
 
-    Logger.warn(MODULE, "callPopup not available");
+    Logger.warn(LogModule.TAVERN_UI, "callPopup not available");
     return type === "confirm" ? true : null;
 }

@@ -1,4 +1,5 @@
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph";
 import { hideMessageRange } from "@/sillytavern/chat/hideMessageRange.ts";
 import { MacroService } from "@/domain/macros/index.ts";
@@ -140,7 +141,7 @@ export class SaveEvent implements IStep {
         if (context.config.autoHide && range[1] > 0 && !isImport) {
             const startIndex = range[0] - 1;
             const endIndex = range[1] - 1;
-            Logger.info("SaveEvent", "准备执行自动隐藏", {
+            Logger.info(LogModule.WF_SAVE_EVENT, "准备执行自动隐藏", {
                 autoHide: context.config.autoHide,
                 hideRange: [startIndex, endIndex],
                 isImport,
@@ -148,11 +149,11 @@ export class SaveEvent implements IStep {
                 workflowRange: range,
             });
             hideMessageRange(startIndex, endIndex).catch((error) => {
-                Logger.error("SaveEvent", "自动隐藏失败", error);
+                Logger.error(LogModule.WF_SAVE_EVENT, "自动隐藏失败", error);
             });
         }
 
-        Logger.success("SaveEvent", `已保存 ${savedEvents.length} 个事件`);
+        Logger.success(LogModule.WF_SAVE_EVENT, `已保存 ${savedEvents.length} 个事件`);
         notify("success", `已保存 ${savedEvents.length} 个事件`, "Engram");
     }
 }

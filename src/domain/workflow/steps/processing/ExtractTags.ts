@@ -2,6 +2,7 @@ import type { IStep } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
 import { regexProcessor } from "./RegexProcessor";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 
 export class ExtractTags implements IStep {
     name = "ExtractTags";
@@ -39,7 +40,7 @@ export class ExtractTags implements IStep {
         }
 
         Logger.debug(
-            "ExtractTags",
+            LogModule.WF_EXTRACT_TAGS,
             `提取标签: ${Object.keys(captured).join(", ")}`,
         );
     }
