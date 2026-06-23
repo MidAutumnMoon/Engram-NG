@@ -25,6 +25,10 @@ This file intentionally omits directory layouts, entry-point paths, and module-t
 
 - The `test/` suite is **broken post-fork**. Many tests reference deleted modules (Batch engine, Input Preprocessor, etc.) and stale paths (`@/core/...`). They have not been updated to match the refactor. Do not treat `deno task test` failures as regressions you caused, and don't "fix" the tests unless the task is explicitly about tests.
 - `deno task build` is the source of truth for "does this compile". Run it after structural changes.
+- The agent `grep` tool is **unreliable** currently (tracked: zed#59677). Two failure modes:
+  - Parallel calls with overlapping regexes can swap/corrupt each other's results — including across different regexes, not just identical ones. **Run grep calls sequentially, never in parallel**, unless correctness doesn't matter.
+  - `include_pattern` of the form `<dir>/**/*.ext` (e.g. `src/**/*.ts`) silently returns no matches. Use `**/*.ext` (no directory prefix) or a full literal path instead.
+  - When a grep returns "No matches" and that's surprising, don't trust it — retry with a different pattern form, or cross-check with `find_path` / `deno task build` before concluding the symbol is absent.
 
 ## Look Things Up
 
