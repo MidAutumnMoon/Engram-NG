@@ -1,3 +1,31 @@
+export enum LogLevel {
+    DEBUG = 0,
+    INFO = 1,
+    SUCCESS = 2,
+    WARN = 3,
+    ERROR = 4,
+}
+
+export const LogLevelConfig: Record<
+    LogLevel,
+    { label: string; color: string }
+> = {
+    [LogLevel.DEBUG]: { color: "#6c757d", label: "DEBUG" },
+    [LogLevel.INFO]: { color: "#17a2b8", label: "INFO" },
+    [LogLevel.SUCCESS]: { color: "#28a745", label: "OK" },
+    [LogLevel.WARN]: { color: "#ffc107", label: "WARN" },
+    [LogLevel.ERROR]: { color: "#dc3545", label: "ERROR" },
+};
+
+export interface LogEntry {
+    id: string;
+    timestamp: number;
+    level: LogLevel;
+    module: string;
+    message: string;
+    data?: unknown;
+}
+
 /**
  * Logger - 应用事件日志
  *
@@ -10,8 +38,6 @@
 
 import { generateShortUUID } from "@/utils";
 import type { LogModule } from "./LogModule.ts";
-import type { LogEntry } from "./types.ts";
-import { LogLevel } from "./types.ts";
 
 // 订阅者集合。回调中若抛异常，会被 pushEntry 中的 try/catch 隔离，
 // 不会影响其他订阅者。

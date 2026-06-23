@@ -1,4 +1,4 @@
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
 import type { EventNode } from "@/data/types/graph";
 import { hideMessageRange, MacroService } from "@/sillytavern";
 import { useMemoryStore } from "@/state/memoryStore";

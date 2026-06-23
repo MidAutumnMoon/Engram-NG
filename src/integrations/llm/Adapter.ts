@@ -12,7 +12,7 @@
 
 import { SettingsManager } from "@/config/settings";
 import type { LLMPreset } from "@/config/types/llm";
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
 
 const MODULE = "LLMAdapter";
 

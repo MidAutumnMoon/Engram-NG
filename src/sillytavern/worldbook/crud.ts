@@ -1,4 +1,4 @@
-import { Logger } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
 import { getTavernHelper } from "./adapter.ts";
 import type {
     CreateWorldInfoEntryParams,

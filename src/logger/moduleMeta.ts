@@ -97,7 +97,6 @@ export const MODULE_META: Record<LogModule, ModuleMeta> = {
     [LogModule.RAG_CACHE]: { icon: Inbox, domain: "RAG" },
     [LogModule.INJECTOR]: { icon: Send, domain: "RAG" },
     [LogModule.BRAIN_RECALL_CACHE]: { icon: Inbox, domain: "RAG" },
-    [LogModule.RECALL_LOG]: { icon: FileText, domain: "RAG" },
 
     // ===== 预处理 =====
     [LogModule.PREPROCESS]: { icon: Cpu, domain: "Preprocess" },

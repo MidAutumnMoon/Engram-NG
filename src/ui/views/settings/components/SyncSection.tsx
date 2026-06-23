@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useConfigStore } from "@/state/configStore";
 import { Switch } from "@/ui/components/core/Switch";
 import { getCurrentChatId } from "@/sillytavern";
-import { Logger, LogModule } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 
 export const SyncSection: React.FC = () => {
     const { syncConfig, updateConfig } = useConfigStore();

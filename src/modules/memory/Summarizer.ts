@@ -632,7 +632,7 @@ class SummarizerService {
         data?: unknown,
     ): Promise<void> {
         try {
-            const { Logger } = await import("@/logger");
+            const { Logger } = await import("@/logger/Logger.ts");
             Logger[level]("Summarizer", message, data);
         } catch {
             console.log(`[Summarizer] ${level}: ${message}`, data);

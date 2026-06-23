@@ -1,5 +1,5 @@
 import { SettingsManager } from "@/config/settings.ts";
-import { Logger } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
 import type { SummarizerConfig } from "@/modules/memory/types.ts";
 import { regexProcessor } from "@/modules/workflow/steps/index.ts";
 import { getSTContext } from "@/sillytavern/index.ts";

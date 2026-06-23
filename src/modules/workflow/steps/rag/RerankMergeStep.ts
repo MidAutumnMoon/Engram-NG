@@ -1,7 +1,8 @@
 import { SettingsManager } from "@/config/settings";
 import { DEFAULT_RECALL_CONFIG } from "@/config/types/defaults";
 import type { RecallConfig } from "@/config/types/rag";
-import { Logger, LogModule } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import {
     mergeResults,
     scoreAndSort,

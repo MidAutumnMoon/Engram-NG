@@ -1,4 +1,5 @@
-import { Logger, LogModule } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { generateShortUUID, sleep } from "@/utils";
 import type { JobContext } from "./JobContext";
 import type { IStep, StepResult } from "./Step";

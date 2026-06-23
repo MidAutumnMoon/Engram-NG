@@ -1,4 +1,4 @@
-import { Logger } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
 import { SettingsManager } from "@/config/settings.ts";
 import { getSTContext } from "@/sillytavern/context.ts";
 import { getTavernHelper } from "./adapter.ts";

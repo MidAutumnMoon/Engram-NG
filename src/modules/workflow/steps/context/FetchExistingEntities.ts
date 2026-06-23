@@ -1,7 +1,7 @@
 import type { IStep } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
 import { useMemoryStore } from "@/state/memoryStore";
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
 
 export class FetchExistingEntities implements IStep {
     name = "FetchExistingEntities";

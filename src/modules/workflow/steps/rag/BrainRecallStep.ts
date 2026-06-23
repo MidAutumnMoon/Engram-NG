@@ -4,7 +4,8 @@ import {
     DEFAULT_RECALL_CONFIG,
 } from "@/config/types/defaults";
 import type { BrainRecallConfig, RecallConfig } from "@/config/types/rag";
-import { Logger, LogModule } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { tryGetDbForChat } from "@/data/db";
 import { getCurrentChatId } from "@/sillytavern";
 import {

@@ -12,7 +12,8 @@
  */
 
 import { SettingsManager } from "@/config/settings.ts";
-import { Logger, LogModule } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { useRecallLogStore } from "@/logger/recallLog.ts";
 import { tryGetDbForChat } from "@/data/db.ts";
 import { getCurrentChatId } from "@/sillytavern/index.ts";

@@ -1,4 +1,4 @@
-import { Logger } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
 
 export class EjsProcessor {
     /**

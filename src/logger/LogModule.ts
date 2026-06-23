@@ -52,7 +52,6 @@ export enum LogModule {
     RAG_CACHE = "RAG/Cache",
     INJECTOR = "Injector",
     BRAIN_RECALL_CACHE = "BrainRecallCache",
-    RECALL_LOG = "RecallLogService",
 
     // ===== Preprocess =====
     PREPROCESS = "Preprocess",
@@ -94,31 +93,3 @@ export enum LogModule {
  * 获取所有模块名（供 UI 过滤器使用）
  */
 export const ALL_MODULES = Object.values(LogModule);
-
-/**
- * 按域分组（供 UI 分组下拉菜单使用）
- */
-const MODULE_GROUPS: Record<string, LogModule[]> = {
-    "Batch": [LogModule.BATCH],
-    "Data": [LogModule.DATA_SYNC, LogModule.DATA_CLEANUP, LogModule.DATA_DB],
-    "Integration": [LogModule.TAVERN, LogModule.LLM],
-    "Memory": [
-        LogModule.MEMORY_SUMMARY,
-        LogModule.MEMORY_ENTITY,
-        LogModule.MEMORY_TRIM,
-    ],
-    "Preprocess": [LogModule.PREPROCESS],
-    "RAG": [
-        LogModule.RAG_EMBED,
-        LogModule.RAG_RETRIEVE,
-        LogModule.RAG_RERANK,
-        LogModule.RAG_INJECT,
-        LogModule.RAG_CACHE,
-    ],
-    "System": [LogModule.SYSTEM, LogModule.EVENTS],
-};
-
-function getModuleDomain(module: LogModule): string {
-    const value = module as string;
-    return value.includes("/") ? value.split("/")[0] : value;
-}

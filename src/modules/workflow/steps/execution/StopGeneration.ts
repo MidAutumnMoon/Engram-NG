@@ -1,7 +1,7 @@
 import type { IStep } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
-import { Logger } from "@/logger";
-import { LogModule } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { getSTContext } from "@/sillytavern";
 
 /**

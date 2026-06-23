@@ -1,4 +1,5 @@
-import { Logger, LogModule } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import type { PromptTemplate } from "@/config/types/prompt";
 const promptFiles = import.meta.glob("./prompts/*.yaml", {
     eager: true,

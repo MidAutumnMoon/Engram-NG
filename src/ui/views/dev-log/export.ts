@@ -6,7 +6,7 @@
  */
 
 import manifest from "../../../../manifest.json" with { type: "json" };
-import { Logger, LogLevelConfig } from "@/logger/index.ts";
+import { Logger, LogLevelConfig } from "@/logger/Logger.ts";
 
 /**
  * 格式化时间戳为 HH:MM:SS

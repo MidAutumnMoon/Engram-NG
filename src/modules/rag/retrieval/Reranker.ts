@@ -7,7 +7,8 @@
 
 import { SettingsManager } from "@/config/settings.ts";
 import type { RerankConfig } from "@/config/types/rag.ts";
-import { Logger, LogModule } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 
 // ==================== 类型定义 ====================
 

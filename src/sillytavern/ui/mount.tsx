@@ -7,7 +7,7 @@
  * 生命周期是有意的一次性：createRoot 的返回值被丢弃，没有 unmount/re-render 入口。
  * 如果未来需要热重载或拆卸，需要重新设计这个模块。
  */
-import { Logger } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
 import { createRoot } from "react-dom/client";
 
 const MODULE = "TavernMount";

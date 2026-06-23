@@ -1,4 +1,4 @@
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
 import type { TavernChatMessage } from "../context.ts";
 import { getSTContext } from "../context.ts";
 

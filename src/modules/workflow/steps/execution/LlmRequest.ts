@@ -3,7 +3,7 @@ import type { JobContext } from "../../core/JobContext";
 import { llmAdapter } from "@/integrations/llm/Adapter";
 import { useModelLogStore } from "@/logger/modelLog.ts";
 import { getCurrentCharacter } from "@/sillytavern";
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
 import { SettingsManager } from "@/config/settings";
 
 export class LlmRequest implements IStep {

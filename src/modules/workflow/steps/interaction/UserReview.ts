@@ -1,5 +1,5 @@
 import { reviewService } from "@/sillytavern/ReviewBridge";
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
 import { WorldInfoService } from "@/sillytavern/worldbook";
 import { notificationService } from "@/ui/services/NotificationService";

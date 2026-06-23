@@ -11,7 +11,8 @@ import {
     DEFAULT_RECALL_CONFIG,
     getDefaultAPISettings,
 } from "@/config/types/defaults";
-import { Logger, LogModule } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { getCurrentChatId, getSTContext, MacroService } from "@/sillytavern";
 import { summarizerService } from "@/modules/memory";
 

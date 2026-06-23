@@ -1,6 +1,6 @@
 import { SettingsManager } from "@/config/settings.ts";
 import type { CustomMacro } from "@/config/types/prompt.ts";
-import { Logger } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
 import { getSTContext, WorldInfoService } from "@/sillytavern/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { ChatHistoryHelper } from "../chat/chatHistory.ts";

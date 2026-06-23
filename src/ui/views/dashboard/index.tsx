@@ -7,7 +7,7 @@
  * - 双栏布局：左侧系统状态，右侧功能开关
  */
 import { NAV_ITEMS } from "@/ui/navigation";
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
 import type { LogEntry } from "@/logger/types";
 import { Switch } from "@/ui/components/core/Switch";
 import { PageTitle } from "@/ui/components/display/PageTitle";

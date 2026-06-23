@@ -27,8 +27,9 @@ import {
     Zap,
 } from "lucide-react";
 import { PageTitle } from "@/ui/components/display/PageTitle";
-import type { LogEntry, LogLevel } from "@/logger";
-import { ALL_MODULES, Logger, LogLevelConfig } from "@/logger";
+import type { LogEntry, LogLevel } from "@/logger/Logger.ts";
+import { Logger, LogLevelConfig } from "@/logger/Logger.ts";
+import { ALL_MODULES } from "@/logger/LogModule.ts";
 import { exportLogsToMarkdown, getExportFilename } from "./export.ts";
 import { groupLogsByModule, LogEntryItem, LogGroup } from "./LogEntryItem.tsx";
 import { ModelLog } from "./ModelLog";

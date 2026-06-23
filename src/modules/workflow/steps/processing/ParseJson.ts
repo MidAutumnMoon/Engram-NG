@@ -1,4 +1,4 @@
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
 import { RobustJsonParser } from "@/utils/JsonParser";
 import type { JobContext } from "../../core/JobContext";
 import type { IStep } from "../../core/Step";

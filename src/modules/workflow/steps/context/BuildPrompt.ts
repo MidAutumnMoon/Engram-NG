@@ -1,5 +1,5 @@
 import { getBuiltInTemplateByCategory } from "@/config/types/defaults";
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
 import { PromptLoader } from "@/integrations/llm/PromptLoader";
 import { getCurrentChatId, getSTContext } from "@/sillytavern";
 import type { JobContext } from "../../core/JobContext";

@@ -1,5 +1,6 @@
 import { SettingsManager } from "@/config/settings";
-import { Logger, LogModule } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { tryGetDbForChat } from "@/data/db";
 import { getCurrentChatId } from "@/sillytavern";
 import { matchEvent, scanEntities } from "@/modules/memory/EntityScanner";

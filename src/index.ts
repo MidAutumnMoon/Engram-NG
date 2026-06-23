@@ -1,5 +1,5 @@
 import "@/ui/styles/main.css";
-import { Logger } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
 import { SettingsManager } from "@/config/settings.ts";
 import { DEFAULT_TRIM_CONFIG } from "@/config/types/defaults.ts";
 import type { TrimConfig } from "@/config/types/memory.ts";

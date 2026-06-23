@@ -5,7 +5,7 @@
  * 这是 WorldBook 在新架构中的唯一用途：作为宏注入的载体
  */
 
-import { Logger } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
 import { createEntry, findEntryByKey } from "./crud.ts";
 import { WorldbookEngramService } from "./engram.ts";
 

@@ -6,7 +6,8 @@
 
 import { DEFAULT_TRIM_CONFIG } from "@/config/types/defaults.ts";
 import type { TrimConfig } from "@/config/types/memory.ts";
-import { Logger, LogModule } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import type { ChatDatabase } from "@/data/db.ts";
 import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine.ts";

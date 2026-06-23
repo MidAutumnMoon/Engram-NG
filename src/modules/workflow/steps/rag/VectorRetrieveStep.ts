@@ -1,6 +1,7 @@
 import { SettingsManager } from "@/config/settings";
 import { DEFAULT_RECALL_CONFIG } from "@/config/types/defaults";
-import { Logger, LogModule } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { tryGetDbForChat } from "@/data/db";
 import { getCurrentChatId } from "@/sillytavern";
 import { embeddingService } from "@/modules/rag/embedding/EmbeddingService";

@@ -1,5 +1,6 @@
 import { SettingsManager } from "@/config/settings.ts";
-import { Logger, LogModule } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { getSTContext } from "@/sillytavern/index.ts";
 import { callPopup } from "@/sillytavern/index.ts";
 import { WorldInfoService } from "@/sillytavern/worldbook/index.ts";

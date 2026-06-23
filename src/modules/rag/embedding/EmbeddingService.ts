@@ -8,7 +8,8 @@
  */
 
 import type { VectorConfig } from "@/config/types/rag";
-import { Logger, LogModule } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { getDbForChat, tryGetDbForChat } from "@/data/db";
 import type { EventNode } from "@/data/types/graph";
 import { EmbeddingClient } from "@/integrations/embedding/EmbeddingClient";

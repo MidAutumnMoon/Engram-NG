@@ -4,7 +4,7 @@
  * 仅做 host 调用与类型收窄；弹窗 UI 由 ST 本身渲染。
  */
 
-import { Logger } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
 
 const MODULE = "TavernPopup";
 

@@ -1,4 +1,5 @@
-import { Logger, LogModule } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { useRecallLogStore } from "@/logger/recallLog.ts";
 import { WorldbookScannerService } from "@/sillytavern/worldbook/scanner";
 import type { ScoredEvent } from "@/modules/rag/retrieval/HybridScorer";

@@ -6,7 +6,7 @@
  *
  * 不导入任何 React —— 这一层和 React 解耦，bootstrap 可以在 React 挂载之前就注入按钮。
  */
-import { Logger } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
 import { useUiStore } from "@/state/uiStore.ts";
 
 const MODULE = "TavernButtons";

@@ -1,4 +1,4 @@
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
 import { getCurrentCharacter, getSTContext, MacroService } from "@/sillytavern";
 import { WorldInfoService } from "@/sillytavern/worldbook";
 import type { JobContext } from "../../core/JobContext";

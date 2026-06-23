@@ -1,7 +1,7 @@
 import type { RegexRule } from "@/config/types/data_processing.ts";
 import type { EngramAPISettings } from "@/config/types/defaults.ts";
 import type { PromptTemplate } from "@/config/types/prompt.ts";
-import { Logger } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
 import { getSTContext } from "@/sillytavern/index.ts";
 
 export interface EngramSettings {

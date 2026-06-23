@@ -4,7 +4,7 @@
  * 支持从各类 API 端点获取可用模型列表
  */
 
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
 import { getRequestHeaders } from "@/sillytavern";
 
 const MODULE = "ModelService";

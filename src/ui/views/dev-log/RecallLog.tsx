@@ -20,7 +20,7 @@ import {
     Zap,
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
-import type { RecallLogEntry, RecallResultItem } from "@/logger/index.ts";
+import type { RecallLogEntry, RecallResultItem } from "@/logger/recallLog.ts";
 
 // 响应式断点
 const DESKTOP_BREAKPOINT = 768;

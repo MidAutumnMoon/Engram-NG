@@ -1,4 +1,4 @@
-import { Logger } from "@/logger";
+import { Logger } from "@/logger/Logger.ts";
 import { RobustJsonParser } from "@/utils/JsonParser";
 import type { EntityNode } from "@/data/types/graph";
 import { EntityType } from "@/data/types/graph";

@@ -4,7 +4,8 @@
  * V0.8.5: 用于合并 Embedding 相似度分数和 Rerank 分数
  */
 
-import { Logger, LogModule } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 
 // ==================== 类型定义 ====================

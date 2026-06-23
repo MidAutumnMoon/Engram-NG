@@ -25,7 +25,7 @@ export interface ChatMeta {
     value: unknown;
 }
 
-import { Logger } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
 
 const MODULE = "Database";
 

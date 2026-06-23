@@ -1,4 +1,4 @@
-import { Logger } from "@/logger/index.ts";
+import { Logger } from "@/logger/Logger.ts";
 import { getEntries } from "@/sillytavern/worldbook/crud.ts";
 import type { WorldInfoEntry, WorldInfoTokenStats } from "./types.ts";
 
