@@ -1,5 +1,5 @@
 import { Logger, LogModule } from "@/logger";
-import { RecallLogService } from "@/logger/RecallLogger";
+import { useRecallLogStore } from "@/logger/recallLog.ts";
 import { WorldbookScannerService } from "@/sillytavern/worldbook/scanner";
 import type { ScoredEvent } from "@/modules/rag/retrieval/HybridScorer";
 import type { JobContext } from "../../core/JobContext";
@@ -38,7 +38,7 @@ export class RecordRecallLogStep implements IStep {
             Logger.debug(LogModule.RAG_INJECT, "获取世界书条目统计失败");
         }
 
-        RecallLogService.log({
+        useRecallLogStore.getState().record({
             brainStats: context.data.brainStats,
             mode: mode as "hybrid" | "agentic",
             preprocessedQuery: unifiedQueries?.[0],

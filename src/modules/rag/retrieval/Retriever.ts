@@ -13,7 +13,7 @@
 
 import { SettingsManager } from "@/config/settings.ts";
 import { Logger, LogModule } from "@/logger/index.ts";
-import { RecallLogService } from "@/logger/RecallLogger.ts";
+import { useRecallLogStore } from "@/logger/recallLog.ts";
 import { tryGetDbForChat } from "@/data/db.ts";
 import { getCurrentChatId } from "@/sillytavern/index.ts";
 
@@ -405,7 +405,7 @@ class Retriever {
 
         // 4. 记录召回日志 (如果是手动测试确认，则跳过日志记录)
         if (!options?.isManualTest) {
-            RecallLogService.log({
+            useRecallLogStore.getState().record({
                 mode: (options?.mode as any) || "agentic",
                 query: options?.mode === "hybrid"
                     ? "[Hybrid Preview Mode]"

@@ -7,7 +7,7 @@
  * - 移动端：全屏详情
  */
 
-import { RecallLogService } from "@/logger/RecallLogger";
+import { useRecallLogStore } from "@/logger/recallLog.ts";
 import {
     ArrowLeft,
     ChevronRight,
@@ -509,9 +509,8 @@ const DetailPanel: React.FC<DetailPanelProps> = (
 // ==================== RecallLog 主组件 ====================
 
 export const RecallLog: React.FC = () => {
-    const [logs, setLogs] = useState<RecallLogEntry[]>(
-        RecallLogService.getLogs(),
-    );
+    const logs = useRecallLogStore((s) => s.entries);
+    const clearLogs = useRecallLogStore((s) => s.clear);
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [isMobile, setIsMobile] = useState(
         window.innerWidth < DESKTOP_BREAKPOINT,
@@ -525,14 +524,6 @@ export const RecallLog: React.FC = () => {
         };
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
-    }, []);
-
-    // 订阅日志更新
-    useEffect(() => {
-        const unsubscribe = RecallLogService.subscribe((newLogs) => {
-            setLogs(newLogs);
-        });
-        return unsubscribe;
     }, []);
 
     // 选中的日志
@@ -583,7 +574,7 @@ export const RecallLog: React.FC = () => {
                 </div>
                 <button
                     className="p-1.5 rounded-md text-muted-foreground hover:text-destructive transition-colors"
-                    onClick={() => RecallLogService.clear()}
+                    onClick={() => clearLogs()}
                     title="清除日志"
                 >
                     <Trash2 size={14} />
