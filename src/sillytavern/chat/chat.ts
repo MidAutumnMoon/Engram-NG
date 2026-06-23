@@ -37,19 +37,11 @@ export async function hideMessageRange(
         // 统一在执行隐藏后尝试强制保存聊天状态，避免刷新后隐藏失效（SillyTavern 的常见坑）
         setTimeout(async () => {
             try {
-                const scriptPath = "/script.js";
-                const scriptModule = await import(
-                    /* @vite-ignore */ scriptPath
+                await SillyTavern.saveChat();
+                Logger.debug(
+                    MODULE,
+                    `Chat explicitly saved after hiding range: ${start}-${end}`,
                 );
-                if (
-                    scriptModule && typeof scriptModule.saveChat === "function"
-                ) {
-                    await scriptModule.saveChat();
-                    Logger.debug(
-                        MODULE,
-                        `Chat explicitly saved after hiding range: ${start}-${end}`,
-                    );
-                }
             } catch (error) {
                 Logger.warn(
                     MODULE,
