@@ -1,9 +1,5 @@
 import { Logger } from "@/logger";
-import {
-    getCurrentCharacter,
-    getCurrentChat,
-    MacroService,
-} from "@/sillytavern";
+import { getCurrentCharacter, getSTContext, MacroService } from "@/sillytavern";
 import { WorldInfoService } from "@/sillytavern/worldbook";
 import type { JobContext } from "../../core/JobContext";
 import type { IStep } from "../../core/Step";
@@ -162,7 +158,7 @@ export class FetchContext implements IStep {
         // 4. 获取扫描文本
         let scanText = "";
         if (range) {
-            const chat = getCurrentChat();
+            const chat = getSTContext()?.chat;
             if (chat && Array.isArray(chat)) {
                 // Range is 1-based
                 const msgs = chat.slice(Math.max(0, range[0] - 1), range[1]);

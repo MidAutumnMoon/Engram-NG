@@ -4,7 +4,7 @@
  * 提供聊天消息获取、楼层计数等功能
  */
 
-import { getSTContext, isSTAvailable } from "@/sillytavern";
+import { getSTContext } from "@/sillytavern";
 import type { TavernChatMessage } from "@/sillytavern";
 
 /** 消息角色类型 */
@@ -172,6 +172,6 @@ export class MessageService {
      * 检查 MessageService 是否可用
      */
     static isAvailable(): boolean {
-        return isSTAvailable();
+        return getSTContext() !== null;
     }
 }

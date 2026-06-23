@@ -35,14 +35,6 @@ export function getSTContext(): TavernContext | null {
 }
 
 /**
- * 获取当前聊天记录
- */
-export function getCurrentChat(): TavernChatMessage[] {
-    const ctx = getSTContext();
-    return ctx?.chat || [];
-}
-
-/**
  * 获取当前聊天 ID
  */
 export function getCurrentChatId(): string | null {
@@ -60,13 +52,6 @@ export function getCurrentCharacter(): { name: string; id: string } | null {
         id: ctx.characterId,
         name: ctx.name2,
     };
-}
-
-/**
- * 检查 ST 上下文是否可用
- */
-export function isSTAvailable(): boolean {
-    return getSTContext() !== null;
 }
 
 /** 取消订阅函数 */
@@ -89,6 +74,10 @@ export function onTavernEvent(
 
 /**
  * 获取请求头 (包含 CSRF Token)
+ *
+ * FIXME: 当前的 fallback 在生产中是安全戏剧——如果 ST 上下文拿不到，整个扩展本来就
+ * 无法工作，且没有 CSRF header 的请求会被 ST 拒绝。这个 fallback 只是把硬失败
+ * 变成软失败，反而更难排查。考虑直接抛错或返回 null 由调用方处理。
  */
 export function getRequestHeaders(): Record<string, string> {
     const ctx = getSTContext();
