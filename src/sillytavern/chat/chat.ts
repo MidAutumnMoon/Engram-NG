@@ -1,6 +1,4 @@
 import { Logger } from "@/logger/Logger.ts";
-import type { TavernChatMessage } from "../context.ts";
-import { getSTContext } from "../context.ts";
 
 const MODULE = "TavernChat";
 
@@ -62,62 +60,5 @@ export async function hideMessageRange(
         }, 800);
     } catch (error) {
         Logger.error(MODULE, "Failed to hide messages:", error);
-    }
-}
-
-/**
- * 注入一条消息到聊天记录
- * @param role 角色 ('user' | 'char')
- * @param content 消息内容
- * @param name 发送者名称 (可选，默认使用当前角色或用户名)
- */
-export async function injectMessage(
-    role: "user" | "char",
-    content: string,
-    name?: string,
-): Promise<void> {
-    try {
-        const ctx = getSTContext();
-
-        const senderName = name || (role === "user" ? ctx.name1 : ctx.name2);
-
-        // 动态导入 chats.js 中的核心函数
-        const chatsPath = "/scripts/chats.js";
-        const scriptPath = "/script.js";
-
-        // 1. 获取必要的模块
-        const chatsModule = await import(/* @vite-ignore */ chatsPath);
-        const scriptModule = await import(/* @vite-ignore */ scriptPath);
-
-        if (!ctx.chat) throw new Error("Chat array unavailable");
-
-        const newMessage: TavernChatMessage = {
-            name: senderName,
-            is_user: role === "user",
-            is_system: false,
-            send_date: Date.now(),
-            mes: content,
-            force_avatar: role === "char"
-                ? scriptModule.characters[ctx.characterId]?.avatar
-                : undefined,
-        };
-
-        // 3. 推入聊天记录
-        ctx.chat.push(newMessage);
-
-        // 4. 保存并刷新
-        if (scriptModule.saveChat) {
-            await scriptModule.saveChat();
-        }
-
-        // 5. 刷新界面
-        if (scriptModule.reloadCurrentChat) {
-            await scriptModule.reloadCurrentChat();
-        }
-
-        Logger.info(MODULE, "已注入消息", { length: content.length, role });
-    } catch (error) {
-        Logger.error(MODULE, "Failed to inject message:", error);
-        throw error;
     }
 }
