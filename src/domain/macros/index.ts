@@ -7,7 +7,7 @@ import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
 import { regexProcessor } from "@/domain/workflow/steps/index.ts";
-import { EjsProcessor } from "@/sillytavern/prompt/ejsProcessor.ts";
+import { processEjs } from "@/sillytavern/prompt/ejsProcessor.ts";
 
 /**
  * MacroService 类
@@ -146,10 +146,17 @@ export class MacroService {
             const { eventSource } = context;
             if (eventSource) {
                 eventSource.on("chat_id_changed", () => {
-                    Logger.info(LogModule.MACRO_SERVICE, "聊天切换，清理旧缓存");
+                    Logger.info(
+                        LogModule.MACRO_SERVICE,
+                        "聊天切换，清理旧缓存",
+                    );
                     this.clearCache();
                     this.refreshCache().catch((error) =>
-                        Logger.warn(LogModule.MACRO_SERVICE, "刷新缓存失败", error)
+                        Logger.warn(
+                            LogModule.MACRO_SERVICE,
+                            "刷新缓存失败",
+                            error,
+                        )
                     );
                 });
 
@@ -281,7 +288,11 @@ export class MacroService {
                 summariesLength: this.cachedSummaries.length,
             });
         } catch (error) {
-            Logger.warn(LogModule.MACRO_SERVICE, "刷新 Engram DB 缓存失败", error);
+            Logger.warn(
+                LogModule.MACRO_SERVICE,
+                "刷新 Engram DB 缓存失败",
+                error,
+            );
         }
     }
 
@@ -293,7 +304,7 @@ export class MacroService {
         try {
             // 刷新世界书上下文 (支持 EJS)
             const rawContext = await WorldInfoService.getActivatedWorldInfo();
-            const sanitized = await EjsProcessor.processEJSMacros([rawContext]);
+            const sanitized = await processEjs([rawContext]);
             this.cachedWorldbookContext = sanitized[0] || "";
 
             // 刷新角色描述
@@ -380,12 +391,16 @@ export class MacroService {
             try {
                 const rawContext = await WorldInfoService
                     .getActivatedWorldInfo();
-                const sanitized = await EjsProcessor.processEJSMacros([
+                const sanitized = await processEjs([
                     rawContext,
                 ]);
                 this.cachedWorldbookContext = sanitized[0] || "";
             } catch (error) {
-                Logger.debug(LogModule.MACRO_SERVICE, "获取世界书内容失败", error);
+                Logger.debug(
+                    LogModule.MACRO_SERVICE,
+                    "获取世界书内容失败",
+                    error,
+                );
                 this.cachedWorldbookContext = "";
             }
 
@@ -398,7 +413,11 @@ export class MacroService {
                 summariesLength: this.cachedSummaries.length,
             });
         } catch (error) {
-            Logger.warn(LogModule.MACRO_SERVICE, "刷新 RAG 召回缓存失败", error);
+            Logger.warn(
+                LogModule.MACRO_SERVICE,
+                "刷新 RAG 召回缓存失败",
+                error,
+            );
         }
     }
 
