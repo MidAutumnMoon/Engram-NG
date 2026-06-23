@@ -118,7 +118,7 @@ export class EmbeddingService {
         }
 
         this.stopSignal = false;
-        const results: EmbedResult[] = new Array(requests.length);
+        const results: EmbedResult[] = Array.from({ length: requests.length });
         let completed = 0;
         let errors = 0;
 

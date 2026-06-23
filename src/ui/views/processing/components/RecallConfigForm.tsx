@@ -3,12 +3,10 @@ import { Switch } from "@/ui/components/core/Switch.tsx";
 import { NumberField } from "@/ui/components/form/FormComponents.tsx";
 import {
     AlertTriangle,
-    BrainCircuit,
     Database,
     Layers,
     Network,
     Search,
-    Sliders,
     Sparkles,
     Zap,
 } from "lucide-react";

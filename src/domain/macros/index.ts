@@ -547,7 +547,7 @@ export class MacroService {
     private static registerMacro(
         name: string,
         handler: () => string,
-        description: string,
+        _description: string,
     ) {
         const context = getSTContext();
 

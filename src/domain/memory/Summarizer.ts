@@ -399,8 +399,6 @@ class SummarizerService {
             });
 
             // 3. Construct Result (Backward Compatibility)
-            const savedEvents = context.output; // From SaveEvent (Array of EventNodes)
-
             // If SaveEvent returns array of events, we construct a SummaryResult-like object
             // Or just return the list. Original method returned SummaryResult (single object).
             // But now we have multiple events potentially.

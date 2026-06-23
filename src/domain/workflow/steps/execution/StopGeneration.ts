@@ -11,7 +11,7 @@ import { getSTContext } from "@/sillytavern/index.ts";
 export class StopGeneration implements IStep {
     name = "StopGeneration";
 
-    async execute(context: JobContext): Promise<void> {
+    async execute(_context: JobContext): Promise<void> {
         Logger.info(LogModule.SYSTEM, "执行 StopGeneration 步骤");
         await StopGeneration.abort();
     }

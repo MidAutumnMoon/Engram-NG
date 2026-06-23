@@ -96,13 +96,6 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
         });
     };
 
-    // 更新上下文设置
-    const updateContext = (key: keyof typeof preset.context, value: any) => {
-        updatePreset({
-            context: { ...preset.context, [key]: value },
-        });
-    };
-
     // 更新自定义配置
     const updateCustom = (key: string, value: any) => {
         updatePreset({

@@ -4,7 +4,7 @@
  * 只负责框架和 Tab 切换，具体业务逻辑在子组件中
  * 类似 APIPresetsView 的架构设计
  */
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
     BookOpen,
     Database,
@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import type { Tab } from "@/ui/components/layout/TabPills.tsx";
 import { TabPills } from "@/ui/components/layout/TabPills.tsx";
-import { Divider } from "@/ui/components/layout/Divider.tsx";
 import type { QuickLink } from "@/ui/components/layout/QuickLinks.tsx";
 import { QuickLinks } from "@/ui/components/layout/QuickLinks.tsx";
 import { PageTitle } from "@/ui/components/display/PageTitle.tsx";

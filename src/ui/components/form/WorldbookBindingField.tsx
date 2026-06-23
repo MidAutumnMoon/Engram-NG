@@ -23,9 +23,6 @@ export const WorldbookBindingField: React.FC<WorldbookBindingFieldProps> = ({
 }) => {
     const [showPicker, setShowPicker] = useState(false);
     const [availableBooks, setAvailableBooks] = useState<string[]>([]);
-    const [localSelection, setLocalSelection] = useState<string[]>(
-        selectedBooks,
-    );
 
     // 加载可用世界书列表
     useEffect(() => {
@@ -40,24 +37,6 @@ export const WorldbookBindingField: React.FC<WorldbookBindingFieldProps> = ({
 
         setAvailableBooks(allBooks);
     }, [showPicker]);
-
-    // 同步外部选择到本地
-    useEffect(() => {
-        setLocalSelection(selectedBooks);
-    }, [selectedBooks]);
-
-    const handleToggle = (book: string) => {
-        setLocalSelection((prev) =>
-            prev.includes(book)
-                ? prev.filter((b) => b !== book)
-                : [...prev, book]
-        );
-    };
-
-    const handleConfirm = () => {
-        onChange(localSelection);
-        setShowPicker(false);
-    };
 
     const handleRemove = (book: string) => {
         onChange(selectedBooks.filter((b) => b !== book));

@@ -4,7 +4,6 @@
 
 import {
     createDefaultLLMPreset,
-    createPromptTemplate,
     getDefaultAPISettings,
 } from "@/config/settings.ts";
 import type { EngramAPISettings } from "@/config/settings.ts";

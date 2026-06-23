@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import {
     FormSection,
-    NumberField,
     SearchableSelectField,
-    SelectField,
     SwitchField,
     TextField,
 } from "@/ui/components/form/FormComponents.tsx";
@@ -16,15 +14,6 @@ interface RerankConfigFormProps {
     config: RerankConfig;
     onChange: (config: RerankConfig) => void;
 }
-
-// 常用 Rerank 模型
-const COMMON_MODELS = [
-    "BAAI/bge-reranker-v2-m3",
-    "BAAI/bge-reranker-base",
-    "BAAI/bge-reranker-large",
-    "cross-encoder/ms-marco-MiniLM-L-12-v2",
-    "Xenova/ms-marco-MiniLM-L-6-v2",
-];
 
 export const RerankConfigForm: React.FC<RerankConfigFormProps> = ({
     config,

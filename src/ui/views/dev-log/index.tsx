@@ -31,12 +31,11 @@ import type { LogEntry, LogLevel } from "@/logger/Logger.ts";
 import { Logger, LogLevelConfig } from "@/logger/Logger.ts";
 import { ALL_MODULES } from "@/logger/LogModule.ts";
 import { exportLogsToMarkdown, getExportFilename } from "./export.ts";
-import { groupLogsByModule, LogEntryItem, LogGroup } from "./LogEntryItem.tsx";
+import { groupLogsByModule, LogGroup } from "./LogEntryItem.tsx";
 import { ModelLog } from "./ModelLog.tsx";
 import { RecallLog } from "./RecallLog.tsx";
 import type { Tab } from "@/ui/components/layout/TabPills.tsx";
 import { TabPills } from "@/ui/components/layout/TabPills.tsx";
-import { Divider } from "@/ui/components/layout/Divider.tsx";
 
 // Tab 类型
 type TabType = "runtime" | "model" | "recall";
@@ -77,7 +76,7 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
     const [showModuleDropdown, setShowModuleDropdown] = useState(false);
     // V0.9.12: 分组展开控制
     const [defaultGroupExpanded, setDefaultGroupExpanded] = useState(true);
-    const [defaultDataExpanded, setDefaultDataExpanded] = useState(false);
+    const [defaultDataExpanded, _setDefaultDataExpanded] = useState(false);
 
     const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -333,7 +332,7 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
                             )
                             : (
                                 <>
-                                    {logGroups.map((group, idx) => (
+                                    {logGroups.map((group, _idx) => (
                                         <LogGroup
                                             key={`${group[0].module}-${
                                                 group[0].id

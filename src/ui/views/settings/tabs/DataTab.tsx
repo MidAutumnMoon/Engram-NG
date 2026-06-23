@@ -4,8 +4,6 @@ import { Switch } from "@/ui/components/core/Switch.tsx";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { getCurrentChatId } from "@/sillytavern/index.ts";
 import { RefreshCw, Trash2 } from "lucide-react";
-import { Logger } from "@/logger/Logger.ts";
-import { LogModule } from "@/logger/LogModule.ts";
 
 // V1.4.6 Extracted imported components
 import { GlobalDatabaseList } from "../components/GlobalDatabaseList.tsx";

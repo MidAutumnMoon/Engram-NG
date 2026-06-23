@@ -42,14 +42,10 @@ import { useLLMPresets } from "../../hooks/useLLMPresets.ts";
 import { useRegexRules } from "../../hooks/useRegexRules.ts";
 import { useWorldInfo } from "../../hooks/useWorldInfo.ts";
 
-// 响应式断点
-const DESKTOP_BREAKPOINT = 768;
-
 // Tab 类型
 type MainTabType = "model" | "prompt" | "regex" | "worldbook";
 type ModelSubTabType = "llm" | "vector" | "rerank";
 type PromptSubTabType = "templates" | "macros"; // V0.9.2: 提示词模板子 Tab
-type WorldbookSubTabType = "global";
 
 // 子 Tab 配置
 const MODEL_SUB_TABS: {
@@ -224,8 +220,6 @@ export const APIPresets: React.FC<APIPresetsProps> = (
         saveWorldInfo,
         worldbookScopes, // Added
     } = useWorldInfo();
-
-    const availableWorldbooks = Object.keys(worldbookStructure || {});
 
     // 聚合保存
     const save = async () => {

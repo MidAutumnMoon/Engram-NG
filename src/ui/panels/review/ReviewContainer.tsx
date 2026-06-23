@@ -48,7 +48,7 @@ const ReviewSession: React.FC<ReviewSessionProps> = (
     // Reject Feedback State
     const [feedback, setFeedback] = useState("");
     const [showFeedbackInput, setShowFeedbackInput] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
+    const [_isProcessing, setIsProcessing] = useState(false);
     const [isRecallModalOpen, setIsRecallModalOpen] = useState(false);
 
     const handleAction = (action: ReviewAction) => {

@@ -19,11 +19,7 @@ import { tryGetDbForChat } from "@/data/db.ts";
 import { getCurrentChatId } from "@/sillytavern/index.ts";
 
 import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag.ts";
-import type {
-    RecallConfig,
-    RerankConfig,
-    VectorConfig,
-} from "@/config/types/rag.ts";
+import type { RecallConfig } from "@/config/types/rag.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
 import { regexProcessor } from "@/domain/workflow/steps/index.ts";
@@ -333,14 +329,13 @@ class Retriever {
 
         // 4. 并行执行关键词扫描 (实体召回保底)
         // Agentic 模式虽然跳过了事件的语义匹配，但不能丢掉实体的关键词扫描
-        let recalledEntities: any[] = [];
         if (recallConfig.useKeywordRecall) {
             try {
                 // 确保有扫描背景
                 const scanQuery = options?.scanQuery ||
                     this.getRecentContext(5) || "";
 
-                const keywordContext = await WorkflowEngine.run({
+                const _keywordContext = await WorkflowEngine.run({
                     name: "AgenticKeywordScan",
                     steps: [new KeywordRetrieveStep()],
                 }, {
@@ -352,12 +347,6 @@ class Retriever {
                         ) as string[],
                     },
                 });
-
-                if (keywordContext.data?.keywordEntityIds) {
-                    recalledEntities = keywordContext.data.keywordEntityIds;
-
-                    // REFERENCE: BrainRecallCache registration removed.
-                }
             } catch (error) {
                 Logger.warn(
                     LogModule.RAG_RETRIEVE,
@@ -448,13 +437,6 @@ class Retriever {
         const entries = nodes.map((node) => node.summary);
 
         return { entries, nodes };
-    }
-
-    /**
-     * @deprecated 使用 search() 替代
-     */
-    async vectorSearch(query: string, limit: number): Promise<RetrievalResult> {
-        return this.search(query);
     }
 }
 

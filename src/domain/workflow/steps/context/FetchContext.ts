@@ -71,10 +71,7 @@ export class FetchContext implements IStep {
 
         // 3. 获取 World Info (依赖 range)
         // V1.2.8: 使用 extraWorldbooks 替代 profileId
-        const extraWorldbooks =
-            (context.input.extraWorldbooks as string[] | undefined) || [];
         let wiContent = "";
-        const useCustomScan = false;
 
         // 如果有额外世界书配置，或者为了确保过滤 [Engram]，我们使用自定义扫描
         // V1.2.9: 总是使用自定义逻辑以完全控制过滤

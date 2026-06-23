@@ -164,7 +164,7 @@ export class SaveEntity implements IStep {
                     // 如果有 ID 且不是临时 ID，可能是误传，但通常 newEntities 在 dryRun 时会有 temp ID
                     // SaveEntity 会生成新 ID 或者是覆盖？ store.saveEntity 通常负责创建
                     // 为了安全，重新构建对象，去除临时 ID
-                    const { id, ...entityData } = entity;
+                    const { id: _id, ...entityData } = entity;
                     const saved = await store.saveEntity(entityData);
                     outNewEntities.push(saved);
                 } else {

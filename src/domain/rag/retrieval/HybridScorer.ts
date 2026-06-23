@@ -64,7 +64,7 @@ function calculateHybridScore(
     embeddingScore: number | null | undefined,
     rerankScore: number | null | undefined,
     keywordScore: number | null | undefined,
-    alpha: number,
+    _alpha: number,
 ): number {
     // 基础分：如果同时有 keyword 和 embedding，取最高者
     const baseScore = Math.max(embeddingScore ?? 0, keywordScore ?? 0);
@@ -77,26 +77,6 @@ function calculateHybridScore(
     // 混合分数 = 基础分 (Embedding/Keyword) + Rerank 分数
     // 这样做可以更直观地反映多路召回的累加贡献
     return baseScore + (rerankScore ?? 0);
-}
-
-/**
- * 归一化分数到 0-1 范围
- *
- * @param scores 分数数组
- * @returns 归一化后的分数数组
- */
-function normalizeScores(scores: number[]): number[] {
-    if (scores.length === 0) return [];
-
-    const min = Math.min(...scores);
-    const max = Math.max(...scores);
-
-    // 如果所有分数相同，返回均匀分布
-    if (max === min) {
-        return scores.map(() => 0.5);
-    }
-
-    return scores.map((s) => (s - min) / (max - min));
 }
 
 /**

@@ -403,7 +403,7 @@ export class BrainRecallCache {
     }
 
     decayBomb(): void {
-        for (const [id, slot] of this.shortTermMemory) {
+        for (const [_id, slot] of this.shortTermMemory) {
             slot.rerankStrength *= 0.5;
             slot.embeddingStrength *= 0.8;
             slot.consecutiveWorkingCount = 0;

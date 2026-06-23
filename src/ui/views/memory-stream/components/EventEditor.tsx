@@ -65,12 +65,6 @@ const inputStyle: React.CSSProperties = {
     width: "100%",
 };
 
-const textareaStyle: React.CSSProperties = {
-    ...inputStyle,
-    minHeight: "80px",
-    resize: "vertical",
-};
-
 // ==================== KV 烧录函数 ====================
 
 /**

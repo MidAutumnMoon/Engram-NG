@@ -11,16 +11,13 @@ import {
     getSetting,
     setSetting,
 } from "@/config/settings.ts";
-import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { getCurrentChatId, getSTContext } from "@/sillytavern/index.ts";
-import { MacroService } from "@/domain/macros/index.ts";
 import { summarizerService } from "@/domain/memory/index.ts";
 import { tryGetDbForChat } from "@/data/db.ts";
 
 import { useConfigStore } from "@/state/configStore.ts";
-import { useMemoryStore } from "@/state/memoryStore.ts";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 // ==================== 类型定义 ====================
@@ -90,9 +87,6 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
     });
     const isMounted = useRef(true);
     const lastDbModified = useRef<number>(0);
-
-    // 获取 memoryStore 方法
-    const getAllEntities = useMemoryStore((state) => state.getAllEntities);
 
     // Atomic fetchers
     const fetchSystemHealth = useCallback(() => {

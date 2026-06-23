@@ -256,7 +256,7 @@ export class EntityBuilder {
      * @param manual 是否手动触发
      */
     async extractFromChat(
-        chatHistory: string, // Kept for signature compatibility, but workflow fetches it again or receives it
+        _chatHistory: string, // Kept for signature compatibility, but workflow fetches it again or receives it
         floor: number,
         manual = false,
         dryRun = false,
@@ -449,7 +449,7 @@ export class EntityBuilder {
     /**
      * 手动提取（从当前聊天历史）
      */
-    async extractManual(dryRun = false): Promise<EntityBuildResult | null> {
+    async extractManual(_dryRun = false): Promise<EntityBuildResult | null> {
         // 获取当前聊天历史 (不传参使用默认 recent)
         // V1.0.5: 手动提取应该基于 "上次总结" 到现在的范围，
         // 这样给 LLM 提供的上下文才是完整的 (避免 "他说了什么" 这种指代不明)

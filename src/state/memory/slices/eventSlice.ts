@@ -43,7 +43,7 @@ export interface EventState {
 
 export const createEventSlice: StateCreator<any, [], [], EventState> = (
     set,
-    get,
+    _get,
 ) => ({
     saveEvent: async (eventData) => {
         const db = getCurrentDb();

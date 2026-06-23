@@ -8,7 +8,7 @@
  * `activeTab` 初始化为 "dashboard"，由 bootstrap 在 `initSettings()`
  * 之后调用 `hydrateFromSettings()` 加载持久化值——避免在模块加载期读取 SettingsManager。
  */
-import { getSetting, initSettings, setSetting } from "@/config/settings.ts";
+import { getSetting, setSetting } from "@/config/settings.ts";
 import { create } from "zustand";
 
 interface UiState {

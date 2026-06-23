@@ -28,8 +28,8 @@ export interface EntityState {
 }
 
 export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
-    set,
-    get,
+    _set,
+    _get,
 ) => ({
     archiveEntities: async (entityIds: string[]) => {
         if (entityIds.length === 0) return;
