@@ -18,6 +18,8 @@ interface Window {
      * SillyTavern host object. Present before any extension script executes (verified by reading SillyTavern's source code).
      */
     SillyTavern: {
+        // deno-lint-ignore-line no-restricted-globals
+        // oxlint-disable-next-line no-restricted-globals
         getContext: () => typeof SillyTavern;
         // We do not use libs bundled with SillyTavern.
         lib: unknown;
@@ -26,11 +28,17 @@ interface Window {
     /**
      * Toast notification library. Loaded before extension scripts run (verified by reading SillyTavern's source code).
      */
+    // deno-lint-ignore-line no-restricted-globals
+    // oxlint-disable-next-line no-restricted-globals
     toastr: Toastr;
 
     // https://github.com/MagicalAstrogy/MagVarUpdate/
+    // deno-lint-ignore-line no-restricted-globals
+    // oxlint-disable-next-line no-restricted-globals
     Mvu?: typeof Mvu;
 
     // https://github.com/zonde306/ST-Prompt-Template/
+    // deno-lint-ignore-line no-restricted-globals
+    // oxlint-disable-next-line no-restricted-globals
     EjsTemplate?: typeof EjsTemplate;
 }

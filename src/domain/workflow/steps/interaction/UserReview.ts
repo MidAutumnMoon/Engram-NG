@@ -30,7 +30,10 @@ export class UserReview implements IStep {
             // 如果未启用，直接使用 cleanedContent 或 llmResponse.content
             context.output = context.cleanedContent ||
                 context.llmResponse?.content;
-            Logger.info(LogModule.WF_USER_REVIEW, "Preview disabled, skipping review");
+            Logger.info(
+                LogModule.WF_USER_REVIEW,
+                "Preview disabled, skipping review",
+            );
             return; // 默认 next
         }
 
@@ -39,7 +42,10 @@ export class UserReview implements IStep {
 
         // V1.2.1: 如果内容为空，视为生成失败，抛出错误中止流程 (不进入预览)
         if (!contentToReview || !contentToReview.trim()) {
-            Logger.warn(LogModule.WF_USER_REVIEW, "Content is empty, skipping review");
+            Logger.warn(
+                LogModule.WF_USER_REVIEW,
+                "Content is empty, skipping review",
+            );
             throw new Error(
                 "生成的摘要内容为空，请检查模型输出或 Token 限制。",
             );
@@ -121,7 +127,10 @@ export class UserReview implements IStep {
                 // If user clicks "Fill", they mean "Take this text and put it in chat".
                 // Confirm -> "Take this text and continue flow" (which usually puts it in chat).
                 // So they act similarly here, but intent differs.
-                Logger.info(LogModule.WF_USER_REVIEW, "User chose to Fill/Skip");
+                Logger.info(
+                    LogModule.WF_USER_REVIEW,
+                    "User chose to Fill/Skip",
+                );
                 context.output = result.content;
                 context.metadata.skipToInjection = true;
                 return { action: "finish" };
@@ -178,9 +187,13 @@ export class UserReview implements IStep {
                         context.extractedTags.recall_decision = JSON.stringify({
                             recalls: result.data.agenticRecalls,
                         });
-                        Logger.debug(LogModule.WF_USER_REVIEW, "Agentic 召回决策已更新", {
-                            count: result.data.agenticRecalls.length,
-                        });
+                        Logger.debug(
+                            LogModule.WF_USER_REVIEW,
+                            "Agentic 召回决策已更新",
+                            {
+                                count: result.data.agenticRecalls.length,
+                            },
+                        );
                     }
                 }
 

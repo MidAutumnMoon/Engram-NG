@@ -92,13 +92,17 @@ export class ChatHistoryHelper {
 
                     // 只在第一条消息输出一次诊断信息
                     if (index === 0) {
-                        Logger.debug(LogModule.CHAT_HISTORY, "TavernHelper 诊断", {
-                            availableMethods: TavernHelper
-                                ? Object.keys(TavernHelper).slice(0, 10)
-                                : [],
-                            hasFormatFunc,
-                            hasTavernHelper,
-                        });
+                        Logger.debug(
+                            LogModule.CHAT_HISTORY,
+                            "TavernHelper 诊断",
+                            {
+                                availableMethods: TavernHelper
+                                    ? Object.keys(TavernHelper).slice(0, 10)
+                                    : [],
+                                hasFormatFunc,
+                                hasTavernHelper,
+                            },
+                        );
                     }
 
                     if (hasTavernHelper && hasFormatFunc) {

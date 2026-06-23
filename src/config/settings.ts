@@ -241,7 +241,10 @@ function save(): void {
     const context = getSTContext();
     if (context.saveSettingsDebounced) {
         context.saveSettingsDebounced();
-        Logger.debug(LogModule.SETTINGS, "Saved via context.saveSettingsDebounced");
+        Logger.debug(
+            LogModule.SETTINGS,
+            "Saved via context.saveSettingsDebounced",
+        );
     } else {
         Logger.warn(LogModule.SETTINGS, "saveSettingsDebounced not available");
     }

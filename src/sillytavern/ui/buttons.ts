@@ -10,7 +10,6 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { useUiStore } from "@/state/uiStore.ts";
 
-
 // SillyTavern DOM hooks
 const LEFT_SEND_FORM_SELECTOR = "#leftSendForm";
 const TOP_SETTINGS_HOLDER_SELECTOR = "#top-settings-holder";

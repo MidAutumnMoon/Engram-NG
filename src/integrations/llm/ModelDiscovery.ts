@@ -8,7 +8,6 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { getRequestHeaders } from "@/sillytavern";
 
-
 /**
  * 模型信息
  */
@@ -68,7 +67,10 @@ export class ModelService {
                 return this.getPresetModels(type);
             }
             default: {
-                Logger.warn(LogModule.MODEL_SERVICE, `Unknown API type: ${type}`);
+                Logger.warn(
+                    LogModule.MODEL_SERVICE,
+                    `Unknown API type: ${type}`,
+                );
                 return [];
             }
         }
@@ -130,9 +132,15 @@ export class ModelService {
             return models.toSorted((a, b) => a.id.localeCompare(b.id));
         } catch (error: any) {
             if (error.name === "AbortError") {
-                Logger.error(LogModule.MODEL_SERVICE, "Backend Proxy request timeout");
+                Logger.error(
+                    LogModule.MODEL_SERVICE,
+                    "Backend Proxy request timeout",
+                );
             } else {
-                Logger.error(LogModule.MODEL_SERVICE, `Backend Proxy error: ${error.message}`);
+                Logger.error(
+                    LogModule.MODEL_SERVICE,
+                    `Backend Proxy error: ${error.message}`,
+                );
             }
             throw error;
         }
@@ -174,10 +182,16 @@ export class ModelService {
                 name: m.name || m.model,
             }));
 
-            Logger.info(LogModule.MODEL_SERVICE, `Fetched ${models.length} models from Ollama`);
+            Logger.info(
+                LogModule.MODEL_SERVICE,
+                `Fetched ${models.length} models from Ollama`,
+            );
             return models;
         } catch (error: any) {
-            Logger.error(LogModule.MODEL_SERVICE, `Ollama API error: ${error.message}`);
+            Logger.error(
+                LogModule.MODEL_SERVICE,
+                `Ollama API error: ${error.message}`,
+            );
             throw error;
         }
     }
@@ -241,7 +255,10 @@ export class ModelService {
             );
             return models;
         } catch (error: any) {
-            Logger.error(LogModule.MODEL_SERVICE, `Cohere API error: ${error.message}`);
+            Logger.error(
+                LogModule.MODEL_SERVICE,
+                `Cohere API error: ${error.message}`,
+            );
             return this.getPresetModels("cohere");
         }
     }

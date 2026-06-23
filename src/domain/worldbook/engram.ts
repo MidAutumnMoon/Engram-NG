@@ -3,7 +3,6 @@ import { LogModule } from "@/logger/LogModule.ts";
 import { getSTContext } from "@/sillytavern/context.ts";
 import { getTavernHelper } from "./adapter.ts";
 
-
 /**
  * WorldbookEngramService - Engram 特定的业务逻辑
  * (绑定、摘要获取、分隔符等)
@@ -44,7 +43,11 @@ export class WorldbookEngramService {
             // 先检查是否已经存在该名字的实体世界书
             const allInstalled = helper.getWorldbookNames?.() || [];
             if (!allInstalled.includes(worldbookName)) {
-                Logger.debug(LogModule.WORLDBOOK, "创建新全局世界书", worldbookName);
+                Logger.debug(
+                    LogModule.WORLDBOOK,
+                    "创建新全局世界书",
+                    worldbookName,
+                );
                 if (helper.createWorldbook) {
                     await helper.createWorldbook(worldbookName);
                 } else {

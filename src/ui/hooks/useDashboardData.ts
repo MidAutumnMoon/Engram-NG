@@ -6,7 +6,11 @@
  * - Memory Stats: 事件/实体统计
  * - Feature Status: 功能开关状态
  */
-import { getDefaultAPISettings, getSetting, setSetting } from "@/config/settings";
+import {
+    getDefaultAPISettings,
+    getSetting,
+    setSetting,
+} from "@/config/settings";
 import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
@@ -162,8 +166,7 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
     const fetchFeatureStatus = useCallback(async () => {
         const defaults = getDefaultAPISettings();
         const apiSettings = getSetting("apiSettings") || defaults;
-        const currentSummarizerConfig =
-            getSetting("summarizerConfig") || {};
+        const currentSummarizerConfig = getSetting("summarizerConfig") || {};
         const entityConfig = apiSettings?.entityExtractConfig ??
             defaults.entityExtractConfig;
         const embeddingConfig = apiSettings?.embeddingConfig ??
@@ -206,8 +209,7 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
         const defaults = getDefaultAPISettings();
         const currentApiSettings = getSetting("apiSettings") ||
             defaults;
-        const currentSummarizerConfig =
-            getSetting("summarizerConfig") || {};
+        const currentSummarizerConfig = getSetting("summarizerConfig") || {};
 
         // 2. 获取当前功能状态并计算新值
         let nextVal: boolean;

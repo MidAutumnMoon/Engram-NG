@@ -14,7 +14,6 @@ import {
     REGEX_SCOPE_OPTIONS,
 } from "@/config/types/data_processing";
 
-
 // 重新导出以便其他模块使用
 export type { RegexRule, RegexScope };
 export { DEFAULT_REGEX_RULES, REGEX_SCOPE_OPTIONS };
@@ -98,7 +97,11 @@ export class RegexProcessor {
             try {
                 return text.replace(regex, rule.replacement);
             } catch (error) {
-                Logger.warn(LogModule.WF_REGEX_PROCESSOR, `Rule execution failed:`, error);
+                Logger.warn(
+                    LogModule.WF_REGEX_PROCESSOR,
+                    `Rule execution failed:`,
+                    error,
+                );
             }
         }
         return text;
@@ -235,7 +238,11 @@ export class RegexProcessor {
             const match = text.match(regex);
             return match?.[1]?.trim() || null;
         } catch (error) {
-            Logger.warn(LogModule.WF_REGEX_PROCESSOR, `Failed to capture tag: ${tagName}`, error);
+            Logger.warn(
+                LogModule.WF_REGEX_PROCESSOR,
+                `Failed to capture tag: ${tagName}`,
+                error,
+            );
             return null;
         }
     }
@@ -250,7 +257,11 @@ export class RegexProcessor {
             const regex = this.getCachedTagRegex(tagName, "remove");
             return text.replace(regex, "").trim();
         } catch (error) {
-            Logger.warn(LogModule.WF_REGEX_PROCESSOR, `Failed to remove tag: ${tagName}`, error);
+            Logger.warn(
+                LogModule.WF_REGEX_PROCESSOR,
+                `Failed to remove tag: ${tagName}`,
+                error,
+            );
             return text;
         }
     }

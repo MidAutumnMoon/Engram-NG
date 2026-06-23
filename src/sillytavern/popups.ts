@@ -7,7 +7,6 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 
-
 export type PopupType = "text" | "confirm" | "input";
 
 /**

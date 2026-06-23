@@ -26,8 +26,7 @@ export class BuildPrompt implements IStep {
 
         // V0.9.11: Use SettingsManager as Source of Truth to include User Custom Templates
         // PromptLoader only has built-ins.
-        const allTemplates =
-            getSetting("apiSettings")?.promptTemplates || [];
+        const allTemplates = getSetting("apiSettings")?.promptTemplates || [];
 
         // Ensure built-ins are loaded and merged with user settings
         PromptLoader.init();
@@ -112,7 +111,10 @@ export class BuildPrompt implements IStep {
 {{feedback}}
 `;
             userPrompt += feedbackTemplate;
-            Logger.debug(LogModule.WF_BUILD_PROMPT, "检测到反馈，已自动附加反馈模板");
+            Logger.debug(
+                LogModule.WF_BUILD_PROMPT,
+                "检测到反馈，已自动附加反馈模板",
+            );
         }
 
         for (const [key, value] of Object.entries(variables)) {

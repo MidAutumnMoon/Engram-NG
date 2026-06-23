@@ -1,4 +1,8 @@
-import { getDefaultAPISettings, getSetting, setSetting } from "@/config/settings";
+import {
+    getDefaultAPISettings,
+    getSetting,
+    setSetting,
+} from "@/config/settings";
 import type {
     WorldbookConfig,
     WorldbookConfigProfile,

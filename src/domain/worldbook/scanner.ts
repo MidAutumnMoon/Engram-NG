@@ -6,7 +6,6 @@ import type { WorldInfoEntry } from "./types.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 
-
 /**
  * 获取常驻激活的世界书条目（蓝灯）
  * fallback
@@ -36,7 +35,10 @@ async function getConstantWorldInfo(): Promise<string> {
             return "";
         }
 
-        Logger.debug(LogModule.WORLDBOOK, `回退获取 ${constantEntries.length} 个常驻条目`);
+        Logger.debug(
+            LogModule.WORLDBOOK,
+            `回退获取 ${constantEntries.length} 个常驻条目`,
+        );
         return constantEntries.map((e: { content: string }) => e.content).join(
             "\n\n",
         );
@@ -133,9 +135,13 @@ export class WorldbookScannerService {
         // Check if disabled globally and not forced
         const isDisabled = disabledGlobalBooks.includes(worldbookName);
         if (isDisabled && !options?.forceInclude) {
-            Logger.debug(LogModule.WORLDBOOK, `世界书 [${worldbookName}] 全局已禁用`, {
-                forceInclude: false,
-            });
+            Logger.debug(
+                LogModule.WORLDBOOK,
+                `世界书 [${worldbookName}] 全局已禁用`,
+                {
+                    forceInclude: false,
+                },
+            );
             return "";
         }
 
@@ -204,11 +210,15 @@ export class WorldbookScannerService {
         }
 
         if (activeEntries.length > 0) {
-            Logger.debug(LogModule.WORLDBOOK, `扫描白名单世界书 [${worldbookName}]`, {
-                matched: activeEntries.length,
-                matchedEntries: activeEntries.map((e) => e.name),
-                total: entries.length,
-            });
+            Logger.debug(
+                LogModule.WORLDBOOK,
+                `扫描白名单世界书 [${worldbookName}]`,
+                {
+                    matched: activeEntries.length,
+                    matchedEntries: activeEntries.map((e) => e.name),
+                    total: entries.length,
+                },
+            );
             // 按 order 排序
             activeEntries.sort((a, b) => a.order - b.order);
             return activeEntries.map((e) => e.content).join("\n\n");
@@ -287,10 +297,14 @@ export class WorldbookScannerService {
                         m.mes || ""
                     ).toReversed();
                     if (messages) {
-                        Logger.debug(LogModule.WORLDBOOK, "使用默认最近消息扫描", {
-                            messageCount: messages.length,
-                            scanLimit: DEFAULT_SCAN_LIMIT,
-                        });
+                        Logger.debug(
+                            LogModule.WORLDBOOK,
+                            "使用默认最近消息扫描",
+                            {
+                                messageCount: messages.length,
+                                scanLimit: DEFAULT_SCAN_LIMIT,
+                            },
+                        );
                     }
                 }
             }
@@ -326,7 +340,10 @@ export class WorldbookScannerService {
             const allEntriesSet: Set<any> = result?.allActivatedEntries;
             const entries = allEntriesSet ? [...allEntriesSet.values()] : [];
 
-            Logger.info(LogModule.WORLDBOOK, `扫描完成，共激活 ${entries.length} 个条目`);
+            Logger.info(
+                LogModule.WORLDBOOK,
+                `扫描完成，共激活 ${entries.length} 个条目`,
+            );
 
             const filterState = await loadFilteringState();
             const {

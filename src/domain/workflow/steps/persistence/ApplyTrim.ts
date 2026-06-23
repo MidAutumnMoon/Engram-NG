@@ -96,10 +96,7 @@ export class ApplyTrim implements IStep {
                 Logger.error(LogModule.WF_APPLY_TRIM, "联动嵌入失败", {
                     error: embedError,
                 });
-                notify("warning", 
-                    "联动嵌入失败，但精简已完成",
-                    "Engram",
-                );
+                notify("warning", "联动嵌入失败，但精简已完成", "Engram");
             }
         }
 

@@ -47,9 +47,13 @@ export class FetchContext implements IStep {
             // V1.0.8: 如果是外部导入模式，跳过向 ST 索取聊天记录，直接使用传入的文本切片
             history = (context.input.text || context.input.chatHistory ||
                 "") as string;
-            Logger.debug(LogModule.WF_FETCH_CONTEXT, "使用外部导入文本作为上下文", {
-                bytes: history.length,
-            });
+            Logger.debug(
+                LogModule.WF_FETCH_CONTEXT,
+                "使用外部导入文本作为上下文",
+                {
+                    bytes: history.length,
+                },
+            );
         } else {
             history = MacroService.getChatHistory(range);
         }
@@ -131,7 +135,11 @@ export class FetchContext implements IStep {
                 }
             }
         } catch (error) {
-            Logger.warn(LogModule.WF_FETCH_CONTEXT, "获取模板绑定世界书失败", error);
+            Logger.warn(
+                LogModule.WF_FETCH_CONTEXT,
+                "获取模板绑定世界书失败",
+                error,
+            );
         }
 
         // 2. 合并并去重

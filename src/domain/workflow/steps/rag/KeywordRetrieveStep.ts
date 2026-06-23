@@ -8,7 +8,6 @@ import type { ScoredEvent } from "@/domain/rag/retrieval/HybridScorer";
 import type { JobContext } from "../../core/JobContext";
 import type { IStep } from "../../core/Step";
 
-
 export class KeywordRetrieveStep implements IStep {
     name = "KeywordRetrieveStep";
 
@@ -85,7 +84,11 @@ export class KeywordRetrieveStep implements IStep {
                 hasArchivedEvents = count > 0;
             }
         } catch (error) {
-            Logger.warn(LogModule.WF_KEYWORD_RETRIEVE, "无法检查归档事件状态，默认尝试扫描", error);
+            Logger.warn(
+                LogModule.WF_KEYWORD_RETRIEVE,
+                "无法检查归档事件状态，默认尝试扫描",
+                error,
+            );
             hasArchivedEvents = true;
         }
 

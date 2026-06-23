@@ -379,8 +379,8 @@ class SummarizerService {
             // 2. Run Workflow
             await WorldBookSlotService.init();
 
-            const globalPreviewEnabled =
-                getSetting("globalPreviewEnabled") ?? true;
+            const globalPreviewEnabled = getSetting("globalPreviewEnabled") ??
+                true;
             const previewEnabled = globalPreviewEnabled &&
                 (this.config.previewEnabled ?? true);
 

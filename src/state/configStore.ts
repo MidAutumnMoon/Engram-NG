@@ -1,7 +1,8 @@
 import {
     type EngramSettings,
     getDefaultAPISettings,
-    getSettings, setSetting,
+    getSettings,
+    setSetting,
 } from "@/config/settings.ts";
 import type {
     EntityExtractConfig,

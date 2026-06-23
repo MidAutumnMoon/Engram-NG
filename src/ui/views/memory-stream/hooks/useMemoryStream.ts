@@ -273,7 +273,8 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
 
                 await MacroService.refreshEngramCache();
 
-                notify("success", 
+                notify(
+                    "success",
                     isArchived ? "实体已归档" : "实体已恢复活跃",
                     "MemoryStream",
                 );
@@ -294,7 +295,8 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                         e.id === id ? { ...e, is_locked: isLocked } : e
                     )
                 );
-                notify("success", 
+                notify(
+                    "success",
                     isLocked ? "实体已锁定" : "实体已解锁",
                     "MemoryStream",
                 );
@@ -318,7 +320,8 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                         e.id === id ? { ...e, is_locked: isLocked } : e
                     )
                 );
-                notify("success", 
+                notify(
+                    "success",
                     isLocked ? "事件已锁定" : "事件已解锁",
                     "MemoryStream",
                 );
@@ -342,7 +345,8 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                         e.id === id ? { ...e, is_archived: isArchived } : e
                     )
                 );
-                notify("success", 
+                notify(
+                    "success",
                     isArchived ? "事件已归档" : "事件已从归档恢复",
                     "MemoryStream",
                 );
@@ -425,7 +429,8 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             setViewMode("browse");
             notify("success", "删除成功", "MemoryStream");
         } catch (error: any) {
-            notify("error", 
+            notify(
+                "error",
                 "删除失败: " + (error.message || "未知错误"),
                 "MemoryStream",
             );
@@ -458,12 +463,14 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                 });
             }
             setCheckedIds(new Set());
-            notify("success", 
+            notify(
+                "success",
                 `成功删除 ${checkedIds.size} 条记录`,
                 "MemoryStream",
             );
         } catch (error: any) {
-            notify("error", 
+            notify(
+                "error",
                 "批量删除失败: " + (error.message || "未知错误"),
                 "MemoryStream",
             );
@@ -475,10 +482,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
         const vectorConfig = apiSettings?.vectorConfig;
 
         if (!vectorConfig) {
-            notify("error", 
-                "请先在 API 配置中配置向量化服务",
-                "MemoryStream",
-            );
+            notify("error", "请先在 API 配置中配置向量化服务", "MemoryStream");
             return;
         }
 
@@ -506,7 +510,8 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             notify("success", "重嵌完工！", "MemoryStream");
         } catch (error: any) {
             console.error("[MemoryStream] Reembed failed:", error);
-            notify("error", 
+            notify(
+                "error",
                 "重嵌失败: " + (error.message || "未知错误"),
                 "MemoryStream",
             );
@@ -542,7 +547,8 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             setViewMode("edit");
             notify("success", "已创建新事件，请编辑", "MemoryStream");
         } catch (error: any) {
-            notify("error", 
+            notify(
+                "error",
                 "创建事件失败: " + (error.message || "未知错误"),
                 "MemoryStream",
             );
@@ -563,7 +569,8 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             setViewMode("edit");
             notify("success", "已创建新实体，请编辑", "MemoryStream");
         } catch (error: any) {
-            notify("error", 
+            notify(
+                "error",
                 "创建实体失败: " + (error.message || "未知错误"),
                 "MemoryStream",
             );
@@ -615,7 +622,8 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             setIsLoading(true);
             setShowImportModal(false);
             const res = await store.importDatabase(selectedDbToImport);
-            notify("success", 
+            notify(
+                "success",
                 `导入成功！事件 ${res.events} 条, 实体 ${res.entities} 条。`,
                 "MemoryStream",
             );
@@ -623,7 +631,8 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             await loadEntities();
         } catch (error: any) {
             console.error("[MemoryStream] Import failed:", error);
-            notify("error", 
+            notify(
+                "error",
                 "导入失败: " + (error.message || "未知错误"),
                 "MemoryStream",
             );

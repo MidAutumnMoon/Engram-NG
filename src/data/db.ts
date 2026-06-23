@@ -28,7 +28,6 @@ export interface ChatMeta {
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 
-
 /**
  * ChatDatabase - 单个聊天的数据库类
  */
@@ -97,7 +96,11 @@ export class ChatDatabase extends Dexie {
                         value: Date.now(),
                     });
                 } catch (error) {
-                    Logger.error(LogModule.DATABASE, "异步更新 lastModified 失败", error);
+                    Logger.error(
+                        LogModule.DATABASE,
+                        "异步更新 lastModified 失败",
+                        error,
+                    );
                 }
             });
         }, 500);
@@ -118,7 +121,10 @@ export function getDbForChat(chatId: string): ChatDatabase {
     }
 
     if (!dbCache.has(chatId)) {
-        Logger.debug(LogModule.DATABASE, `Creating database for chat: ${chatId}`);
+        Logger.debug(
+            LogModule.DATABASE,
+            `Creating database for chat: ${chatId}`,
+        );
         dbCache.set(chatId, new ChatDatabase(chatId));
     }
     return dbCache.get(chatId)!;
@@ -197,7 +203,11 @@ export async function getDatabaseStats(chatId: string): Promise<DatabaseStats> {
                 : 0,
         };
     } catch (error) {
-        Logger.error(LogModule.DATABASE, `Failed to get stats for chat ${chatId}`, error);
+        Logger.error(
+            LogModule.DATABASE,
+            `Failed to get stats for chat ${chatId}`,
+            error,
+        );
         return { chatId, lastUpdateTime: 0 };
     }
 }

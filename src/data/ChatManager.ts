@@ -26,7 +26,10 @@ class ChatManager {
     getCurrentDb(): ChatDatabase | null {
         const chatId = getCurrentChatId();
         if (!chatId) {
-            Logger.warn(LogModule.CHAT_MANAGER, "无法获取 chat_id，上下文可能未就绪");
+            Logger.warn(
+                LogModule.CHAT_MANAGER,
+                "无法获取 chat_id，上下文可能未就绪",
+            );
             return null;
         }
 
@@ -34,7 +37,10 @@ class ChatManager {
         if (chatId !== this.currentChatId) {
             this.currentChatId = chatId;
             this.currentDb = getDbForChat(chatId);
-            Logger.debug(LogModule.CHAT_MANAGER, `切换数据库: Engram_${chatId}`);
+            Logger.debug(
+                LogModule.CHAT_MANAGER,
+                `切换数据库: Engram_${chatId}`,
+            );
         }
 
         return this.currentDb;

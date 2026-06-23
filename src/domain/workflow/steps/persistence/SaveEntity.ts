@@ -444,7 +444,11 @@ export class SaveEntity implements IStep {
                 }
             }
         } catch (error) {
-            Logger.warn(LogModule.WF_SAVE_ENTITY, `Patch failed for ${entityName}`, error);
+            Logger.warn(
+                LogModule.WF_SAVE_ENTITY,
+                `Patch failed for ${entityName}`,
+                error,
+            );
         }
     }
 

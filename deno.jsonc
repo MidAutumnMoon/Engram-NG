@@ -5,7 +5,7 @@
         "moduleResolution": "bundler",
         "jsx": "react-jsx",
         "jsxImportSource": "react",
-        "lib": ["DOM", "DOM.Iterable", "ESNext", "deno.ns"],
+        "lib": ["DOM", "DOM.Iterable", "ESNext", "deno.ns"]
     },
     "tasks": {
         "dev": "deno run -A npm:vite",
@@ -19,28 +19,29 @@
         "test:coverage": "deno run -A npm:vitest run --coverage",
         "gen:types": "deno run -A scripts/bundle_vendor_types.ts",
         "lint": "deno fmt --check && deno lint && deno run -A npm:oxlint src -D correctness -W perf -W suspicious",
-        "lint:fix": "deno run -A npm:oxlint src -D correctness -W perf -W suspicious --fix",
+        "lint:fix": "deno run -A npm:oxlint src -D correctness -W perf -W suspicious --fix"
     },
     "nodeModulesDir": "auto",
     "exclude": [
         "dev-docs",
+        "docs",
         "vendor",
         "src/types/vendor",
         "*.md",
         "*.html",
         "*.css",
-        "*.json",
+        "*.json"
     ],
     "fmt": {
         "indentWidth": 4,
         "useTabs": false,
         "jsx.multiLineParens": "never",
-        "singleBodyPosition": "sameLine",
+        "singleBodyPosition": "sameLine"
     },
     "lint": {
         "rules": {
-            "exclude": ["no-import-prefix", "no-window"],
-        },
+            "exclude": ["no-import-prefix", "no-window-prefix"]
+        }
     },
     "imports": {
         "@/": "./src/",
@@ -79,6 +80,6 @@
         "vite": "npm:vite@^8.0.9",
         "vitest": "npm:vitest@^4.0.0",
         "zod": "npm:zod@^4.3.5",
-        "zustand": "npm:zustand@^5.0.0",
-    },
+        "zustand": "npm:zustand@^5.0.0"
+    }
 }

@@ -2,7 +2,6 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import type { EntityNode, EventNode } from "@/data/types/graph";
 
-
 /**
  * 封装酒馆原生的正则解析方法
  */

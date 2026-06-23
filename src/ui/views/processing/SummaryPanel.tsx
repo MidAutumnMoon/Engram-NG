@@ -118,7 +118,8 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
         try {
             await summarizerService.setLastSummarizedFloor(editSummarizedFloor);
             await loadStatus();
-            notify("success", 
+            notify(
+                "success",
                 `总结指针已更新至 ${editSummarizedFloor}`,
                 "Engram",
             );
@@ -133,7 +134,8 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                 last_extracted_floor: editExtractedFloor,
             });
             await loadStatus();
-            notify("success", 
+            notify(
+                "success",
                 `提取指针已更新至 ${editExtractedFloor}`,
                 "Engram",
             );

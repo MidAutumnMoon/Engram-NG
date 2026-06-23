@@ -276,8 +276,8 @@ export class EntityBuilder {
 
         try {
             // V1.4.7: 使用全局预览开关和实体独立预览开关
-            const globalPreviewEnabled =
-                getSetting("globalPreviewEnabled") ?? true;
+            const globalPreviewEnabled = getSetting("globalPreviewEnabled") ??
+                true;
             const previewEnabled = globalPreviewEnabled &&
                 (this.config.previewEnabled ?? true);
 

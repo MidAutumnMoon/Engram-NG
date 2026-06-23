@@ -15,7 +15,6 @@ export const SLOT_ENTRY_KEY = "engram_macro_slot";
 /** 槽位条目外部展示名称 */
 export const SLOT_ENTRY_NAME = "Engram Memory Context";
 
-
 /**
  * WorldBookSlotService 类
  */

@@ -3,7 +3,6 @@ import { LogModule } from "@/logger/LogModule.ts";
 import { getEntries } from "@/domain/worldbook/crud.ts";
 import type { WorldInfoEntry, WorldInfoTokenStats } from "./types.ts";
 
-
 /**
  * 获取 SillyTavern 的 tokenizers 模块
  */

@@ -7,7 +7,6 @@ import type {
     WorldInfoPosition,
 } from "./types.ts";
 
-
 /**
  * 获取世界书的所有条目
  * @param worldbookName 世界书名称
@@ -132,7 +131,10 @@ export async function createEntry(
     try {
         const helper = getTavernHelper();
         if (!helper?.createWorldbookEntries) {
-            Logger.error(LogModule.WORLDBOOK, "TavernHelper.createWorldbookEntries 不可用");
+            Logger.error(
+                LogModule.WORLDBOOK,
+                "TavernHelper.createWorldbookEntries 不可用",
+            );
             return false;
         }
 
@@ -187,7 +189,10 @@ export async function updateEntry(
 ): Promise<boolean> {
     const helper = getTavernHelper();
     if (!helper?.updateWorldbookWith) {
-        Logger.warn(LogModule.WORLDBOOK, "TavernHelper.updateWorldbookWith 不可用");
+        Logger.warn(
+            LogModule.WORLDBOOK,
+            "TavernHelper.updateWorldbookWith 不可用",
+        );
         return false;
     }
 
@@ -284,7 +289,10 @@ export async function deleteEntry(
 ): Promise<boolean> {
     const helper = getTavernHelper();
     if (!helper?.deleteWorldbookEntries) {
-        Logger.warn(LogModule.WORLDBOOK, "TavernHelper.deleteWorldbookEntries 不可用");
+        Logger.warn(
+            LogModule.WORLDBOOK,
+            "TavernHelper.deleteWorldbookEntries 不可用",
+        );
         return false;
     }
 
@@ -293,7 +301,10 @@ export async function deleteEntry(
             worldbookName,
             (entry: any) => entry.uid === uid,
         );
-        Logger.debug(LogModule.WORLDBOOK, "已删除条目", { uid, worldbook: worldbookName });
+        Logger.debug(LogModule.WORLDBOOK, "已删除条目", {
+            uid,
+            worldbook: worldbookName,
+        });
         return true;
     } catch (error) {
         Logger.error(LogModule.WORLDBOOK, "删除世界书条目失败", error);
@@ -312,7 +323,10 @@ export async function deleteEntries(
 ): Promise<boolean> {
     const helper = getTavernHelper();
     if (!helper?.deleteWorldbookEntries) {
-        Logger.warn(LogModule.WORLDBOOK, "TavernHelper.deleteWorldbookEntries 不可用");
+        Logger.warn(
+            LogModule.WORLDBOOK,
+            "TavernHelper.deleteWorldbookEntries 不可用",
+        );
         return false;
     }
 

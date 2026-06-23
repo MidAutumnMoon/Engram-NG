@@ -24,19 +24,19 @@ recalled repeatedly.
 
 Each candidate that enters the cache becomes a `MemorySlot`:
 
-| Field | Meaning |
-|---|---|
-| `id` | Event / Entity UUID |
-| `label` | Human-readable name |
-| `category` | `"event"` or `"entity"` |
-| `embeddingStrength` | Base strength from vector/keyword score |
-| `rerankStrength` | Strength from reranker (or heuristic) |
-| `finalScore` | Sigmoid-normalized composite score (0–1) |
-| `firstRound` | Round when the slot was created |
-| `lastRound` | Most recent round the slot was recalled |
-| `recallCount` | Total times recalled |
-| `consecutiveWorkingCount` | Streak of being in Working Memory |
-| `tier` | `"working"` or `"shortTerm"` |
+| Field                     | Meaning                                  |
+| ------------------------- | ---------------------------------------- |
+| `id`                      | Event / Entity UUID                      |
+| `label`                   | Human-readable name                      |
+| `category`                | `"event"` or `"entity"`                  |
+| `embeddingStrength`       | Base strength from vector/keyword score  |
+| `rerankStrength`          | Strength from reranker (or heuristic)    |
+| `finalScore`              | Sigmoid-normalized composite score (0–1) |
+| `firstRound`              | Round when the slot was created          |
+| `lastRound`               | Most recent round the slot was recalled  |
+| `recallCount`             | Total times recalled                     |
+| `consecutiveWorkingCount` | Streak of being in Working Memory        |
+| `tier`                    | `"working"` or `"shortTerm"`             |
 
 ### 2. Round-Based Lifecycle
 
@@ -116,9 +116,9 @@ steps: [
     new KeywordRetrieveStep(),
     new VectorRetrieveStep(),
     new RerankMergeStep(),
-    new BrainRecallStep(),   // <-- removed in Phase 1.5
+    new BrainRecallStep(), // <-- removed in Phase 1.5
     new RecordRecallLogStep(),
-]
+];
 
 // BrainRecallStep.execute() did:
 brainRecallCache.setConfig(brainConfig);
@@ -138,8 +138,8 @@ auto-populate `{{engramSummaries}}` macros.
    skipped, yet `Retriever.agenticSearch()` and `MacroService` still tried to
    read it, creating unreachable fallback branches.
 2. **Complexity vs. payoff** — The algorithm adds significant statefulness
-   (round tracking, decay, reinforcement) for a feature that was always
-   disabled by default (`brainRecall.enabled: false`).
+   (round tracking, decay, reinforcement) for a feature that was always disabled
+   by default (`brainRecall.enabled: false`).
 3. **Prompt budget pressure** — Working memory limits add another hard cap on
    already-scarce prompt space.
 
@@ -148,8 +148,8 @@ auto-populate `{{engramSummaries}}` macros.
 ## How to Re-Enable
 
 1. Restore `BrainRecallStep` to `RetrievalWorkflow.ts` steps array.
-2. Restore `brainRecallCache` reads in `MacroService.refreshEngramCache()`
-   and `refreshCacheWithNodes()`.
+2. Restore `brainRecallCache` reads in `MacroService.refreshEngramCache()` and
+   `refreshCacheWithNodes()`.
 3. Restore `brainRecallCache` calls in `Retriever.agenticSearch()`.
 4. Re-enable the `brainRecall` toggle in the recall config UI.
 
