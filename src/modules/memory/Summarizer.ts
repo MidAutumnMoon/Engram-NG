@@ -245,10 +245,6 @@ class SummarizerService {
             triggerAt: this.config.floorInterval,
         });
 
-        // V0.9.1: 检查实体提取触发
-        // V0.9.14: EntityExtraction now has its own listener in EntityExtractor.ts. Removing coupled call.
-        // Await this.checkEntityExtraction(currentFloor);
-
         // 检查是否达到 Summary 触发条件
         if (pendingFloors >= this.config.floorInterval) {
             this.log("info", "达到触发条件，准备总结", {
@@ -256,40 +252,6 @@ class SummarizerService {
                 pendingFloors,
             });
             await this.triggerSummary();
-        }
-    }
-
-    /**
-     * V0.9.1: 检查并触发实体提取
-     * 实体提取与 Summary 并行，各自有独立的楼层间隔
-     */
-    private async checkEntityExtraction(currentFloor: number): Promise<void> {
-        try {
-            const { entityBuilder } = await import(
-                "@/modules/memory/EntityExtractor"
-            );
-            // 动态导入 ChatManager 以避免循环依赖
-            const { chatManager } = await import("@/data/ChatManager");
-
-            // 计算范围：上次提取楼层+1 到 当前楼层
-            const state = await chatManager.getState();
-            const lastExtracted = state.last_extracted_floor || 0;
-
-            if (
-                entityBuilder.shouldTriggerOnFloor(currentFloor, lastExtracted)
-            ) {
-                const startFloor = lastExtracted + 1;
-                const range: [number, number] = [startFloor, currentFloor];
-
-                this.log("debug", "实体提取范围", { range });
-
-                // 异步执行，不阻塞 Summary
-                entityBuilder.extractByRange(range, false).catch((error) => {
-                    this.log("warn", "实体提取失败", { error: error });
-                });
-            }
-        } catch (error) {
-            this.log("warn", "实体提取检查失败", { error: error });
         }
     }
 
