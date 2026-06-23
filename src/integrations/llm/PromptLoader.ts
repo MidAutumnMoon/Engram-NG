@@ -83,4 +83,23 @@ export class PromptLoader {
     public static getAllTemplates(): PromptTemplate[] {
         return this.getBuiltInTemplates();
     }
+
+    /**
+     * 通过 ID 获取内置模板
+     */
+    public static getById(id: string): PromptTemplate | undefined {
+        return this.getBuiltInTemplates().find((t) => t.id === id);
+    }
+
+    /**
+     * 通过分类获取内置模板
+     */
+    public static getByCategory(
+        category: PromptTemplate["category"],
+    ): PromptTemplate | null {
+        return this.getBuiltInTemplates().find((t) =>
+            t.category === category
+        ) ??
+            null;
+    }
 }

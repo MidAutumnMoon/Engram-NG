@@ -1,47 +1,113 @@
-export type TrimTriggerType = "token" | "count";
+/**
+ * Memory Configuration Schemas
+ *
+ * Each schema bakes in its defaults via `.default()`, so `schema.parse({})`
+ * produces a fully-populated object and `schema.parse(stored)` applies defaults
+ * for any missing fields. This replaces the old interface + DEFAULT_* constant
+ * pair (single source of truth, no drift).
+ */
 
-export interface TrimConfig {
+import { z } from "zod";
+
+// ==================== Trim Config ====================
+
+export const trimConfigSchema = z.object({
     /** 是否启用精简 */
-    enabled: boolean;
+    enabled: z.boolean().default(false),
     /** 触发器类型 */
-    trigger: TrimTriggerType;
+    trigger: z.enum(["token", "count"]).default("token"),
     /** Token 上限（trigger='token' 时使用） */
-    tokenLimit: number;
+    tokenLimit: z.number().int().positive().default(4096),
     /** 总结次数上限（trigger='count' 时使用） */
-    countLimit: number;
+    countLimit: z.number().int().positive().default(5),
     /** 保留最近 N 条不合并 */
-    keepRecentCount?: number;
+    keepRecentCount: z.number().int().nonnegative().default(3),
     /** 是否保留原始条目（禁用而非删除） */
-    preserveOriginal?: boolean;
+    preserveOriginal: z.boolean().default(false),
     /** 是否启用预览确认 */
-    previewEnabled?: boolean;
-}
+    previewEnabled: z.boolean().default(true),
+});
 
-export type EntityTriggerType = "floor" | "manual";
+export type TrimConfig = z.infer<typeof trimConfigSchema>;
+export type TrimTriggerType = TrimConfig["trigger"];
 
-export interface EntityExtractConfig {
+// ==================== Entity Extract Config ====================
+
+export const entityExtractConfigSchema = z.object({
     /** 是否启用自动提取 */
-    enabled: boolean;
+    enabled: z.boolean().default(false),
     /** 触发器类型 */
-    trigger: EntityTriggerType;
-    /** 楼层间隔 (每 N 楼触发一次，默认 50) */
-    floorInterval: number;
+    trigger: z.enum(["floor", "manual"]).default("floor"),
+    /** 楼层间隔 (每 N 楼触发一次，默认 15) */
+    floorInterval: z.number().int().positive().default(15),
     /** 保留最近 N 条对话不处理 */
-    /** 保留最近 N 条对话不处理 */
-    keepRecentCount: number;
+    keepRecentCount: z.number().int().nonnegative().default(5),
     /** 使用的提示词模板 ID */
-    promptTemplateId?: string;
+    promptTemplateId: z.string().optional(),
     /** 是否启用自动归档 (当总数超过上限时) */
-    autoArchive?: boolean;
+    autoArchive: z.boolean().default(true),
     /** 实体数量上限 (默认 50) */
-    archiveLimit?: number;
+    archiveLimit: z.number().int().positive().default(50),
     /** 是否启用预览确认 */
-    previewEnabled?: boolean;
-}
+    previewEnabled: z.boolean().default(true),
+});
 
-export interface GlobalRegexConfig {
+export type EntityExtractConfig = z.infer<typeof entityExtractConfigSchema>;
+export type EntityTriggerType = EntityExtractConfig["trigger"];
+
+// ==================== Global Regex Config ====================
+
+export const globalRegexConfigSchema = z.object({
     /** 是否启用酒馆原生 Regex (SillyTavern) */
-    enableNativeRegex: boolean;
+    enableNativeRegex: z.boolean().default(true),
     /** 是否启用 Engram 内部 Regex */
-    enableEngramRegex: boolean;
-}
+    enableEngramRegex: z.boolean().default(true),
+});
+
+export type GlobalRegexConfig = z.infer<typeof globalRegexConfigSchema>;
+
+// ==================== Summarizer Config ====================
+
+export const triggerModeSchema = z.enum(["auto", "manual"]);
+export type TriggerMode = z.infer<typeof triggerModeSchema>;
+
+export const worldbookBindModeSchema = z.enum(["chat", "character"]);
+export type WorldbookBindMode = z.infer<typeof worldbookBindModeSchema>;
+
+export const summarizerConfigSchema = z.object({
+    /** 是否启用自动总结 */
+    enabled: z.boolean().default(true),
+    /** 触发模式：自动/手动 */
+    triggerMode: triggerModeSchema.default("auto"),
+    /** 楼层间隔：每 N 楼触发一次 */
+    floorInterval: z.number().int().positive().default(25),
+    /** 世界书绑定模式 */
+    worldbookMode: worldbookBindModeSchema.default("chat"),
+    /** 是否启用预览 */
+    previewEnabled: z.boolean().default(true),
+    /** 使用的提示词模板 ID */
+    promptTemplateId: z.string().nullable().default(null),
+    /** 使用的 LLM 预设 ID（null 表示使用默认） */
+    llmPresetId: z.string().nullable().default(null),
+    /** 保留末尾不处理的楼层数（缓冲） */
+    bufferSize: z.number().int().positive().default(10),
+    /** 是否自动隐藏已总结的楼层 */
+    autoHide: z.boolean().default(false),
+});
+
+export type SummarizerConfig = z.infer<typeof summarizerConfigSchema>;
+
+export const DEFAULT_SUMMARIZER_CONFIG: SummarizerConfig =
+    summarizerConfigSchema.parse({});
+
+// ==================== Derived defaults ====================
+//
+// Each DEFAULT_* is just `schema.parse({})` — kept as named exports for the
+// `stored ?? DEFAULT_X` fallback pattern. Callers that always parse should
+// call the schema directly. Phase 4 will remove these where redundant.
+
+export const DEFAULT_TRIM_CONFIG: TrimConfig = trimConfigSchema.parse({});
+export const DEFAULT_ENTITY_CONFIG: EntityExtractConfig =
+    entityExtractConfigSchema.parse({});
+export const DEFAULT_REGEX_CONFIG: GlobalRegexConfig = globalRegexConfigSchema
+    .parse({});

@@ -1,4 +1,3 @@
-import { getBuiltInTemplateByCategory } from "@/config/types/defaults";
 import { SettingsManager } from "@/config/settings";
 import { Logger } from "@/logger/Logger.ts";
 import { PromptLoader } from "@/integrations/llm/PromptLoader";
@@ -71,7 +70,7 @@ export class BuildPrompt implements IStep {
 
         if (!template && category) {
             // Priority 3: Fallback to builtin default
-            template = getBuiltInTemplateByCategory(category as any);
+            template = PromptLoader.getByCategory(category as any);
             Logger.debug(
                 "BuildPrompt",
                 `Fallback to builtin template: ${template?.name}`,

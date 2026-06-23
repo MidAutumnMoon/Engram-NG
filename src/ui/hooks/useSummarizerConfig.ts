@@ -5,7 +5,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { SettingsManager } from "@/config/settings";
-import { DEFAULT_TRIM_CONFIG } from "@/config/types/defaults";
+import { trimConfigSchema } from "@/config/types/memory";
 import type { TrimConfig } from "@/config/types/memory";
 import { summarizerService } from "@/domain/memory";
 import { eventTrimmer } from "@/domain/memory/EventTrimmer";
@@ -42,7 +42,7 @@ export function useSummarizerConfig(): UseSummarizerConfigReturn {
         SummarizerSettings
     >(DEFAULT_SUMMARIZER_SETTINGS);
     const [trimConfig, setTrimConfig] = useState<TrimConfig>(
-        DEFAULT_TRIM_CONFIG,
+        trimConfigSchema.parse({}),
     );
     const [hasChanges, setHasChanges] = useState(false);
 
@@ -63,10 +63,10 @@ export function useSummarizerConfig(): UseSummarizerConfigReturn {
             });
 
             // 加载 Trim Config
-            const savedTrimConfig = SettingsManager.getSummarizerSettings()
+            const savedTrimConfig = SettingsManager.get("apiSettings")
                 ?.trimConfig;
             if (savedTrimConfig) {
-                setTrimConfig({ ...DEFAULT_TRIM_CONFIG, ...savedTrimConfig });
+                setTrimConfig(trimConfigSchema.parse(savedTrimConfig));
             }
         } catch (error) {
             console.error("Failed to load summarizer config:", error);
@@ -101,8 +101,14 @@ export function useSummarizerConfig(): UseSummarizerConfigReturn {
                 floorInterval: summarizerSettings.floorInterval,
             });
 
-            // 2. 保存 Trim Config 到 SettingsManager
-            SettingsManager.setSummarizerSettings({ trimConfig });
+            // 2. 保存 Trim Config 到 apiSettings
+            const currentApi = SettingsManager.get("apiSettings");
+            if (currentApi) {
+                SettingsManager.set("apiSettings", {
+                    ...currentApi,
+                    trimConfig,
+                });
+            }
 
             // 3. 同步运行态 EventTrimmer，避免自动触发仍使用旧阈值
             eventTrimmer.updateConfig(trimConfig);

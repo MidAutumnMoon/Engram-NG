@@ -2,17 +2,16 @@
  * UseLLMPresets - LLM 预设与提示词模板管理
  */
 
-import { SettingsManager } from "@/config/settings";
-import type {
-    EngramAPISettings,
-    LLMPreset,
-    PromptTemplate,
-} from "@/config/types/defaults";
 import {
     createDefaultLLMPreset,
-    getBuiltInPromptTemplates,
+    createPromptTemplate,
     getDefaultAPISettings,
-} from "@/config/types/defaults";
+} from "@/config/settings";
+import type { EngramAPISettings } from "@/config/settings";
+import { SettingsManager } from "@/config/settings";
+import type { LLMPreset } from "@/config/types/llm";
+import type { PromptTemplate } from "@/config/types/prompt";
+import { PromptLoader } from "@/integrations/llm/PromptLoader";
 import { useCallback, useEffect, useState } from "react";
 
 export interface UseLLMPresetsReturn {
@@ -209,7 +208,7 @@ export function useLLMPresets(): UseLLMPresetsReturn {
      * - 保留当前启用状态和世界书绑定
      */
     const resetAllTemplates = useCallback(() => {
-        const builtInDefaults = getBuiltInPromptTemplates();
+        const builtInDefaults = PromptLoader.getBuiltInTemplates();
         setSettings((prev) => {
             // 保留自定义模板
             const customTemplates = prev.promptTemplates.filter((t) =>
@@ -242,13 +241,14 @@ export function useLLMPresets(): UseLLMPresetsReturn {
 
     const saveLLMSettings = useCallback(() => {
         // 仅保存 LLM 相关设置，保留其他设置
-        const currentSettings = SettingsManager.get("apiSettings") || {};
+        const currentSettings = SettingsManager.get("apiSettings") ??
+            getDefaultAPISettings();
         SettingsManager.set("apiSettings", {
             ...currentSettings,
             llmPresets: settings.llmPresets,
             promptTemplates: settings.promptTemplates,
             selectedPresetId: settings.selectedPresetId,
-        } as any);
+        });
         setHasChanges(false);
     }, [settings]);
 

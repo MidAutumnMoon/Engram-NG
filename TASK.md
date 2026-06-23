@@ -27,11 +27,11 @@ Each `config/types/*.ts` file: replace `interface X { ... }` + sibling `DEFAULT_
 
 Order (smallest / best-understood first):
 
-- [ ] **1a. `memory.ts`** — `TrimConfig`, `EntityExtractConfig`, `GlobalRegexConfig`. Delete `DEFAULT_TRIM_CONFIG` from `defaults.ts` (its defaults move into the schema).
-- [ ] **1b. `rag.ts`** — `VectorConfig`, `RerankConfig`, `RecallConfig`, `EmbeddingConfig`, `BrainRecallConfig` (the last is reference-only but typed here). Delete the matching `DEFAULT_*` constants. Keep `AgenticRecall` as a schema too — it's an LLM-output DTO.
-- [ ] **1c. `llm.ts`** — `LLMPreset`, `CustomAPIConfig`, `SamplingParameters`, `ContextSettings`. Fold `createDefaultLLMPreset` into `llmPreset.parse({ name })`.
-- [ ] **1d. `prompt.ts`** — `PromptTemplate`, `CustomMacro`, `WorldbookConfig`, `WorldbookConfigProfile`. Fold `createPromptTemplate` into `promptTemplate.parse({ name, category, ... })`. Keep `PromptTemplateSingleExport` / `PromptTemplateExport` as schemas — import/export DTOs benefit from validation.
-- [ ] **1e. `data_processing.ts`** — `RegexRule`, `PreprocessingConfig`. `REGEX_SCOPE_OPTIONS` and `DEFAULT_REGEX_RULES` stay as constants (UI metadata / seed data, not validation); they just reference `z.infer<typeof regexScope>` instead of a hand-written union.
+- [x] **1a. `memory.ts`** — `TrimConfig`, `EntityExtractConfig`, `GlobalRegexConfig`. Defaults moved into schemas; `DEFAULT_*` constants in `defaults.ts` now derive via `schema.parse({})`.
+- [x] **1b. `rag.ts`** — `VectorConfig`, `RerankConfig`, `RecallConfig`, `EmbeddingConfig`, `BrainRecallConfig`, `AgenticRecall`. All `DEFAULT_*` constants now derive from schemas.
+- [x] **1c. `llm.ts`** — `LLMPreset`, `CustomAPIConfig`, `SamplingParameters`, `ContextSettings`. `createDefaultLLMPreset` folded into `llmPresetSchema.parse({ name })`.
+- [x] **1d. `prompt.ts`** — `PromptTemplate`, `CustomMacro`, `WorldbookConfig`, `WorldbookConfigProfile`. `createPromptTemplate` folded into `promptTemplateSchema.parse(...)`. Export DTOs are schemas.
+- [x] **1e. `data_processing.ts`** — `RegexRule`, `PreprocessingConfig`. Seed data (`DEFAULT_REGEX_RULES`) and UI metadata (`REGEX_SCOPE_OPTIONS`) stay as constants referencing `z.infer` types.
 
 After each file: `deno task build`. `z.infer` errors will surface every consumer that depended on the old shape.
 
@@ -39,22 +39,22 @@ After each file: `deno task build`. `z.infer` errors will surface every consumer
 
 Once Phase 1 is done, `defaults.ts` is mostly empty.
 
-- [ ] **2a.** Move `EngramAPISettings` schema + `getDefaultAPISettings` (now `engramApiSettings.parse({})`) into `settings.ts`. This kills the `config → integrations/llm/PromptLoader` layer violation — `getBuiltInPromptTemplates` / `getBuiltInTemplateById` / `getBuiltInTemplateByCategory` move with it or get inlined into their callers.
-- [ ] **2b.** Delete `defaults.ts` as a barrel. Its re-exports either disappear (types now come from their schema files directly) or move to `settings.ts`.
+- [x] **2a.** Moved `EngramAPISettings` + `getDefaultAPISettings` + factories (`createDefaultLLMPreset`, `createPromptTemplate`) into `settings.ts`. Inlined the three `getBuiltIn*` wrappers into `PromptLoader` (`getById`, `getByCategory`) — truly kills the `config → integrations/llm/PromptLoader` layer violation. Co-located every `DEFAULT_*` constant next to its schema in `types/{memory,rag,prompt}.ts`.
+- [x] **2b.** Deleted `defaults.ts` entirely. All 14 callers updated to import types/constants from their schema files and factories from `settings.ts`.
 
 ### Phase 3 — Rewrite `SettingsManager` around the root schema
 
-- [ ] **3a.** Define `engramSettingsSchema` in `settings.ts` — composition of all the per-domain schemas from Phase 1 plus the top-level scalars (`theme`, `hasSeenWelcome`, `linkedDeletion`, `syncConfig`, etc.). Every field has `.default()`.
-- [ ] **3b.** `getSettings()` becomes `engramSettingsSchema.parse(stored)`. One line. Validation + migration + defaults all handled. Delete `initSettings`'s hand-rolled merge loop.
-- [ ] **3c.** Strip `getSummarizerSettings` / `setSummarizerSettings` / `getRegexRules`. Callers read typed fields directly off the parsed settings object.
-- [ ] **3d.** Decide on `summarizerConfig` / `trimmerConfig` — these are `Partial<any>` escape hatches. Either type them properly via schemas or delete them if unused.
-- [ ] **3e.** Optionally de-class `SettingsManager` → bare functions (`getSettings`, `get`, `set`). No instance state; the class is ceremony. Match the pattern set by `LinkedCleanup.ts`.
+- [x] **3a.** Defined `engramApiSettingsSchema` and `engramSettingsSchema` in `settings.ts` — compositions of all per-domain schemas. Every field has `.default()` or `.prefault({})` (Zod v4 requires `.prefault()` for nested objects whose output type has required fields). `EngramAPISettings` and `EngramSettings` are now `z.infer` types, not hand-written interfaces.
+- [x] **3b.** `getSettings()` → `engramSettingsSchema.parse(raw ?? {})`. `initSettings()` → parse + persist. Deleted the 30-line hand-rolled merge loop and `defaultSettings` constant.
+- [x] **3c.** Stripped `getSummarizerSettings`, `setSummarizerSettings`, `getRegexRules`. Updated callers: `index.ts` reads `get("apiSettings")?.trimConfig`; `useSummarizerConfig.ts` reads/writes `trimConfig` via `apiSettings` instead of the old `summarizerConfig` hack.
+- [x] **3d.** Deleted dead `trimmerConfig` field. Typed `summarizerConfig` properly: moved `SummarizerConfig` schema to `config/types/memory.ts`; `domain/memory/types.ts` re-exports.
+- [ ] **3e.** (Optional) De-class `SettingsManager` → bare functions. Low priority — class works fine as a namespace.
 
 ### Phase 4 — Clean up call sites
 
-- [ ] **4a.** Grep for `{ ...DEFAULT_X, ...stored }` spreads — these should all be deletable now that the schema applies defaults.
-- [ ] **4b.** Grep for `SettingsManager.get("...")` returning `any` — replace with typed reads off `getSettings()`.
-- [ ] **4c.** Grep for `as any` / `Partial<any>` in config consumers — most should be removable.
+- [x] **4a.** Replaced all `{ ...DEFAULT_X, ...stored }` spreads with `schema.parse(stored ?? {})`. Files: `EventTrimmer.ts` (3 sites), `EntityExtractor.ts`, `Summarizer.ts`, `index.ts`, `useSummarizerConfig.ts`. Deleted unused `DEFAULT_*` imports from all five files.
+- [x] **4b.** No `as any` casts remain on `SettingsManager.get()` reads — `summarizerConfig` cast in `Summarizer.ts` deleted. All reads now get typed return values from `z.infer`.
+- [x] **4c.** Removed 4 `} as any)` casts on `SettingsManager.set("apiSettings", ...)` calls (`useDashboardData.ts` ×3, `useLLMPresets.ts` ×1). Fixed root cause in `useLLMPresets.ts`: `|| {}` → `?? getDefaultAPISettings()` to ensure complete shape.
 
 ## Non-goals
 
@@ -68,4 +68,4 @@ Once Phase 1 is done, `defaults.ts` is mostly empty.
 
 ## Open questions
 
-- [ ] `summarizerConfig` / `trimmerConfig` — type them or delete them? Grep for readers first.
+- [x] ~~`summarizerConfig` / `trimmerConfig` — type them or delete them?~~ Resolved in Phase 3d: `trimmerConfig` deleted (dead); `summarizerConfig` typed via schema moved to `config/types/memory.ts`.

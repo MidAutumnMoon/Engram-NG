@@ -6,11 +6,8 @@
  * - Memory Stats: 事件/实体统计
  * - Feature Status: 功能开关状态
  */
-import { SettingsManager } from "@/config/settings";
-import {
-    DEFAULT_RECALL_CONFIG,
-    getDefaultAPISettings,
-} from "@/config/types/defaults";
+import { getDefaultAPISettings, SettingsManager } from "@/config/settings";
+import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { getCurrentChatId, getSTContext } from "@/sillytavern";
@@ -238,7 +235,7 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
                 SettingsManager.set("apiSettings", {
                     ...currentApiSettings,
                     entityExtractConfig: newConfig,
-                } as any);
+                });
                 useConfigStore.getState().updateConfig(
                     "entityExtractConfig",
                     newConfig,
@@ -253,7 +250,7 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
                 SettingsManager.set("apiSettings", {
                     ...currentApiSettings,
                     embeddingConfig: newConfig,
-                } as any);
+                });
                 useConfigStore.getState().updateConfig(
                     "embeddingConfig",
                     newConfig,
@@ -268,7 +265,7 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
                 SettingsManager.set("apiSettings", {
                     ...currentApiSettings,
                     recallConfig: newConfig,
-                } as any);
+                });
                 useConfigStore.getState().updateConfig(
                     "recallConfig",
                     newConfig,

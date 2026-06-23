@@ -1,15 +1,20 @@
-import { type EngramSettings, SettingsManager } from "@/config/settings.ts";
 import {
-    type CustomMacro,
+    type EngramSettings,
+    getDefaultAPISettings,
+    SettingsManager,
+} from "@/config/settings.ts";
+import type {
+    EntityExtractConfig,
+    GlobalRegexConfig,
+} from "@/config/types/memory.ts";
+import {
     DEFAULT_EMBEDDING_CONFIG,
     type EmbeddingConfig,
-    getDefaultAPISettings,
-    type GlobalRegexConfig,
     type RecallConfig,
     type RerankConfig,
     type VectorConfig,
-} from "@/config/types/defaults.ts";
-import type { EntityExtractConfig } from "@/config/types/memory.ts";
+} from "@/config/types/rag.ts";
+import type { CustomMacro } from "@/config/types/prompt.ts";
 import { create } from "zustand";
 
 // 采用 debounce，防止高频 UI 调整（如滑块）导致的存取风暴

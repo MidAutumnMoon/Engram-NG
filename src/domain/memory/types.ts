@@ -12,46 +12,15 @@ export interface ChatContext {
     db: ChatDatabase;
 }
 
-/** 触发模式 */
-export type TriggerMode = "auto" | "manual";
-
-/** 世界书绑定模式 */
-export type WorldbookBindMode = "chat" | "character";
-
-/** Summarizer 配置 */
-export interface SummarizerConfig {
-    /** 是否启用自动总结 */
-    enabled: boolean;
-    /** 触发模式：自动/手动 */
-    triggerMode: TriggerMode;
-    /** 楼层间隔：每 N 楼触发一次 */
-    floorInterval: number;
-    /** 世界书绑定模式 */
-    worldbookMode: WorldbookBindMode;
-    /** 是否启用预览 */
-    previewEnabled: boolean;
-    /** 使用的提示词模板 ID */
-    promptTemplateId: string | null;
-    /** 使用的 LLM 预设 ID（null 表示使用默认） */
-    llmPresetId: string | null;
-    /** 保留末尾不处理的楼层数（缓冲） */
-    bufferSize: number;
-    /** 是否自动隐藏已总结的楼层 */
-    autoHide: boolean;
-}
-
-/** 默认配置 (V0.9.5 推荐参数) */
-export const DEFAULT_SUMMARIZER_CONFIG: SummarizerConfig = {
-    enabled: true,
-    triggerMode: "auto",
-    floorInterval: 25, // V0.9.5: 20-30 层一次
-    worldbookMode: "chat",
-    previewEnabled: true,
-    promptTemplateId: null,
-    llmPresetId: null,
-    bufferSize: 10, // V0.9.5: 缓存 10 层
-    autoHide: false,
-};
+// SummarizerConfig, TriggerMode, WorldbookBindMode, and DEFAULT_SUMMARIZER_CONFIG
+// moved to config/types/memory.ts (single source of truth via Zod schema).
+// Re-exported here so existing domain-layer imports (`./types.ts`) keep working.
+export type {
+    SummarizerConfig,
+    TriggerMode,
+    WorldbookBindMode,
+} from "@/config/types/memory.ts";
+export { DEFAULT_SUMMARIZER_CONFIG } from "@/config/types/memory.ts";
 
 /** 总结结果 */
 export interface SummaryResult {

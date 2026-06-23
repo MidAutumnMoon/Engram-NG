@@ -1,161 +1,211 @@
-import type { RegexRule } from "@/config/types/data_processing.ts";
-import type { EngramAPISettings } from "@/config/types/defaults.ts";
-import type { PromptTemplate } from "@/config/types/prompt.ts";
+/**
+ * Engram settings — schema, factory functions, and SettingsManager.
+ *
+ * The Zod schemas (`engramApiSettingsSchema`, `engramSettingsSchema`) are the
+ * single source of truth for both the type and the defaults. `getSettings()`
+ * validates and fills defaults on every read via `schema.parse(stored)`.
+ */
+
+import { z } from "zod";
 import { Logger } from "@/logger/Logger.ts";
 import { getSTContext } from "@/sillytavern/index.ts";
+import { PromptLoader } from "@/integrations/llm/PromptLoader.ts";
 
-export interface EngramSettings {
-    theme: string;
-    presets: Record<string, any>; // 待扩展的预设类型，暂时使用 Record
-    templates: Record<string, any>; // 待扩展的模板类型，暂时使用 Record
-    promptTemplates: PromptTemplate[]; // 提示词模板列表
-    hasSeenWelcome: boolean; // 是否已观看欢迎动画
-    lastOpenedTab: string; // 上次打开的主界面页面
-    summarizerConfig: Partial<any>; // 总结器配置 (Legacy)
-    globalPreviewEnabled: boolean; // 是否启用全局预览预览 (V1.4.7)
-    trimmerConfig: Partial<any>; // 精简器配置
-    regexRules: RegexRule[]; // 正则清洗规则列表
-    apiSettings: EngramAPISettings | null; // API 配置（LLM 预设、向量化、重排序等）
-    linkedDeletion: {
-        enabled: boolean; // 是否启用联动删除
-        deleteWorldbook: boolean; // 删除角色时同步删除 Engram 世界书
-        deleteChatWorldbook: boolean; // 删除聊天时同步删除 Engram 世界书
-        deleteIndexedDB: boolean; // 删除角色时同步删除本地 IndexedDB 数据
-        showConfirmation: boolean; // 删除前显示确认对话框
-    };
-    syncConfig: {
-        enabled: boolean; // 总开关：是否启用同步功能
-        autoSync: boolean; // 是否在数据变动时自动上传
+import { type LLMPreset, llmPresetSchema } from "@/config/types/llm.ts";
+import { regexRuleSchema } from "@/config/types/data_processing.ts";
+import {
+    DEFAULT_REGEX_CONFIG,
+    entityExtractConfigSchema,
+    globalRegexConfigSchema,
+    summarizerConfigSchema,
+    trimConfigSchema,
+} from "@/config/types/memory.ts";
+import {
+    DEFAULT_RECALL_CONFIG,
+    DEFAULT_RERANK_CONFIG,
+    DEFAULT_VECTOR_CONFIG,
+    embeddingConfigSchema,
+    recallConfigSchema,
+    rerankConfigSchema,
+    vectorConfigSchema,
+} from "@/config/types/rag.ts";
+import {
+    type CustomMacro,
+    customMacroSchema,
+    DEFAULT_WORLDBOOK_CONFIG,
+    type PromptCategory,
+    type PromptTemplate,
+    promptTemplateSchema,
+    worldbookConfigProfileSchema,
+    worldbookConfigSchema,
+} from "@/config/types/prompt.ts";
+
+// ============================================================================
+// EngramAPISettings — composed schema (lives inside EngramSettings.apiSettings)
+// ============================================================================
+
+const engramApiSettingsSchema = z.object({
+    /** LLM 预设列表 */
+    llmPresets: z.array(llmPresetSchema).default([]),
+    /** 当前选中的 LLM 预设 ID（作为默认预设） */
+    selectedPresetId: z.string().nullable().default(null),
+    /** 向量化配置 */
+    vectorConfig: vectorConfigSchema.prefault({}),
+    /** Rerank 配置 */
+    rerankConfig: rerankConfigSchema.prefault({}),
+    /** 提示词模板列表 */
+    promptTemplates: z.array(promptTemplateSchema).default([]),
+    /** 世界书配置 */
+    worldbookConfig: worldbookConfigSchema.prefault({}),
+    /** 正则配置 (V0.8) */
+    regexConfig: globalRegexConfigSchema.prefault({}),
+    /** 精简配置（可选，二层总结） */
+    trimConfig: trimConfigSchema.optional(),
+    /** V0.7: 嵌入配置 */
+    embeddingConfig: embeddingConfigSchema.optional(),
+    /** V0.8.5: 召回配置 */
+    recallConfig: recallConfigSchema.optional(),
+    /** V0.9: 实体提取配置 */
+    entityExtractConfig: entityExtractConfigSchema.optional(),
+    /** V0.9.2: 自定义宏 */
+    customMacros: z.array(customMacroSchema).optional(),
+    /** V1.1.0: 世界书配置方案 */
+    worldbookProfiles: z.array(worldbookConfigProfileSchema).optional(),
+});
+
+export type EngramAPISettings = z.infer<typeof engramApiSettingsSchema>;
+
+// ============================================================================
+// EngramSettings — root schema (the shape SillyTavern persists to disk)
+// ============================================================================
+
+const engramSettingsSchema = z.object({
+    theme: z.string().default("odysseia"),
+    presets: z.record(z.string(), z.unknown()).default({}),
+    templates: z.record(z.string(), z.unknown()).default({}),
+    promptTemplates: z.array(promptTemplateSchema).default([]),
+    hasSeenWelcome: z.boolean().default(false),
+    lastOpenedTab: z.string().default("dashboard"),
+    summarizerConfig: summarizerConfigSchema.prefault({}),
+    globalPreviewEnabled: z.boolean().default(true),
+    regexRules: z.array(regexRuleSchema).default([]),
+    apiSettings: engramApiSettingsSchema.nullable().default(null),
+    linkedDeletion: z.object({
+        enabled: z.boolean().default(true),
+        deleteWorldbook: z.boolean().default(true),
+        deleteChatWorldbook: z.boolean().default(false),
+        deleteIndexedDB: z.boolean().default(false),
+        showConfirmation: z.boolean().default(true),
+    }).prefault({}),
+    syncConfig: z.object({
+        enabled: z.boolean().default(false),
+        autoSync: z.boolean().default(true),
+    }).prefault({}),
+});
+
+export type EngramSettings = z.infer<typeof engramSettingsSchema>;
+
+// ============================================================================
+// Factory functions
+// ============================================================================
+
+const DEFAULT_CUSTOM_MACROS: CustomMacro[] = [
+    {
+        id: "custom_user_profile",
+        name: "用户画像",
+        content: "",
+        enabled: true,
+        createdAt: Date.now(),
+    },
+];
+
+export function createDefaultLLMPreset(name: string = "默认预设"): LLMPreset {
+    return llmPresetSchema.parse({ name });
+}
+
+export function createPromptTemplate(
+    name: string,
+    category: PromptCategory,
+    options:
+        & Partial<
+            Omit<
+                PromptTemplate,
+                "name" | "category" | "createdAt" | "updatedAt"
+            >
+        >
+        & { id?: string } = {},
+): PromptTemplate {
+    return promptTemplateSchema.parse({ name, category, ...options });
+}
+
+export function getDefaultAPISettings(): EngramAPISettings {
+    return {
+        llmPresets: [createDefaultLLMPreset()],
+        selectedPresetId: null,
+        vectorConfig: { ...DEFAULT_VECTOR_CONFIG },
+        rerankConfig: { ...DEFAULT_RERANK_CONFIG },
+        promptTemplates: PromptLoader.getBuiltInTemplates(),
+        worldbookConfig: { ...DEFAULT_WORLDBOOK_CONFIG },
+        regexConfig: { ...DEFAULT_REGEX_CONFIG },
+        recallConfig: { ...DEFAULT_RECALL_CONFIG },
+        customMacros: [...DEFAULT_CUSTOM_MACROS],
+        worldbookProfiles: [],
     };
 }
 
-/** 默认设置 */
-const defaultSettings: EngramSettings = Object.freeze({
-    theme: "odysseia",
-    presets: {},
-    templates: {},
-    promptTemplates: [],
-    hasSeenWelcome: false,
-    lastOpenedTab: "dashboard",
-    summarizerConfig: {},
-    globalPreviewEnabled: true, // 默认开启
-    trimmerConfig: {},
-    regexRules: [],
-    apiSettings: null,
-    linkedDeletion: {
-        enabled: true,
-        deleteWorldbook: true,
-        deleteChatWorldbook: false, // 默认关闭，防止误删
-        deleteIndexedDB: false,
-        showConfirmation: true,
-    },
-    syncConfig: {
-        enabled: false, // 默认关闭（Beta功能）
-        autoSync: true, // 启用后默认开启自动同步
-    },
-});
+// ============================================================================
+// SettingsManager — validates via schema on every read; writes to ST storage
+// ============================================================================
 
-/**
- * SettingsManager - Engram 设置管理器
- *
- * 使用 SillyTavern.getContext().extensionSettings API 进行持久化
- * 这是 ST 官方推荐的扩展设置存储方式
- *
- * 反应式订阅走 state/ 下的 zustand stores（configStore 等），
- * 此处只承担读写 ST 持久化层的职责。
- */
 export class SettingsManager {
     private static readonly EXTENSION_NAME = "engram";
 
     /**
-     * 获取扩展设置对象
-     * 如果不存在则创建
+     * 获取扩展设置对象 (schema-validated, defaults filled)
+     *
+     * `initSettings()` must be called at startup to ensure ST storage exists.
+     * Subsequent calls return a fresh parsed copy — callers should use `set()`
+     * for writes, never mutate the returned object.
      */
     public static getSettings(): EngramSettings {
-        const context = getSTContext();
-        if (!context.extensionSettings) {
-            Logger.warn(
-                "SettingsManager",
-                "SillyTavern context.extensionSettings not available",
-            );
-            return { ...defaultSettings };
-        }
-
-        // 如果 engram 设置不存在，初始化它
-        if (!context.extensionSettings[this.EXTENSION_NAME]) {
-            context.extensionSettings[this.EXTENSION_NAME] = {
-                ...defaultSettings,
-            };
-            Logger.debug(
-                "SettingsManager",
-                "Initialized engram settings with defaults",
-            );
-            // 保存初始化的设置
-            this.save();
-        }
-
-        return context.extensionSettings[this.EXTENSION_NAME];
+        const raw = getSTContext().extensionSettings?.[this.EXTENSION_NAME];
+        return engramSettingsSchema.parse(raw ?? {});
     }
 
     /**
      * 初始化设置（在扩展加载时调用）
-     * 确保所有必需的字段都存在
+     *
+     * Validates ST storage against the schema, fills missing fields with
+     * defaults, and persists the result. Replaces the old hand-rolled merge loop.
      */
     public static initSettings(): void {
         const context = getSTContext();
         if (!context.extensionSettings) {
             Logger.warn(
                 "SettingsManager",
-                "Cannot init settings: context not available",
+                "Cannot init: context.extensionSettings not available",
             );
             return;
         }
-
-        let shouldSave = false;
-
-        // 如果 engram 设置不存在，创建它
-        if (!context.extensionSettings[this.EXTENSION_NAME]) {
-            context.extensionSettings[this.EXTENSION_NAME] = {
-                ...defaultSettings,
-            };
-            shouldSave = true;
-            Logger.info("SettingsManager", "Created engram settings");
-        }
-
-        // 确保所有必需的字段都存在（补全缺失的字段）
-        const settings = context.extensionSettings[this.EXTENSION_NAME];
-        for (
-            const key of Object.keys(
-                defaultSettings,
-            ) as (keyof EngramSettings)[]
-        ) {
-            if (!(key in settings)) {
-                (settings as any)[key] = (defaultSettings as any)[key];
-                shouldSave = true;
-                Logger.debug("SettingsManager", `Added missing field: ${key}`);
-            }
-        }
-
-        if (shouldSave) {
-            this.save();
-        }
+        const raw = context.extensionSettings[this.EXTENSION_NAME];
+        const parsed = engramSettingsSchema.parse(raw ?? {});
+        context.extensionSettings[this.EXTENSION_NAME] = parsed;
+        this.save();
+        Logger.debug("SettingsManager", "Settings initialized and validated");
     }
 
     /**
-     * Get a specific setting value
+     * Get a specific setting value (typed, defaults guaranteed by schema).
      */
     public static get<K extends keyof EngramSettings>(
         key: K,
     ): EngramSettings[K] {
-        const settings = this.getSettings();
-        const value = settings[key];
-        // 如果值不存在，返回默认值
-        return value !== undefined ? value : defaultSettings[key];
+        return this.getSettings()[key];
     }
 
     /**
-     * Save a specific setting value
-     * 直接更新 context.extensionSettings 中的字段
+     * Save a specific setting value.
+     * Mutates ST's stored object in place, then triggers a debounced save.
      */
     public static set<K extends keyof EngramSettings>(
         key: K,
@@ -170,21 +220,17 @@ export class SettingsManager {
             return;
         }
 
-        // 确保 engram 对象存在
-        if (!context.extensionSettings[this.EXTENSION_NAME]) {
-            context.extensionSettings[this.EXTENSION_NAME] = {
-                ...defaultSettings,
-            };
+        let settings = context.extensionSettings[this.EXTENSION_NAME];
+        if (!settings) {
+            settings = engramSettingsSchema.parse({});
+            context.extensionSettings[this.EXTENSION_NAME] = settings;
         }
 
-        // 更新单个字段
-        context.extensionSettings[this.EXTENSION_NAME][key] = value;
+        settings[key] = value;
         Logger.debug(
             "SettingsManager",
             `Set ${String(key)} = ${JSON.stringify(value)}`,
         );
-
-        // 保存到服务器
         this.save();
     }
 
@@ -205,30 +251,5 @@ export class SettingsManager {
                 "saveSettingsDebounced not available",
             );
         }
-    }
-
-    /**
-     * 获取总结器设置
-     * @returns summarizerConfig 对象
-     */
-    public static getSummarizerSettings(): any {
-        return this.get("summarizerConfig") || {};
-    }
-
-    /**
-     * 设置总结器设置（合并更新）
-     * @param config 要合并的配置对象
-     */
-    public static setSummarizerSettings(config: Partial<any>): void {
-        const current = this.getSummarizerSettings();
-        this.set("summarizerConfig", { ...current, ...config });
-    }
-
-    /**
-     * 获取正则规则列表
-     * @returns RegexRule[] 正则规则数组
-     */
-    public static getRegexRules(): RegexRule[] {
-        return this.get("regexRules") || [];
     }
 }

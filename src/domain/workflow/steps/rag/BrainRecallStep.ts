@@ -2,7 +2,7 @@ import { SettingsManager } from "@/config/settings";
 import {
     DEFAULT_BRAIN_RECALL_CONFIG,
     DEFAULT_RECALL_CONFIG,
-} from "@/config/types/defaults";
+} from "@/config/types/rag";
 import type { BrainRecallConfig, RecallConfig } from "@/config/types/rag";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";

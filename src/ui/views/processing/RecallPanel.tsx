@@ -1,4 +1,4 @@
-import type { RecallConfig, RerankConfig } from "@/config/types/defaults";
+import type { RecallConfig, RerankConfig } from "@/config/types/rag";
 import React from "react";
 import { RecallConfigForm } from "./components/RecallConfigForm";
 
@@ -72,12 +72,10 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
         setMatchedEvents(hitEvents);
 
         if (hitEntities.length === 0 && hitEvents.length === 0) {
-            notify("warning", 
-                "关键词扫描未命中任何实体或事件",
-                "Scan Dry Run",
-            );
+            notify("warning", "关键词扫描未命中任何实体或事件", "Scan Dry Run");
         } else {
-            notify("success", 
+            notify(
+                "success",
                 `扫描命中: ${hitEntities.length} 个实体, ${hitEvents.length} 条事件`,
                 "Scan Dry Run",
             );
@@ -103,7 +101,8 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
         setIsTesting(true);
         try {
             if (isAgenticMode) {
-                notify("warning", 
+                notify(
+                    "warning",
                     "Agentic RAG 预览需要预处理模块，该模块已移除",
                     "Agentic RAG",
                 );
@@ -119,18 +118,12 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
             const recalledEntities = searchResult.recalledEntities || [];
 
             if (searchResult.skippedReason) {
-                notify("info", 
-                    searchResult.skippedReason,
-                    "RAG 冷启动保护",
-                );
+                notify("info", searchResult.skippedReason, "RAG 冷启动保护");
                 return;
             }
 
             if (candidates.length === 0 && recalledEntities.length === 0) {
-                notify("warning", 
-                    "检索未命中任何事件或实体",
-                    "RAG",
-                );
+                notify("warning", "检索未命中任何事件或实体", "RAG");
                 return;
             }
             // 把检索返回的带分数的 candidate 元素组装为相同的结构格式供 Modal 消费
@@ -147,10 +140,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
             setCurrentEntities(recalledEntities);
             setIsModalOpen(true);
         } catch {
-            notify("error", 
-                "召回预览执行失败，请查阅控制台报错",
-                "RAG",
-            );
+            notify("error", "召回预览执行失败，请查阅控制台报错", "RAG");
         } finally {
             setIsTesting(false);
         }
@@ -356,17 +346,15 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                                 mode: isAgenticMode ? "agentic" : "hybrid", // 显式标记为手动测试，跳过日志和 Brain 状态变更
                             },
                         );
-                        notify("success", 
+                        notify(
+                            "success",
                             `预览确认完成! 强一致性注入 ${
                                 searchResult.nodes?.length ?? 0
                             } 条事件，请查看日志`,
                             "RAG",
                         );
                     } catch {
-                        notify("error", 
-                            "确认后重新执行内容装配失败",
-                            "RAG",
-                        );
+                        notify("error", "确认后重新执行内容装配失败", "RAG");
                     } finally {
                         setIsTesting(false);
                     }

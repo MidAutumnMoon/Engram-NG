@@ -11,7 +11,7 @@
  */
 
 import { SettingsManager } from "@/config/settings.ts";
-import { DEFAULT_RECALL_CONFIG } from "@/config/types/defaults.ts";
+import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import {

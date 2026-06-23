@@ -1,14 +1,10 @@
-import { SettingsManager } from "@/config/settings";
+import { getDefaultAPISettings, SettingsManager } from "@/config/settings";
 import type {
-    EngramAPISettings,
     WorldbookConfig,
     WorldbookConfigProfile,
-} from "@/config/types/defaults";
-import { getDefaultAPISettings } from "@/config/types/defaults";
-import {
-    getTavernHelper,
-    WorldInfoService,
-} from "@/domain/worldbook";
+} from "@/config/types/prompt";
+import type { EngramAPISettings } from "@/config/settings";
+import { getTavernHelper, WorldInfoService } from "@/domain/worldbook";
 import { useCallback, useEffect, useState } from "react";
 
 export interface UseWorldInfoReturn {

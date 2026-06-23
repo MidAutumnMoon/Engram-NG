@@ -1,36 +1,40 @@
 /**
- * Data Processing Configuration Types
- * 数据及其预处理相关的配置类型定义
+ * Data Processing Configuration Schemas
  *
- * Moved from modules layer to config layer to prevent dependency cycles.
+ * `REGEX_SCOPE_OPTIONS` and `DEFAULT_REGEX_RULES` are UI metadata / seed data
+ * (not validation defaults), so they stay as constants — they just reference
+ * `z.infer` types instead of hand-written unions.
  */
+
+import { z } from "zod";
 
 // ==================== Regular Expression Rules ====================
 
-/** 正则规则作用域 */
-export type RegexScope = "input" | "output" | "both";
+export const regexScopeSchema = z.enum(["input", "output", "both"]);
+export type RegexScope = z.infer<typeof regexScopeSchema>;
 
-/** 正则规则定义 */
-export interface RegexRule {
+export const regexRuleSchema = z.object({
     /** 唯一 ID */
-    id: string;
+    id: z.string(),
     /** 规则名称 */
-    name: string;
+    name: z.string(),
     /** 正则表达式 */
-    pattern: string;
+    pattern: z.string(),
     /** 替换文本 */
-    replacement: string;
+    replacement: z.string(),
     /** 是否启用 */
-    enabled: boolean;
+    enabled: z.boolean(),
     /** 正则标志 (g, i, m, s) */
-    flags: string;
+    flags: z.string(),
     /** 作用域：input=清洗发给LLM的内容，output=清洗LLM返回的内容，both=两者都应用 */
-    scope: RegexScope;
+    scope: regexScopeSchema,
     /** 描述 */
-    description?: string;
-}
+    description: z.string().optional(),
+});
 
-/** 作用域选项 (常量) */
+export type RegexRule = z.infer<typeof regexRuleSchema>;
+
+/** 作用域选项 (UI 常量) */
 export const REGEX_SCOPE_OPTIONS: {
     value: RegexScope;
     label: string;
@@ -45,7 +49,7 @@ export const REGEX_SCOPE_OPTIONS: {
     { description: "输入和输出都应用", label: "两者", value: "both" },
 ];
 
-/** 默认正则规则 */
+/** 默认正则规则 (seed data) */
 export const DEFAULT_REGEX_RULES: RegexRule[] = [
     {
         description:
@@ -106,22 +110,19 @@ export const DEFAULT_REGEX_RULES: RegexRule[] = [
 
 // ==================== Preprocessing Configuration ====================
 
-/** 预处理配置 */
-export interface PreprocessingConfig {
+export const preprocessingConfigSchema = z.object({
     /** 是否启用 */
-    enabled: boolean;
+    enabled: z.boolean().default(false),
     /** 当前使用的提示词模板 ID */
-    templateId: string;
+    templateId: z.string().default("query_enhance"),
     /** 是否自动触发 (每次发送消息) */
-    autoTrigger: boolean;
+    autoTrigger: z.boolean().default(true),
     /** 是否开启预览修订 (V0.8.6+) */
-    preview: boolean;
-}
+    preview: z.boolean().default(true),
+});
+
+export type PreprocessingConfig = z.infer<typeof preprocessingConfigSchema>;
 
 /** 默认预处理配置 */
-export const DEFAULT_PREPROCESSING_CONFIG: PreprocessingConfig = {
-    autoTrigger: true,
-    enabled: false,
-    preview: true,
-    templateId: "query_enhance", // 默认开启预览
-};
+export const DEFAULT_PREPROCESSING_CONFIG: PreprocessingConfig =
+    preprocessingConfigSchema.parse({});

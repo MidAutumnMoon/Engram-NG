@@ -18,7 +18,7 @@ import { useRecallLogStore } from "@/logger/recallLog.ts";
 import { tryGetDbForChat } from "@/data/db.ts";
 import { getCurrentChatId } from "@/sillytavern/index.ts";
 
-import { DEFAULT_RECALL_CONFIG } from "@/config/types/defaults.ts";
+import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag.ts";
 import type {
     RecallConfig,
     RerankConfig,

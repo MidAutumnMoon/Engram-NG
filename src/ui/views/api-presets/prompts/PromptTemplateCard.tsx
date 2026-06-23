@@ -1,10 +1,7 @@
-import {
-    createPromptTemplate,
-    getBuiltInTemplateByCategory,
-    getBuiltInTemplateById,
-} from "@/config/types/defaults";
+import { createPromptTemplate } from "@/config/settings";
 import type { PromptCategory, PromptTemplate } from "@/config/types/prompt";
 import { PROMPT_CATEGORIES } from "@/config/types/prompt";
+import { PromptLoader } from "@/integrations/llm/PromptLoader";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { notify } from "@/sillytavern/notify.ts";
@@ -130,7 +127,8 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                     // 保持原 ID
                     importedTemplate.id = template.id;
                     onImport(importedTemplate);
-                    notify("success", 
+                    notify(
+                        "success",
                         `模板 "${importedTemplate.name}" 导入成功`,
                     );
                     Logger.info(
@@ -273,13 +271,13 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                             let defaultTemplate:
                                 | PromptTemplate
                                 | null
-                                | undefined = getBuiltInTemplateById(
+                                | undefined = PromptLoader.getById(
                                     template.id,
                                 );
 
                             // 如果找不到 (可能是旧数据的随机 ID)，回退到分类匹配
                             if (!defaultTemplate) {
-                                defaultTemplate = getBuiltInTemplateByCategory(
+                                defaultTemplate = PromptLoader.getByCategory(
                                     template.category,
                                 );
                             }

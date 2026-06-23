@@ -1,4 +1,4 @@
-import { createPromptTemplate } from "@/config/types/defaults";
+import { createPromptTemplate } from "@/config/settings";
 import type { PromptTemplate } from "@/config/types/prompt";
 import { PROMPT_CATEGORIES } from "@/config/types/prompt";
 import { FileText, Plus, RotateCcw } from "lucide-react";

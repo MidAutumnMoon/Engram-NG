@@ -1,8 +1,7 @@
 import "@/ui/styles/main.css";
 import { Logger } from "@/logger/Logger.ts";
 import { SettingsManager } from "@/config/settings.ts";
-import { DEFAULT_TRIM_CONFIG } from "@/config/types/defaults.ts";
-import type { TrimConfig } from "@/config/types/memory.ts";
+import { trimConfigSchema } from "@/config/types/memory.ts";
 import { getDbForChat } from "@/data/db.ts";
 import type { ChatContext } from "@/domain/memory/types.ts";
 import { regexProcessor } from "@/domain/workflow/steps/processing/RegexProcessor.ts";
@@ -46,7 +45,7 @@ SettingsManager.initSettings();
 useUiStore.getState().hydrateFromSettings();
 
 // 2. Regex rules
-const savedRegexRules = SettingsManager.getRegexRules();
+const savedRegexRules = SettingsManager.get("regexRules");
 if (savedRegexRules && savedRegexRules.length > 0) {
     regexProcessor.setRules(savedRegexRules);
     Logger.info("STBridge", `已加载 ${savedRegexRules.length} 条正则规则`);
@@ -55,9 +54,9 @@ if (savedRegexRules && savedRegexRules.length > 0) {
 // 3. Injection config and chat context
 const globalPreviewEnabled = SettingsManager.get("globalPreviewEnabled") ??
     true;
-const storedTrim = SettingsManager.getSummarizerSettings()?.trimConfig || {};
+const storedTrim = SettingsManager.get("apiSettings")?.trimConfig;
 eventTrimmer.init(
-    { ...DEFAULT_TRIM_CONFIG, ...storedTrim } as TrimConfig,
+    trimConfigSchema.parse(storedTrim ?? {}),
     globalPreviewEnabled,
 );
 

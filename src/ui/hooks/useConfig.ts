@@ -7,14 +7,16 @@
  */
 
 import type {
-    CustomMacro,
-    EmbeddingConfig,
+    EntityExtractConfig,
     GlobalRegexConfig,
+} from "@/config/types/memory";
+import type {
+    EmbeddingConfig,
     RecallConfig,
     RerankConfig,
     VectorConfig,
-} from "@/config/types/defaults";
-import type { EntityExtractConfig } from "@/config/types/memory";
+} from "@/config/types/rag";
+import type { CustomMacro } from "@/config/types/prompt";
 import { useConfigStore } from "@/state/configStore";
 
 export interface UseConfigReturn {

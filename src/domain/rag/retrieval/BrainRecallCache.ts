@@ -6,7 +6,7 @@
  * - Boredom Penalty: 改为排序时的临时减分 (Penalty * (Count - Threshold))
  */
 
-import { DEFAULT_BRAIN_RECALL_CONFIG } from "@/config/types/defaults";
+import { DEFAULT_BRAIN_RECALL_CONFIG } from "@/config/types/rag";
 import type { BrainRecallConfig } from "@/config/types/rag";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";

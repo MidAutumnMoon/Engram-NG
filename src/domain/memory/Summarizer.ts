@@ -18,7 +18,7 @@ import type {
     SummarizerStatus,
     SummaryResult,
 } from "./types.ts";
-import { DEFAULT_SUMMARIZER_CONFIG } from "./types.ts";
+import { summarizerConfigSchema } from "@/config/types/memory.ts";
 
 /**
  * SummarizerService 类
@@ -44,15 +44,11 @@ class SummarizerService {
     constructor(
         config?: Partial<SummarizerConfig>,
     ) {
-        // 优先使用传入配置，其次加载持久化配置，最后使用默认配置
-        const savedConfig = SettingsManager.get("summarizerConfig") as Partial<
-            SummarizerConfig
-        >;
-        this.config = {
-            ...DEFAULT_SUMMARIZER_CONFIG,
+        const savedConfig = SettingsManager.get("summarizerConfig");
+        this.config = summarizerConfigSchema.parse({
             ...savedConfig,
             ...config,
-        };
+        });
     }
 
     /**
@@ -327,7 +323,8 @@ class SummarizerService {
 
                 if (startFloor > maxProcessableFloor) {
                     if (manual) {
-                        notify("info", 
+                        notify(
+                            "info",
                             "暂无足够的新内容需要总结 (缓冲期内)",
                             "Engram",
                         );
@@ -350,7 +347,8 @@ class SummarizerService {
 
                 if (processCount <= 0) {
                     if (manual) {
-                        notify("info", 
+                        notify(
+                            "info",
                             "暂无足够的新内容需要总结 (缓冲期内)",
                             "Engram",
                         );

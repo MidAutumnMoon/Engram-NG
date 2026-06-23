@@ -4,7 +4,7 @@
  * V0.6: 直接调用 llmAdapter，不再依赖 Extractor
  */
 
-import { DEFAULT_TRIM_CONFIG } from "@/config/types/defaults.ts";
+import { trimConfigSchema } from "@/config/types/memory.ts";
 import type { TrimConfig } from "@/config/types/memory.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
@@ -50,7 +50,7 @@ class EventTrimmer {
     private chatContext: ChatContext | null = null;
 
     constructor(config?: Partial<TrimConfig>) {
-        this.config = { ...DEFAULT_TRIM_CONFIG, ...config };
+        this.config = trimConfigSchema.parse(config ?? {});
     }
 
     /**
@@ -78,11 +78,11 @@ class EventTrimmer {
      * 更新配置 (in-memory only; persistence is the caller's job — Phase 2.4 step F)
      */
     updateConfig(config: Partial<TrimConfig>): void {
-        this.config = { ...DEFAULT_TRIM_CONFIG, ...this.config, ...config };
+        this.config = trimConfigSchema.parse({ ...this.config, ...config });
     }
 
     private getEffectiveConfig(override: Partial<TrimConfig> = {}): TrimConfig {
-        return { ...DEFAULT_TRIM_CONFIG, ...this.config, ...override };
+        return trimConfigSchema.parse({ ...this.config, ...override });
     }
 
     // ==================== 直接 DB 查询 (Phase 2.2: 原 memoryStore 包装内联) ====================

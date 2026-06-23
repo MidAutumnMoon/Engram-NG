@@ -7,7 +7,7 @@
  */
 
 import { SettingsManager } from "@/config/settings.ts";
-import { DEFAULT_ENTITY_CONFIG } from "@/config/types/defaults.ts";
+import { entityExtractConfigSchema } from "@/config/types/memory.ts";
 import type { EntityExtractConfig } from "@/config/types/memory.ts";
 import { EventBus } from "@/events/index.ts";
 import { Logger } from "@/logger/Logger.ts";
@@ -50,7 +50,10 @@ export class EntityBuilder {
         // V0.9.10: Fix - 优先从 SettingsManager 加载持久化配置
         const savedConfig = SettingsManager.get("apiSettings")
             ?.entityExtractConfig;
-        this.config = { ...DEFAULT_ENTITY_CONFIG, ...savedConfig, ...config };
+        this.config = entityExtractConfigSchema.parse({
+            ...savedConfig,
+            ...config,
+        });
     }
 
     /**
@@ -298,10 +301,7 @@ export class EntityBuilder {
                             LogModule.MEMORY_ENTITY,
                             "用户请求取消实体提取",
                         );
-                        notify("warning", 
-                            "正在取消实体提取...",
-                            "Engram",
-                        );
+                        notify("warning", "正在取消实体提取...", "Engram");
                     },
                 );
             }
@@ -341,7 +341,8 @@ export class EntityBuilder {
                 });
 
                 if (manual) {
-                    notify("success", 
+                    notify(
+                        "success",
                         `实体提取完成: 新增 ${
                             result?.newEntities?.length || 0
                         }, 更新 ${result?.updatedEntities?.length || 0}`,
@@ -365,7 +366,8 @@ export class EntityBuilder {
                     updatedEntities: result?.updatedEntities || [],
                 };
 
-                notify("success", 
+                notify(
+                    "success",
                     `实体预览就绪: 发现 ${
                         result?.newEntities?.length || 0
                     } 个新实体`,
@@ -398,10 +400,7 @@ export class EntityBuilder {
             });
 
             if (manual) {
-                notify("error", 
-                    `实体提取异常: ${errorMsg}`,
-                    "Engram 错误",
-                );
+                notify("error", `实体提取异常: ${errorMsg}`, "Engram 错误");
             }
             // Fix P3: 抛出事件以供其他模块感知和处理
             EventBus.emit({
@@ -530,7 +529,8 @@ export class EntityBuilder {
                 last_extracted_floor: currentFloor,
             });
 
-            notify("success", 
+            notify(
+                "success",
                 `已保存 ${newEntities.length} 个新实体，更新 ${updatedEntities.length} 个实体`,
                 "Engram",
             );
