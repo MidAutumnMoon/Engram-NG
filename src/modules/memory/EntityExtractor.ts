@@ -10,13 +10,12 @@ import { SettingsManager } from "@/config/settings.ts";
 import { DEFAULT_ENTITY_CONFIG } from "@/config/types/defaults.ts";
 import type { EntityExtractConfig } from "@/config/types/memory.ts";
 import { EventBus } from "@/events/index.ts";
-import { eventWatcher } from "@/sillytavern/EventWatcher.ts";
 import { Logger, LogModule } from "@/logger/index.ts";
 import { chatManager } from "@/data/ChatManager.ts";
 import type { EntityNode } from "@/data/types/graph.ts";
 import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine.ts";
 import { createEntityWorkflow } from "@/modules/workflow/definitions/EntityWorkflow.ts";
-import { MacroService } from "@/sillytavern/index.ts";
+import { MacroService, onTavernEvent } from "@/sillytavern/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { notificationService } from "@/ui/services/NotificationService.ts";
 import type { ChatContext } from "./types.ts";
@@ -99,12 +98,9 @@ export class EntityBuilder {
      * V1.0.3 Fix: 使用顶层 import 替代 require，修复浏览器环境报错
      */
     start(): void {
-        // V1.0.3: 确保 EventWatcher 已启动
-        eventWatcher.start();
-
         // Listen to message received events
-        eventWatcher.on(
-            "onMessageReceived",
+        onTavernEvent(
+            "message_received",
             this.handleMessageReceived.bind(this),
         );
 

@@ -1,5 +1,5 @@
 import type { ReviewAction, ReviewRequest } from "@/sillytavern/ReviewBridge";
-import { EventBus, TavernEventType } from "@/sillytavern"; // EventBus is from events.ts
+import { useReviewStore } from "@/state/reviewStore.ts";
 import { ModernButton as Button } from "@/ui/components/core/Button";
 import {
     AlertTriangle,
@@ -11,7 +11,7 @@ import {
     RotateCcw,
     X,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { EntityReview } from "./EntityReview";
 import { MessageReview } from "./MessageReview";
@@ -243,45 +243,29 @@ const ReviewSession: React.FC<ReviewSessionProps> = (
 
 // --- Main Container ---
 export const ReviewContainer: React.FC = () => {
-    const [requests, setRequests] = useState<ReviewRequest[]>([]);
+    const requests = useReviewStore((s) => s.requests);
+    const removeRequest = useReviewStore((s) => s.remove);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [isMinimized, setIsMinimized] = useState(false);
     const [footerEl, setFooterEl] = useState<HTMLElement | null>(null); // State to hold ref to footer slot
+    const prevReqCount = useRef(0);
 
+    // 新请求到达时：若无激活项则激活首条，并展开面板
     useEffect(() => {
-        const unsubscribe = EventBus.on(
-            TavernEventType.ENGRAM_REQUEST_REVIEW,
-            (payload: unknown) => {
-                const req = payload as ReviewRequest;
-                // Ensure ID exists (fallback for old callers though we updated Bridge)
-                if (!req.id) req.id = Date.now().toString();
-
-                setRequests((prev) => {
-                    const exists = prev.find((r) => r.id === req.id);
-                    if (exists) return prev;
-                    return [...prev, req];
-                });
-
-                // If it's the first one, activate it
-                setActiveId((current) => current || req.id);
-                setIsMinimized(false);
-            },
-        );
-        return () => {
-            unsubscribe();
-        };
-    }, []);
+        if (requests.length > prevReqCount.current) {
+            setActiveId((current) => current ?? requests[0].id);
+            setIsMinimized(false);
+        }
+        prevReqCount.current = requests.length;
+    }, [requests]);
 
     const handleSessionFinish = (finishedId: string) => {
-        setRequests((prev) => {
-            const next = prev.filter((r) => r.id !== finishedId);
-            // If we removed the active one, switch to another if available
-            if (activeId === finishedId) {
-                const nextActive = next.length > 0 ? next[0].id : null;
-                setActiveId(nextActive);
-            }
-            return next;
-        });
+        removeRequest(finishedId);
+        // If we removed the active one, switch to another if available
+        if (activeId === finishedId) {
+            const next = requests.filter((r) => r.id !== finishedId);
+            setActiveId(next.length > 0 ? next[0].id : null);
+        }
     };
 
     const handleRestore = () => setIsMinimized(false);

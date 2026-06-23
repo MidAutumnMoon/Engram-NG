@@ -14,8 +14,7 @@ import type { TrimConfig } from "@/config/types/memory.ts";
 import { getDbForChat } from "@/data/db.ts";
 import type { ChatContext } from "@/modules/memory/types.ts";
 import { regexProcessor } from "@/modules/workflow/steps/processing/RegexProcessor.ts";
-import { getCurrentChatId } from "@/sillytavern/context.ts";
-import { eventWatcher } from "@/sillytavern/EventWatcher.ts";
+import { getCurrentChatId, onTavernEvent } from "@/sillytavern/context.ts";
 import {
     createTopBarButton,
     initQuickPanelButton,
@@ -120,7 +119,7 @@ export async function initializeEngram(): Promise<void> {
     };
 
     injectChatContext();
-    eventWatcher.on("onChatChanged", injectChatContext);
+    onTavernEvent("chat_id_changed", injectChatContext);
 
     // 4. 启动各服务 (与加载解耦，便于定位启动错误)
     if (summarizerMod) {

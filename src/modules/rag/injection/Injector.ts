@@ -14,11 +14,10 @@ import { SettingsManager } from "@/config/settings.ts";
 import { DEFAULT_RECALL_CONFIG } from "@/config/types/defaults.ts";
 import { Logger, LogModule } from "@/logger/index.ts";
 import {
-    EventBus,
     getCurrentChatId,
     getSTContext,
     MacroService,
-    TavernEventType,
+    onTavernEvent,
 } from "@/sillytavern/index.ts";
 import { retriever } from "@/modules/rag/retrieval/Retriever.ts";
 
@@ -51,8 +50,8 @@ class Injector {
 
         // V0.8: 使用 GENERATION_AFTER_COMMANDS 事件
         // 这个事件在命令处理后、生成开始前触发，酒馆会 await 处理器
-        EventBus.on(
-            TavernEventType.GENERATION_AFTER_COMMANDS,
+        onTavernEvent(
+            "GENERATION_AFTER_COMMANDS",
             async (type: any, params: any, dryRun: any) => {
                 console.log(
                     "[Injector] 🎯 GENERATION_AFTER_COMMANDS triggered",
@@ -70,7 +69,7 @@ class Injector {
         );
 
         // 聊天切换时重置状态
-        EventBus.on(TavernEventType.CHAT_CHANGED, () => {
+        onTavernEvent("chat_id_changed", () => {
             Logger.debug(LogModule.RAG_INJECT, "捕获到 CHAT_CHANGED 事件");
             this.isProcessing = false;
             this.cacheInvalid = false; // 切换聊天时重置缓存状态
@@ -84,7 +83,7 @@ class Injector {
         });
 
         // V0.9.5: 监听消息编辑事件，用户编辑自己的消息后标记缓存失效
-        EventBus.on(TavernEventType.MESSAGE_EDITED, (...args: unknown[]) => {
+        onTavernEvent("message_edited", (...args: unknown[]) => {
             const msgIndex = args[0] as number;
             const context = getSTContext();
             const msg = context?.chat?.[msgIndex];

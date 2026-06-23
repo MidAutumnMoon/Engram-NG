@@ -80,6 +80,24 @@ export function isSTAvailable(): boolean {
     return getSTContext() !== null;
 }
 
+/** 取消订阅函数 */
+export type Unsubscribe = () => void;
+
+/**
+ * 订阅 SillyTavern 事件。
+ * 直接转发给 ST 的 eventSource；返回取消订阅函数。
+ * 若 ST 上下文不可用，返回无操作函数（调用方无需判空）。
+ */
+export function onTavernEvent(
+    event: string,
+    cb: (...args: unknown[]) => void,
+): Unsubscribe {
+    const src = getSTContext()?.eventSource;
+    if (!src) return () => {};
+    src.on(event, cb);
+    return () => src.removeListener(event, cb);
+}
+
 /**
  * 获取请求头 (包含 CSRF Token)
  */

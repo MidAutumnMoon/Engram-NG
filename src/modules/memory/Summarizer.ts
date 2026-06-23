@@ -5,7 +5,7 @@
 import { SettingsManager } from "@/config/settings.ts";
 import { WorkflowEngine } from "@/modules/workflow/core/WorkflowEngine.ts";
 import { createSummaryWorkflow } from "@/modules/workflow/definitions/SummaryWorkflow.ts";
-import { eventWatcher } from "@/sillytavern/EventWatcher.ts";
+import { onTavernEvent } from "@/sillytavern/index.ts";
 import { WorldBookSlotService } from "@/sillytavern/worldbook/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts"; // Used for setLastSummarizedFloor
 import { notificationService } from "@/ui/services/NotificationService.ts";
@@ -188,22 +188,19 @@ class SummarizerService {
         // 初始化当前聊天状态
         this.initializeForCurrentChat();
 
-        // 启动 EventWatcher (如果尚未启动)
-        eventWatcher.start();
-
         // 注册回调
         // V0.9.11: Always subscribe to messages to support Entity Extraction even if Summary is Manual
-        this.unsubscribeMessage = eventWatcher.on(
-            "onMessageReceived",
+        this.unsubscribeMessage = onTavernEvent(
+            "message_received",
             this.handleMessageReceived.bind(this),
         );
-        this.log("debug", "已通过 EventWatcher 订阅消息事件");
+        this.log("debug", "已订阅消息事件");
 
-        this.unsubscribeChat = eventWatcher.on(
-            "onChatChanged",
+        this.unsubscribeChat = onTavernEvent(
+            "chat_id_changed",
             this.handleChatChanged.bind(this),
         );
-        this.log("debug", "已通过 EventWatcher 订阅聊天切换事件");
+        this.log("debug", "已订阅聊天切换事件");
 
         this.isRunning = true;
 

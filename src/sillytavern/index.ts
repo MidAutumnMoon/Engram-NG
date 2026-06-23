@@ -1,5 +1,4 @@
 export * from "./context.ts";
-export * from "./events.ts";
 export * from "./popups.ts";
 
 export * from "./chat/Message.ts";

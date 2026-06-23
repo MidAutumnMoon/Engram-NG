@@ -1,4 +1,4 @@
-import { EventBus, TavernEventType } from "@/sillytavern/index.ts";
+import { useReviewStore } from "@/state/reviewStore.ts";
 
 export type ReviewAction = "confirm" | "fill" | "reject" | "reroll" | "cancel";
 
@@ -43,7 +43,7 @@ class ReviewService {
         return new Promise((resolve) => {
             const id = Date.now().toString(36) +
                 Math.random().toString(36).slice(2, 5);
-            EventBus.emit(TavernEventType.ENGRAM_REQUEST_REVIEW, {
+            useReviewStore.getState().enqueue({
                 actions,
                 content,
                 data,
@@ -52,7 +52,7 @@ class ReviewService {
                 onResult: (result) => resolve(result),
                 title,
                 type,
-            } as ReviewRequest);
+            });
         });
     }
 }
