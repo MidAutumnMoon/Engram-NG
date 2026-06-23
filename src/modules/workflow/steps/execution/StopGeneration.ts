@@ -2,6 +2,7 @@ import type { IStep } from "../../core/Step";
 import type { JobContext } from "../../core/JobContext";
 import { Logger } from "@/logger";
 import { LogModule } from "@/logger";
+import { getSTContext } from "@/sillytavern";
 
 /**
  * 停止 SillyTavern 生成
@@ -21,9 +22,8 @@ export class StopGeneration implements IStep {
     static async abort(): Promise<void> {
         try {
             // 路径 1: 使用官方 Context 接口 (Engram 集成层)
-            // @ts-expect-error
-            const stCtx = window.SillyTavern?.getContext?.();
-            if (stCtx?.stopGeneration) {
+            const stCtx = getSTContext();
+            if (stCtx.stopGeneration) {
                 stCtx.stopGeneration();
                 Logger.info(
                     LogModule.SYSTEM,

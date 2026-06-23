@@ -26,8 +26,8 @@ const METADATA_KEY = "engram";
 function getChatMetadata(): Record<string, unknown> | null {
     try {
         // 优先从 context 获取
-        const context = window.SillyTavern.getContext();
-        if (context?.chatMetadata) {
+        const context = getSTContext();
+        if (context.chatMetadata) {
             return context.chatMetadata;
         }
         // 备用：直接访问全局变量
@@ -169,8 +169,8 @@ class SummarizerService {
      * 获取当前聊天 ID
      */
     private getCurrentChatId(): string | null {
-        const context = window.SillyTavern.getContext();
-        return context?.chatId || null;
+        const context = getSTContext();
+        return context.chatId || null;
     }
 
     // ==================== 生命周期 ====================

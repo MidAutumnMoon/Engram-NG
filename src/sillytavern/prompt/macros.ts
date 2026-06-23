@@ -1,7 +1,7 @@
 import { SettingsManager } from "@/config/settings.ts";
 import type { CustomMacro } from "@/config/types/prompt.ts";
 import { Logger } from "@/logger/index.ts";
-import { WorldInfoService } from "@/sillytavern/index.ts";
+import { getSTContext, WorldInfoService } from "@/sillytavern/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { ChatHistoryHelper } from "../chat/chatHistory.ts";
 import { EjsProcessor } from "./ejsProcessor.ts";
@@ -20,9 +20,9 @@ export class MacroService {
         if (this.isInitialized) return;
 
         try {
-            const context = window.SillyTavern.getContext?.();
+            const context = getSTContext();
 
-            if (!context?.registerMacro) {
+            if (!context.registerMacro) {
                 Logger.warn(
                     "MacroService",
                     "SillyTavern registerMacro API 不可用",
@@ -88,8 +88,8 @@ export class MacroService {
                 "userPersona",
                 () => {
                     // 实时优先：由于人设切换频繁，此处优先读取酒馆原生变量
-                    const liveDescription = window.SillyTavern?.getContext?.()
-                        ?.powerUserSettings
+                    const liveDescription = getSTContext()
+                        .powerUserSettings
                         ?.persona_description;
                     return typeof liveDescription === "string"
                         ? liveDescription
@@ -418,10 +418,8 @@ export class MacroService {
      */
     private static refreshCharDescription(): void {
         try {
-            const context = window.SillyTavern?.getContext?.();
-            // @ts-expect-error fix it later
-            if (context?.characters && context.characterId >= 0) {
-                // @ts-expect-error fix it later
+            const context = getSTContext();
+            if (context.characters && context.characterId >= 0) {
                 const char = context.characters[context.characterId];
                 this.cachedCharDescription = char?.description || "";
             }
@@ -457,7 +455,7 @@ export class MacroService {
 
     private static refreshUserPersona(): void {
         try {
-            const powerUser = window.SillyTavern.getContext().powerUserSettings;
+            const powerUser = getSTContext().powerUserSettings;
             this.cachedUserPersona = powerUser?.persona_description || "";
             Logger.debug("MacroService", "用户设定缓存已刷新", {
                 length: this.cachedUserPersona.length,
@@ -474,8 +472,8 @@ export class MacroService {
      */
     private static refreshCustomMacros(): void {
         try {
-            const context = window.SillyTavern.getContext?.();
-            if (!context?.registerMacro) {
+            const context = getSTContext();
+            if (!context.registerMacro) {
                 Logger.debug(
                     "MacroService",
                     "酒馆 registerMacro 不可用，跳过自定义宏注册",
@@ -526,11 +524,11 @@ export class MacroService {
         handler: () => string,
         description: string,
     ) {
-        const context = window.SillyTavern.getContext?.();
+        const context = getSTContext();
 
         // 兼容性修复: 强制使用旧版 registerMacro API
         // 新版 context.macros.register API 在某些 ST 版本中可能存在参数兼容问题导致 filter undefined 错误
-        if (context?.registerMacro) {
+        if (context.registerMacro) {
             context.registerMacro(name, handler);
         } else {
             Logger.warn(

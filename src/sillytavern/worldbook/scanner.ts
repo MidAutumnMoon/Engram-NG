@@ -1,5 +1,6 @@
 import { Logger } from "@/logger/index.ts";
 import { SettingsManager } from "@/config/settings.ts";
+import { getSTContext } from "@/sillytavern/context.ts";
 import { getTavernHelper } from "./adapter.ts";
 import { getEntries } from "./crud.ts";
 import type { WorldInfoEntry } from "./types.ts";
@@ -272,11 +273,11 @@ export class WorldbookScannerService {
             const DEFAULT_SCAN_LIMIT = 4;
             let messages = chatMessages;
 
-            const context = window.SillyTavern?.getContext?.();
+            const context = getSTContext();
 
             if (options?.floorRange) {
                 const [startFloor, endFloor] = options.floorRange;
-                if (context?.chat && Array.isArray(context.chat)) {
+                if (context.chat && Array.isArray(context.chat)) {
                     const rangeChat = context.chat.slice(
                         startFloor - 1,
                         endFloor,

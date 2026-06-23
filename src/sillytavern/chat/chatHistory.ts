@@ -2,6 +2,7 @@ import { SettingsManager } from "@/config/settings.ts";
 import { Logger } from "@/logger/index.ts";
 import type { SummarizerConfig } from "@/modules/memory/types.ts";
 import { regexProcessor } from "@/modules/workflow/steps/index.ts";
+import { getSTContext } from "@/sillytavern/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 
 export class ChatHistoryHelper {
@@ -12,10 +13,10 @@ export class ChatHistoryHelper {
      */
     static getChatHistory(floorRange?: [number, number]): string {
         try {
-            const context = window.SillyTavern?.getContext?.();
+            const context = getSTContext();
             const { TavernHelper } = window;
 
-            if (context?.chat && Array.isArray(context.chat)) {
+            if (context.chat && Array.isArray(context.chat)) {
                 let messages: any[] = [];
 
                 if (floorRange) {
@@ -205,8 +206,8 @@ export class ChatHistoryHelper {
      */
     static getCurrentMessageCount(): number {
         try {
-            const context = window.SillyTavern?.getContext?.();
-            if (context?.chat && Array.isArray(context.chat)) {
+            const context = getSTContext();
+            if (context.chat && Array.isArray(context.chat)) {
                 return context.chat.length;
             }
             return 0;

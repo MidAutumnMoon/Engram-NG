@@ -18,13 +18,11 @@ export class FetchContext implements IStep {
             context.input.charPersona = charAny.personality ||
                 charAny.description || "";
         }
-        const stContext = window.SillyTavern?.getContext?.();
-        if (stContext) {
-            context.input.userName = stContext.name1 || "User";
-            // 显式注入人设描述，确保 BuildPrompt 不需要回退到宏系统
-            context.input.userPersona =
-                stContext.powerUserSettings?.persona_description || "";
-        }
+        const stContext = getSTContext();
+        context.input.userName = stContext.name1 || "User";
+        // 显式注入人设描述，确保 BuildPrompt 不需要回退到宏系统
+        context.input.userPersona =
+            stContext.powerUserSettings?.persona_description || "";
 
         // 2. 获取 Chat History
         // 优先使用任务输入中传入的明确范围 (range)，常用于批处理切片执行。
