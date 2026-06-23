@@ -1,16 +1,16 @@
 /**
- * Logger - 日志核心服务
+ * Logger - 应用事件日志
  *
- * 统一的日志记录与广播。RecallLogService 作为薄门面调用本模块的 `log()` /
- * `clear(category)` 写入或清空。
+ * 通用 app 日志：5 个级别 + 订阅 + 清空 + 容量上限。仅用于 Logger.debug/info/
+ * success/warn/error 写入；UI 由 DevLog 的 Runtime tab 读取。
  *
- * 注：Model 调用日志已迁到同目录下的 useModelLogStore（见 ./modelLog.ts）。
- * `LogCategory` 中的 "model" 仍保留为允许值，当前无写入点。
+ * Model 调用日志见 ./modelLog.ts（useModelLogStore）。
+ * RAG 召回日志见 ./recallLog.ts（useRecallLogStore）。
  */
 
 import { generateShortUUID } from "@/utils";
 import type { LogModule } from "./LogModule.ts";
-import type { LogCategory, LogEntry } from "./types.ts";
+import type { LogEntry } from "./types.ts";
 import { LogLevel } from "./types.ts";
 
 // 订阅者集合。回调中若抛异常，会被 pushEntry 中的 try/catch 隔离，
@@ -27,10 +27,21 @@ let logCache: LogEntry[] = [];
  */
 const MAX_LOG_ENTRIES = 5000;
 
-/**
- * 写入一条日志（内部）——共享 push/trim/notify 逻辑
- */
-function pushEntry(entry: LogEntry): void {
+function write(
+    level: LogLevel,
+    module: string,
+    message: string,
+    data?: unknown,
+): string {
+    const entry: LogEntry = {
+        id: generateShortUUID("log_"),
+        timestamp: Date.now(),
+        level,
+        module,
+        message,
+        data,
+    };
+
     logCache.push(entry);
 
     // 容量超限时原地裁剪（splice 比 slice 省一次 5000 元素数组分配）
@@ -43,39 +54,17 @@ function pushEntry(entry: LogEntry): void {
         try {
             cb(entry);
         } catch (err) {
-            // 不能用 Logger.error——会重新进入 pushEntry 导致重入
+            // 不能用 Logger.error——会重新进入 write 导致重入
             console.error("[Logger] subscriber threw:", err);
         }
     }
-}
 
-/**
- * 写入一条 app 类别日志（兼容旧的 5 个级别 API）
- */
-function writeAppLog(
-    level: LogLevel,
-    module: string,
-    message: string,
-    data?: unknown,
-): string {
-    const entry: LogEntry = {
-        category: "app",
-        data,
-        id: generateShortUUID("log_"),
-        level,
-        message,
-        module,
-        timestamp: Date.now(),
-    };
-    pushEntry(entry);
     return entry.id;
 }
 
 export const Logger = {
     /**
-     * 初始化 Logger。清空所有 category 的缓存。
-     *
-     * （注：本方法会清空所有 category 的日志，谨慎调用）
+     * 初始化 Logger。清空日志缓存。
      */
     init(): void {
         logCache = [];
@@ -83,11 +72,11 @@ export const Logger = {
     },
 
     debug(module: LogModule | string, message: string, data?: unknown): string {
-        return writeAppLog(LogLevel.DEBUG, module as string, message, data);
+        return write(LogLevel.DEBUG, module as string, message, data);
     },
 
     info(module: LogModule | string, message: string, data?: unknown): string {
-        return writeAppLog(LogLevel.INFO, module as string, message, data);
+        return write(LogLevel.INFO, module as string, message, data);
     },
 
     success(
@@ -95,30 +84,15 @@ export const Logger = {
         message: string,
         data?: unknown,
     ): string {
-        return writeAppLog(LogLevel.SUCCESS, module as string, message, data);
+        return write(LogLevel.SUCCESS, module as string, message, data);
     },
 
     warn(module: LogModule | string, message: string, data?: unknown): string {
-        return writeAppLog(LogLevel.WARN, module as string, message, data);
+        return write(LogLevel.WARN, module as string, message, data);
     },
 
     error(module: LogModule | string, message: string, data?: unknown): string {
-        return writeAppLog(LogLevel.ERROR, module as string, message, data);
-    },
-
-    /**
-     * 通用写入入口——供 ModelLogger / RecallLogService 等门面使用。
-     * 接受除 id/timestamp 外的完整 LogEntry 字段。
-     * @returns 新条目的 id
-     */
-    log(partial: Omit<LogEntry, "id" | "timestamp">): string {
-        const entry: LogEntry = {
-            ...partial,
-            id: generateShortUUID("log_"),
-            timestamp: Date.now(),
-        };
-        pushEntry(entry);
-        return entry.id;
+        return write(LogLevel.ERROR, module as string, message, data);
     },
 
     /**
@@ -126,13 +100,6 @@ export const Logger = {
      */
     getLogs(): LogEntry[] {
         return [...logCache];
-    },
-
-    /**
-     * 按谓词过滤日志（供门面查询特定 category 时使用）
-     */
-    getFiltered(predicate: (e: LogEntry) => boolean): LogEntry[] {
-        return logCache.filter(predicate);
     },
 
     /**
@@ -146,15 +113,9 @@ export const Logger = {
 
     /**
      * 清空日志。
-     * @param category 若指定，仅清空该类别；否则全清。
      */
-    clear(category?: LogCategory): void {
-        if (category) {
-            logCache = logCache.filter((e) => e.category !== category);
-            Logger.info("Logger", `已清空 ${category} 类别日志`);
-        } else {
-            logCache = [];
-            Logger.info("Logger", "日志已清空");
-        }
+    clear(): void {
+        logCache = [];
+        Logger.info("Logger", "日志已清空");
     },
 };
