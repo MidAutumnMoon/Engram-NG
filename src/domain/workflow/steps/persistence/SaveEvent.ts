@@ -153,7 +153,10 @@ export class SaveEvent implements IStep {
             });
         }
 
-        Logger.success(LogModule.WF_SAVE_EVENT, `已保存 ${savedEvents.length} 个事件`);
+        Logger.success(
+            LogModule.WF_SAVE_EVENT,
+            `已保存 ${savedEvents.length} 个事件`,
+        );
         notify("success", `已保存 ${savedEvents.length} 个事件`, "Engram");
     }
 }

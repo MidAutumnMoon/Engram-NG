@@ -8,14 +8,9 @@ import { LogModule } from "@/logger/LogModule.ts";
  * No-ops (returns the input unchanged) when ST-Prompt-Template isn't loaded.
  */
 export async function processEjs(entries: string[]): Promise<string[]> {
-    console.warn(
-        "processEjs debug",
-        typeof EjsTemplate,
-        typeof window.EjsTemplate,
-    );
     if (entries.length === 0) return entries;
 
-    // const { EjsTemplate, Mvu } = window;
+    const { EjsTemplate, Mvu } = window;
 
     // Check if ST-Prompt-Template is available
     if (!EjsTemplate) {

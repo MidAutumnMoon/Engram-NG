@@ -1,0 +1,28 @@
+{
+    "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+    "rules": {
+        "no-restricted-globals": [
+            "error",
+            {
+                "name": "SillyTavern",
+                "message": "Access via `window.SillyTavern` or `getSTContext()`. Bare reference can race with sibling-extension load order — see hideMessageRange.ts history."
+            },
+            {
+                "name": "TavernHelper",
+                "message": "Access via `window.TavernHelper`. Bare reference can race with sibling-extension load order."
+            },
+            {
+                "name": "EjsTemplate",
+                "message": "Access via `window.EjsTemplate`. Bare reference can race with sibling-extension load order."
+            },
+            {
+                "name": "Mvu",
+                "message": "Access via `window.Mvu`. Bare reference can race with sibling-extension load order."
+            },
+            {
+                "name": "toastr",
+                "message": "Access via `window.toastr` (or use `notify()` from `@/sillytavern/notify`)."
+            }
+        ]
+    }
+}

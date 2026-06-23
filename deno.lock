@@ -26,6 +26,7 @@
     "npm:knip@^5.82.1": "5.88.1_@types+node@22.19.21_typescript@5.9.3",
     "npm:lodash@^4.17.21": "4.18.1",
     "npm:lucide-react@0.562": "0.562.0_react@19.2.7",
+    "npm:oxlint@*": "1.70.0",
     "npm:oxlint@^1.60.0": "1.70.0",
     "npm:postcss@^8.5.10": "8.5.15",
     "npm:prettier@^3.4.2": "3.8.4",

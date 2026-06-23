@@ -1,11 +1,11 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 
-
 export async function hideMessageRange(
     start: number,
     end: number,
 ): Promise<void> {
+    const { SillyTavern } = window;
     try {
         const result = await SillyTavern.executeSlashCommandsWithOptions(
             `/hide ${start}-${end}`,
@@ -21,7 +21,10 @@ export async function hideMessageRange(
             return;
         }
 
-        Logger.debug(LogModule.TAVERN_CHAT, `Slash command executed: /hide ${start}-${end}`);
+        Logger.debug(
+            LogModule.TAVERN_CHAT,
+            `Slash command executed: /hide ${start}-${end}`,
+        );
 
         // 统一在执行隐藏后尝试强制保存聊天状态，避免刷新后隐藏失效（SillyTavern 的常见坑）
         setTimeout(async () => {
