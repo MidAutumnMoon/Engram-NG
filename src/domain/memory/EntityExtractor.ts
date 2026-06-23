@@ -6,7 +6,7 @@
  * - 输入从原始对话提取，而非 Summary
  */
 
-import { SettingsManager } from "@/config/settings.ts";
+import { getSetting } from "@/config/settings.ts";
 import { entityExtractConfigSchema } from "@/config/types/memory.ts";
 import type { EntityExtractConfig } from "@/config/types/memory.ts";
 import { EventBus } from "@/events/index.ts";
@@ -48,7 +48,7 @@ export class EntityBuilder {
 
     constructor(config?: Partial<EntityExtractConfig>) {
         // V0.9.10: Fix - 优先从 SettingsManager 加载持久化配置
-        const savedConfig = SettingsManager.get("apiSettings")
+        const savedConfig = getSetting("apiSettings")
             ?.entityExtractConfig;
         this.config = entityExtractConfigSchema.parse({
             ...savedConfig,
@@ -58,7 +58,7 @@ export class EntityBuilder {
 
     /**
      * Inject resolved config. Called by bootstrap before `start()`.
-     * Replaces constructor-time `SettingsManager.get()` reads.
+     * Replaces constructor-time `getSetting()` reads.
      *
      * Phase 2.2+2.4 step A — no-op storage only; logic migration in step C.
      */
@@ -212,7 +212,7 @@ export class EntityBuilder {
         lastExtractedFloor: number,
     ): boolean {
         // V0.9.12: Fix - 每次检查触发器时刷新配置，避免初始化时的 stale config
-        const savedConfig = SettingsManager.get("apiSettings")
+        const savedConfig = getSetting("apiSettings")
             ?.entityExtractConfig;
         if (savedConfig) {
             this.config = { ...this.config, ...savedConfig };
@@ -277,7 +277,7 @@ export class EntityBuilder {
         try {
             // V1.4.7: 使用全局预览开关和实体独立预览开关
             const globalPreviewEnabled =
-                SettingsManager.get("globalPreviewEnabled") ?? true;
+                getSetting("globalPreviewEnabled") ?? true;
             const previewEnabled = globalPreviewEnabled &&
                 (this.config.previewEnabled ?? true);
 

@@ -2,7 +2,7 @@
  * SummarizerService - 剧情总结核心服务
  */
 
-import { SettingsManager } from "@/config/settings.ts";
+import { getSetting, setSetting } from "@/config/settings.ts";
 import { chatManager } from "@/data/ChatManager.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { WorkflowEngine } from "@/domain/workflow/core/WorkflowEngine.ts";
@@ -44,7 +44,7 @@ class SummarizerService {
     constructor(
         config?: Partial<SummarizerConfig>,
     ) {
-        const savedConfig = SettingsManager.get("summarizerConfig");
+        const savedConfig = getSetting("summarizerConfig");
         this.config = summarizerConfigSchema.parse({
             ...savedConfig,
             ...config,
@@ -53,7 +53,7 @@ class SummarizerService {
 
     /**
      * Inject resolved config. Called by bootstrap before `start()`.
-     * Replaces constructor-time `SettingsManager.get()` reads.
+     * Replaces constructor-time `getSetting()` reads.
      *
      * Phase 2.2+2.4 step A — no-op storage only; logic migration in step C.
      */
@@ -380,7 +380,7 @@ class SummarizerService {
             await WorldBookSlotService.init();
 
             const globalPreviewEnabled =
-                SettingsManager.get("globalPreviewEnabled") ?? true;
+                getSetting("globalPreviewEnabled") ?? true;
             const previewEnabled = globalPreviewEnabled &&
                 (this.config.previewEnabled ?? true);
 
@@ -524,7 +524,7 @@ class SummarizerService {
     updateConfig(config: Partial<SummarizerConfig>): void {
         this.config = { ...this.config, ...config };
         // 持久化保存
-        SettingsManager.set("summarizerConfig", this.config);
+        setSetting("summarizerConfig", this.config);
         this.log("debug", "配置已更新并保存", this.config);
     }
 

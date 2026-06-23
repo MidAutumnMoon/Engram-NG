@@ -5,7 +5,7 @@
  * 支持 OpenAI 兼容格式的 Rerank API
  */
 
-import { SettingsManager } from "@/config/settings.ts";
+import { getSetting } from "@/config/settings.ts";
 import type { RerankConfig } from "@/config/types/rag.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
@@ -48,7 +48,7 @@ class RerankService {
      * 获取 Rerank 配置
      */
     private getConfig(): RerankConfig | null {
-        const apiSettings = SettingsManager.get("apiSettings");
+        const apiSettings = getSetting("apiSettings");
         return apiSettings?.rerankConfig || null;
     }
 

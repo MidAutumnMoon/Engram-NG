@@ -55,7 +55,7 @@ class EventTrimmer {
 
     /**
      * Inject resolved config. Called by bootstrap before `start()`.
-     * Replaces constructor-time `SettingsManager.get()` reads.
+     * Replaces constructor-time `getSetting()` reads.
      */
     init(config: TrimConfig, globalPreviewEnabled: boolean): void {
         this.config = config;

@@ -10,7 +10,7 @@
  * - 酒馆会 await 事件处理器，确保预处理完成后再继续
  */
 
-import { SettingsManager } from "@/config/settings.ts";
+import { getSetting } from "@/config/settings.ts";
 import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
@@ -251,7 +251,7 @@ class Injector {
             // 获取配置
             let apiSettings, recallConfig;
             try {
-                apiSettings = SettingsManager.get("apiSettings");
+                apiSettings = getSetting("apiSettings");
                 recallConfig = apiSettings?.recallConfig ||
                     DEFAULT_RECALL_CONFIG;
             } catch (configError) {

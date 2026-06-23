@@ -1,4 +1,4 @@
-import { SettingsManager } from "@/config/settings";
+import { getSetting } from "@/config/settings";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { tryGetDbForChat } from "@/data/db";
@@ -66,7 +66,7 @@ export class KeywordRetrieveStep implements IStep {
         if (!db) return;
 
         const startTime = Date.now();
-        const apiSettings = SettingsManager.get("apiSettings");
+        const apiSettings = getSetting("apiSettings");
         const recallConfig = apiSettings?.recallConfig;
 
         // P0 & P1 Fix: 此处不再因为无归档事件而直接返回

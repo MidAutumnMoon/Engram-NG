@@ -11,7 +11,7 @@
  * - keyword_only: 仅关键词扫描
  */
 
-import { SettingsManager } from "@/config/settings.ts";
+import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { useRecallLogStore } from "@/logger/recallLog.ts";
@@ -115,7 +115,7 @@ class Retriever {
             unifiedCount: unifiedQueries?.length || 0,
         });
 
-        const apiSettings = SettingsManager.get("apiSettings");
+        const apiSettings = getSetting("apiSettings");
         const recallConfig = apiSettings?.recallConfig || DEFAULT_RECALL_CONFIG;
 
         // --- 逻辑分发 ---

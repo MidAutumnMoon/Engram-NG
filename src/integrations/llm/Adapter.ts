@@ -10,7 +10,7 @@
  * - 支持 tavern_profile 临时切换模式
  */
 
-import { SettingsManager } from "@/config/settings";
+import { getSettings } from "@/config/settings";
 import type { LLMPreset } from "@/config/types/llm";
 import { Logger } from "@/logger/Logger.ts";
 import { regexProcessor } from "@/domain/workflow/steps/processing/RegexProcessor";
@@ -128,7 +128,7 @@ class LLMAdapter {
 
         try {
             // 获取预设配置
-            const settings = SettingsManager.getSettings();
+            const settings = getSettings();
             let preset: LLMPreset | undefined;
 
             if (request.presetId) {
@@ -233,7 +233,7 @@ class LLMAdapter {
 
         // V1.5 获取此请求所用的 Preset (由 executeRequest 传递进来，或者回退到默认)
         if (!currentPreset) {
-            const settings = SettingsManager.getSettings();
+            const settings = getSettings();
             currentPreset = request.presetId
                 ? settings.apiSettings?.llmPresets?.find((p) =>
                     p.id === request.presetId

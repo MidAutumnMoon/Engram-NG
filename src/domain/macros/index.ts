@@ -1,4 +1,4 @@
-import { SettingsManager } from "@/config/settings.ts";
+import { getSetting } from "@/config/settings.ts";
 import type { CustomMacro } from "@/config/types/prompt.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { getSTContext } from "@/sillytavern/index.ts";
@@ -487,7 +487,7 @@ export class MacroService {
             }
 
             // 从 apiSettings 读取自定义宏
-            const apiSettings = SettingsManager.get("apiSettings");
+            const apiSettings = getSetting("apiSettings");
             const customMacros: CustomMacro[] = apiSettings?.customMacros || [];
 
             // 清空之前的缓存

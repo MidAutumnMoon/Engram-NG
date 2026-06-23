@@ -6,7 +6,7 @@
  * - Memory Stats: 事件/实体统计
  * - Feature Status: 功能开关状态
  */
-import { getDefaultAPISettings, SettingsManager } from "@/config/settings";
+import { getDefaultAPISettings, getSetting, setSetting } from "@/config/settings";
 import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
@@ -94,7 +94,7 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
     const fetchSystemHealth = useCallback(() => {
         const stContext = getSTContext();
         const summarizerStatus = summarizerService.getStatus();
-        const summarizerConfig = SettingsManager.get("summarizerConfig") || {};
+        const summarizerConfig = getSetting("summarizerConfig") || {};
 
         if (!isMounted.current) return;
         setSystem({
@@ -161,9 +161,9 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
 
     const fetchFeatureStatus = useCallback(async () => {
         const defaults = getDefaultAPISettings();
-        const apiSettings = SettingsManager.get("apiSettings") || defaults;
+        const apiSettings = getSetting("apiSettings") || defaults;
         const currentSummarizerConfig =
-            SettingsManager.get("summarizerConfig") || {};
+            getSetting("summarizerConfig") || {};
         const entityConfig = apiSettings?.entityExtractConfig ??
             defaults.entityExtractConfig;
         const embeddingConfig = apiSettings?.embeddingConfig ??
@@ -204,10 +204,10 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
     const toggleFeature = useCallback(async (feature: keyof FeatureStatus) => {
         // 1. 读取最新配置（使用完整 defaults 作为 fallback，防止丢失嵌套字段）
         const defaults = getDefaultAPISettings();
-        const currentApiSettings = SettingsManager.get("apiSettings") ||
+        const currentApiSettings = getSetting("apiSettings") ||
             defaults;
         const currentSummarizerConfig =
-            SettingsManager.get("summarizerConfig") || {};
+            getSetting("summarizerConfig") || {};
 
         // 2. 获取当前功能状态并计算新值
         let nextVal: boolean;
@@ -216,7 +216,7 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
             case "summarizer": {
                 nextVal = !(currentSummarizerConfig.enabled !== false);
                 // 写入 SettingsManager
-                SettingsManager.set("summarizerConfig", {
+                setSetting("summarizerConfig", {
                     ...currentSummarizerConfig,
                     enabled: nextVal,
                 });
@@ -232,7 +232,7 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
                     defaults.entityExtractConfig!;
                 nextVal = !entityConfig.enabled;
                 const newConfig = { ...entityConfig, enabled: nextVal };
-                SettingsManager.set("apiSettings", {
+                setSetting("apiSettings", {
                     ...currentApiSettings,
                     entityExtractConfig: newConfig,
                 });
@@ -247,7 +247,7 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
                     defaults.embeddingConfig!;
                 nextVal = !embeddingConfig.enabled;
                 const newConfig = { ...embeddingConfig, enabled: nextVal };
-                SettingsManager.set("apiSettings", {
+                setSetting("apiSettings", {
                     ...currentApiSettings,
                     embeddingConfig: newConfig,
                 });
@@ -262,7 +262,7 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
                     defaults.recallConfig!;
                 nextVal = !recallConfig.enabled;
                 const newConfig = { ...recallConfig, enabled: nextVal };
-                SettingsManager.set("apiSettings", {
+                setSetting("apiSettings", {
                     ...currentApiSettings,
                     recallConfig: newConfig,
                 });

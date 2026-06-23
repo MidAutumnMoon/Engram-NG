@@ -4,7 +4,7 @@
  * 管理 summarizerConfig (自动总结) 和 trimConfig (精简)
  */
 import { useCallback, useEffect, useState } from "react";
-import { SettingsManager } from "@/config/settings";
+import { getSetting, setSetting } from "@/config/settings";
 import { trimConfigSchema } from "@/config/types/memory";
 import type { TrimConfig } from "@/config/types/memory";
 import { summarizerService } from "@/domain/memory";
@@ -63,7 +63,7 @@ export function useSummarizerConfig(): UseSummarizerConfigReturn {
             });
 
             // 加载 Trim Config
-            const savedTrimConfig = SettingsManager.get("apiSettings")
+            const savedTrimConfig = getSetting("apiSettings")
                 ?.trimConfig;
             if (savedTrimConfig) {
                 setTrimConfig(trimConfigSchema.parse(savedTrimConfig));
@@ -102,9 +102,9 @@ export function useSummarizerConfig(): UseSummarizerConfigReturn {
             });
 
             // 2. 保存 Trim Config 到 apiSettings
-            const currentApi = SettingsManager.get("apiSettings");
+            const currentApi = getSetting("apiSettings");
             if (currentApi) {
-                SettingsManager.set("apiSettings", {
+                setSetting("apiSettings", {
                     ...currentApi,
                     trimConfig,
                 });

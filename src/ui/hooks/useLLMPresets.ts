@@ -8,7 +8,7 @@ import {
     getDefaultAPISettings,
 } from "@/config/settings";
 import type { EngramAPISettings } from "@/config/settings";
-import { SettingsManager } from "@/config/settings";
+import { getSetting, setSetting } from "@/config/settings";
 import type { LLMPreset } from "@/config/types/llm";
 import type { PromptTemplate } from "@/config/types/prompt";
 import { PromptLoader } from "@/integrations/llm/PromptLoader";
@@ -83,7 +83,7 @@ export function useLLMPresets(): UseLLMPresetsReturn {
 
     // 加载配置
     useEffect(() => {
-        const savedAPISettings = SettingsManager.get("apiSettings");
+        const savedAPISettings = getSetting("apiSettings");
         if (savedAPISettings) {
             const defaultSettings = getDefaultAPISettings();
             setSettings({
@@ -241,9 +241,9 @@ export function useLLMPresets(): UseLLMPresetsReturn {
 
     const saveLLMSettings = useCallback(() => {
         // 仅保存 LLM 相关设置，保留其他设置
-        const currentSettings = SettingsManager.get("apiSettings") ??
+        const currentSettings = getSetting("apiSettings") ??
             getDefaultAPISettings();
-        SettingsManager.set("apiSettings", {
+        setSetting("apiSettings", {
             ...currentSettings,
             llmPresets: settings.llmPresets,
             promptTemplates: settings.promptTemplates,

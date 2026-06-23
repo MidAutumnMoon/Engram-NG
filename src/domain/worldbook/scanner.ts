@@ -1,4 +1,4 @@
-import { SettingsManager } from "@/config/settings.ts";
+import { getSettings } from "@/config/settings.ts";
 import { getSTContext } from "@/sillytavern/context.ts";
 import { getTavernHelper } from "./adapter.ts";
 import { getEntries } from "./crud.ts";
@@ -53,7 +53,7 @@ function loadFilteringState() {
     const helper = getTavernHelper();
     const globalWorldbooks = helper?.getGlobalWorldbookNames?.() || [];
 
-    const settings = SettingsManager.getSettings();
+    const settings = getSettings();
     const config = settings.apiSettings?.worldbookConfig;
     const disabledGlobalBooks = config?.disabledWorldbooks || [];
 

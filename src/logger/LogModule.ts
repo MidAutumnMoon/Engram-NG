@@ -34,7 +34,7 @@ export enum LogModule {
     MODEL_SERVICE = "ModelService",
 
     // ===== Settings & Theme =====
-    SETTINGS = "SettingsManager",
+    SETTINGS = "Settings",
     THEME = "ThemeManager",
 
     // ===== Memory Management =====

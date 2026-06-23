@@ -1,4 +1,4 @@
-import { SettingsManager } from "@/config/settings";
+import { getSetting } from "@/config/settings";
 import { Logger } from "@/logger/Logger.ts";
 import { getCurrentCharacter, getSTContext } from "@/sillytavern";
 import { MacroService } from "@/domain/macros/index.ts";
@@ -95,7 +95,7 @@ export class FetchContext implements IStep {
                 // 简单查找该分类下启用的模板
                 // 注意：这里只是为了获取 worldbooks，做个尽力而为的查找
                 const allTemplates =
-                    SettingsManager.get("apiSettings")?.promptTemplates || [];
+                    getSetting("apiSettings")?.promptTemplates || [];
                 const enabledTemplate = allTemplates.find((t) =>
                     t.category === category && t.enabled === true
                 );
@@ -107,7 +107,7 @@ export class FetchContext implements IStep {
             if (templateId) {
                 // 读取完整模板配置（包含 user override）
                 const userTemplates =
-                    SettingsManager.get("apiSettings")?.promptTemplates || [];
+                    getSetting("apiSettings")?.promptTemplates || [];
                 const builtinTemplates = PromptLoader.getAllTemplates(); // 确保加载内置
 
                 const template = userTemplates.find((t) =>

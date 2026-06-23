@@ -1,4 +1,4 @@
-import { SettingsManager } from "@/config/settings.ts";
+import { getSetting } from "@/config/settings.ts";
 import type { EntityNode, EventNode } from "@/data/types/graph.ts";
 import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
 import { MacroService } from "@/domain/macros/index.ts";
@@ -471,7 +471,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
     }, [checkedIds, viewTab, store.deleteEntities, store.deleteEvents]);
 
     const handleReembedAll = useCallback(async () => {
-        const apiSettings = SettingsManager.get("apiSettings");
+        const apiSettings = getSetting("apiSettings");
         const vectorConfig = apiSettings?.vectorConfig;
 
         if (!vectorConfig) {

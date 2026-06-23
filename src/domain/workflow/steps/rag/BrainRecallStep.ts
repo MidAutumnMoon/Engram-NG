@@ -1,4 +1,4 @@
-import { SettingsManager } from "@/config/settings";
+import { getSetting } from "@/config/settings";
 import {
     DEFAULT_BRAIN_RECALL_CONFIG,
     DEFAULT_RECALL_CONFIG,
@@ -23,7 +23,7 @@ export class BrainRecallStep implements IStep {
         context.data = context.data || {};
         const candidates: ScoredEvent[] = context.data.candidates || [];
         const config: RecallConfig = context.data.recallConfig ||
-            SettingsManager.get("apiSettings")?.recallConfig ||
+            getSetting("apiSettings")?.recallConfig ||
             DEFAULT_RECALL_CONFIG;
         const brainConfig: BrainRecallConfig = config.brainRecall ||
             DEFAULT_BRAIN_RECALL_CONFIG;

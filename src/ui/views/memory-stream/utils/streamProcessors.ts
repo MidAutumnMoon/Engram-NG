@@ -1,4 +1,3 @@
-import { SettingsManager } from "@/config/settings";
 import type { EntityNode, EventNode } from "@/data/types/graph";
 import type {
     EntityGroupMode,

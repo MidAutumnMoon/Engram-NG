@@ -1,5 +1,5 @@
 /**
- * Engram settings — schema, factory functions, and SettingsManager.
+ * Engram settings — schema, factory functions, and persistence API.
  *
  * The Zod schemas (`engramApiSettingsSchema`, `engramSettingsSchema`) are the
  * single source of truth for both the type and the defaults. `getSettings()`
@@ -154,102 +154,94 @@ export function getDefaultAPISettings(): EngramAPISettings {
 }
 
 // ============================================================================
-// SettingsManager — validates via schema on every read; writes to ST storage
+// Settings access — validates via schema on every read; writes to ST storage
 // ============================================================================
 
-export class SettingsManager {
-    private static readonly EXTENSION_NAME = "engram";
+const EXTENSION_NAME = "engram";
 
-    /**
-     * 获取扩展设置对象 (schema-validated, defaults filled)
-     *
-     * `initSettings()` must be called at startup to ensure ST storage exists.
-     * Subsequent calls return a fresh parsed copy — callers should use `set()`
-     * for writes, never mutate the returned object.
-     */
-    public static getSettings(): EngramSettings {
-        const raw = getSTContext().extensionSettings?.[this.EXTENSION_NAME];
-        return engramSettingsSchema.parse(raw ?? {});
-    }
+/**
+ * 获取扩展设置对象 (schema-validated, defaults filled)
+ *
+ * `initSettings()` must be called at startup to ensure ST storage exists.
+ * Subsequent calls return a fresh parsed copy — callers should use `setSetting()`
+ * for writes, never mutate the returned object.
+ */
+export function getSettings(): EngramSettings {
+    const raw = getSTContext().extensionSettings?.[EXTENSION_NAME];
+    return engramSettingsSchema.parse(raw ?? {});
+}
 
-    /**
-     * 初始化设置（在扩展加载时调用）
-     *
-     * Validates ST storage against the schema, fills missing fields with
-     * defaults, and persists the result. Replaces the old hand-rolled merge loop.
-     */
-    public static initSettings(): void {
-        const context = getSTContext();
-        if (!context.extensionSettings) {
-            Logger.warn(
-                "SettingsManager",
-                "Cannot init: context.extensionSettings not available",
-            );
-            return;
-        }
-        const raw = context.extensionSettings[this.EXTENSION_NAME];
-        const parsed = engramSettingsSchema.parse(raw ?? {});
-        context.extensionSettings[this.EXTENSION_NAME] = parsed;
-        this.save();
-        Logger.debug("SettingsManager", "Settings initialized and validated");
-    }
-
-    /**
-     * Get a specific setting value (typed, defaults guaranteed by schema).
-     */
-    public static get<K extends keyof EngramSettings>(
-        key: K,
-    ): EngramSettings[K] {
-        return this.getSettings()[key];
-    }
-
-    /**
-     * Save a specific setting value.
-     * Mutates ST's stored object in place, then triggers a debounced save.
-     */
-    public static set<K extends keyof EngramSettings>(
-        key: K,
-        value: EngramSettings[K],
-    ): void {
-        const context = getSTContext();
-        if (!context.extensionSettings) {
-            Logger.warn(
-                "SettingsManager",
-                "Cannot set: context.extensionSettings not available",
-            );
-            return;
-        }
-
-        let settings = context.extensionSettings[this.EXTENSION_NAME];
-        if (!settings) {
-            settings = engramSettingsSchema.parse({});
-            context.extensionSettings[this.EXTENSION_NAME] = settings;
-        }
-
-        settings[key] = value;
-        Logger.debug(
-            "SettingsManager",
-            `Set ${String(key)} = ${JSON.stringify(value)}`,
+/**
+ * 初始化设置（在扩展加载时调用）
+ *
+ * Validates ST storage against the schema, fills missing fields with
+ * defaults, and persists the result.
+ */
+export function initSettings(): void {
+    const context = getSTContext();
+    if (!context.extensionSettings) {
+        Logger.warn(
+            "Settings",
+            "Cannot init: context.extensionSettings not available",
         );
-        this.save();
+        return;
+    }
+    const raw = context.extensionSettings[EXTENSION_NAME];
+    const parsed = engramSettingsSchema.parse(raw ?? {});
+    context.extensionSettings[EXTENSION_NAME] = parsed;
+    save();
+    Logger.debug("Settings", "Settings initialized and validated");
+}
+
+/**
+ * Get a specific setting value (typed, defaults guaranteed by schema).
+ */
+export function getSetting<K extends keyof EngramSettings>(
+    key: K,
+): EngramSettings[K] {
+    return getSettings()[key];
+}
+
+/**
+ * Save a specific setting value.
+ * Mutates ST's stored object in place, then triggers a debounced save.
+ */
+export function setSetting<K extends keyof EngramSettings>(
+    key: K,
+    value: EngramSettings[K],
+): void {
+    const context = getSTContext();
+    if (!context.extensionSettings) {
+        Logger.warn(
+            "Settings",
+            "Cannot set: context.extensionSettings not available",
+        );
+        return;
     }
 
-    /**
-     * 保存设置到服务器
-     */
-    private static save(): void {
-        const context = getSTContext();
-        if (context.saveSettingsDebounced) {
-            context.saveSettingsDebounced();
-            Logger.debug(
-                "SettingsManager",
-                "Saved via context.saveSettingsDebounced",
-            );
-        } else {
-            Logger.warn(
-                "SettingsManager",
-                "saveSettingsDebounced not available",
-            );
-        }
+    let settings = context.extensionSettings[EXTENSION_NAME];
+    if (!settings) {
+        settings = engramSettingsSchema.parse({});
+        context.extensionSettings[EXTENSION_NAME] = settings;
+    }
+
+    settings[key] = value;
+    Logger.debug(
+        "Settings",
+        `Set ${String(key)} = ${JSON.stringify(value)}`,
+    );
+    save();
+}
+
+/**
+ * 保存设置到服务器
+ */
+function save(): void {
+    const context = getSTContext();
+    if (context.saveSettingsDebounced) {
+        context.saveSettingsDebounced();
+        Logger.debug("Settings", "Saved via context.saveSettingsDebounced");
+    } else {
+        Logger.warn("Settings", "saveSettingsDebounced not available");
     }
 }

@@ -11,7 +11,7 @@
  *     findRelatedDatabases) 不发通知、不读设置，可独立测试。
  */
 
-import { SettingsManager } from "@/config/settings.ts";
+import { getSettings } from "@/config/settings.ts";
 import { deleteDatabase, hasDbForChat, listAllChatIds } from "@/data/db.ts";
 import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import { Logger } from "@/logger/Logger.ts";
@@ -66,7 +66,7 @@ export function initLinkedCleanup(): void {
 async function onCharacterDeleted(
     data: CharacterDeletedPayload,
 ): Promise<void> {
-    const settings = SettingsManager.getSettings().linkedDeletion;
+    const settings = getSettings().linkedDeletion;
     if (!settings?.enabled) return;
 
     const characterName = data.character?.name ?? data.character?.data?.name;
@@ -138,7 +138,7 @@ async function onCharacterDeleted(
 }
 
 async function onChatDeleted(chatId: string): Promise<void> {
-    const settings = SettingsManager.getSettings().linkedDeletion;
+    const settings = getSettings().linkedDeletion;
     if (!settings?.enabled) return;
 
     Logger.debug(LogModule.DATA_CLEANUP, "chat deleted", { chatId });

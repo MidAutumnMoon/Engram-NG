@@ -1,4 +1,4 @@
-import { SettingsManager } from "@/config/settings";
+import { getSetting } from "@/config/settings";
 import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag";
 import type { RecallConfig } from "@/config/types/rag";
 import { Logger } from "@/logger/Logger.ts";
@@ -17,7 +17,7 @@ export class RerankMergeStep implements IStep {
     ignoreFailure = true;
 
     get retry(): RetryConfig {
-        const rerankConfig = SettingsManager.get("apiSettings")?.rerankConfig;
+        const rerankConfig = getSetting("apiSettings")?.rerankConfig;
         const customConfig = rerankConfig?.retryConfig;
 
         return {
@@ -65,7 +65,7 @@ export class RerankMergeStep implements IStep {
 
         const candidates = [...candidateMap.values()];
         const activeConfig = config ||
-            SettingsManager.get("apiSettings")?.recallConfig ||
+            getSetting("apiSettings")?.recallConfig ||
             DEFAULT_RECALL_CONFIG;
 
         if (candidates.length === 0) {

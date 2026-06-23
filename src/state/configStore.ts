@@ -1,7 +1,7 @@
 import {
     type EngramSettings,
     getDefaultAPISettings,
-    SettingsManager,
+    getSettings, setSetting,
 } from "@/config/settings.ts";
 import type {
     EntityExtractConfig,
@@ -22,7 +22,7 @@ let saveTimeout: NodeJS.Timeout | null = null;
 const debouncedSave = (state: ConfigState) => {
     if (saveTimeout) clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {
-        const currentSettings = SettingsManager.getSettings();
+        const currentSettings = getSettings();
 
         // 我们需要把原本在 apiSettings 中的对象再装配进去
         const newApiSettings = {
@@ -37,11 +37,11 @@ const debouncedSave = (state: ConfigState) => {
         };
 
         // 直接更新 SettingsManager
-        SettingsManager.set("apiSettings", newApiSettings as any);
-        SettingsManager.set("summarizerConfig", state.summarizerConfig);
-        SettingsManager.set("globalPreviewEnabled", state.globalPreviewEnabled);
-        SettingsManager.set("linkedDeletion", state.linkedDeletion);
-        SettingsManager.set("syncConfig", state.syncConfig);
+        setSetting("apiSettings", newApiSettings as any);
+        setSetting("summarizerConfig", state.summarizerConfig);
+        setSetting("globalPreviewEnabled", state.globalPreviewEnabled);
+        setSetting("linkedDeletion", state.linkedDeletion);
+        setSetting("syncConfig", state.syncConfig);
     }, 500);
 };
 
@@ -90,7 +90,7 @@ export interface ConfigState {
 }
 
 const defaults = getDefaultAPISettings();
-const globalSettings = SettingsManager.getSettings();
+const globalSettings = getSettings();
 const savedContext: any = globalSettings.apiSettings || {};
 
 export const useConfigStore = create<ConfigState>((set, get) => ({

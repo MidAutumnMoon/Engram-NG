@@ -1,4 +1,4 @@
-import { SettingsManager } from "@/config/settings";
+import { getSetting } from "@/config/settings";
 import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
@@ -13,7 +13,7 @@ export class VectorRetrieveStep implements IStep {
     name = "VectorRetrieveStep";
 
     get retry(): RetryConfig {
-        const vectorConfig = SettingsManager.get("apiSettings")?.vectorConfig;
+        const vectorConfig = getSetting("apiSettings")?.vectorConfig;
         const customConfig = vectorConfig?.retryConfig;
         return {
             backoff: "exponential",
@@ -42,7 +42,7 @@ export class VectorRetrieveStep implements IStep {
             | string[]
             | undefined;
 
-        const apiSettings = SettingsManager.get("apiSettings");
+        const apiSettings = getSetting("apiSettings");
         const config = apiSettings?.recallConfig || DEFAULT_RECALL_CONFIG;
 
         // 如果未启用向量检索，则跳过 (但不清空 keyword 结果)
@@ -77,7 +77,7 @@ export class VectorRetrieveStep implements IStep {
 
         try {
             // V1.4.1 Fix: 在嵌入前配置 Embedding 服务，防止 "config not set" 错误
-            const vectorConfig = SettingsManager.get("apiSettings")
+            const vectorConfig = getSetting("apiSettings")
                 ?.vectorConfig;
             Logger.debug(
                 LogModule.RAG_RETRIEVE,

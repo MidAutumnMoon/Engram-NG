@@ -1,4 +1,4 @@
-import { SettingsManager } from "@/config/settings";
+import { getSetting } from "@/config/settings";
 import { Logger } from "@/logger/Logger.ts";
 import type { EventNode } from "@/data/types/graph";
 import { MacroService } from "@/domain/macros/index.ts";
@@ -72,7 +72,7 @@ export class ApplyTrim implements IStep {
 
         // 2. 联动嵌入 (Trim Linkage)
         const sourceEventIds = eventsToMerge.map((e) => e.id);
-        const settings = SettingsManager.get("apiSettings");
+        const settings = getSetting("apiSettings");
         // @ts-expect-error
         const embeddingConfig = settings?.embeddingConfig;
 

@@ -1,6 +1,6 @@
 import "@/ui/styles/main.css";
 import { Logger } from "@/logger/Logger.ts";
-import { SettingsManager } from "@/config/settings.ts";
+import { getSetting, initSettings } from "@/config/settings.ts";
 import { trimConfigSchema } from "@/config/types/memory.ts";
 import { getDbForChat } from "@/data/db.ts";
 import type { ChatContext } from "@/domain/memory/types.ts";
@@ -39,22 +39,22 @@ async function tryInit(
 Logger.init();
 Logger.info("STBridge", "Engram 插件正在初始化...");
 
-SettingsManager.initSettings();
+initSettings();
 
 // Restore persisted lastOpenedTab into uiStore (must happen after initSettings)
 useUiStore.getState().hydrateFromSettings();
 
 // 2. Regex rules
-const savedRegexRules = SettingsManager.get("regexRules");
+const savedRegexRules = getSetting("regexRules");
 if (savedRegexRules && savedRegexRules.length > 0) {
     regexProcessor.setRules(savedRegexRules);
     Logger.info("STBridge", `已加载 ${savedRegexRules.length} 条正则规则`);
 }
 
 // 3. Injection config and chat context
-const globalPreviewEnabled = SettingsManager.get("globalPreviewEnabled") ??
+const globalPreviewEnabled = getSetting("globalPreviewEnabled") ??
     true;
-const storedTrim = SettingsManager.get("apiSettings")?.trimConfig;
+const storedTrim = getSetting("apiSettings")?.trimConfig;
 eventTrimmer.init(
     trimConfigSchema.parse(storedTrim ?? {}),
     globalPreviewEnabled,

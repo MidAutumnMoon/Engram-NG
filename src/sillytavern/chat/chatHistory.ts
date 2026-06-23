@@ -1,4 +1,4 @@
-import { SettingsManager } from "@/config/settings.ts";
+import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import type { SummarizerConfig } from "@/domain/memory/types.ts";
 import { getSTContext } from "@/sillytavern/index.ts";
@@ -225,7 +225,7 @@ export class ChatHistoryHelper {
      */
     static getDynamicChatHistoryLimit(): number {
         try {
-            const summarizerConfig = SettingsManager.get("summarizerConfig") as
+            const summarizerConfig = getSetting("summarizerConfig") as
                 | SummarizerConfig
                 | undefined;
             const floorInterval = summarizerConfig?.floorInterval ?? 20;

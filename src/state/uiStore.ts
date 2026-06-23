@@ -5,10 +5,10 @@
  * 这些状态必须在 React 树之外被读写（ST 按钮、NotificationService 等），因此放在
  * zustand 单例里而非组件 useState。`getState()` 是非 React 调用方的合法入口。
  *
- * `activeTab` 初始化为 "dashboard"，由 bootstrap 在 `SettingsManager.initSettings()`
+ * `activeTab` 初始化为 "dashboard"，由 bootstrap 在 `initSettings()`
  * 之后调用 `hydrateFromSettings()` 加载持久化值——避免在模块加载期读取 SettingsManager。
  */
-import { SettingsManager } from "@/config/settings.ts";
+import { getSetting, setSetting, initSettings } from "@/config/settings.ts";
 import { create } from "zustand";
 
 interface UiState {
@@ -48,11 +48,11 @@ export const useUiStore = create<UiState>((set) => ({
 
     navigate: (path) => {
         const clean = path.replace(/^\//, "") || "dashboard";
-        SettingsManager.set("lastOpenedTab", clean);
+        setSetting("lastOpenedTab", clean);
         set({ activeTab: clean });
     },
     hydrateFromSettings: () => {
-        const stored = SettingsManager.get("lastOpenedTab");
+        const stored = getSetting("lastOpenedTab");
         if (stored) {
             set({ activeTab: stored });
         }

@@ -1,4 +1,4 @@
-import { SettingsManager } from "@/config/settings";
+import { getSetting } from "@/config/settings";
 import { Logger } from "@/logger/Logger.ts";
 import { PromptLoader } from "@/integrations/llm/PromptLoader";
 import { tryGetDbForChat } from "@/data/db";
@@ -26,7 +26,7 @@ export class BuildPrompt implements IStep {
         // V0.9.11: Use SettingsManager as Source of Truth to include User Custom Templates
         // PromptLoader only has built-ins.
         const allTemplates =
-            SettingsManager.get("apiSettings")?.promptTemplates || [];
+            getSetting("apiSettings")?.promptTemplates || [];
 
         // Ensure built-ins are loaded and merged with user settings
         PromptLoader.init();

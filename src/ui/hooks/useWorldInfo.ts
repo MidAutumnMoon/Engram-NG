@@ -1,4 +1,4 @@
-import { getDefaultAPISettings, SettingsManager } from "@/config/settings";
+import { getDefaultAPISettings, getSetting, setSetting } from "@/config/settings";
 import type {
     WorldbookConfig,
     WorldbookConfigProfile,
@@ -39,7 +39,7 @@ export function useWorldInfo(): UseWorldInfoReturn {
     const [disabledEntries, setDisabledEntries] = useState<
         Record<string, number[]>
     >(
-        SettingsManager.get("apiSettings")?.worldbookConfig?.disabledEntries ||
+        getSetting("apiSettings")?.worldbookConfig?.disabledEntries ||
             {},
     );
     const [disabledWorldbooks, setDisabledWorldbooks] = useState<string[]>([]);
@@ -49,12 +49,12 @@ export function useWorldInfo(): UseWorldInfoReturn {
     const [worldbookConfig, setWorldbookConfig] = useState<
         WorldbookConfig | undefined
     >(
-        SettingsManager.get("apiSettings")?.worldbookConfig ||
+        getSetting("apiSettings")?.worldbookConfig ||
             getDefaultAPISettings().worldbookConfig,
     );
     const [worldbookProfiles, setWorldbookProfiles] = useState<
         WorldbookConfigProfile[]
-    >(SettingsManager.get("apiSettings")?.worldbookProfiles || []);
+    >(getSetting("apiSettings")?.worldbookProfiles || []);
     const [worldbookScopes, setWorldbookScopes] = useState<
         { global: string[]; chat: string[]; installed: string[] }
     >({ chat: [], global: [], installed: [] });
@@ -77,7 +77,7 @@ export function useWorldInfo(): UseWorldInfoReturn {
         }
 
         // 3. 加载设置
-        const apiSettings = SettingsManager.get("apiSettings");
+        const apiSettings = getSetting("apiSettings");
         const config = apiSettings?.worldbookConfig;
         setWorldbookConfig(config);
         if (config?.disabledWorldbooks) {
@@ -158,7 +158,7 @@ export function useWorldInfo(): UseWorldInfoReturn {
     const saveWorldInfo = useCallback(async () => {
         // 保存全局配置和Profiles
         const currentSettings =
-            (SettingsManager.get("apiSettings") || {}) as EngramAPISettings;
+            (getSetting("apiSettings") || {}) as EngramAPISettings;
         const newWorldbookConfig = {
             ...currentSettings.worldbookConfig,
             ...worldbookConfig,
@@ -166,7 +166,7 @@ export function useWorldInfo(): UseWorldInfoReturn {
             disabledEntries,
         };
 
-        SettingsManager.set("apiSettings", {
+        setSetting("apiSettings", {
             ...currentSettings,
             worldbookConfig: newWorldbookConfig,
             worldbookProfiles,
