@@ -53,7 +53,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 <main className="flex-1 flex flex-col relative w-full overflow-hidden bg-background/80 backdrop-blur-xl">
                     <div
                         key={activeTab}
-                        className="flex-1 min-h-0 px-4 md:px-8 lg:px-12"
+                        className="flex-1 min-h-0 px-4 md:px-8 lg:px-12 pt-3 md:pt-4"
                     >
                         <div className="max-w-6xl mx-auto h-full">
                             {children}
