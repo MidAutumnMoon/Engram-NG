@@ -45,11 +45,11 @@ const TABS: Tab[] = [
     { icon: <Target size={14} />, id: "recall", label: "召回日志" },
 ];
 
-// Tab 信息映射
-const TAB_INFO: Record<TabType, { title: string; subtitle: string }> = {
-    model: { subtitle: "查看 LLM 调用记录", title: "模型日志" },
-    recall: { subtitle: "查看 RAG 召回记录", title: "召回日志" },
-    runtime: { subtitle: "查看系统运行时日志", title: "运行日志" },
+// Tab 副标题映射（标题取 TABS 的 label，避免重复）
+const TAB_SUBTITLES: Record<TabType, string> = {
+    model: "查看 LLM 调用记录",
+    recall: "查看 RAG 召回记录",
+    runtime: "查看系统运行时日志",
 };
 
 // V0.9.10: 模块列表自动生成（不再硬编码）
@@ -63,9 +63,9 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
     const [activeTab, setActiveTab] = useState<TabType>(
         initialTab || "runtime",
     );
-    const currentInfo = TAB_INFO[activeTab];
+    const activeTabLabel = TABS.find((t) => t.id === activeTab)?.label ||
+        "开发日志";
     const [logs, setLogs] = useState<LogEntry[]>([]);
-    const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [levelFilter, setLevelFilter] = useState<LogLevel | -1>(-1);
     const [moduleFilter, setModuleFilter] = useState("ALL");
@@ -74,7 +74,6 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
     const [showModuleDropdown, setShowModuleDropdown] = useState(false);
     // V0.9.12: 分组展开控制
     const [defaultGroupExpanded, setDefaultGroupExpanded] = useState(true);
-    const [defaultDataExpanded, _setDefaultDataExpanded] = useState(false);
 
     const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -87,8 +86,8 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
         return () => unsubscribe();
     }, []);
 
-    // 过滤日志
-    useEffect(() => {
+    // 过滤日志（derived — 不用 state，避免多余的渲染周期）
+    const filteredLogs = useMemo(() => {
         let result = logs;
         if (levelFilter !== -1) {
             result = result.filter((log) => log.level >= levelFilter);
@@ -106,7 +105,7 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
                     log.module.toLowerCase().includes(query),
             );
         }
-        setFilteredLogs(result);
+        return result;
     }, [logs, levelFilter, moduleFilter, searchQuery]);
 
     // V0.9.12: 将日志按模块分组
@@ -131,12 +130,10 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
 
     return (
         <div className="flex flex-col h-full">
-            {/* 页面标题 - 统一样式 */}
-            {/* 页面标题 - 统一样式 */}
             <PageTitle
                 breadcrumbs={["开发日志"]}
-                title={currentInfo.title}
-                subtitle={currentInfo.subtitle}
+                title={activeTabLabel}
+                subtitle={TAB_SUBTITLES[activeTab]}
                 className="mb-2"
             />
 
@@ -317,7 +314,6 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
                                             }`}
                                             entries={group}
                                             defaultExpanded={defaultGroupExpanded}
-                                            defaultDataExpanded={defaultDataExpanded}
                                         />
                                     ))}
                                     <div ref={bottomRef} />

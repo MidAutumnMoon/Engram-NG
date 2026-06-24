@@ -22,8 +22,6 @@ interface LogGroupProps {
     entries: LogEntry[];
     /** 默认是否展开分组 */
     defaultExpanded?: boolean;
-    /** 默认是否展开数据详情 */
-    defaultDataExpanded?: boolean;
 }
 
 /**
@@ -134,7 +132,6 @@ export const LogEntryItem: React.FC<LogEntryItemProps> = (
 export const LogGroup: React.FC<LogGroupProps> = ({
     entries,
     defaultExpanded = true,
-    defaultDataExpanded = false,
 }) => {
     const [expanded, setExpanded] = useState(defaultExpanded);
 
@@ -171,7 +168,6 @@ export const LogGroup: React.FC<LogGroupProps> = ({
     if (entryCount === 1) {
         return <LogEntryItem
             entry={entries[0]}
-            defaultExpanded={defaultDataExpanded}
         />;
     }
 
@@ -220,7 +216,6 @@ export const LogGroup: React.FC<LogGroupProps> = ({
                         <LogEntryItem
                             key={entry.id}
                             entry={entry}
-                            defaultExpanded={defaultDataExpanded}
                         />
                     ))}
                 </div>
