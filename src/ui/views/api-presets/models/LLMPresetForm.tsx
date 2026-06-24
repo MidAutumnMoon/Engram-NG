@@ -183,7 +183,7 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                             </label>
                             <button
                                 type="button"
-                                className="p-0.5 border-none bg-transparent text-muted-foreground cursor-pointer transition-colors hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+                                className="p-0.5 border-none bg-transparent text-muted-foreground cursor-pointer hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
                                 onClick={fetchModelList}
                                 disabled={isLoadingModels ||
                                     !preset.custom?.apiUrl}
@@ -262,7 +262,7 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                                         "temperature",
                                         Number(e.target.value),
                                     )}
-                                className="bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none text-base font-medium text-foreground mx-1 text-center w-12 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
+                                className="bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none text-base font-medium text-foreground mx-1 text-center w-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
                             />
                         </div>
                         <SliderField
@@ -293,7 +293,7 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                                         "topP",
                                         Number(e.target.value),
                                     )}
-                                className="bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none text-base font-medium text-foreground mx-1 text-center w-12 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
+                                className="bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none text-base font-medium text-foreground mx-1 text-center w-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
                             />
                         </div>
                         <SliderField
@@ -323,7 +323,7 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                                         "topK",
                                         Number(e.target.value),
                                     )}
-                                className="bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none text-base font-medium text-foreground mx-1 text-center w-12 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
+                                className="bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none text-base font-medium text-foreground mx-1 text-center w-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
                             />
                         </div>
                         <SliderField
@@ -354,7 +354,7 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                                         "maxTokens",
                                         Number(e.target.value),
                                     )}
-                                className="bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none text-base font-medium text-foreground mx-1 text-center w-16 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
+                                className="bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none text-base font-medium text-foreground mx-1 text-center w-16 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
                             />
                         </div>
                         <SliderField
@@ -382,7 +382,7 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                                         "maxContext",
                                         Number(e.target.value),
                                     )}
-                                className="bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none text-base font-medium text-foreground mx-1 text-center w-20 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
+                                className="bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none text-base font-medium text-foreground mx-1 text-center w-20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
                             />
                         </div>
                         <SliderField
@@ -414,7 +414,7 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                                         "frequencyPenalty",
                                         Number(e.target.value),
                                     )}
-                                className="bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none text-base font-medium text-foreground mx-1 text-center w-12 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
+                                className="bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none text-base font-medium text-foreground mx-1 text-center w-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
                             />
                         </div>
                         <SliderField
@@ -445,7 +445,7 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                                         "presencePenalty",
                                         Number(e.target.value),
                                     )}
-                                className="bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none text-base font-medium text-foreground mx-1 text-center w-12 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
+                                className="bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none text-base font-medium text-foreground mx-1 text-center w-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
                             />
                         </div>
                         <SliderField

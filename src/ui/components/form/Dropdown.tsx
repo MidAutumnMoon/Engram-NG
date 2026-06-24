@@ -53,7 +53,7 @@ export function Dropdown<T>({
         <div className="relative" ref={ref}>
             <button
                 type="button"
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground"
                 onClick={() => setOpen(!open)}
             >
                 {selected?.label}
@@ -73,7 +73,7 @@ export function Dropdown<T>({
                         <button
                             type="button"
                             key={String(opt.value)}
-                            className={`block w-full text-left px-3 py-1.5 text-xs transition-colors ${
+                            className={`block w-full text-left px-3 py-1.5 text-xs ${
                                 opt.value === value
                                     ? "text-primary"
                                     : "hover:bg-accent"

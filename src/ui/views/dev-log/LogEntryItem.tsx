@@ -66,7 +66,7 @@ export const LogEntryItem: React.FC<LogEntryItemProps> = (
         <div className="group">
             <div
                 className={`
-                    flex items-start gap-3 px-2 py-1 rounded-sm transition-colors
+                    flex items-start gap-3 px-2 py-1 rounded-sm
                     hover:bg-white/[0.02]
                     ${hasData ? "cursor-pointer" : ""}
                 `}
@@ -172,10 +172,10 @@ export const LogGroup: React.FC<LogGroupProps> = ({
     }
 
     return (
-        <div className="border-l-2 border-transparent hover:border-zinc-700 transition-colors">
+        <div className="border-l-2 border-transparent hover:border-zinc-700">
             {/* 分组头 */}
             <div
-                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer text-[11px] hover:bg-white/[0.02] rounded-sm transition-colors"
+                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer text-[11px] hover:bg-white/[0.02] rounded-sm"
                 onClick={() => setExpanded(!expanded)}
             >
                 {/* 展开箭头 */}

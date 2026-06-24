@@ -171,7 +171,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                             value={scanQuery}
                             onChange={(e) => setScanQuery(e.target.value)}
                             placeholder="输入文本测试匹配 (实际检索会自动回溯最近 5 条消息)..."
-                            className="min-h-[80px] p-3 rounded-md bg-secondary/20 border border-border/40 text-sm focus:outline-none focus:border-primary/50 transition-colors resize-y"
+                            className="min-h-[80px] p-3 rounded-md bg-secondary/20 border border-border/40 text-sm focus:outline-none focus:border-primary/50 resize-y"
                         />
 
                         {/* 扫描匹配结果直接在这里渲染，不使用弹窗 */}
@@ -217,7 +217,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                         onClick={handleScanDryRun}
                         disabled={!scanQuery.trim()}
                         className={`
-                            px-4 rounded-md font-medium text-sm transition-all flex flex-col items-center justify-center gap-1 min-w-[80px]
+                            px-4 rounded-md font-medium text-sm flex flex-col items-center justify-center gap-1 min-w-[80px]
                             ${
                             !scanQuery.trim()
                                 ? "bg-muted text-muted-foreground cursor-not-allowed"
@@ -266,14 +266,14 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                         placeholder={isAgenticMode
                             ? "模拟用户输入触发 Agentic 预处理..."
                             : "模拟 User Input 触发向量召回预览..."}
-                        className="flex-1 min-h-[80px] p-3 rounded-md bg-secondary/30 border border-border/50 text-sm focus:outline-none focus:border-primary/50 transition-colors resize-y"
+                        className="flex-1 min-h-[80px] p-3 rounded-md bg-secondary/30 border border-border/50 text-sm focus:outline-none focus:border-primary/50 resize-y"
                     />
                     <div className="flex flex-col gap-2">
                         <button
                             onClick={handlePreviewTest}
                             disabled={!testQuery.trim() || isTesting}
                             className={`
-                                px-4 py-3 rounded-md font-medium text-sm transition-all flex flex-col items-center justify-center gap-1 min-w-[100px] flex-1
+                                px-4 py-3 rounded-md font-medium text-sm flex flex-col items-center justify-center gap-1 min-w-[100px] flex-1
                                 ${
                                 !testQuery.trim() || isTesting
                                     ? "bg-muted text-muted-foreground cursor-not-allowed"
@@ -307,7 +307,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                                 onClick={() => setIsModalOpen(true)}
                                 disabled={isTesting}
                                 className={`
-                                    py-2 rounded-md font-medium text-[10px] transition-all flex items-center justify-center gap-1 border border-border bg-transparent text-muted-foreground hover:bg-muted/50
+                                    py-2 rounded-md font-medium text-[10px] flex items-center justify-center gap-1 border border-border bg-transparent text-muted-foreground hover:bg-muted/50
                                 `}
                             >
                                 <BrainCircuit size={14} />

@@ -119,13 +119,13 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
             </span>
             <div className="flex gap-2">
                 <button
-                    className="px-4 py-1.5 text-sm rounded-md bg-transparent border-border text-muted-foreground hover:bg-muted transition-colors"
+                    className="px-4 py-1.5 text-sm rounded-md bg-transparent border-border text-muted-foreground hover:bg-muted"
                     onClick={onClose}
                 >
                     取消
                 </button>
                 <button
-                    className="px-4 py-1.5 text-sm rounded-md bg-primary text-bg-app shadow-[0_4px_12px_rgba(var(--primary-rgb),0.25)] hover:brightness-110 transition-all"
+                    className="px-4 py-1.5 text-sm rounded-md bg-primary text-bg-app shadow-[0_4px_12px_rgba(var(--primary-rgb),0.25)] hover:brightness-110"
                     onClick={handleConfirm}
                 >
                     确认激活
@@ -152,12 +152,12 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
                         {activeEvents.map((evt) => (
                             <div
                                 key={evt.id}
-                                className="group flex flex-col gap-1 p-2 rounded hover:bg-muted/20 transition-colors"
+                                className="group flex flex-col gap-1 p-2 rounded hover:bg-muted/20"
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="flex items-start gap-2 flex-1">
                                         <button
-                                            className="mt-0.5 text-primary cursor-pointer hover:text-destructive transition-colors shrink-0"
+                                            className="mt-0.5 text-primary cursor-pointer hover:text-destructive shrink-0"
                                             onClick={() =>
                                                 handleRemoveActive(evt.id)}
                                             title="取消激活"
@@ -184,7 +184,7 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
                                             min="0"
                                             max="1"
                                             step="0.1"
-                                            className="w-14 bg-transparent border-none border-b border-border/50 text-value text-right font-mono text-sm p-0 focus:ring-0 focus:border-primary transition-colors hover:border-muted-foreground"
+                                            className="w-14 bg-transparent border-none border-b border-border/50 text-value text-right font-mono text-sm p-0 focus:ring-0 focus:border-primary hover:border-muted-foreground"
                                             value={evt.score}
                                             onChange={(e) =>
                                                 handleUpdateScore(
@@ -201,7 +201,7 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
                                         size={12}
                                         className="text-muted-foreground/50 shrink-0 mt-[3px]"
                                     />
-                                    <p className="text-xs text-emphasis leading-snug break-words opacity-80 group-hover:opacity-100 transition-opacity">
+                                    <p className="text-xs text-emphasis leading-snug break-words opacity-80 group-hover:opacity-100">
                                         {evt.reason}
                                     </p>
                                 </div>
@@ -228,7 +228,7 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
                                 {recalledEntities.map((ent: any) => (
                                     <div
                                         key={ent.id}
-                                        className="px-2 py-1 bg-primary/5 border border-primary/20 rounded text-[10px] text-primary/80 flex items-center gap-1.5 hover:bg-primary/10 transition-colors cursor-default"
+                                        className="px-2 py-1 bg-primary/5 border border-primary/20 rounded text-[10px] text-primary/80 flex items-center gap-1.5 hover:bg-primary/10 cursor-default"
                                         title={ent.description || ent.name}
                                     >
                                         <span className="w-1.5 h-1.5 rounded-full bg-primary/40" />
@@ -265,7 +265,7 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
                             <input
                                 type="text"
                                 placeholder="搜索归档事件 summary..."
-                                className="w-full bg-transparent border-none border-b border-border/50 pl-7 pr-2 py-1 text-sm text-foreground focus:ring-0 focus:border-primary transition-colors placeholder:text-muted-foreground/30"
+                                className="w-full bg-transparent border-none border-b border-border/50 pl-7 pr-2 py-1 text-sm text-foreground focus:ring-0 focus:border-primary placeholder:text-muted-foreground/30"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -277,11 +277,11 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
                             style={{ height: "100%" }}
                             data={inactiveEvents}
                             itemContent={(_index, evt) => (
-                                <div className="flex flex-col gap-1 p-2 rounded hover:bg-muted/20 transition-colors mb-1 border-b border-border/20 last:border-0 border-transparent">
+                                <div className="flex flex-col gap-1 p-2 rounded hover:bg-muted/20 mb-1 border-b border-border/20 last:border-0 border-transparent">
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex items-start gap-2 flex-1">
                                             <button
-                                                className="mt-0.5 text-muted-foreground/50 cursor-pointer hover:text-primary transition-colors shrink-0"
+                                                className="mt-0.5 text-muted-foreground/50 cursor-pointer hover:text-primary shrink-0"
                                                 onClick={() =>
                                                     handleToggleInactive(
                                                         evt.id,
@@ -316,7 +316,7 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
                                                             evt.id,
                                                             btn.val,
                                                         )}
-                                                    className="px-2 py-0.5 text-[10px] text-muted-foreground bg-transparent hover:bg-accent hover:text-foreground transition-colors rounded"
+                                                    className="px-2 py-0.5 text-[10px] text-muted-foreground bg-transparent hover:bg-accent hover:text-foreground rounded"
                                                 >
                                                     {btn.label}
                                                 </button>
@@ -330,7 +330,7 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
                                                 max="1"
                                                 step="0.1"
                                                 placeholder="0.0"
-                                                className="w-10 bg-transparent border-none border-b border-border/50 text-value text-right font-mono text-xs p-0 focus:ring-0 focus:border-primary transition-colors"
+                                                className="w-10 bg-transparent border-none border-b border-border/50 text-value text-right font-mono text-xs p-0 focus:ring-0 focus:border-primary"
                                                 onKeyDown={(e) => {
                                                     if (e.key === "Enter") {
                                                         const val =

@@ -54,7 +54,7 @@ const LogListItem: React.FC<LogListItemProps> = (
 ) => (
     <div
         className={`
-                px-3 py-2 cursor-pointer border-b border-border/30 transition-colors
+                px-3 py-2 cursor-pointer border-b border-border/30
                 ${
             isSelected
                 ? "bg-primary/10 border-l-2 border-l-primary"
@@ -92,14 +92,14 @@ const LogListItem: React.FC<LogListItemProps> = (
         {/* 查询预览 */}
         <div className="relative group/query">
             <p
-                className={`text-sm text-foreground/90 break-words whitespace-pre-wrap transition-all duration-300 ${
+                className={`text-sm text-foreground/90 break-words whitespace-pre-wrap ${
                     isSelected ? "" : "line-clamp-3"
                 }`}
             >
                 {entry.query}
             </p>
             {!isSelected && entry.query.length > 100 && (
-                <div className="absolute bottom-0 right-0 px-1 bg-background/80 text-[10px] text-primary opacity-0 group-hover/query:opacity-100 transition-opacity">
+                <div className="absolute bottom-0 right-0 px-1 bg-background/80 text-[10px] text-primary opacity-0 group-hover/query:opacity-100">
                     点击查看全部...
                 </div>
             )}
@@ -133,7 +133,7 @@ const ScoreBar: React.FC<{
             <span className="text-muted-foreground w-16 shrink-0">{label}</span>
             <div className="flex-1 h-1.5 bg-muted/30 rounded-full overflow-hidden">
                 <div
-                    className={`h-full ${color} rounded-full transition-all duration-300`}
+                    className={`h-full ${color} rounded-full`}
                     style={{ width: `${percentage}%` }}
                 />
             </div>
@@ -152,7 +152,7 @@ const ResultItem: React.FC<{ item: RecallResultItem }> = ({ item }) => {
         <div
             className={`
                 border-b border-border/30 py-3 px-4 cursor-pointer
-                hover:bg-muted/10 transition-colors
+                hover:bg-muted/10
                 ${
                 item.isReranked
                     ? "bg-purple-500/5"
@@ -188,7 +188,7 @@ const ResultItem: React.FC<{ item: RecallResultItem }> = ({ item }) => {
                 )}
                 <ChevronRight
                     size={12}
-                    className={`ml-auto text-muted-foreground transition-transform ${
+                    className={`ml-auto text-muted-foreground ${
                         expanded ? "rotate-90" : ""
                     }`}
                 />
@@ -393,7 +393,7 @@ const DetailPanel: React.FC<DetailPanelProps> = (
                                         key={ent.id}
                                         className="group relative"
                                     >
-                                        <div className="px-2 py-1 bg-primary/10 border border-primary/20 rounded-md text-[10px] text-primary flex items-center gap-1.5 hover:bg-primary/20 transition-colors">
+                                        <div className="px-2 py-1 bg-primary/10 border border-primary/20 rounded-md text-[10px] text-primary flex items-center gap-1.5 hover:bg-primary/20">
                                             <Database size={10} />
                                             {ent.name}
                                             {ent._recallWeight && (
@@ -428,7 +428,7 @@ const DetailPanel: React.FC<DetailPanelProps> = (
                     {(["all", "topK", "reranked"] as ViewMode[]).map((mode) => (
                         <button
                             key={mode}
-                            className={`px-2 py-1 rounded transition-colors ${
+                            className={`px-2 py-1 rounded ${
                                 viewMode === mode
                                     ? "bg-primary/20 text-primary"
                                     : "text-muted-foreground hover:text-foreground"
@@ -454,7 +454,7 @@ const DetailPanel: React.FC<DetailPanelProps> = (
                     ] as SortMode[]).map((mode) => (
                         <button
                             key={mode}
-                            className={`px-2 py-1 rounded transition-colors ${
+                            className={`px-2 py-1 rounded ${
                                 sortMode === mode
                                     ? "bg-primary/20 text-primary"
                                     : "text-muted-foreground hover:text-foreground"
@@ -573,7 +573,7 @@ export const RecallLog: React.FC = () => {
                     </span>
                 </div>
                 <button
-                    className="p-1.5 rounded-md text-muted-foreground hover:text-destructive transition-colors"
+                    className="p-1.5 rounded-md text-muted-foreground hover:text-destructive"
                     onClick={() => clearLogs()}
                     title="清除日志"
                 >

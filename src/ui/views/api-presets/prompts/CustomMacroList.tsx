@@ -31,7 +31,7 @@ export const CustomMacroList: React.FC<CustomMacroListProps> = ({
                 自定义宏
             </h3>
             <button
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="text-muted-foreground hover:text-foreground"
                 onClick={onAdd}
                 title="添加新宏"
             >
@@ -51,7 +51,7 @@ export const CustomMacroList: React.FC<CustomMacroListProps> = ({
                 <div
                     key={macro.id}
                     className={`
-                                group p-3 rounded-lg transition-all duration-200 cursor-pointer border flex items-center gap-3
+                                group p-3 rounded-lg cursor-pointer border flex items-center gap-3
                                 ${
                         selectedId === macro.id
                             ? "bg-accent/50 border-input"
@@ -64,7 +64,7 @@ export const CustomMacroList: React.FC<CustomMacroListProps> = ({
                     {/* 状态图标 */}
                     <button
                         className={`
-                                    w-8 h-8 flex items-center justify-center rounded-lg transition-colors flex-shrink-0
+                                    w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0
                                     ${
                             macro.enabled
                                 ? selectedId === macro.id
@@ -104,7 +104,7 @@ export const CustomMacroList: React.FC<CustomMacroListProps> = ({
 
                     {/* 删除按钮 */}
                     <button
-                        className={`p-1.5 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors ${
+                        className={`p-1.5 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive ${
                             selectedId === macro.id
                                 ? "opacity-100"
                                 : "opacity-0 group-hover:opacity-100"

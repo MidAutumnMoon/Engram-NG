@@ -62,7 +62,7 @@ export const MemoryStream: React.FC<MemoryStreamProps> = ({ initialTab }) => {
                             {ms.hasChanges && (
                                 <button
                                     onClick={ms.handleBatchSave}
-                                    className="p-1.5 hover:bg-primary/10 rounded text-primary mr-1 transition-colors"
+                                    className="p-1.5 hover:bg-primary/10 rounded text-primary mr-1"
                                     title="保存"
                                 >
                                     <Save size={16} />
@@ -72,7 +72,7 @@ export const MemoryStream: React.FC<MemoryStreamProps> = ({ initialTab }) => {
                                 onClick={() =>
                                     ms.selectedId &&
                                     ms.handleDelete(ms.selectedId)}
-                                className="p-1.5 hover:bg-destructive/10 rounded text-destructive mr-1 transition-colors"
+                                className="p-1.5 hover:bg-destructive/10 rounded text-destructive mr-1"
                             >
                                 <Trash2 size={16} />
                             </button>
@@ -101,7 +101,7 @@ export const MemoryStream: React.FC<MemoryStreamProps> = ({ initialTab }) => {
                             {ms.hasChanges && (
                                 <button
                                     onClick={ms.handleBatchSave}
-                                    className="p-1.5 hover:bg-primary/10 rounded text-primary mr-1 transition-colors"
+                                    className="p-1.5 hover:bg-primary/10 rounded text-primary mr-1"
                                     title="保存"
                                 >
                                     <Save size={16} />
@@ -111,7 +111,7 @@ export const MemoryStream: React.FC<MemoryStreamProps> = ({ initialTab }) => {
                                 onClick={() =>
                                     ms.selectedId &&
                                     ms.handleDelete(ms.selectedId)}
-                                className="p-1.5 hover:bg-destructive/10 rounded text-destructive mr-1 transition-colors"
+                                className="p-1.5 hover:bg-destructive/10 rounded text-destructive mr-1"
                             >
                                 <Trash2 size={16} />
                             </button>

@@ -114,7 +114,7 @@ export const GlobalDatabaseList: React.FC = () => {
                     <button
                         onClick={fetchDatabases}
                         disabled={loading}
-                        className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors disabled:opacity-50"
+                        className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded disabled:opacity-50"
                         title="刷新列表"
                     >
                         <RefreshCw
@@ -127,7 +127,7 @@ export const GlobalDatabaseList: React.FC = () => {
                         disabled={loading || dbs.length === 0 ||
                             (dbs.length === 1 &&
                                 dbs[0].chatId === currentChatId)}
-                        className="px-3 py-1.5 text-xs font-medium rounded-md bg-background border border-border hover:bg-red-500/10 text-red-500 transition-colors disabled:opacity-50"
+                        className="px-3 py-1.5 text-xs font-medium rounded-md bg-background border border-border hover:bg-red-500/10 text-red-500 disabled:opacity-50"
                     >
                         清理全部多余库
                     </button>
@@ -179,7 +179,7 @@ export const GlobalDatabaseList: React.FC = () => {
                                             onClick={() =>
                                                 handleDelete(db.chatId)}
                                             disabled={isCurrent || loading}
-                                            className={`p-1.5 rounded transition-colors ${
+                                            className={`p-1.5 rounded ${
                                                 isCurrent
                                                     ? "text-muted-foreground/30 cursor-not-allowed"
                                                     : "text-muted-foreground hover:bg-red-500/10 hover:text-red-500"

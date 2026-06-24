@@ -283,7 +283,7 @@ export const ReviewContainer: React.FC = () => {
                 <div className="fixed bottom-4 right-4 z-[9999] pointer-events-auto">
                     <button
                         onClick={handleRestore}
-                        className="flex items-center gap-2 px-4 py-3 bg-primary text-primary-foreground shadow-lg rounded-full hover:scale-105 transition-transform font-medium border-2 border-primary-foreground/20"
+                        className="flex items-center gap-2 px-4 py-3 bg-primary text-primary-foreground shadow-lg rounded-full hover:scale-105 font-medium border-2 border-primary-foreground/20"
                     >
                         <Layers size={18} />
                         <span>待处理 ({requests.length})</span>
@@ -314,7 +314,7 @@ export const ReviewContainer: React.FC = () => {
                                         key={req.id}
                                         onClick={() => setActiveId(req.id)}
                                         className={`
-                                            flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-md transition-colors border-t border-x mb-[-1px]
+                                            flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-md border-t border-x mb-[-1px]
                                             ${
                                             isActive
                                                 ? "bg-popover border-border text-foreground border-b-transparent z-10"
@@ -334,7 +334,7 @@ export const ReviewContainer: React.FC = () => {
                         <div className="flex items-center gap-1 mb-1 px-2">
                             <button
                                 onClick={() => setIsMinimized(true)}
-                                className="p-1.5 text-muted-foreground hover:text-foreground rounded-md transition-colors"
+                                className="p-1.5 text-muted-foreground hover:text-foreground rounded-md"
                                 title="最小化"
                             >
                                 <Minus size={16} />
@@ -356,7 +356,7 @@ export const ReviewContainer: React.FC = () => {
                                         }
                                     }
                                 }}
-                                className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+                                className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md"
                                 title="关闭/取消当前"
                             >
                                 <X size={16} />

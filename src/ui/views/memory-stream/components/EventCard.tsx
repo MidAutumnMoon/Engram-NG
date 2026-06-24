@@ -136,7 +136,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                 className={`
                     flex items-center gap-3 p-3 cursor-pointer
                     border-b border-border
-                    transition-colors duration-150
+                   
                     ${
                     isSelected
                         ? "border-l-4 border-l-primary bg-transparent"
@@ -189,7 +189,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                 <div className="flex items-center gap-1">
                     {/* 锁定按钮 */}
                     <button
-                        className={`p-1.5 rounded-md transition-colors ${
+                        className={`p-1.5 rounded-md ${
                             isLocked
                                 ? "text-emphasis bg-emphasis/10"
                                 : "text-meta opacity-40 hover:opacity-100 hover:bg-muted/50"
@@ -205,7 +205,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
                     {/* 归档按钮 (紧凑模式) */}
                     <button
-                        className={`p-1.5 rounded-md transition-colors ${
+                        className={`p-1.5 rounded-md ${
                             event.is_archived
                                 ? "text-emphasis bg-emphasis/10"
                                 : "text-meta opacity-40 hover:opacity-100 hover:bg-muted/50"
@@ -236,7 +236,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         <div
             className={`
                 group p-4 cursor-pointer rounded-lg
-                transition-all duration-150 relative overflow-hidden
+                relative overflow-hidden
                 ${
                 isSelected
                     ? "border border-primary bg-transparent shadow-sm"
@@ -281,11 +281,11 @@ export const EventCard: React.FC<EventCardProps> = ({
 
                 <div className="flex-1" />
 
-                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
                     {/* 归档按钮 (桌面模式) */}
                     <button
                         className={`
-                            p-1.5 rounded-md transition-all
+                            p-1.5 rounded-md
                             ${
                             event.is_archived
                                 ? "text-emphasis bg-emphasis/10 hover:bg-emphasis/20"
@@ -309,7 +309,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                     {/* 锁定按钮 (桌面模式) */}
                     <button
                         className={`
-                            p-1.5 rounded-md transition-all
+                            p-1.5 rounded-md
                             ${
                             isLocked
                                 ? "text-emphasis bg-emphasis/10 hover:bg-emphasis/20 opacity-100"
@@ -329,7 +329,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
                     {/* 删除按钮 (桌面模式) - 保持谨慎颜色 */}
                     <button
-                        className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                        className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                         onClick={(e) => {
                             e.stopPropagation();
                             if (confirm("确定删除此事件吗？")) {

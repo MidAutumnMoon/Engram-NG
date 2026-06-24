@@ -93,7 +93,7 @@ const MacroItem = ({ macro }: { macro: MacroDef }) => {
     };
 
     return (
-        <div className="flex items-center justify-between gap-2 p-1.5 rounded hover:bg-muted/50 group transition-colors">
+        <div className="flex items-center justify-between gap-2 p-1.5 rounded hover:bg-muted/50 group">
             <div className="flex flex-col gap-0.5">
                 <code className="text-[11px] text-primary font-mono font-medium">
                     {macro.name}
@@ -104,7 +104,7 @@ const MacroItem = ({ macro }: { macro: MacroDef }) => {
             </div>
             <button
                 onClick={handleCopy}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
                 title="复制宏"
             >
                 {copied

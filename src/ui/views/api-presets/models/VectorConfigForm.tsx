@@ -269,7 +269,7 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
                                 padding: "8px 0",
                                 width: "100%",
                             }}
-                            className="placeholder:text-muted-foreground/40 focus:border-primary transition-colors"
+                            className="placeholder:text-muted-foreground/40 focus:border-primary"
                         />
                         <p className="text-[10px] text-muted-foreground/70 break-all">
                             {config.source === "ollama"
@@ -331,7 +331,7 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
                         {(needsUrl || needsKey) && (
                             <button
                                 type="button"
-                                className="h-10.5 w-10.5 min-w-10.5 flex items-center justify-center border-none rounded-md bg-muted text-muted-foreground cursor-pointer transition-all hover:bg-accent hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="h-10.5 w-10.5 min-w-10.5 flex items-center justify-center border-none rounded-md bg-muted text-muted-foreground cursor-pointer hover:bg-accent hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                                 onClick={fetchModelList}
                                 disabled={isLoadingModels}
                                 title="获取模型列表"

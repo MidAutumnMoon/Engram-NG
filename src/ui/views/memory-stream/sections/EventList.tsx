@@ -72,7 +72,7 @@ export const EventList: React.FC<EventListProps> = ({
                         width: "100%",
                         color: "var(--foreground)",
                     }}
-                    className="placeholder:text-muted-foreground/40 focus:border-primary transition-colors"
+                    className="placeholder:text-muted-foreground/40 focus:border-primary"
                 />
             </div>
         )}
@@ -160,7 +160,7 @@ export const EventList: React.FC<EventListProps> = ({
                                 <div className="relative pl-6 pt-1 pb-3 group/card">
                                     {/* 垂直主干线 */}
                                     <div
-                                        className="absolute left-3 top-[-10px] w-[2px] bg-foreground transition-colors opacity-20 group-hover/card:bg-primary group-hover/card:opacity-50 z-0"
+                                        className="absolute left-3 top-[-10px] w-[2px] bg-foreground opacity-20 group-hover/card:bg-primary group-hover/card:opacity-50 z-0"
                                         style={{
                                             height: isLast
                                                 ? "calc(50% + 10px - 6px)"
@@ -168,10 +168,10 @@ export const EventList: React.FC<EventListProps> = ({
                                         }}
                                     />
                                     {/* 横向分支线 */}
-                                    <div className="absolute left-3 top-[calc(50%-6px)] w-3 h-[2px] bg-foreground transition-colors opacity-20 group-hover/card:bg-primary group-hover/card:opacity-50 z-0" />
+                                    <div className="absolute left-3 top-[calc(50%-6px)] w-3 h-[2px] bg-foreground opacity-20 group-hover/card:bg-primary group-hover/card:opacity-50 z-0" />
 
                                     {/* 圆点指示器 */}
-                                    <div className="absolute left-[9px] top-[calc(50%-8px)] w-[6px] h-[6px] rounded-full bg-foreground opacity-30 transition-colors group-hover/card:bg-primary z-10" />
+                                    <div className="absolute left-[9px] top-[calc(50%-8px)] w-[6px] h-[6px] rounded-full bg-foreground opacity-30 group-hover/card:bg-primary z-10" />
 
                                     <div className="relative z-10 w-full pl-3">
                                         <ErrorBoundary>
@@ -207,8 +207,8 @@ export const EventList: React.FC<EventListProps> = ({
                                                 onDelete={() =>
                                                     onDelete?.(event.id)}
                                                 className={event.level > 0
-                                                    ? "bg-primary/5 border-primary/20 shadow-sm transition-all"
-                                                    : "transition-all"} // 重点高亮总结
+                                                    ? "bg-primary/5 border-primary/20 shadow-sm"
+                                                    : ""} // 重点高亮总结
                                             />
                                         </ErrorBoundary>
                                     </div>

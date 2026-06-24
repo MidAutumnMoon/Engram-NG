@@ -210,7 +210,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                                     </div>
                                     <div className="mt-2 h-1 bg-border rounded-full overflow-hidden">
                                         <div
-                                            className={`h-full transition-all duration-300 ${
+                                            className={`h-full ${
                                                 progressPercent >= 80
                                                     ? "bg-amber-500"
                                                     : "bg-primary"
@@ -304,11 +304,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                                             handleNavigate(
                                                 path.replace("/", ""),
                                             )}
-                                        className="flex flex-col items-center gap-2 p-3 rounded-lg text-muted-foreground hover:text-foreground transition-all duration-[var(--duration-fast)] group hover:translate-y-[-2px] active:scale-95"
+                                        className="flex flex-col items-center gap-2 p-3 rounded-lg text-muted-foreground hover:text-foreground group hover:translate-y-[-2px] active:scale-95"
                                     >
                                         <Icon
                                             size={20}
-                                            className="text-primary transition-transform duration-[var(--duration-fast)] group-hover:scale-110"
+                                            className="text-primary group-hover:scale-110"
                                         />
                                         <span className="text-xs">{label}</span>
                                     </button>

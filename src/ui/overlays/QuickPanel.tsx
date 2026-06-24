@@ -130,7 +130,7 @@ export function QuickPanel({ isOpen, onClose }: QuickPanelProps) {
                             <button
                                 key={item.id}
                                 onClick={() => handleNavigate(item.path)}
-                                className="w-full flex items-center gap-3 p-2 rounded-md transition-all text-left bg-muted/30 border border-border hover:border-primary/40 hover:bg-primary/5"
+                                className="w-full flex items-center gap-3 p-2 rounded-md text-left bg-muted/30 border border-border hover:border-primary/40 hover:bg-primary/5"
                             >
                                 <Icon
                                     size={16}

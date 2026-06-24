@@ -42,16 +42,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 href="https://github.com/shiyue137mh-netizen/Engram"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group w-full flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-muted/10"
+                className="group w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/10"
                 title="点个星⭐支持一下"
             >
                 <Github
                     size={16}
                     strokeWidth={1.5}
-                    className="group-hover:text-primary transition-colors"
+                    className="group-hover:text-primary"
                 />
                 <span className="text-xs">GitHub</span>
-                <span className="ml-auto text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="ml-auto text-[10px] text-primary opacity-0 group-hover:opacity-100">
                     Star ⭐
                 </span>
             </a>
@@ -83,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 onClick={() => handleNavClick(item.id)}
                                 className={`
                                     group w-full flex items-center gap-2 px-2 py-2 rounded-lg text-left
-                                    transition-all duration-(--duration-fast) ease-out
+                                   
                                     ${
                                     isActive
                                         ? "bg-primary/10 text-primary"
@@ -94,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 <Icon
                                     size={18}
                                     strokeWidth={isActive ? 2 : 1.5}
-                                    className="shrink-0 transition-transform duration-(--duration-fast) group-hover:scale-110"
+                                    className="shrink-0 group-hover:scale-110"
                                 />
                                 <span
                                     className={`text-xs ${
@@ -140,7 +140,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </span>
                     <button
                         onClick={onClose}
-                        className="p-2 -mr-2 rounded-md hover:bg-sidebar-accent text-muted-foreground hover:text-sidebar-accent-foreground transition-colors"
+                        className="p-2 -mr-2 rounded-md hover:bg-sidebar-accent text-muted-foreground hover:text-sidebar-accent-foreground"
                     >
                         <X size={20} />
                     </button>
@@ -156,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 onClick={() => handleNavClick(item.id)}
                                 className={`
                                     group w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left
-                                    transition-all duration-(--duration-fast) ease-out
+                                   
                                     active:scale-[0.98]
                                     ${
                                     isActive
@@ -167,7 +167,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             >
                                 <Icon
                                     size={22}
-                                    className={`transition-transform duration-(--duration-fast) group-hover:scale-110 ${
+                                    className={`group-hover:scale-110 ${
                                         isActive
                                             ? "text-primary"
                                             : "text-muted-foreground/70"

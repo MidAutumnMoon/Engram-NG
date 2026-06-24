@@ -207,7 +207,7 @@ export const EntityReview: React.FC<EntityReviewProps> = (
                         <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-hidden w-full">
                             {/* Profile JSON Editor Panel */}
                             <div
-                                className={`flex flex-col gap-2 border border-border rounded-md p-4 bg-muted/10 transition-all ${
+                                className={`flex flex-col gap-2 border border-border rounded-md p-4 bg-muted/10 ${
                                     isEditorExpanded
                                         ? "flex-1 min-h-0"
                                         : "shrink-0"
@@ -259,7 +259,7 @@ export const EntityReview: React.FC<EntityReviewProps> = (
 
                             {/* New Description Preview Panel */}
                             <div
-                                className={`flex flex-col gap-2 border border-primary/20 rounded-md p-4 bg-primary/5 transition-all ${
+                                className={`flex flex-col gap-2 border border-primary/20 rounded-md p-4 bg-primary/5 ${
                                     isPreviewExpanded
                                         ? "flex-1 min-h-0"
                                         : "shrink-0"
@@ -392,16 +392,16 @@ const EntityCard: React.FC<{
 
     return (
         <div
-            className={`relative group p-4 rounded-lg border ${borderColor} ${bgColor} hover:bg-opacity-20 transition-all cursor-pointer`}
+            className={`relative group p-4 rounded-lg border ${borderColor} ${bgColor} hover:bg-opacity-20 cursor-pointer`}
             onClick={onEdit}
         >
-            <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100">
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
                         onEdit();
                     }}
-                    className="p-1.5 bg-background/50 hover:bg-background rounded-md text-muted-foreground hover:text-foreground transition-colors"
+                    className="p-1.5 bg-background/50 hover:bg-background rounded-md text-muted-foreground hover:text-foreground"
                     title="编辑"
                 >
                     <Edit2 size={14} />
@@ -411,7 +411,7 @@ const EntityCard: React.FC<{
                         e.stopPropagation();
                         onRemove();
                     }}
-                    className="p-1.5 bg-background/50 hover:bg-background rounded-md text-muted-foreground hover:text-destructive transition-colors"
+                    className="p-1.5 bg-background/50 hover:bg-background rounded-md text-muted-foreground hover:text-destructive"
                     title="移除"
                 >
                     <Trash2 size={14} />

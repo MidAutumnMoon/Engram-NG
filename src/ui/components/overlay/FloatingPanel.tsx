@@ -209,7 +209,7 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-1 text-muted-foreground hover:text-foreground rounded transition-all duration-[var(--duration-fast)] hover:rotate-90 hover:bg-accent"
+                        className="p-1 text-muted-foreground hover:text-foreground rounded hover:rotate-90 hover:bg-accent"
                         style={{ backgroundColor: "transparent" }}
                         aria-label="关闭"
                         onMouseDown={(e) => e.stopPropagation()}

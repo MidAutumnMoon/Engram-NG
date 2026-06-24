@@ -74,7 +74,7 @@ export const WorldbookBindingField: React.FC<WorldbookBindingFieldProps> = ({
                                 </span>
                                 <button
                                     onClick={() => handleRemove(book)}
-                                    className="p-0.5 hover:bg-primary/20 rounded-full transition-colors"
+                                    className="p-0.5 hover:bg-primary/20 rounded-full"
                                     title="移除"
                                 >
                                     <X size={10} />
@@ -86,7 +86,7 @@ export const WorldbookBindingField: React.FC<WorldbookBindingFieldProps> = ({
                 {/* 添加按钮 */}
                 <button
                     onClick={() => setShowPicker(true)}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground border border-dashed border-border hover:border-foreground/50 rounded-full transition-colors"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground border border-dashed border-border hover:border-foreground/50 rounded-full"
                 >
                     <Plus size={12} />
                     添加
@@ -127,7 +127,7 @@ export const WorldbookBindingField: React.FC<WorldbookBindingFieldProps> = ({
                                             return (
                                                 <label
                                                     key={book}
-                                                    className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-colors text-xs ${
+                                                    className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-xs ${
                                                         isSelected
                                                             ? "bg-primary/10 text-primary"
                                                             : "hover:bg-muted"

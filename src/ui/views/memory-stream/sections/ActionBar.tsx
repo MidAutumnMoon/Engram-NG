@@ -75,7 +75,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
             {/* 保存按钮 - 有修改时显示 */}
             {hasChanges && (
                 <button
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary hover:text-primary-foreground hover:bg-primary border border-primary/50 rounded transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary hover:text-primary-foreground hover:bg-primary border border-primary/50 rounded"
                     onClick={onSave}
                 >
                     <Save size={12} />
@@ -86,7 +86,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
             {/* 刷新按钮 */}
             <button
                 onClick={onRefresh}
-                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground transition-colors"
+                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground"
                 title="刷新"
             >
                 <RefreshCw
@@ -99,7 +99,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
             {checkedCount > 0 && (
                 <button
                     onClick={onBatchDelete}
-                    className="flex items-center gap-1 px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+                    className="flex items-center gap-1 px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10 rounded-md"
                 >
                     <Trash2 size={12} />
                     {!isMobile && `删除 (${checkedCount})`}
@@ -114,7 +114,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                         {onCreate && (
                             <button
                                 onClick={onCreate}
-                                className="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded transition-colors"
+                                className="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded"
                                 title={viewTab === "list"
                                     ? "手动添加事件"
                                     : "手动添加实体"}
@@ -125,7 +125,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                         )}
                         <button
                             onClick={onImportClick}
-                            className="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded transition-colors"
+                            className="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded"
                             title="导入历史分卷/外部库"
                         >
                             <Database size={12} />
@@ -136,7 +136,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                             <button
                                 onClick={onReembed}
                                 disabled={isReembedding}
-                                className="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded transition-colors disabled:opacity-50"
+                                className="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded disabled:opacity-50"
                                 title="重新嵌入所有事件"
                             >
                                 <Sparkles
@@ -154,7 +154,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                         {viewTab === "list" && (
                             <button
                                 onClick={onSortToggle}
-                                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground transition-colors"
+                                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground"
                                 title={sortOrder === "asc"
                                     ? "当前: 旧 -> 新"
                                     : "当前: 新 -> 旧"}
@@ -171,7 +171,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                         {viewTab === "list" && (
                             <button
                                 onClick={onActiveToggle}
-                                className={`p-1.5 rounded-md transition-colors ${
+                                className={`p-1.5 rounded-md ${
                                     showActiveOnly
                                         ? "text-primary bg-primary/10"
                                         : "text-muted-foreground hover:text-foreground"
@@ -186,7 +186,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
 
                         <button
                             onClick={handlePreviewOpen}
-                            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground transition-colors"
+                            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground"
                             title="查看当前注入内容"
                         >
                             <FileText size={14} />
@@ -198,7 +198,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                     <div className="relative">
                         <button
                             onClick={onMobileActionsToggle}
-                            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground transition-colors"
+                            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"

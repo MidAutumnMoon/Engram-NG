@@ -131,7 +131,7 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = (
                             状态监控
                         </h2>
                         <button
-                            className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
+                            className="p-1 rounded text-muted-foreground hover:text-foreground"
                             onClick={loadStatus}
                             title="刷新"
                         >
@@ -196,7 +196,7 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = (
                         onClick={handleManualExtract}
                         disabled={isLoading || status?.isExtracting ||
                             !config.enabled}
-                        className="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <RefreshCw
                             size={14}
@@ -208,7 +208,7 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = (
                     <button
                         onClick={handleArchiveNow}
                         disabled={isLoading || !config.enabled}
-                        className="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-emphasis border border-border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-emphasis border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         title="立即根据上限归档旧记忆"
                     >
                         <Archive size={14} />
@@ -238,7 +238,7 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = (
                 </div>
 
                 <div
-                    className={`space-y-6 transition-opacity ${
+                    className={`space-y-6 ${
                         config.enabled
                             ? "opacity-100"
                             : "opacity-40 pointer-events-none"
@@ -285,7 +285,7 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = (
                         </div>
 
                         <div
-                            className={`space-y-3 transition-opacity ${
+                            className={`space-y-3 ${
                                 config.autoArchive ?? true
                                     ? "opacity-100"
                                     : "opacity-40 pointer-events-none"

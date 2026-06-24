@@ -114,14 +114,14 @@ export const WorldbookConfigForm: React.FC<WorldbookConfigFormProps> = ({
                             <input
                                 type="text"
                                 placeholder="搜索世界书或条目..."
-                                className="w-full h-9 pl-9 pr-3 rounded-md border border-input bg-transparent text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                className="w-full h-9 pl-9 pr-3 rounded-md border border-input bg-transparent text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                 value={filterText}
                                 onChange={(e) => setFilterText(e.target.value)}
                             />
                         </div>
                         <button
                             onClick={onRefresh}
-                            className="inline-flex items-center justify-center rounded-md w-9 h-9 hover:bg-accent hover:text-accent-foreground transition-colors"
+                            className="inline-flex items-center justify-center rounded-md w-9 h-9 hover:bg-accent hover:text-accent-foreground"
                             title="刷新列表"
                         >
                             <RefreshCw size={16} />
@@ -158,7 +158,7 @@ export const WorldbookConfigForm: React.FC<WorldbookConfigFormProps> = ({
                                     return (
                                         <div
                                             key={book}
-                                            className={`transition-all border-b border-border last:border-0 ${
+                                            className={`border-b border-border last:border-0 ${
                                                 isDisabled
                                                     ? "bg-muted/10 opacity-60 grayscale"
                                                     : ""
@@ -170,7 +170,7 @@ export const WorldbookConfigForm: React.FC<WorldbookConfigFormProps> = ({
                                                     <button
                                                         onClick={() =>
                                                             toggleExpand(book)}
-                                                        className="p-1 hover:bg-accent rounded-sm transition-colors"
+                                                        className="p-1 hover:bg-accent rounded-sm"
                                                     >
                                                         {isExpanded
                                                             ? <ChevronDown
@@ -243,7 +243,7 @@ export const WorldbookConfigForm: React.FC<WorldbookConfigFormProps> = ({
                                                                         <div
                                                                             key={entry
                                                                                 .uid}
-                                                                            className={`flex items-start justify-between py-2 -mx-2 px-2 rounded hover:bg-accent/40 transition-colors group ${
+                                                                            className={`flex items-start justify-between py-2 -mx-2 px-2 rounded hover:bg-accent/40 group ${
                                                                                 isEntryItemDisabled
                                                                                     ? "opacity-40"
                                                                                     : ""

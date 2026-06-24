@@ -106,7 +106,7 @@ export const EntityList: React.FC<EntityListProps> = ({
                                 padding: "8px 0 8px 24px",
                                 width: "100%",
                             }}
-                            className="placeholder:text-muted-foreground/40 focus:border-primary transition-colors"
+                            className="placeholder:text-muted-foreground/40 focus:border-primary"
                         />
                     </div>
 
@@ -186,11 +186,11 @@ export const EntityList: React.FC<EntityListProps> = ({
                                             <button
                                                 onClick={() =>
                                                     toggleGroup(group.key)}
-                                                className="w-full px-3 py-2 text-left bg-muted/20 hover:bg-muted/30 transition-colors flex items-center gap-2"
+                                                className="w-full px-3 py-2 text-left bg-muted/20 hover:bg-muted/30 flex items-center gap-2"
                                             >
                                                 <ChevronDown
                                                     size={14}
-                                                    className={`transition-transform ${
+                                                    className={`${
                                                         isCollapsed
                                                             ? "-rotate-90"
                                                             : ""

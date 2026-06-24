@@ -45,14 +45,14 @@ export const FormSection: React.FC<FormSectionProps> = ({
                 {collapsible && (
                     <ChevronDown
                         size={16}
-                        className={`text-muted-foreground transition-transform duration-200 ${
+                        className={`text-muted-foreground ${
                             isCollapsed ? "-rotate-90" : "rotate-0"
                         }`}
                     />
                 )}
             </div>
             <div
-                className={`space-y-4 transition-all duration-300 ${
+                className={`space-y-4 ${
                     isCollapsed ? "hidden" : "block"
                 }`}
             >
@@ -131,7 +131,7 @@ export const TextField: React.FC<TextFieldProps> = ({
                         readOnly={readOnly}
                         rows={rows}
                         style={inputStyle}
-                        className="font-mono resize-y min-h-[80px] placeholder:text-muted-foreground/40 disabled:opacity-50 focus:border-primary transition-colors"
+                        className="font-mono resize-y min-h-[80px] placeholder:text-muted-foreground/40 disabled:opacity-50 focus:border-primary"
                     />
                 )
                 : (
@@ -143,7 +143,7 @@ export const TextField: React.FC<TextFieldProps> = ({
                         disabled={disabled}
                         readOnly={readOnly}
                         style={inputStyle}
-                        className="placeholder:text-muted-foreground/40 disabled:opacity-50 focus:border-primary transition-colors"
+                        className="placeholder:text-muted-foreground/40 disabled:opacity-50 focus:border-primary"
                     />
                 )}
             {description &&
@@ -196,7 +196,7 @@ export const NumberField: React.FC<NumberFieldProps> = ({
                     step={step}
                     value={value}
                     onChange={(e) => onChange(Number(e.target.value))}
-                    className="bg-transparent border-0 border-b border-transparent focus:border-border outline-none transition-colors text-base font-medium text-foreground mx-0.5 text-right w-16 px-0 py-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:text-primary"
+                    className="bg-transparent border-0 border-b border-transparent focus:border-border outline-none text-base font-medium text-foreground mx-0.5 text-right w-16 px-0 py-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:text-primary"
                 />
                 {suffix &&
                     <span className="text-sm font-medium text-muted-foreground">
@@ -272,7 +272,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                     onChange={(e) => onChange(e.target.value)}
                     disabled={disabled}
                     style={selectStyle}
-                    className="disabled:opacity-50 disabled:cursor-not-allowed focus:border-primary transition-colors"
+                    className="disabled:opacity-50 disabled:cursor-not-allowed focus:border-primary"
                 >
                     <option
                         value=""
@@ -443,14 +443,14 @@ export const SearchableSelectField: React.FC<SearchableSelectFieldProps> = ({
                 type="button"
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 disabled={disabled}
-                className="relative w-full text-left py-2 pr-6 border-0 border-b border-border bg-transparent text-sm text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:border-primary transition-colors"
+                className="relative w-full text-left py-2 pr-6 border-0 border-b border-border bg-transparent text-sm text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:border-primary"
             >
                 <span className={value ? "" : "text-muted-foreground"}>
                     {selectedLabel}
                 </span>
                 <ChevronDown
                     size={14}
-                    className={`absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground/50 transition-transform ${
+                    className={`absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground/50 ${
                         isOpen ? "rotate-180" : ""
                     }`}
                 />
@@ -498,7 +498,7 @@ export const SearchableSelectField: React.FC<SearchableSelectFieldProps> = ({
                                     <div
                                         key={opt.value}
                                         onClick={() => handleSelect(opt.value)}
-                                        className={`px-3 py-2 cursor-pointer text-sm truncate transition-colors ${
+                                        className={`px-3 py-2 cursor-pointer text-sm truncate ${
                                             opt.value === value
                                                 ? "bg-primary/15 text-primary"
                                                 : "hover:bg-muted text-foreground"

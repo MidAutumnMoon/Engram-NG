@@ -375,7 +375,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                 onChange={(id: string) => setMainTab(id as MainTabType)}
                 actions={hasChanges && (
                     <button
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary hover:text-primary-foreground hover:bg-primary border border-primary/50 rounded transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary hover:text-primary-foreground hover:bg-primary border border-primary/50 rounded"
                         onClick={save}
                     >
                         <Save size={12} />
@@ -422,7 +422,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                                                 预设列表
                                             </h3>
                                             <button
-                                                className="text-muted-foreground hover:text-foreground transition-colors"
+                                                className="text-muted-foreground hover:text-foreground"
                                                 onClick={addPreset}
                                             >
                                                 <Plus size={16} />
@@ -498,7 +498,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                                     <button
                                         onClick={() =>
                                             setPromptSubTab("templates")}
-                                        className={`text-xs font-bold uppercase tracking-wider transition-colors ${
+                                        className={`text-xs font-bold uppercase tracking-wider ${
                                             promptSubTab === "templates"
                                                 ? "text-primary"
                                                 : "text-muted-foreground hover:text-foreground"
@@ -512,7 +512,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                                     <button
                                         onClick={() =>
                                             setPromptSubTab("macros")}
-                                        className={`text-xs font-bold uppercase tracking-wider transition-colors ${
+                                        className={`text-xs font-bold uppercase tracking-wider ${
                                             promptSubTab === "macros"
                                                 ? "text-primary"
                                                 : "text-muted-foreground hover:text-foreground"

@@ -32,13 +32,13 @@ export const QuickLinks: React.FC<QuickLinksProps> = (
                 return (
                     <button
                         key={link.id}
-                        className="group inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors duration-[var(--duration-fast)]"
+                        className="group inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
                         onClick={() => onNavigate(link.linkTo)}
                         title={link.label}
                     >
                         <Icon
                             size={12}
-                            className="transition-transform duration-[var(--duration-fast)] group-hover:scale-110"
+                            className="group-hover:scale-110"
                         />
                         <span>{link.label}</span>
                     </button>

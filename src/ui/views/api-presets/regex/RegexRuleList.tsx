@@ -71,14 +71,14 @@ export const RegexRuleList: React.FC<RegexRuleListProps> = ({
                 <div className="flex gap-2">
                     <button
                         type="button"
-                        className="text-[10px] text-muted-foreground hover:text-destructive transition-colors"
+                        className="text-[10px] text-muted-foreground hover:text-destructive"
                         onClick={onReset}
                     >
                         重置默认
                     </button>
                     <button
                         type="button"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-md shadow-sm transition-all active:scale-95"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-md shadow-sm active:scale-95"
                         onClick={onAdd}
                     >
                         <Plus size={14} strokeWidth={2.5} />
@@ -116,7 +116,7 @@ export const RegexRuleList: React.FC<RegexRuleListProps> = ({
                         onDrop={handleDrop(index)}
                         onDragEnd={handleDragEnd}
                         className={`
-                            group p-3 rounded-lg transition-all duration-200 cursor-pointer border flex items-center gap-3
+                            group p-3 rounded-lg cursor-pointer border flex items-center gap-3
                             ${
                             selectedId === rule.id
                                 ? "bg-accent/50 border-input"
@@ -134,7 +134,7 @@ export const RegexRuleList: React.FC<RegexRuleListProps> = ({
                         onClick={() => onSelect(rule.id)}
                     >
                         {/* Drag Handle */}
-                        <div className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors">
+                        <div className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground">
                             <GripVertical size={14} />
                         </div>
 
@@ -142,7 +142,7 @@ export const RegexRuleList: React.FC<RegexRuleListProps> = ({
                         <button
                             type="button"
                             className={`
-                                w-8 h-8 flex items-center justify-center rounded-lg transition-colors
+                                w-8 h-8 flex items-center justify-center rounded-lg
                                 ${
                                 rule.enabled
                                     ? selectedId === rule.id
@@ -188,11 +188,11 @@ export const RegexRuleList: React.FC<RegexRuleListProps> = ({
                                 selectedId === rule.id
                                     ? "opacity-100"
                                     : "opacity-0 group-hover:opacity-100"
-                            } transition-opacity`}
+                            }`}
                         >
                             <button
                                 type="button"
-                                className="p-1.5 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors"
+                                className="p-1.5 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     onDelete(rule.id);

@@ -246,7 +246,7 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-primary transition-all duration-300"
+                            className="h-full bg-primary"
                             style={{ width: `${progressPercent}%` }}
                         />
                     </div>
@@ -328,7 +328,7 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                     ? (
                         <button
                             onClick={handleStopEmbedding}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90"
                         >
                             <Square size={16} />
                             停止
@@ -340,7 +340,7 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                                 onClick={handleStartEmbedding}
                                 disabled={stats.pending === 0 ||
                                     !isVectorConfigValid}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <Play size={16} />
                                 嵌入未处理 ({stats.pending})
@@ -349,14 +349,14 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                                 onClick={handleReembedAll}
                                 disabled={stats.total === 0 ||
                                     !isVectorConfigValid}
-                                className="inline-flex items-center gap-2 px-4 py-2 border border-border text-foreground rounded-md hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="inline-flex items-center gap-2 px-4 py-2 border border-border text-foreground rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <RefreshCw size={16} />
                                 重新嵌入所有
                             </button>
                             <button
                                 onClick={refreshStats}
-                                className="inline-flex items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors"
+                                className="inline-flex items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground"
                             >
                                 <RefreshCw size={16} />
                             </button>

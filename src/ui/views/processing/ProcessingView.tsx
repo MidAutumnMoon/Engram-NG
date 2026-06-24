@@ -131,7 +131,7 @@ export const ProcessingView: React.FC<ProcessingViewProps> = (
                     <div className="flex items-center gap-2">
                         {hasChanges && (
                             <button
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary hover:text-primary-foreground hover:bg-primary border border-primary/50 rounded transition-colors"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary hover:text-primary-foreground hover:bg-primary border border-primary/50 rounded"
                                 onClick={handleSave}
                             >
                                 <Save size={12} />

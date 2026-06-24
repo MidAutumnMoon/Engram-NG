@@ -19,7 +19,7 @@ export const PageTitle: React.FC<PageTitleProps> = (
             <h1 className="text-3xl font-light tracking-tight text-foreground flex items-center gap-2">
                 {breadcrumbs.map((crumb, index) => (
                     <React.Fragment key={index}>
-                        <span className="text-muted-foreground/60 hover:text-foreground/80 transition-colors text-xl">
+                        <span className="text-muted-foreground/60 hover:text-foreground/80 text-xl">
                             {crumb}
                         </span>
                         <ChevronRight

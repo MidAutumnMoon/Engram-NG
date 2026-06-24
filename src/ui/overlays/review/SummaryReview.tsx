@@ -169,7 +169,7 @@ export const SummaryReview: React.FC<SummaryReviewProps> = (
                     return (
                         <div
                             key={f.key}
-                            className={`flex items-center gap-1 px-1.5 py-0.5 rounded border ${f.color} transition-all focus-within:ring-1 focus-within:ring-offset-0 focus-within:ring-current`}
+                            className={`flex items-center gap-1 px-1.5 py-0.5 rounded border ${f.color} focus-within:ring-1 focus-within:ring-offset-0 focus-within:ring-current`}
                         >
                             <span className="text-[9px] font-bold uppercase opacity-60 pointer-events-none select-none">
                                 {f.label}:
@@ -178,7 +178,7 @@ export const SummaryReview: React.FC<SummaryReviewProps> = (
                                 value={val}
                                 onChange={(e) =>
                                     handleUpdateKV(idx, f.key, e.target.value)}
-                                className="bg-transparent border-none outline-none text-[10px] w-[60px] focus:w-[120px] transition-all placeholder:italic placeholder:opacity-30"
+                                className="bg-transparent border-none outline-none text-[10px] w-[60px] focus:w-[120px] placeholder:italic placeholder:opacity-30"
                                 placeholder="..."
                                 spellCheck={false}
                             />
@@ -206,7 +206,7 @@ export const SummaryReview: React.FC<SummaryReviewProps> = (
                     return (
                         <div
                             key={idx}
-                            className="relative group bg-card border border-border/50 rounded-lg p-3 shadow-sm hover:border-primary/40 transition-colors"
+                            className="relative group bg-card border border-border/50 rounded-lg p-3 shadow-sm hover:border-primary/40"
                         >
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
@@ -225,7 +225,7 @@ export const SummaryReview: React.FC<SummaryReviewProps> = (
                                 </div>
                                 <button
                                     onClick={() => handleRemoveEvent(idx)}
-                                    className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity bg-background/50 rounded"
+                                    className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 bg-background/50 rounded"
                                     title="移除此片段"
                                 >
                                     <X size={14} />
@@ -238,7 +238,7 @@ export const SummaryReview: React.FC<SummaryReviewProps> = (
                                 value={isObject ? (evt.summary || "") : evt}
                                 onChange={(e) =>
                                     handleChangeEvent(idx, e.target.value)}
-                                className="w-full min-h-[60px] p-2 bg-muted/20 border border-transparent hover:border-border focus:border-primary focus:bg-background rounded-md text-sm resize-none focus:outline-none transition-colors"
+                                className="w-full min-h-[60px] p-2 bg-muted/20 border border-transparent hover:border-border focus:border-primary focus:bg-background rounded-md text-sm resize-none focus:outline-none"
                                 rows={Math.max(
                                     2,
                                     Math.ceil(
@@ -261,7 +261,7 @@ export const SummaryReview: React.FC<SummaryReviewProps> = (
 
                 <button
                     onClick={handleAddEvent}
-                    className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-muted/50 rounded-md transition-colors w-full justify-center border border-dashed border-border hover:border-primary/30"
+                    className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-muted/50 rounded-md w-full justify-center border border-dashed border-border hover:border-primary/30"
                 >
                     <Plus size={14} />
                     添加事件

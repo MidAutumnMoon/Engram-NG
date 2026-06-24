@@ -265,7 +265,7 @@ export const ModelLog: React.FC = () => {
                     </span>
                 </div>
                 <button
-                    className="p-1.5 rounded-md text-muted-foreground hover:text-destructive transition-colors"
+                    className="p-1.5 rounded-md text-muted-foreground hover:text-destructive"
                     onClick={() => clear()}
                     title="清除日志"
                 >

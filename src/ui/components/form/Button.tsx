@@ -19,7 +19,7 @@ export const ModernButton: React.FC<ModernButtonProps> = ({
     <button
         className={`
             flex items-center gap-2 rounded-full font-medium
-            transition-all duration-[var(--duration-fast)] ease-[var(--ease-spring)]
+           
             hover:scale-[1.02] active:scale-95
             ${size === "sm" ? "px-3 py-1.5 text-xs" : "px-5 py-2.5 text-sm"}
             ${
@@ -34,7 +34,7 @@ export const ModernButton: React.FC<ModernButtonProps> = ({
         {Icon &&
             <Icon
                 size={size === "sm" ? 14 : 16}
-                className="transition-transform duration-[var(--duration-fast)] group-hover:scale-110"
+                className="group-hover:scale-110"
             />}
         {label}
     </button>

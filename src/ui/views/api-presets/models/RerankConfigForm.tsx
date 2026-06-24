@@ -112,7 +112,7 @@ export const RerankConfigForm: React.FC<RerankConfigFormProps> = ({
                                     padding: "8px 0",
                                     width: "100%",
                                 }}
-                                className="placeholder:text-muted-foreground/40 focus:border-primary transition-colors"
+                                className="placeholder:text-muted-foreground/40 focus:border-primary"
                             />
                             <p className="text-[10px] text-muted-foreground/70 break-all">
                                 {(config.autoSuffix !== false && config.url)
@@ -168,7 +168,7 @@ export const RerankConfigForm: React.FC<RerankConfigFormProps> = ({
                                     )}
                                 <button
                                     type="button"
-                                    className="h-[42px] w-[42px] min-w-[42px] flex items-center justify-center border-none rounded-md bg-muted text-muted-foreground cursor-pointer transition-all hover:bg-accent hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="h-[42px] w-[42px] min-w-[42px] flex items-center justify-center border-none rounded-md bg-muted text-muted-foreground cursor-pointer hover:bg-accent hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                                     onClick={fetchModelList}
                                     disabled={isLoadingModels}
                                     title="获取模型列表"

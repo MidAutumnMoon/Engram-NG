@@ -47,7 +47,7 @@ export const SliderField: React.FC<SliderFieldProps> = ({
 
             {/* Thumb - 纯 div 渲染 */}
             <div
-                className="absolute top-1/2 w-3 h-3 rounded-full bg-primary shadow-sm pointer-events-none transition-transform duration-100 ease-out group-hover:scale-125"
+                className="absolute top-1/2 w-3 h-3 rounded-full bg-primary shadow-sm pointer-events-none group-hover:scale-125"
                 style={{
                     left: `${percentage}%`,
                     transform: "translate(-50%, -50%)",

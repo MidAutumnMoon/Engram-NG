@@ -96,7 +96,7 @@ export const RuntimeLogTab: React.FC = () => {
     useEffect(() => {
         if (autoScroll && bottomRef.current) {
             bottomRef.current.scrollIntoView({
-                behavior: "smooth",
+                behavior: "auto",
                 block: "nearest",
             });
         }
@@ -150,7 +150,7 @@ export const RuntimeLogTab: React.FC = () => {
                         {/* V0.9.12: 分组展开控制 */}
                         <button
                             type="button"
-                            className={`p-1.5 rounded transition-colors ${
+                            className={`p-1.5 rounded ${
                                 defaultGroupExpanded
                                     ? "text-primary"
                                     : "text-muted-foreground hover:text-foreground"
@@ -167,7 +167,7 @@ export const RuntimeLogTab: React.FC = () => {
                         </button>
                         <button
                             type="button"
-                            className={`p-1.5 rounded transition-colors ${
+                            className={`p-1.5 rounded ${
                                 autoScroll
                                     ? "text-primary"
                                     : "text-muted-foreground hover:text-foreground"
@@ -179,7 +179,7 @@ export const RuntimeLogTab: React.FC = () => {
                         </button>
                         <button
                             type="button"
-                            className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+                            className="p-1.5 rounded text-muted-foreground hover:text-foreground"
                             onClick={handleClear}
                             title="清空"
                         >

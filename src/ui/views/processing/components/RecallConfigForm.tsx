@@ -67,7 +67,7 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* 关键词召回 (0 消耗) */}
                     <div
-                        className={`p-4 rounded-lg border transition-all ${
+                        className={`p-4 rounded-lg border ${
                             config.useKeywordRecall
                                 ? "bg-primary/5 border-primary/30"
                                 : "bg-card border-border/50 hover:border-border"
@@ -147,7 +147,7 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
 
                     {/* Agentic RAG */}
                     <div
-                        className={`p-4 rounded-lg border transition-all overflow-hidden ${
+                        className={`p-4 rounded-lg border overflow-hidden ${
                             config.useAgenticRAG
                                 ? "bg-primary/5 border-primary/30"
                                 : "bg-card border-border/50 hover:border-border"
@@ -182,7 +182,7 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
 
                     {/* 向量检索 */}
                     <div
-                        className={`p-4 rounded-lg border transition-all ${
+                        className={`p-4 rounded-lg border ${
                             config.useEmbedding
                                 ? "bg-primary/5 border-primary/30"
                                 : "bg-card border-border/50 hover:border-border"
@@ -217,7 +217,7 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
 
                     {/* Rerank 重排序 */}
                     <div
-                        className={`p-4 rounded-lg border transition-all ${
+                        className={`p-4 rounded-lg border ${
                             config.useRerank
                                 ? "bg-primary/5 border-primary/30"
                                 : "bg-card border-border/50 hover:border-border"

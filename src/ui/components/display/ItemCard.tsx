@@ -84,7 +84,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                 group relative flex items-center gap-3
                 ${compact ? "py-2 px-2" : "py-3 px-3"}
                 rounded-lg cursor-pointer
-                transition-all duration-[var(--duration-fast)] ease-[var(--ease-out)]
+               
                 hover:translate-y-[-1px] hover:shadow-sm
                 ${selected ? "bg-accent/60" : "hover:bg-muted/40"}
                 ${disabled ? "opacity-50 pointer-events-none" : ""}
@@ -99,7 +99,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                         ? (
                             <button
                                 className={`
-                                w-7 h-7 flex items-center justify-center rounded-md transition-colors
+                                w-7 h-7 flex items-center justify-center rounded-md
                                 ${
                                     toggle.checked
                                         ? "text-primary"
@@ -117,7 +117,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                         : (
                             <div
                                 className={`
-                            w-7 h-7 flex items-center justify-center rounded-md transition-colors
+                            w-7 h-7 flex items-center justify-center rounded-md
                             ${
                                     selected
                                         ? "text-primary"
@@ -137,7 +137,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                     {/* 标题 */}
                     <span
                         className={`
-                        text-sm font-medium truncate transition-colors
+                        text-sm font-medium truncate
                         ${
                             selected
                                 ? "text-foreground"
@@ -195,14 +195,14 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                             ? "opacity-100"
                             : "opacity-0 group-hover:opacity-100"
                     }
-                    transition-opacity
+                   
                 `}
                 >
                     {visibleActions.map((action, i) => (
                         <button
                             key={i}
                             className={`
-                                p-1.5 rounded transition-colors
+                                p-1.5 rounded
                                 ${
                                 action.danger
                                     ? "text-muted-foreground hover:text-destructive hover:bg-destructive/10"

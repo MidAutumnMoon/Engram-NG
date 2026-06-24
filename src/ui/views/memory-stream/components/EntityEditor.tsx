@@ -260,7 +260,7 @@ export const EntityEditor = ({
                         }}
                         onBlur={handleBlur}
                         style={inputStyle}
-                        className="placeholder:text-meta/40 focus:border-primary transition-colors font-medium text-lg text-heading"
+                        className="placeholder:text-meta/40 focus:border-primary font-medium text-lg text-heading"
                     />
                 </div>
 
@@ -274,7 +274,7 @@ export const EntityEditor = ({
                                 setIsDirty(true);
                                 handleBlur(); // Trigger sync
                             }}
-                            className={`w-full py-2 bg-transparent border-b border-border outline-none text-sm appearance-none cursor-pointer transition-colors ${
+                            className={`w-full py-2 bg-transparent border-b border-border outline-none text-sm appearance-none cursor-pointer ${
                                 getEntityTextTypeColor(type)
                             }`}
                         >
@@ -329,7 +329,7 @@ export const EntityEditor = ({
                     className={`
                         flex-1 w-full p-4 font-mono text-xs leading-relaxed
                         bg-muted/50 border rounded-md resize-none outline-none
-                        transition-colors
+                       
                         ${
                         jsonError
                             ? "border-destructive focus:border-destructive"
@@ -365,7 +365,7 @@ export const EntityEditor = ({
                     }}
                     onBlur={handleBlur}
                     rows={6}
-                    className="w-full p-3 text-sm bg-transparent border border-border rounded-md outline-none focus:border-primary transition-colors resize-vertical"
+                    className="w-full p-3 text-sm bg-transparent border border-border rounded-md outline-none focus:border-primary resize-vertical"
                     placeholder="用于提交给 LLM 的实体描述信息..."
                 />
                 <p className="text-[10px] text-meta">
@@ -384,7 +384,7 @@ export const EntityEditor = ({
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50 shrink-0">
                     <button
                         onClick={onClose}
-                        className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded transition-colors"
+                        className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded"
                     >
                         <ArrowLeft size={18} />
                     </button>
@@ -410,7 +410,7 @@ export const EntityEditor = ({
                 <div className="flex items-center gap-2 pb-4 border-b border-border shrink-0">
                     <button
                         onClick={onClose}
-                        className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded transition-colors"
+                        className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded"
                         title="返回"
                     >
                         <ArrowLeft size={18} />

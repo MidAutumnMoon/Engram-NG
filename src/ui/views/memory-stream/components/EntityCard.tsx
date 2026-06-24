@@ -70,7 +70,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
                 className={`
                     flex items-center gap-3 p-3 cursor-pointer
                     border-b border-border
-                    transition-colors duration-150
+                   
                     ${
                     isSelected
                         ? "border-l-2 border-l-primary bg-transparent"
@@ -116,7 +116,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
 
                 {/* 锁定按钮 (紧凑模式) */}
                 <button
-                    className={`p-1 transition-colors ${
+                    className={`p-1 ${
                         isLocked
                             ? "text-emphasis"
                             : "text-meta opacity-40 hover:opacity-100"
@@ -132,7 +132,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
 
                 {/* 归档按钮 (紧凑模式) */}
                 <button
-                    className="p-1 px-2 hover:bg-muted/50 rounded transition-colors"
+                    className="p-1 px-2 hover:bg-muted/50 rounded"
                     onClick={(e) => {
                         e.stopPropagation();
                         onArchive?.(!isArchived);
@@ -156,7 +156,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
         <div
             className={`
                 group p-4 cursor-pointer rounded-lg h-full flex flex-col
-                transition-all duration-150
+               
                 ${
                 isSelected
                     ? "border border-primary bg-transparent shadow-sm"
@@ -195,7 +195,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
                 {/* 锁定按钮 (桌面模式) */}
                 <button
                     className={`
-                        ml-auto p-1.5 rounded-md transition-all
+                        ml-auto p-1.5 rounded-md
                         ${
                         isLocked
                             ? "text-emphasis bg-emphasis/10 hover:bg-emphasis/20"
@@ -216,7 +216,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
                 {/* 归档按钮 (桌面模式) */}
                 <button
                     className={`
-                        p-1.5 rounded-md transition-all
+                        p-1.5 rounded-md
                         ${
                         isArchived
                             ? "text-primary bg-primary/10 hover:bg-primary/20"

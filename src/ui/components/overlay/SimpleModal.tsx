@@ -39,7 +39,7 @@ export const SimpleModal: React.FC<SimpleModalProps> = ({
                     </h3>
                     <button
                         onClick={onClose}
-                        className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                        className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50"
                         title="关闭"
                     >
                         <X size={16} />

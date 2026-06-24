@@ -99,7 +99,7 @@ export const RegexRuleForm: React.FC<RegexRuleFormProps> = (
                         {REGEX_SCOPE_OPTIONS.map((opt) => (
                             <button
                                 key={opt.value}
-                                className={`flex-1 px-3 py-2 text-sm rounded-md border transition-colors ${
+                                className={`flex-1 px-3 py-2 text-sm rounded-md border ${
                                     rule.scope === opt.value
                                         ? "bg-primary-20 border-primary text-primary"
                                         : "bg-background border-border text-muted-foreground hover:bg-muted"
@@ -177,7 +177,7 @@ export const RegexRuleForm: React.FC<RegexRuleFormProps> = (
                         {FLAGS_OPTIONS.map((opt) => (
                             <button
                                 key={opt.value}
-                                className={`px-2 py-1 text-xs rounded-md border transition-colors ${
+                                className={`px-2 py-1 text-xs rounded-md border ${
                                     rule.flags.includes(opt.value)
                                         ? "bg-primary-20 border-primary text-primary"
                                         : "bg-background border-border text-muted-foreground hover:bg-muted"

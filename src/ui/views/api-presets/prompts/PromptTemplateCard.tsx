@@ -163,7 +163,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
     return (
         <div
             className={`
-                group relative p-3 rounded-lg border cursor-pointer transition-all duration-200
+                group relative p-3 rounded-lg border cursor-pointer
                 ${
                 isSelected
                     ? "bg-accent/50 border-input"
@@ -177,7 +177,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                 {/* 状态图标 */}
                 <button
                     className={`
-                    w-8 h-8 flex items-center justify-center rounded-lg transition-colors flex-shrink-0
+                    w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0
                     ${
                         template.enabled
                             ? "bg-primary/10 text-primary"
@@ -236,24 +236,24 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
             <div
                 className={`mt-2 flex justify-end gap-1 ${
                     isSelected || "opacity-0 group-hover:opacity-100"
-                } transition-opacity`}
+                }`}
             >
                 <button
-                    className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+                    className="p-1.5 rounded text-muted-foreground hover:text-foreground"
                     onClick={handleImportClick}
                     title="Import"
                 >
                     <FolderInput size={12} />
                 </button>
                 <button
-                    className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+                    className="p-1.5 rounded text-muted-foreground hover:text-foreground"
                     onClick={handleExport}
                     title="Export"
                 >
                     <Download size={12} />
                 </button>
                 <button
-                    className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+                    className="p-1.5 rounded text-muted-foreground hover:text-foreground"
                     onClick={(e) => {
                         e.stopPropagation();
                         onCopy?.();
@@ -264,7 +264,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                 </button>
                 {template.isBuiltIn && (
                     <button
-                        className="p-1.5 hover:bg-emphasis/10 rounded text-muted-foreground hover:text-emphasis transition-colors"
+                        className="p-1.5 hover:bg-emphasis/10 rounded text-muted-foreground hover:text-emphasis"
                         onClick={(e) => {
                             e.stopPropagation();
                             // 优先尝试通过 ID 精确匹配 (V0.8.6 Fix)
@@ -299,7 +299,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                 )}
                 {!template.isBuiltIn && (
                     <button
-                        className="p-1.5 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors"
+                        className="p-1.5 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive"
                         onClick={(e) => {
                             e.stopPropagation();
                             onDelete?.();

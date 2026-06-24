@@ -160,13 +160,13 @@ export const DataTab: React.FC = () => {
                     <div className="pl-14 flex gap-4">
                         <button
                             onClick={handleReset}
-                            className="px-3 py-1.5 text-xs font-medium rounded-md bg-background border border-border hover:bg-muted text-yellow-600 transition-colors"
+                            className="px-3 py-1.5 text-xs font-medium rounded-md bg-background border border-border hover:bg-muted text-yellow-600"
                         >
                             重置当前数据 (保留DB)
                         </button>
                         <button
                             onClick={handleDelete}
-                            className="px-3 py-1.5 text-xs font-medium rounded-md bg-background border border-border hover:bg-red-500/10 text-red-600 transition-colors"
+                            className="px-3 py-1.5 text-xs font-medium rounded-md bg-background border border-border hover:bg-red-500/10 text-red-600"
                         >
                             删除当前库 (删库)
                         </button>

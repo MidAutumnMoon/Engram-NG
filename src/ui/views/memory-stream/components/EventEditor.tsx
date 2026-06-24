@@ -311,7 +311,7 @@ export const EventEditor = ({
                         handleCompositionEnd(e, setEventType, "eventType")}
                     onBlur={handleBlur}
                     style={inputStyle}
-                    className="placeholder:text-meta/40 focus:border-primary transition-colors text-heading"
+                    className="placeholder:text-meta/40 focus:border-primary text-heading"
                     placeholder="如：任务确认、战斗结束"
                 />
             </div>
@@ -376,7 +376,7 @@ export const EventEditor = ({
                         handleCompositionEnd(e, setTimeAnchor, "timeAnchor")}
                     onBlur={handleBlur}
                     style={inputStyle}
-                    className="placeholder:text-meta/40 focus:border-primary transition-colors"
+                    className="placeholder:text-meta/40 focus:border-primary"
                     placeholder="如：太阳历1023年4月4日"
                 />
             </div>
@@ -394,7 +394,7 @@ export const EventEditor = ({
                         handleCompositionEnd(e, setLocation, "location")}
                     onBlur={handleBlur}
                     style={inputStyle}
-                    className="placeholder:text-meta/40 focus:border-primary transition-colors text-value"
+                    className="placeholder:text-meta/40 focus:border-primary text-value"
                     placeholder="地点（逗号分隔多个），如：边境公会大厅, 小镇酒馆"
                 />
             </div>
@@ -412,7 +412,7 @@ export const EventEditor = ({
                         handleCompositionEnd(e, setRoleText, "roleText")}
                     onBlur={handleBlur}
                     style={inputStyle}
-                    className="placeholder:text-meta/40 focus:border-primary transition-colors text-emphasis"
+                    className="placeholder:text-meta/40 focus:border-primary text-emphasis"
                     placeholder="如：{{user}}, 赫伯"
                 />
             </div>
@@ -432,7 +432,7 @@ export const EventEditor = ({
                         handleCompositionEnd(e, setLogicText, "logicText")}
                     onBlur={handleBlur}
                     style={inputStyle}
-                    className="placeholder:text-meta/40 focus:border-primary transition-colors text-label"
+                    className="placeholder:text-meta/40 focus:border-primary text-label"
                     placeholder="如：起点, 伏笔"
                 />
             </div>
@@ -457,7 +457,7 @@ export const EventEditor = ({
                         style={{ backgroundColor: "var(--border)" }}
                     />
                     <div
-                        className={`absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full shadow-sm pointer-events-none transition-transform duration-75 ease-out group-hover:scale-125 ${
+                        className={`absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full shadow-sm pointer-events-none group-hover:scale-125 ${
                             score >= 0.8
                                 ? "bg-emphasis"
                                 : (score >= 0.5 ? "bg-value" : "bg-label")
@@ -512,7 +512,7 @@ export const EventEditor = ({
                             syncToParent({ isLocked: val });
                         }}
                     />
-                    <div className="w-9 h-5 bg-border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emphasis transition-colors">
+                    <div className="w-9 h-5 bg-border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 peer-checked:bg-emphasis">
                     </div>
                 </label>
             </div>
@@ -545,7 +545,7 @@ export const EventEditor = ({
                             syncToParent({ isArchived: val });
                         }}
                     />
-                    <div className="w-9 h-5 bg-border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary transition-colors">
+                    <div className="w-9 h-5 bg-border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 peer-checked:bg-primary">
                     </div>
                 </label>
             </div>
@@ -593,7 +593,7 @@ export const EventEditor = ({
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50 shrink-0">
                     <button
                         onClick={onClose}
-                        className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded transition-colors"
+                        className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded"
                     >
                         <ArrowLeft size={18} />
                     </button>
@@ -608,7 +608,7 @@ export const EventEditor = ({
                                 setIsDirty(true);
                                 syncToParent({ isArchived: val }, true);
                             }}
-                            className={`p-1.5 rounded transition-colors ${
+                            className={`p-1.5 rounded ${
                                 isArchived
                                     ? "text-primary bg-primary/10"
                                     : "text-meta hover:bg-muted/50"
@@ -627,7 +627,7 @@ export const EventEditor = ({
                                 setIsDirty(true);
                                 syncToParent({ isLocked: val }, true);
                             }}
-                            className={`p-1.5 rounded transition-colors ${
+                            className={`p-1.5 rounded ${
                                 isLocked
                                     ? "text-emphasis bg-emphasis/10"
                                     : "text-meta hover:bg-muted/50"
@@ -657,7 +657,7 @@ export const EventEditor = ({
                 <div className="p-4 border-t border-border shrink-0">
                     <button
                         onClick={onClose}
-                        className="w-full py-2 text-sm border border-border rounded-md text-meta hover:text-foreground hover:border-foreground/30 transition-colors"
+                        className="w-full py-2 text-sm border border-border rounded-md text-meta hover:text-foreground hover:border-foreground/30"
                     >
                         返回列表
                     </button>
@@ -674,7 +674,7 @@ export const EventEditor = ({
                 <div className="flex items-center gap-2 pb-4 border-b border-border shrink-0">
                     <button
                         onClick={onClose}
-                        className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded transition-colors"
+                        className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded"
                     >
                         <ArrowLeft size={18} />
                     </button>
@@ -689,7 +689,7 @@ export const EventEditor = ({
                                 setIsDirty(true);
                                 syncToParent({ isArchived: val }, true);
                             }}
-                            className={`p-1.5 rounded transition-colors ${
+                            className={`p-1.5 rounded ${
                                 isArchived
                                     ? "text-primary bg-primary/10"
                                     : "text-meta hover:bg-muted/50"
@@ -708,7 +708,7 @@ export const EventEditor = ({
                                 setIsDirty(true);
                                 syncToParent({ isLocked: val }, true);
                             }}
-                            className={`p-1.5 rounded transition-colors ${
+                            className={`p-1.5 rounded ${
                                 isLocked
                                     ? "text-emphasis bg-emphasis/10"
                                     : "text-meta hover:bg-muted/50"
