@@ -131,7 +131,7 @@ export const MemoryStream: React.FC<MemoryStreamProps> = ({ initialTab }) => {
     }
 
     return (
-        <div className="absolute inset-0 flex flex-col overflow-hidden p-4 md:p-6 gap-8">
+        <div className="flex flex-col h-full gap-8">
             <PageTitle
                 parent="记忆编辑"
                 title={currentInfo.title}

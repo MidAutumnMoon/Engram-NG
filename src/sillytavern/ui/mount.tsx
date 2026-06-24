@@ -30,7 +30,6 @@ export async function mountEngram(): Promise<void> {
     if (!root) {
         root = document.createElement("div");
         root.id = ROOT_ID;
-        root.className = "engram-app-root";
         document.body.append(root);
     }
 

@@ -49,7 +49,7 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
     const currentTab = TABS.find((t) => t.id === activeTab) ?? TABS[0];
 
     return (
-        <div className="absolute inset-0 flex flex-col overflow-hidden px-4 md:px-8 lg:px-12 py-4 gap-2">
+        <div className="flex flex-col h-full gap-2">
             <PageTitle
                 parent="开发日志"
                 title={currentTab.label}

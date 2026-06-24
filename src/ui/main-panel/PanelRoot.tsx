@@ -79,14 +79,7 @@ const PanelRoot: React.FC = () => {
         // bg-background/40，需要一个已定位、不透明的祖先作为参考与衬底。
         <div
             className="fixed inset-0 w-full h-full z-[10000] flex flex-col bg-background text-foreground overflow-hidden engram-app-root"
-            style={{
-                backgroundColor: "var(--background)",
-                color: "var(--foreground)",
-                height: "100dvh",
-                width: "100vw",
-                top: "0",
-                left: "0",
-            }}
+            style={{ height: "100dvh" }}
         >
             <MainLayout
                 activeTab={activeTab}

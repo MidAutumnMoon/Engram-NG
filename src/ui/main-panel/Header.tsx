@@ -4,16 +4,14 @@ import React from "react";
 
 interface HeaderProps {
     onToggleSidebar: () => void;
-    isMobile: boolean;
     onClose?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
     onToggleSidebar,
-    isMobile, // Deprecated prop, handled by CSS
     onClose,
 }) => (
-    <header className="h-10 flex items-center justify-between px-4 bg-transparent z-50 w-full flex-shrink-0">
+    <header className="h-10 flex items-center px-4 bg-transparent z-50 w-full flex-shrink-0">
         {/* Left: Logo & Mobile Toggle */}
         <div className="flex items-center gap-3 w-16 md:w-64">
             {/* Mobile Menu Toggle */}
@@ -34,11 +32,8 @@ const Header: React.FC<HeaderProps> = ({
             </div>
         </div>
 
-        {/* Center: Spacer */}
-        <div className="flex-1" />
-
         {/* Right: Window Controls */}
-        <div className="flex items-center gap-1 md:gap-2">
+        <div className="flex items-center gap-1 md:gap-2 ml-auto">
             <div className="h-4 w-[1px] bg-border mx-1" />
             <button
                 className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground text-muted-foreground"
