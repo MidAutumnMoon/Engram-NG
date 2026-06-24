@@ -14,7 +14,7 @@ export const PageTitle: React.FC<PageTitleProps> = ({
     parent,
 }) => (
     <div className="px-4 md:px-0">
-        <h1 className="text-3xl font-light tracking-tight text-foreground flex items-center gap-2">
+        <h1 className="text-3xl font-light tracking-tight text-foreground flex items-baseline gap-2 flex-wrap">
             {parent && (
                 <>
                     <span className="text-muted-foreground/60 text-xl">
@@ -22,18 +22,18 @@ export const PageTitle: React.FC<PageTitleProps> = ({
                     </span>
                     <ChevronRight
                         size={20}
-                        className="text-muted-foreground/30 px-0.5"
+                        className="text-muted-foreground/30 px-0.5 self-center"
                     />
                 </>
             )}
             <span className="drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] text-foreground">
                 {title}
             </span>
+            {subtitle && (
+                <span className="text-xs text-muted-foreground font-light ml-2">
+                    {subtitle}
+                </span>
+            )}
         </h1>
-        {subtitle && (
-            <p className="mt-2 text-muted-foreground text-xs font-light">
-                {subtitle}
-            </p>
-        )}
     </div>
 );
