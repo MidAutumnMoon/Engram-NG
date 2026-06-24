@@ -35,7 +35,7 @@ export const TabPills: React.FC<TabPillsProps> = (
     return (
         <div
             className={`
-                flex items-center justify-between gap-4 mb-6 border-b border-border
+                flex items-center justify-between gap-4 border-b border-border
                 ${
                 sticky
                     ? "glass-sticky sticky z-20 pt-4 pb-0 -mt-4 -mx-4 px-4 md:-mx-8 md:px-8 lg:-mx-12 lg:px-12"

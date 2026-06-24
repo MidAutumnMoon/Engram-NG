@@ -82,8 +82,8 @@ export const RuntimeLogTab: React.FC = () => {
 
     return (
         <div className="flex flex-col flex-1 min-h-0">
-            {/* 工具栏 - sticky */}
-            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm py-3 -mx-4 px-4 md:-mx-8 md:px-8 lg:-mx-12 lg:px-12 border-b border-border">
+            {/* 工具栏 */}
+            <div className="py-3 -mx-4 px-4 md:-mx-8 md:px-8 lg:-mx-12 lg:px-12 border-b border-border">
                 <div className="flex items-center gap-2 flex-wrap">
                     {/* 级别过滤 */}
                     <Dropdown
