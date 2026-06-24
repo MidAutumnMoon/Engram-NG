@@ -4,13 +4,7 @@
  * 从 DevLog 抽取：订阅 Logger、过滤/展示运行时日志。
  * 模型日志、召回日志各自有独立 store 与组件，本 Tab 只处理 runtime。
  */
-import React, {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDownToLine, Search, Terminal, Trash2 } from "lucide-react";
 import type { LogEntry, LogLevel } from "@/logger/Logger.ts";
 import { Logger, LogLevelConfig } from "@/logger/Logger.ts";
@@ -86,10 +80,38 @@ export const RuntimeLogTab: React.FC = () => {
         }
     }, [logs.length, autoScroll]);
 
-    const handleClear = useCallback(() => {
+    const handleClear = () => {
         Logger.clear();
         setLogs([]);
-    }, []);
+    };
+
+    const renderContent = () => {
+        if (logs.length === 0) {
+            return (
+                <EmptyState
+                    icon={Terminal}
+                    title="暂无日志记录"
+                    className="h-full"
+                />
+            );
+        }
+        if (filteredLogs.length === 0) {
+            return (
+                <EmptyState
+                    icon={Search}
+                    title="没有匹配的日志"
+                    description="尝试调整筛选条件"
+                    className="h-full"
+                />
+            );
+        }
+        return filteredLogs.map((log) => (
+            <LogEntryItem
+                key={log.id}
+                entry={log}
+            />
+        ));
+    };
 
     return (
         <div className="flex flex-col flex-1 min-h-0">
@@ -160,33 +182,7 @@ export const RuntimeLogTab: React.FC = () => {
                 ref={scrollRef}
                 className="flex-1 overflow-y-auto font-mono text-xs leading-relaxed py-2"
             >
-                {logs.length === 0
-                    ? (
-                        <EmptyState
-                            icon={Terminal}
-                            title="暂无日志记录"
-                            className="h-full"
-                        />
-                    )
-                    : filteredLogs.length === 0
-                    ? (
-                        <EmptyState
-                            icon={Search}
-                            title="没有匹配的日志"
-                            description="尝试调整筛选条件"
-                            className="h-full"
-                        />
-                    )
-                    : (
-                        <>
-                            {filteredLogs.map((log) => (
-                                <LogEntryItem
-                                    key={log.id}
-                                    entry={log}
-                                />
-                            ))}
-                        </>
-                    )}
+                {renderContent()}
             </div>
 
             {/* 状态栏 - 简化 */}
