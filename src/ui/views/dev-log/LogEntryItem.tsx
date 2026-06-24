@@ -7,6 +7,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import type { LogEntry } from "@/logger/Logger.ts";
 import { LogLevel, LogLevelConfig } from "@/logger/Logger.ts";
 import { getModuleMeta } from "./moduleMeta.ts";
+import { safeStringify } from "@/utils/safeStringify.ts";
 
 /**
  * 格式化时间为 HH:MM:SS
@@ -48,7 +49,7 @@ export const LogEntryItem: React.FC<{ entry: LogEntry }> = ({ entry }) => {
     const autoExpand = entry.level === LogLevel.WARN ||
         entry.level === LogLevel.ERROR;
     const [expanded, setExpanded] = useState(autoExpand);
-    const hasData = entry.data !== undefined;
+    const hasData = entry.data != null;
     const levelConfig = LogLevelConfig[entry.level];
     const levelStyle = LEVEL_STYLES[entry.level];
 
@@ -61,6 +62,17 @@ export const LogEntryItem: React.FC<{ entry: LogEntry }> = ({ entry }) => {
                     ${hasData ? "cursor-pointer" : ""}
                 `}
                 onClick={() => hasData && setExpanded(!expanded)}
+                onKeyDown={hasData
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setExpanded(!expanded);
+                        }
+                    }
+                    : undefined}
+                role={hasData ? "button" : undefined}
+                tabIndex={hasData ? 0 : undefined}
+                aria-expanded={hasData ? expanded : undefined}
             >
                 {/* 展开箭头 */}
                 <span className="flex items-center text-zinc-600 shrink-0 mt-0.5 w-3">
@@ -118,7 +130,7 @@ export const LogEntryItem: React.FC<{ entry: LogEntry }> = ({ entry }) => {
                     }`}
                 >
                     <pre className="m-0 text-zinc-400 whitespace-pre-wrap break-words font-mono">
-                        {JSON.stringify(entry.data, null, 2)}
+                        {safeStringify(entry.data)}
                     </pre>
                 </div>
             )}

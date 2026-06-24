@@ -11,6 +11,7 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { getSTContext } from "@/sillytavern/index.ts";
 import { PromptLoader } from "@/integrations/llm/PromptLoader.ts";
+import { safeStringify } from "@/utils/safeStringify.ts";
 
 import { type LLMPreset, llmPresetSchema } from "@/config/types/llm.ts";
 import { regexRuleSchema } from "@/config/types/data_processing.ts";
@@ -229,7 +230,7 @@ export function setSetting<K extends keyof EngramSettings>(
     settings[key] = value;
     Logger.debug(
         LogModule.SETTINGS,
-        `Set ${String(key)} = ${JSON.stringify(value)}`,
+        `Set ${String(key)} = ${safeStringify(value, 0)}`,
     );
     save();
 }

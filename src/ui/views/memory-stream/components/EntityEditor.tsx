@@ -9,6 +9,7 @@
 import type { EntityNode, EntityType } from "@/data/types/graph.ts";
 import { Divider } from "@/ui/components/layout/Divider.tsx";
 import { useResponsive } from "@/ui/hooks/useResponsive.ts";
+import { safeStringify } from "@/utils/safeStringify.ts";
 import yaml from "js-yaml"; // 需要确认项目是否已安装 js-yaml，如果没有则需要简单实现或引入
 import { debounce } from "lodash"; // Phase 3 Performance Add: 引入防抖
 import { AlertTriangle, ArrowLeft, RefreshCw, Trash2 } from "lucide-react";
@@ -114,7 +115,7 @@ export const EntityEditor = ({
             setType(entity.type);
             setAliases(entity.aliases ? entity.aliases.join(", ") : "");
             setDescription(entity.description || "");
-            setProfileJson(JSON.stringify(entity.profile || {}, null, 2));
+            setProfileJson(safeStringify(entity.profile || {}));
             setJsonError(null);
             setIsDirty(false);
             setLastEntityId(entity.id);
@@ -329,7 +330,7 @@ export const EntityEditor = ({
                     className={`
                         flex-1 w-full p-4 font-mono text-xs leading-relaxed
                         bg-muted/50 border rounded-md resize-none outline-none
-                       
+
                         ${
                         jsonError
                             ? "border-destructive focus:border-destructive"

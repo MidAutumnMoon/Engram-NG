@@ -1,6 +1,7 @@
 import type { EntityNode } from "@/data/types/graph.ts";
 import { EntityType } from "@/data/types/graph.ts";
 import { ModernButton as Button } from "@/ui/components/form/Button.tsx";
+import { safeStringify } from "@/utils/safeStringify.ts";
 import * as jsYaml from "js-yaml";
 import {
     AlertTriangle,
@@ -232,10 +233,8 @@ export const EntityReview: React.FC<EntityReviewProps> = (
                                 {isEditorExpanded && (
                                     <textarea
                                         className="flex-1 min-h-0 w-full p-3 rounded-md bg-muted/50 border border-border/50 text-xs font-mono resize-none focus:ring-2 focus:ring-primary/20 outline-none custom-scrollbar whitespace-pre-wrap break-all"
-                                        value={JSON.stringify(
+                                        value={safeStringify(
                                             editingEntity.entity.profile,
-                                            null,
-                                            2,
                                         )}
                                         onChange={(e) => {
                                             try {
@@ -370,7 +369,7 @@ export const EntityReview: React.FC<EntityReviewProps> = (
 // Helper to format values for display
 const formatValue = (v: any) => {
     if (typeof v === "object" && v !== null) {
-        const str = JSON.stringify(v);
+        const str = safeStringify(v, 0);
         return str.length > 60 ? str.slice(0, 60) + "..." : str;
     }
     return String(v);
