@@ -11,7 +11,7 @@
  * 这是整个扩展唯一的 React 入口；除此之外不存在第二个 createRoot。
  */
 import { useUiStore } from "@/state/uiStore.ts";
-import { PanelErrorBoundary } from "@/ui/main-panel/PanelErrorBoundary.tsx";
+import { ErrorBoundary } from "@/ui/components/ErrorBoundary.tsx";
 import { QuickPanel } from "@/ui/overlays/QuickPanel.tsx";
 import { ReviewContainer } from "@/ui/overlays/review/ReviewContainer.tsx";
 import React, { lazy, Suspense } from "react";
@@ -28,11 +28,11 @@ export const EngramRoot: React.FC = () => {
             <ReviewContainer />
             <QuickPanel isOpen={quickOpen} onClose={closeQuickPanel} />
             {panelOpen && (
-                <PanelErrorBoundary panelOpen={panelOpen}>
+                <ErrorBoundary fallback={null}>
                     <Suspense fallback={null}>
                         <LazyPanel />
                     </Suspense>
-                </PanelErrorBoundary>
+                </ErrorBoundary>
             )}
         </>
     );

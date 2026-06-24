@@ -8,7 +8,8 @@ import type {
     WorldbookConfigProfile,
 } from "@/config/types/prompt.ts";
 import type { EngramAPISettings } from "@/config/settings.ts";
-import { getTavernHelper, WorldInfoService } from "@/domain/worldbook/index.ts";
+import { getTavernHelper } from "@/sillytavern/context.ts";
+import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import { useCallback, useEffect, useState } from "react";
 
 export interface UseWorldInfoReturn {
@@ -74,7 +75,7 @@ export function useWorldInfo(): UseWorldInfoReturn {
         setWorldbookScopes(scopes);
 
         // 2. 加载当前角色状态 (仅记录当前角色世界书用于 fallback)
-        const helper = window.TavernHelper;
+        const helper = getTavernHelper();
         const charBooks = helper?.getCharWorldbookNames?.("current");
         if (charBooks?.primary) {
             setCurrentCharWorldbook(charBooks.primary);

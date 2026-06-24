@@ -1,6 +1,5 @@
 import Header from "./Header.tsx";
 import { Sidebar } from "./Sidebar.tsx";
-import { GlobalStyles } from "@/ui/styles/GlobalStyles.tsx";
 import React from "react";
 
 interface MainLayoutProps {
@@ -23,8 +22,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             className="engram-app-root flex absolute inset-0 w-full h-full bg-background/40 backdrop-blur-md text-foreground overflow-hidden font-sans selection:bg-primary/30 selection:text-primary"
             id="engram-layout-root"
         >
-            <GlobalStyles />
-
             {/* PC 端侧边栏 */}
             <Sidebar
                 activeTab={activeTab}
