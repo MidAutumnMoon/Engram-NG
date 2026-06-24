@@ -71,12 +71,10 @@ export const RuntimeLogTab: React.FC = () => {
     const filteredLogs = useMemo(() => {
         let result = logs;
         if (levelFilter !== null) {
-            result = result.filter((log) => log.level >= levelFilter);
+            result = result.filter((log) => log.level === levelFilter);
         }
         if (moduleFilter !== "ALL") {
-            result = result.filter((log) =>
-                log.module.startsWith(moduleFilter)
-            );
+            result = result.filter((log) => log.module === moduleFilter);
         }
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
@@ -94,7 +92,7 @@ export const RuntimeLogTab: React.FC = () => {
         filteredLogs,
     ]);
 
-    // 自动滚动
+    // 自动滚动 — 仅在新日志进入时触发，不因过滤改变而抽动
     useEffect(() => {
         if (autoScroll && bottomRef.current) {
             bottomRef.current.scrollIntoView({
@@ -102,7 +100,7 @@ export const RuntimeLogTab: React.FC = () => {
                 block: "nearest",
             });
         }
-    }, [filteredLogs, autoScroll]);
+    }, [logs.length, autoScroll]);
 
     const handleClear = useCallback(() => {
         Logger.clear();
@@ -205,7 +203,9 @@ export const RuntimeLogTab: React.FC = () => {
                         <>
                             {logGroups.map((group) => (
                                 <LogGroup
-                                    key={`${group[0].module}-${group[0].id}`}
+                                    key={`${group[0].id}-${
+                                        group[group.length - 1].id
+                                    }`}
                                     entries={group}
                                     defaultExpanded={defaultGroupExpanded}
                                 />

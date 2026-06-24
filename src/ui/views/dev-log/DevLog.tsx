@@ -10,28 +10,33 @@
 import React, { useState } from "react";
 import { Target, Terminal, Zap } from "lucide-react";
 import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
-import type { Tab } from "@/ui/components/layout/TabPills.tsx";
 import { TabPills } from "@/ui/components/layout/TabPills.tsx";
 import { ModelLog } from "./ModelLog.tsx";
 import { RecallLog } from "./RecallLog.tsx";
 import { RuntimeLogTab } from "./RuntimeLogTab.tsx";
 
-// Tab 类型
-type TabType = "runtime" | "model" | "recall";
+const TABS = [
+    {
+        id: "runtime",
+        label: "运行日志",
+        subtitle: "查看系统运行时日志",
+        icon: <Terminal size={14} />,
+    },
+    {
+        id: "model",
+        label: "模型日志",
+        subtitle: "查看 LLM 调用记录",
+        icon: <Zap size={14} />,
+    },
+    {
+        id: "recall",
+        label: "召回日志",
+        subtitle: "查看 RAG 召回记录",
+        icon: <Target size={14} />,
+    },
+] as const;
 
-// Tab 配置
-const TABS: Tab[] = [
-    { icon: <Terminal size={14} />, id: "runtime", label: "运行日志" },
-    { icon: <Zap size={14} />, id: "model", label: "模型日志" },
-    { icon: <Target size={14} />, id: "recall", label: "召回日志" },
-];
-
-// Tab 副标题映射（标题取 TABS 的 label，避免重复）
-const TAB_SUBTITLES: Record<TabType, string> = {
-    model: "查看 LLM 调用记录",
-    recall: "查看 RAG 召回记录",
-    runtime: "查看系统运行时日志",
-};
+type TabType = typeof TABS[number]["id"];
 
 interface DevLogProps {
     initialTab?: TabType;
@@ -41,35 +46,31 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
     const [activeTab, setActiveTab] = useState<TabType>(
         initialTab || "runtime",
     );
-    const activeTabLabel = TABS.find((t) => t.id === activeTab)?.label ||
-        "开发日志";
+    const currentTab = TABS.find((t) => t.id === activeTab) ?? TABS[0];
 
     return (
         <div className="flex flex-col h-full">
             <PageTitle
                 breadcrumbs={["开发日志"]}
-                title={activeTabLabel}
-                subtitle={TAB_SUBTITLES[activeTab]}
+                title={currentTab.label}
+                subtitle={currentTab.subtitle}
                 className="mb-2"
             />
 
             <TabPills
-                tabs={TABS}
+                tabs={[...TABS]}
                 activeTab={activeTab}
                 onChange={(id: string) => setActiveTab(id as TabType)}
             />
 
-            {/* ========== 运行日志 Tab ========== */}
             {activeTab === "runtime" && <RuntimeLogTab />}
 
-            {/* ========== 模型日志 Tab ========== */}
             {activeTab === "model" && (
                 <div className="flex-1 overflow-hidden">
                     <ModelLog />
                 </div>
             )}
 
-            {/* ========== 召回日志 Tab ========== */}
             {activeTab === "recall" && (
                 <div className="flex-1 overflow-hidden">
                     <RecallLog />

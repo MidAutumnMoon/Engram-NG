@@ -139,6 +139,5 @@ export const Logger = {
 
     clear(): void {
         logCache = [];
-        Logger.info(LogModule.LOGGER, "日志已清空");
     },
 };
