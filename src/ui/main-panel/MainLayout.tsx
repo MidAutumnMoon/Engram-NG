@@ -19,7 +19,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
     return (
         <div
-            className="engram-app-root flex absolute inset-0 w-full h-full bg-background/40 backdrop-blur-md text-foreground overflow-hidden font-sans selection:bg-primary/30 selection:text-primary"
+            className="engram-app-root flex absolute inset-0 w-full h-full bg-background/40 text-foreground overflow-hidden font-sans selection:bg-primary/30 selection:text-primary"
             id="engram-layout-root"
         >
             {/* PC 端侧边栏 */}
@@ -41,7 +41,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
             {/* Right Content Area (Header + Main) */}
             <div className="flex flex-1 flex-col overflow-hidden">
-                <div className="flex flex-col shrink-0 border-b border-border bg-sidebar/80 backdrop-blur-xl z-50 md:hidden">
+                <div className="flex flex-col shrink-0 border-b border-border bg-sidebar/80 z-50 md:hidden">
                     <Header
                         onToggleSidebar={() =>
                             setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -50,7 +50,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 </div>
 
                 {/* Main Content Area */}
-                <main className="flex-1 flex flex-col relative w-full overflow-hidden bg-background/80 backdrop-blur-xl">
+                <main className="flex-1 flex flex-col relative w-full overflow-hidden bg-background/80">
                     <div
                         key={activeTab}
                         className="flex-1 min-h-0 px-4 md:px-8 lg:px-12 pt-3 md:pt-4"

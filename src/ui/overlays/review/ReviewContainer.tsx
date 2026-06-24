@@ -300,7 +300,7 @@ export const ReviewContainer: React.FC = () => {
                 className="fixed inset-0 z-[11000] flex items-center justify-center p-4 sm:p-4 pointer-events-auto"
                 style={{ height: "100dvh", width: "100vw" }} // Explicitly force full viewport info
             >
-                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
+                <div className="absolute inset-0 bg-background/80" />
 
                 <div className="relative w-full max-w-4xl bg-popover border border-border rounded-lg shadow-2xl flex flex-col h-[90dvh] sm:h-auto sm:max-h-[90vh] min-h-0 sm:min-h-[500px] border-t-4 border-t-primary">
                     {/* Top Bar: Tabs & Window Controls */}

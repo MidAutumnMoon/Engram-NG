@@ -153,7 +153,7 @@ export const EntityReview: React.FC<EntityReviewProps> = (
 
             {/* Editing Modal/Overlay */}
             {editingEntity && (
-                <div className="fixed inset-0 z-12000 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+                <div className="fixed inset-0 z-12000 flex items-center justify-center p-4 bg-background/80">
                     <div className="w-full max-w-6xl mx-auto bg-popover border border-border rounded-lg shadow-2xl p-6 flex flex-col gap-4 h-[90dvh] overflow-hidden">
                         <div className="flex items-center justify-between border-b pb-2 mb-2 shrink-0">
                             <h3 className="text-lg font-bold">编辑实体</h3>

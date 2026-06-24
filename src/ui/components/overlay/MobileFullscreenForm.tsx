@@ -26,7 +26,7 @@ export const MobileFullscreenForm: React.FC<MobileFullscreenFormProps> = ({
     const content = (
         <div className="engram-app-root" style={{ display: "contents" }}>
             <div
-                className="fixed inset-0 z-[99999] flex flex-col bg-background/95 backdrop-blur-3xl text-foreground"
+                className="fixed inset-0 z-[99999] flex flex-col bg-background/95 text-foreground"
                 style={{ height: "100dvh", width: "100vw" }}
             >
                 {/* 头部 */}

@@ -178,8 +178,7 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
                 ref={panelRef}
                 className="fixed z-[11000] flex flex-col rounded-lg shadow-2xl border border-border overflow-hidden"
                 style={{
-                    WebkitBackdropFilter: "blur(20px)",
-                    backdropFilter: "blur(20px)",
+
                     backgroundColor: "var(--popover, #1a1a2e)",
                     height: size.height === "auto" ? "auto" : size.height,
                     left: position.x,

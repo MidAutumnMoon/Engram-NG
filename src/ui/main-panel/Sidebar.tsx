@@ -74,7 +74,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     // PC 端侧边栏
     if (!isMobile) {
         return (
-            <aside className="flex w-36 shrink-0 bg-sidebar/80 backdrop-blur-xl flex-col z-40 pt-4 px-2 border-r border-border/50 max-md:hidden">
+            <aside className="flex w-36 shrink-0 bg-sidebar/80 flex-col z-40 pt-4 px-2 border-r border-border/50 max-md:hidden">
                 <nav className="flex-1 w-full flex flex-col gap-1 overflow-y-auto no-scrollbar">
                     {NAV_ITEMS.map((item) => {
                         const Icon = item.icon;
@@ -126,7 +126,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/60"
                 onClick={onClose}
             />
 

@@ -112,7 +112,7 @@ export const EventList: React.FC<EventListProps> = ({
                             );
 
                             return (
-                                <div className="flex items-center gap-3 mb-4 sticky top-0 z-10 py-2 bg-background/80 backdrop-blur-sm">
+                                <div className="flex items-center gap-3 mb-4 sticky top-0 z-10 py-2 bg-background/80">
                                     <input
                                         type="checkbox"
                                         checked={allChecked}
@@ -130,7 +130,7 @@ export const EventList: React.FC<EventListProps> = ({
                                         className="w-4 h-4 rounded border-border accent-primary shrink-0"
                                     />
                                     <div
-                                        className="text-xs font-medium text-foreground px-3 py-1.5 rounded-full border border-border/50 shadow-sm backdrop-blur-md"
+                                        className="text-xs font-medium text-foreground px-3 py-1.5 rounded-full border border-border/50 shadow-sm"
                                         style={{
                                             backgroundColor:
                                                 "var(--SmartThemeChatColor, var(--bg-color, var(--background, #1e1e1e)))",

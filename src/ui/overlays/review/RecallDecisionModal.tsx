@@ -253,7 +253,7 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
 
                 {/* === 下半部: 未激活列表 (虚拟滚动) */}
                 <div className="flex flex-col flex-1 min-h-0 bg-background">
-                    <div className="p-3 border-b border-border flex items-center justify-between shrink-0 bg-background/80 backdrop-blur top-0 z-10 sticky">
+                    <div className="p-3 border-b border-border flex items-center justify-between shrink-0 bg-background/80 top-0 z-10 sticky">
                         <h4 className="text-sm font-medium text-heading">
                             待选事件 ({inactiveEvents.length})
                         </h4>
