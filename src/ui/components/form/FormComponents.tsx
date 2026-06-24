@@ -52,9 +52,7 @@ export const FormSection: React.FC<FormSectionProps> = ({
                 )}
             </div>
             <div
-                className={`space-y-4 ${
-                    isCollapsed ? "hidden" : "block"
-                }`}
+                className={`space-y-4 ${isCollapsed ? "hidden" : "block"}`}
             >
                 {children}
             </div>
