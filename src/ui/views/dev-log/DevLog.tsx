@@ -1,39 +1,20 @@
 /**
  * DevLog - 开发日志视图
  *
- * 应用「无框流体」设计语言：
- * - 减少卡片边框，使用细线分割
- * - 工具栏 sticky 固定
- * - 极简主义布局
+ * Tab 路由：运行日志 / 模型日志 / 召回日志。
+ * 各 Tab 自管状态与订阅；本组件只负责切换与页面标题。
+ *
+ * 应用「无框流体」设计语言：减少卡片边框，工具栏 sticky 固定。
  */
 
-import React, {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
-import {
-    ArrowDownToLine,
-    ChevronDown,
-    Maximize2,
-    Minimize2,
-    Search,
-    Target,
-    Terminal,
-    Trash2,
-    Zap,
-} from "lucide-react";
+import React, { useState } from "react";
+import { Target, Terminal, Zap } from "lucide-react";
 import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
-import type { LogEntry, LogLevel } from "@/logger/Logger.ts";
-import { Logger, LogLevelConfig } from "@/logger/Logger.ts";
-import { ALL_MODULES } from "@/logger/LogModule.ts";
-import { groupLogsByModule, LogGroup } from "./LogEntryItem.tsx";
-import { ModelLog } from "./ModelLog.tsx";
-import { RecallLog } from "./RecallLog.tsx";
 import type { Tab } from "@/ui/components/layout/TabPills.tsx";
 import { TabPills } from "@/ui/components/layout/TabPills.tsx";
+import { ModelLog } from "./ModelLog.tsx";
+import { RecallLog } from "./RecallLog.tsx";
+import { RuntimeLogTab } from "./RuntimeLogTab.tsx";
 
 // Tab 类型
 type TabType = "runtime" | "model" | "recall";
@@ -52,9 +33,6 @@ const TAB_SUBTITLES: Record<TabType, string> = {
     runtime: "查看系统运行时日志",
 };
 
-// V0.9.10: 模块列表自动生成（不再硬编码）
-const MODULES = ["ALL", ...ALL_MODULES];
-
 interface DevLogProps {
     initialTab?: TabType;
 }
@@ -65,68 +43,6 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
     );
     const activeTabLabel = TABS.find((t) => t.id === activeTab)?.label ||
         "开发日志";
-    const [logs, setLogs] = useState<LogEntry[]>([]);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [levelFilter, setLevelFilter] = useState<LogLevel | -1>(-1);
-    const [moduleFilter, setModuleFilter] = useState("ALL");
-    const [autoScroll, setAutoScroll] = useState(true);
-    const [showLevelDropdown, setShowLevelDropdown] = useState(false);
-    const [showModuleDropdown, setShowModuleDropdown] = useState(false);
-    // V0.9.12: 分组展开控制
-    const [defaultGroupExpanded, setDefaultGroupExpanded] = useState(true);
-
-    const bottomRef = useRef<HTMLDivElement>(null);
-
-    // 初始化和订阅日志
-    useEffect(() => {
-        setLogs(Logger.getLogs());
-        const unsubscribe = Logger.subscribe((entry) => {
-            setLogs((prev) => [...prev, entry]);
-        });
-        return () => unsubscribe();
-    }, []);
-
-    // 过滤日志（derived — 不用 state，避免多余的渲染周期）
-    const filteredLogs = useMemo(() => {
-        let result = logs;
-        if (levelFilter !== -1) {
-            result = result.filter((log) => log.level >= levelFilter);
-        }
-        if (moduleFilter !== "ALL") {
-            result = result.filter((log) =>
-                log.module.startsWith(moduleFilter)
-            );
-        }
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
-            result = result.filter(
-                (log) =>
-                    log.message.toLowerCase().includes(query) ||
-                    log.module.toLowerCase().includes(query),
-            );
-        }
-        return result;
-    }, [logs, levelFilter, moduleFilter, searchQuery]);
-
-    // V0.9.12: 将日志按模块分组
-    const logGroups = useMemo(() => groupLogsByModule(filteredLogs), [
-        filteredLogs,
-    ]);
-
-    // 自动滚动
-    useEffect(() => {
-        if (autoScroll && bottomRef.current) {
-            bottomRef.current.scrollIntoView({
-                behavior: "smooth",
-                block: "nearest",
-            });
-        }
-    }, [filteredLogs, autoScroll]);
-
-    const handleClear = useCallback(() => {
-        Logger.clear();
-        setLogs([]);
-    }, []);
 
     return (
         <div className="flex flex-col h-full">
@@ -144,191 +60,7 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
             />
 
             {/* ========== 运行日志 Tab ========== */}
-            {activeTab === "runtime" && (
-                <div className="flex flex-col flex-1 min-h-0">
-                    {/* 工具栏 - sticky (Level 2, now top-0 because tabs are in header) */}
-                    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm py-3 -mx-4 px-4 md:-mx-8 md:px-8 lg:-mx-12 lg:px-12 border-b border-border">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            {/* 级别过滤 */}
-                            <div className="relative">
-                                <button
-                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                                    onClick={() =>
-                                        setShowLevelDropdown(
-                                            !showLevelDropdown,
-                                        )}
-                                >
-                                    {levelFilter === -1
-                                        ? "全部级别"
-                                        : LogLevelConfig[levelFilter].label}
-                                    <ChevronDown size={12} />
-                                </button>
-                                {showLevelDropdown && (
-                                    <div className="absolute top-full left-0 mt-1 bg-popover border border-border rounded-md shadow-lg z-20 min-w-[100px] py-1 flex flex-col">
-                                        <button
-                                            className="block w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors"
-                                            onClick={() => {
-                                                setLevelFilter(-1);
-                                                setShowLevelDropdown(false);
-                                            }}
-                                        >
-                                            全部级别
-                                        </button>
-                                        {Object.entries(LogLevelConfig).map((
-                                            [level, config],
-                                        ) => (
-                                            <button
-                                                key={level}
-                                                className="block w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors"
-                                                onClick={() => {
-                                                    setLevelFilter(
-                                                        Number(
-                                                            level,
-                                                        ) as LogLevel,
-                                                    );
-                                                    setShowLevelDropdown(false);
-                                                }}
-                                            >
-                                                {config.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* 分隔线 */}
-                            <div className="w-px h-4 bg-border" />
-
-                            {/* 模块过滤 */}
-                            <div className="relative">
-                                <button
-                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                                    onClick={() =>
-                                        setShowModuleDropdown(
-                                            !showModuleDropdown,
-                                        )}
-                                >
-                                    {moduleFilter}
-                                    <ChevronDown size={12} />
-                                </button>
-                                {showModuleDropdown && (
-                                    <div className="absolute top-full left-0 mt-1 bg-popover border border-border rounded-md shadow-lg z-20 min-w-[120px] py-1 max-h-48 overflow-y-auto flex flex-col">
-                                        {MODULES.map((mod) => (
-                                            <button
-                                                key={mod}
-                                                className="block w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors"
-                                                onClick={() => {
-                                                    setModuleFilter(mod);
-                                                    setShowModuleDropdown(
-                                                        false,
-                                                    );
-                                                }}
-                                            >
-                                                {mod}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* 分隔线 */}
-                            <div className="w-px h-4 bg-border" />
-
-                            {/* 搜索框 */}
-                            <div className="flex items-center gap-1.5 text-muted-foreground">
-                                <Search size={12} />
-                                <input
-                                    type="text"
-                                    placeholder="搜索日志..."
-                                    value={searchQuery}
-                                    onChange={(e) =>
-                                        setSearchQuery(e.target.value)}
-                                    className="bg-transparent border-none outline-none text-xs text-foreground placeholder:text-muted-foreground w-24 md:w-40"
-                                />
-                            </div>
-
-                            {/* 右侧操作 */}
-                            <div className="flex items-center gap-1 ml-auto">
-                                {/* V0.9.12: 分组展开控制 */}
-                                <button
-                                    className={`p-1.5 rounded transition-colors ${
-                                        defaultGroupExpanded
-                                            ? "text-primary"
-                                            : "text-muted-foreground hover:text-foreground"
-                                    }`}
-                                    onClick={() =>
-                                        setDefaultGroupExpanded(
-                                            !defaultGroupExpanded,
-                                        )}
-                                    title={defaultGroupExpanded
-                                        ? "折叠所有分组"
-                                        : "展开所有分组"}
-                                >
-                                    {defaultGroupExpanded
-                                        ? <Minimize2 size={14} />
-                                        : <Maximize2 size={14} />}
-                                </button>
-                                <button
-                                    className={`p-1.5 rounded transition-colors ${
-                                        autoScroll
-                                            ? "text-primary"
-                                            : "text-muted-foreground hover:text-foreground"
-                                    }`}
-                                    onClick={() => setAutoScroll(!autoScroll)}
-                                    title="自动滚动"
-                                >
-                                    <ArrowDownToLine size={14} />
-                                </button>
-                                <button
-                                    className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
-                                    onClick={handleClear}
-                                    title="清空"
-                                >
-                                    <Trash2 size={14} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 日志内容区 - 无边框 */}
-                    <div className="flex-1 overflow-y-auto font-mono text-xs leading-relaxed py-2">
-                        {filteredLogs.length === 0
-                            ? (
-                                <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
-                                    <Terminal
-                                        size={32}
-                                        strokeWidth={1}
-                                        className="opacity-30"
-                                    />
-                                    <p className="text-sm font-light">
-                                        暂无日志记录
-                                    </p>
-                                </div>
-                            )
-                            : (
-                                <>
-                                    {logGroups.map((group, _idx) => (
-                                        <LogGroup
-                                            key={`${group[0].module}-${
-                                                group[0].id
-                                            }`}
-                                            entries={group}
-                                            defaultExpanded={defaultGroupExpanded}
-                                        />
-                                    ))}
-                                    <div ref={bottomRef} />
-                                </>
-                            )}
-                    </div>
-
-                    {/* 状态栏 - 简化 */}
-                    <div className="text-[10px] text-muted-foreground py-2 border-t border-border">
-                        {logs.length} 条日志
-                        {filteredLogs.length !== logs.length &&
-                            ` · ${filteredLogs.length} 条匹配`}
-                    </div>
-                </div>
-            )}
+            {activeTab === "runtime" && <RuntimeLogTab />}
 
             {/* ========== 模型日志 Tab ========== */}
             {activeTab === "model" && (
