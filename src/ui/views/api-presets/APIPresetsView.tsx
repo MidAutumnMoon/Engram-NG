@@ -356,12 +356,11 @@ export const APIPresets: React.FC<APIPresetsProps> = (
 
     // =============== 主视图 ===============
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full gap-2">
             <PageTitle
-                breadcrumbs={["API 配置"]}
+                parent="API 配置"
                 title={currentInfo.title}
                 subtitle={currentInfo.subtitle}
-                className="mb-2"
             />
 
             <TabPills

@@ -115,13 +115,12 @@ export const ProcessingView: React.FC<ProcessingViewProps> = (
     const hasChanges = configHasChanges || summarizerHasChanges;
 
     return (
-        <div className="flex flex-col h-full w-full overflow-x-hidden">
+        <div className="flex flex-col h-full w-full overflow-x-hidden gap-6">
             {/* 页面标题 - 统一样式：大标题 + 简短介绍 */}
             <PageTitle
-                breadcrumbs={["数据处理"]}
+                parent="数据处理"
                 title={currentInfo.title}
                 subtitle={currentInfo.subtitle}
-                className="mb-6"
             />
             <TabPills
                 tabs={MAIN_TABS}

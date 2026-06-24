@@ -140,12 +140,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         : 0;
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full gap-6">
             {/* 页面标题 */}
             <PageTitle
                 title="仪表盘"
                 subtitle="系统状态概览与快速操作"
-                className="mb-6"
             />
 
             {/* 主内容区 - 双栏 + 阶梯动画 */}

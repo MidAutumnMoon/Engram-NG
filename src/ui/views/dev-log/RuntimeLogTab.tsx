@@ -1,7 +1,7 @@
 /**
  * RuntimeLogTab - 运行日志 Tab
  *
- * 从 DevLog 抽取：订阅 Logger、过滤/分组/展示运行时日志。
+ * 从 DevLog 抽取：订阅 Logger、过滤/展示运行时日志。
  * 模型日志、召回日志各自有独立 store 与组件，本 Tab 只处理 runtime。
  */
 import React, {
@@ -11,18 +11,11 @@ import React, {
     useRef,
     useState,
 } from "react";
-import {
-    ArrowDownToLine,
-    Maximize2,
-    Minimize2,
-    Search,
-    Terminal,
-    Trash2,
-} from "lucide-react";
+import { ArrowDownToLine, Search, Terminal, Trash2 } from "lucide-react";
 import type { LogEntry, LogLevel } from "@/logger/Logger.ts";
 import { Logger, LogLevelConfig } from "@/logger/Logger.ts";
 import { ALL_MODULES } from "@/logger/LogModule.ts";
-import { groupLogsByModule, LogGroup } from "./LogEntryItem.tsx";
+import { LogEntryItem } from "./LogEntryItem.tsx";
 import { Dropdown } from "@/ui/components/form/Dropdown.tsx";
 import type { DropdownOption } from "@/ui/components/form/Dropdown.tsx";
 import { EmptyState } from "@/ui/components/display/EmptyState.tsx";
@@ -53,10 +46,8 @@ export const RuntimeLogTab: React.FC = () => {
     const [levelFilter, setLevelFilter] = useState<LogLevel | null>(null);
     const [moduleFilter, setModuleFilter] = useState("ALL");
     const [autoScroll, setAutoScroll] = useState(true);
-    // V0.9.12: 分组展开控制
-    const [defaultGroupExpanded, setDefaultGroupExpanded] = useState(true);
 
-    const bottomRef = useRef<HTMLDivElement>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     // 初始化和订阅日志
     useEffect(() => {
@@ -76,8 +67,9 @@ export const RuntimeLogTab: React.FC = () => {
         if (moduleFilter !== "ALL") {
             result = result.filter((log) => log.module === moduleFilter);
         }
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
+        const trimmed = searchQuery.trim();
+        if (trimmed) {
+            const query = trimmed.toLowerCase();
             result = result.filter(
                 (log) =>
                     log.message.toLowerCase().includes(query) ||
@@ -87,18 +79,10 @@ export const RuntimeLogTab: React.FC = () => {
         return result;
     }, [logs, levelFilter, moduleFilter, searchQuery]);
 
-    // V0.9.12: 将日志按模块分组
-    const logGroups = useMemo(() => groupLogsByModule(filteredLogs), [
-        filteredLogs,
-    ]);
-
-    // 自动滚动 — 仅在新日志进入时触发，不因过滤改变而抽动
+    // 自动滚动 — 仅在日志增长时触发，clear (N→0) 和过滤变化不触发
     useEffect(() => {
-        if (autoScroll && bottomRef.current) {
-            bottomRef.current.scrollIntoView({
-                behavior: "auto",
-                block: "nearest",
-            });
+        if (autoScroll && scrollRef.current && logs.length > 0) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [logs.length, autoScroll]);
 
@@ -147,27 +131,9 @@ export const RuntimeLogTab: React.FC = () => {
 
                     {/* 右侧操作 */}
                     <div className="flex items-center gap-1 ml-auto">
-                        {/* V0.9.12: 分组展开控制 */}
                         <button
                             type="button"
-                            className={`p-1.5 rounded ${
-                                defaultGroupExpanded
-                                    ? "text-primary"
-                                    : "text-muted-foreground hover:text-foreground"
-                            }`}
-                            onClick={() =>
-                                setDefaultGroupExpanded(!defaultGroupExpanded)}
-                            title={defaultGroupExpanded
-                                ? "折叠所有分组"
-                                : "展开所有分组"}
-                        >
-                            {defaultGroupExpanded
-                                ? <Minimize2 size={14} />
-                                : <Maximize2 size={14} />}
-                        </button>
-                        <button
-                            type="button"
-                            className={`p-1.5 rounded ${
+                            className={`p-1.5 rounded transition-colors ${
                                 autoScroll
                                     ? "text-primary"
                                     : "text-muted-foreground hover:text-foreground"
@@ -179,7 +145,7 @@ export const RuntimeLogTab: React.FC = () => {
                         </button>
                         <button
                             type="button"
-                            className="p-1.5 rounded text-muted-foreground hover:text-foreground"
+                            className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
                             onClick={handleClear}
                             title="清空"
                         >
@@ -190,8 +156,11 @@ export const RuntimeLogTab: React.FC = () => {
             </div>
 
             {/* 日志内容区 - 无边框 */}
-            <div className="flex-1 overflow-y-auto font-mono text-xs leading-relaxed py-2">
-                {filteredLogs.length === 0
+            <div
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto font-mono text-xs leading-relaxed py-2"
+            >
+                {logs.length === 0
                     ? (
                         <EmptyState
                             icon={Terminal}
@@ -199,18 +168,23 @@ export const RuntimeLogTab: React.FC = () => {
                             className="h-full"
                         />
                     )
+                    : filteredLogs.length === 0
+                    ? (
+                        <EmptyState
+                            icon={Search}
+                            title="没有匹配的日志"
+                            description="尝试调整筛选条件"
+                            className="h-full"
+                        />
+                    )
                     : (
                         <>
-                            {logGroups.map((group) => (
-                                <LogGroup
-                                    key={`${group[0].id}-${
-                                        group[group.length - 1].id
-                                    }`}
-                                    entries={group}
-                                    defaultExpanded={defaultGroupExpanded}
+                            {filteredLogs.map((log) => (
+                                <LogEntryItem
+                                    key={log.id}
+                                    entry={log}
                                 />
                             ))}
-                            <div ref={bottomRef} />
                         </>
                     )}
             </div>

@@ -49,12 +49,11 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
     const currentTab = TABS.find((t) => t.id === activeTab) ?? TABS[0];
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full gap-2">
             <PageTitle
-                breadcrumbs={["开发日志"]}
+                parent="开发日志"
                 title={currentTab.label}
                 subtitle={currentTab.subtitle}
-                className="mb-2"
             />
 
             <TabPills

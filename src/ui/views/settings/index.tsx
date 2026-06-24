@@ -12,12 +12,11 @@ export const Settings: React.FC = () => {
     const [activeTab, setActiveTab] = useState<SettingsTabType>("features");
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full gap-2">
             <PageTitle
-                breadcrumbs={["设置"]}
+                parent="设置"
                 title="全局选项"
                 subtitle="扩展全局选项与数据维护"
-                className="mb-2"
             />
 
             <TabPills

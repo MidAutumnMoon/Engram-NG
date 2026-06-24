@@ -1,28 +1,12 @@
 /**
  * LogEntryItem - 单条日志渲染组件
- *
- * V0.9.12: 支持分组模式（Docker 风格）
- * - 连续相同模块的日志合并显示
- * - 支持默认展开/折叠
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import type { LogEntry } from "@/logger/Logger.ts";
 import { LogLevel, LogLevelConfig } from "@/logger/Logger.ts";
 import { getModuleMeta } from "./moduleMeta.ts";
-
-interface LogEntryItemProps {
-    entry: LogEntry;
-    /** 外部控制是否展开数据详情 */
-    defaultExpanded?: boolean;
-}
-
-interface LogGroupProps {
-    entries: LogEntry[];
-    /** 默认是否展开分组 */
-    defaultExpanded?: boolean;
-}
 
 /**
  * 格式化时间为 HH:MM:SS
@@ -44,23 +28,14 @@ const LEVEL_STYLES: Record<LogLevel, { text: string; bg: string }> = {
 /**
  * 单条日志项
  */
-export const LogEntryItem: React.FC<LogEntryItemProps> = (
-    { entry, defaultExpanded = false },
-) => {
+export const LogEntryItem: React.FC<{ entry: LogEntry }> = ({ entry }) => {
     // 自动展开错误和警告
     const autoExpand = entry.level === LogLevel.WARN ||
         entry.level === LogLevel.ERROR;
-    const [expanded, setExpanded] = useState(defaultExpanded || autoExpand);
+    const [expanded, setExpanded] = useState(autoExpand);
     const hasData = entry.data !== undefined;
     const levelConfig = LogLevelConfig[entry.level];
     const levelStyle = LEVEL_STYLES[entry.level];
-
-    // 响应外部默认展开状态变化
-    useEffect(() => {
-        if (hasData) {
-            setExpanded(defaultExpanded || autoExpand);
-        }
-    }, [defaultExpanded, autoExpand, hasData]);
 
     return (
         <div className="group">
@@ -92,15 +67,22 @@ export const LogEntryItem: React.FC<LogEntryItemProps> = (
                     {formatTime(entry.timestamp)}
                 </span>
 
-                {/* 级别标签 - 紧凑样式 */}
+                {/* 级别标签 - 紧凑样式，固定最小宽度保证对齐 */}
                 <span
                     className={`
-                    shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded
+                    shrink-0 min-w-[3rem] inline-flex justify-center items-center
+                    text-[10px] font-medium px-1.5 py-0.5 rounded
                     ${levelStyle.text} ${levelStyle.bg}
                 `}
                 >
                     {levelConfig.label}
                 </span>
+
+                {/* 模块图标 — 单色弱化，不参与层级强调（颜色留给级别 badge） */}
+                {React.createElement(getModuleMeta(entry.module).icon, {
+                    className: "shrink-0 text-zinc-500",
+                    size: 11,
+                })}
 
                 {/* 模块标签 - 加深颜色 */}
                 <span className="text-zinc-400 shrink-0 text-[11px]">
@@ -124,135 +106,3 @@ export const LogEntryItem: React.FC<LogEntryItemProps> = (
         </div>
     );
 };
-
-/**
- * 日志分组组件（Docker 风格）
- * 将连续相同模块的日志合并在一起显示
- */
-export const LogGroup: React.FC<LogGroupProps> = ({
-    entries,
-    defaultExpanded = true,
-}) => {
-    const [expanded, setExpanded] = useState(defaultExpanded);
-
-    // 响应外部默认展开状态变化
-    useEffect(() => {
-        setExpanded(defaultExpanded);
-    }, [defaultExpanded]);
-
-    // 分组信息
-    const groupModule = entries[0]?.module || "Unknown";
-    const entryCount = entries.length;
-    const firstEntry = entries[0];
-    const lastEntry = entries.at(-1);
-
-    // 获取最高级别（用于显示颜色）
-    const highestLevel = useMemo(
-        () =>
-            entries.reduce(
-                (max, e) => Math.max(max, e.level),
-                LogLevel.DEBUG,
-            ) as LogLevel,
-        [entries],
-    );
-    const levelStyle = LEVEL_STYLES[highestLevel];
-
-    // 时间范围
-    const timeRange = firstEntry && lastEntry
-        ? `${formatTime(firstEntry.timestamp)} - ${
-            formatTime(lastEntry.timestamp)
-        }`
-        : "";
-
-    // 单条日志不需要分组头
-    if (entryCount === 1) {
-        return <LogEntryItem
-            entry={entries[0]}
-        />;
-    }
-
-    return (
-        <div className="border-l-2 border-transparent hover:border-zinc-700">
-            {/* 分组头 */}
-            <div
-                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer text-[11px] hover:bg-white/[0.02] rounded-sm"
-                onClick={() => setExpanded(!expanded)}
-            >
-                {/* 展开箭头 */}
-                <span className="text-zinc-500 shrink-0">
-                    {expanded
-                        ? <ChevronDown size={12} />
-                        : <ChevronRight size={12} />}
-                </span>
-
-                {/* 分组图标 - 根据模块显示对应图标 */}
-                {React.createElement(getModuleMeta(groupModule).icon, {
-                    className: `shrink-0 ${levelStyle.text}`,
-                    size: 13,
-                })}
-
-                {/* 模块名 */}
-                <span className={`font-medium ${levelStyle.text}`}>
-                    {groupModule}
-                </span>
-
-                {/* 计数标签 */}
-                <span
-                    className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${levelStyle.bg} ${levelStyle.text}`}
-                >
-                    {entryCount} 条
-                </span>
-
-                {/* 时间范围 - 加深颜色 */}
-                <span className="text-zinc-500 ml-auto tabular-nums">
-                    {timeRange}
-                </span>
-            </div>
-
-            {/* 展开的日志列表 */}
-            {expanded && (
-                <div className="ml-4 border-l border-zinc-800 pl-2">
-                    {entries.map((entry) => (
-                        <LogEntryItem
-                            key={entry.id}
-                            entry={entry}
-                        />
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-};
-
-/**
- * 将日志列表按模块分组
- * 连续相同模块的日志会被合并到一个组里
- */
-export function groupLogsByModule(logs: LogEntry[]): LogEntry[][] {
-    if (logs.length === 0) return [];
-
-    const groups: LogEntry[][] = [];
-    let currentGroup: LogEntry[] = [];
-    let currentModule: string | null = null;
-
-    for (const log of logs) {
-        if (log.module === currentModule) {
-            // 同一模块，加入当前组
-            currentGroup.push(log);
-        } else {
-            // 不同模块，保存当前组并开始新组
-            if (currentGroup.length > 0) {
-                groups.push(currentGroup);
-            }
-            currentGroup = [log];
-            currentModule = log.module;
-        }
-    }
-
-    // 保存最后一组
-    if (currentGroup.length > 0) {
-        groups.push(currentGroup);
-    }
-
-    return groups;
-}
