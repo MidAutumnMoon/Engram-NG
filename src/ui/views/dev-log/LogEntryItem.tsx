@@ -17,12 +17,27 @@ function formatTime(timestamp: number): string {
 }
 
 // 级别样式映射 - 简洁配色（加深 DEBUG 颜色）
-const LEVEL_STYLES: Record<LogLevel, { text: string; bg: string }> = {
+// rowBg 仅对 WARN/ERROR 生效，为整行提供醒目背景；其他级别透明。
+const LEVEL_STYLES: Record<
+    LogLevel,
+    { text: string; bg: string; rowBg?: string }
+> = {
     [LogLevel.DEBUG]: { bg: "bg-zinc-500/15", text: "text-zinc-400" },
     [LogLevel.INFO]: { bg: "bg-blue-500/10", text: "text-blue-400" },
-    [LogLevel.SUCCESS]: { bg: "bg-emerald-500/10", text: "text-emerald-400" },
-    [LogLevel.WARN]: { bg: "bg-amber-500/10", text: "text-amber-400" },
-    [LogLevel.ERROR]: { bg: "bg-red-500/10", text: "text-red-400" },
+    [LogLevel.SUCCESS]: {
+        bg: "bg-emerald-500/10",
+        text: "text-emerald-400",
+    },
+    [LogLevel.WARN]: {
+        bg: "bg-amber-500/10",
+        rowBg: "bg-amber-500/[0.06]",
+        text: "text-amber-400",
+    },
+    [LogLevel.ERROR]: {
+        bg: "bg-red-500/10",
+        rowBg: "bg-red-500/[0.08]",
+        text: "text-red-400",
+    },
 };
 
 /**
@@ -42,7 +57,7 @@ export const LogEntryItem: React.FC<{ entry: LogEntry }> = ({ entry }) => {
             <div
                 className={`
                     flex items-start gap-3 px-2 py-1 rounded-sm
-                    hover:bg-white/[0.02]
+                    ${levelStyle.rowBg ?? "hover:bg-white/[0.02]"}
                     ${hasData ? "cursor-pointer" : ""}
                 `}
                 onClick={() => hasData && setExpanded(!expanded)}
@@ -95,9 +110,13 @@ export const LogEntryItem: React.FC<{ entry: LogEntry }> = ({ entry }) => {
                 </span>
             </div>
 
-            {/* 展开的数据详情 */}
+            {/* 展开的数据详情 — WARN/ERROR 延续行背景，其他级别用默认暗色块 */}
             {expanded && hasData && (
-                <div className="ml-10 mr-2 mb-1 px-3 py-2 bg-zinc-900/50 border-l-2 border-zinc-700 rounded-r text-[10px]">
+                <div
+                    className={`ml-10 mr-2 mb-1 px-3 py-2 border-l-2 border-zinc-700 rounded-r text-[10px] ${
+                        levelStyle.rowBg ?? "bg-zinc-900/50"
+                    }`}
+                >
                     <pre className="m-0 text-zinc-400 whitespace-pre-wrap break-words font-mono">
                         {JSON.stringify(entry.data, null, 2)}
                     </pre>
