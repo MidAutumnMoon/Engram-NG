@@ -52,6 +52,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         strokeWidth={1.5}
                     />
                     <span className="text-xs">关闭</span>
+                    <kbd className="ml-auto px-0 py-0 bg-transparent text-[10px] font-mono text-muted-foreground/60 group-hover:text-destructive/70">
+                        ESC
+                    </kbd>
                 </button>
             )}
 

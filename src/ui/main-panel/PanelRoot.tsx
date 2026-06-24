@@ -9,7 +9,7 @@
  */
 import { useUiStore } from "@/state/uiStore.ts";
 import { MainLayout } from "@/ui/main-panel/MainLayout.tsx";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { Dashboard } from "@/ui/views/dashboard/index.tsx";
 import { DevLog } from "@/ui/views/dev-log/DevLog.tsx";
@@ -22,6 +22,21 @@ const PanelRoot: React.FC = () => {
     const activeTab = useUiStore((s) => s.activeTab);
     const navigate = useUiStore((s) => s.navigate);
     const closePanel = useUiStore((s) => s.closePanel);
+
+    // ESC 关闭面板。由于 PanelRoot 只在 panelOpen=true 时被懒挂载，
+    // 组件卸载时自动解除监听——不需手动跟踪 panelOpen 状态。
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (e.key !== "Escape") return;
+            // 被其他处理器消费过（如 modal、dropdown）：不接手
+            if (e.defaultPrevented) return;
+            // IME 输入中：ESC 是取消输入法候选词的标准键，不能抢
+            if (e.isComposing) return;
+            closePanel();
+        };
+        window.addEventListener("keydown", handler);
+        return () => window.removeEventListener("keydown", handler);
+    }, [closePanel]);
 
     const renderContent = () => {
         // 解析路径，支持 page:subtab[:detail] 格式（如 devlog:model, presets:prompt:macros）
@@ -78,7 +93,7 @@ const PanelRoot: React.FC = () => {
         // 容器承担定位/层叠/不透明背景：MainLayout 自己用 absolute inset-0 +
         // bg-background/40，需要一个已定位、不透明的祖先作为参考与衬底。
         <div
-            className="fixed inset-0 w-full h-full z-[10000] flex flex-col bg-background text-foreground overflow-hidden engram-app-root"
+            className="fixed inset-0 w-full h-full z-10000 flex flex-col bg-background text-foreground overflow-hidden engram-app-root"
             style={{ height: "100dvh" }}
         >
             <MainLayout
