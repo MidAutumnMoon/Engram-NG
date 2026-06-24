@@ -75,7 +75,11 @@ export async function getEntries(
             };
         });
     } catch (error) {
-        Logger.error(LogModule.WORLDBOOK, "获取世界书条目失败", error);
+        Logger.error(
+            LogModule.WORLDBOOK,
+            `获取世界书“${worldbookName}”的条目失败`,
+            error,
+        );
         return [];
     }
 }
