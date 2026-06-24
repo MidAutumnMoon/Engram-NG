@@ -17,7 +17,6 @@ import React, {
 import {
     ArrowDownToLine,
     ChevronDown,
-    Download,
     Maximize2,
     Minimize2,
     Search,
@@ -30,7 +29,6 @@ import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
 import type { LogEntry, LogLevel } from "@/logger/Logger.ts";
 import { Logger, LogLevelConfig } from "@/logger/Logger.ts";
 import { ALL_MODULES } from "@/logger/LogModule.ts";
-import { exportLogsToMarkdown, getExportFilename } from "./export.ts";
 import { groupLogsByModule, LogGroup } from "./LogEntryItem.tsx";
 import { ModelLog } from "./ModelLog.tsx";
 import { RecallLog } from "./RecallLog.tsx";
@@ -126,22 +124,9 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
         }
     }, [filteredLogs, autoScroll]);
 
-    const handleClear = useCallback(async () => {
-        await Logger.clear();
+    const handleClear = useCallback(() => {
+        Logger.clear();
         setLogs([]);
-    }, []);
-
-    const handleExport = useCallback(() => {
-        const markdown = exportLogsToMarkdown();
-        const filename = getExportFilename();
-        const blob = new Blob([markdown], { type: "text/markdown" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-        Logger.success(LogModule.DEV_LOG, `日志已导出: ${filename}`);
     }, []);
 
     return (
@@ -303,13 +288,6 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
                                     title="清空"
                                 >
                                     <Trash2 size={14} />
-                                </button>
-                                <button
-                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                                    onClick={handleExport}
-                                >
-                                    <Download size={12} />
-                                    导出
                                 </button>
                             </div>
                         </div>
