@@ -1,85 +1,82 @@
 {
-    "compilerOptions": {
-        "strict": true,
-        "module": "ESNext",
-        "moduleResolution": "bundler",
-        "jsx": "react-jsx",
-        "jsxImportSource": "react",
-        "lib": ["DOM", "DOM.Iterable", "ESNext", "deno.ns"]
-    },
-    "tasks": {
-        "dev": "deno run -A npm:vite",
-        "dev:watch": "deno run -A npm:vite build --watch",
-        "build": "deno run -A npm:vite build",
-        "preview": "deno run -A npm:vite preview",
-        "format": "deno fmt",
-        "prettify": "deno fmt",
-        "test": "deno run -A npm:vitest run",
-        "test:watch": "deno run -A npm:vitest",
-        "test:coverage": "deno run -A npm:vitest run --coverage",
-        "gen:types": "deno run -A scripts/bundle_vendor_types.ts",
-        "lint": "deno fmt --check && deno lint && deno run -A npm:oxlint src -D correctness -W perf -W suspicious",
-        "lint:fix": "deno run -A npm:oxlint src -D correctness -W perf -W suspicious --fix"
-    },
-    "nodeModulesDir": "auto",
-    "exclude": [
-        "dev-docs",
-        "docs",
-        "vendor",
-        "src/types/vendor",
-        "*.md",
-        "*.html",
-        "*.css",
-        "*.json"
-    ],
-    "fmt": {
-        "indentWidth": 4,
-        "useTabs": false,
-        "jsx.multiLineParens": "never",
-        "singleBodyPosition": "sameLine"
-    },
-    "lint": {
-        "rules": {
-            "exclude": ["no-import-prefix", "no-window-prefix", "no-window"]
-        }
-    },
-    "imports": {
-        "@/": "./src/",
-
-        "@deno/vite-plugin": "npm:@deno/vite-plugin@^2.0.2",
-        "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.2.3",
-        "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.2.3",
-        "@types/jquery": "npm:@types/jquery@^4.0.1",
-        "@types/js-yaml": "npm:@types/js-yaml@^4.0.9",
-        "@types/lodash": "npm:@types/lodash@^4.17.24",
-        "@types/node": "npm:@types/node@^22.19.3",
-        "@types/react": "npm:@types/react@^19.0.0",
-        "@types/react-dom": "npm:@types/react-dom@^19.0.0",
-        "@types/toastr": "npm:@types/toastr@^2.1.43",
-        "@vitejs/plugin-react": "npm:@vitejs/plugin-react@^5.0.0",
-        "@vitest/coverage-v8": "npm:@vitest/coverage-v8@^4.0.0",
-        "autoprefixer": "npm:autoprefixer@^10.5.0",
-        "dexie": "npm:dexie@^4.0.11",
-        "fake-indexeddb": "npm:fake-indexeddb@^6.2.5",
-        "fast-json-patch": "npm:fast-json-patch@^3.1.1",
-        "immer": "npm:immer@^10.1.1",
-        "js-yaml": "npm:js-yaml@^4.1.1",
-        "knip": "npm:knip@^5.82.1",
-        "lodash": "npm:lodash@^4.17.21",
-        "lucide-react": "npm:lucide-react@^0.562.0",
-        "oxlint": "npm:oxlint@^1.60.0",
-        "postcss": "npm:postcss@^8.5.10",
-        "prettier": "npm:prettier@^3.4.2",
-        "react": "npm:react@^19.0.0",
-        "react-dom": "npm:react-dom@^19.0.0",
-        "react-markdown": "npm:react-markdown@^10.1.0",
-        "react-virtuoso": "npm:react-virtuoso@^4.18.1",
-        "tailwindcss": "npm:tailwindcss@^4.2.3",
-        "type-fest": "npm:type-fest@^5.7.0",
-        "typescript": "npm:typescript@^5.7.3",
-        "vite": "npm:vite@^8.0.9",
-        "vitest": "npm:vitest@^4.0.0",
-        "zod": "npm:zod@^4.3.5",
-        "zustand": "npm:zustand@^5.0.0"
+  "compilerOptions": {
+    "strict": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "lib": ["DOM", "DOM.Iterable", "ESNext", "deno.ns"]
+  },
+  "tasks": {
+    "dev": "deno run -A npm:vite",
+    "dev:watch": "deno run -A npm:vite build --watch",
+    "build": "deno run -A npm:vite build",
+    "preview": "deno run -A npm:vite preview",
+    "format": "deno fmt",
+    "prettify": "deno fmt",
+    "test": "deno run -A npm:vitest run",
+    "test:watch": "deno run -A npm:vitest",
+    "test:coverage": "deno run -A npm:vitest run --coverage",
+    "gen:types": "deno run -A scripts/bundle_vendor_types.ts",
+    "lint": "deno fmt --check && deno lint && deno run -A npm:oxlint src -D correctness -W perf -W suspicious",
+    "lint:fix": "deno run -A npm:oxlint src -D correctness -W perf -W suspicious --fix"
+  },
+  "nodeModulesDir": "auto",
+  "exclude": [
+    "dev-docs",
+    "docs",
+    "vendor",
+    "src/types/vendor",
+    "*.md",
+    "*.html",
+    "*.css",
+    "*.json"
+  ],
+  "fmt": {
+    "indentWidth": 4,
+    "useTabs": false,
+    "jsx.multiLineParens": "never",
+    "singleBodyPosition": "sameLine"
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["no-import-prefix", "no-window-prefix", "no-window"]
     }
+  },
+  "imports": {
+    "@/": "./src/",
+
+    "@deno/vite-plugin": "npm:@deno/vite-plugin@^2.0.2",
+    "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.2.3",
+    "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.2.3",
+    "@types/jquery": "npm:@types/jquery@^4.0.1",
+    "@types/js-yaml": "npm:@types/js-yaml@^4.0.9",
+    "@types/lodash": "npm:@types/lodash@^4.17.24",
+    "@types/node": "npm:@types/node@^22.19.3",
+    "@types/react": "npm:@types/react@^19.0.0",
+    "@types/react-dom": "npm:@types/react-dom@^19.0.0",
+    "@types/toastr": "npm:@types/toastr@^2.1.43",
+    "@vitejs/plugin-react": "npm:@vitejs/plugin-react@^5.0.0",
+    "@vitest/coverage-v8": "npm:@vitest/coverage-v8@^4.0.0",
+    "autoprefixer": "npm:autoprefixer@^10.5.0",
+    "dexie": "npm:dexie@^4.0.11",
+    "fake-indexeddb": "npm:fake-indexeddb@^6.2.5",
+    "fast-json-patch": "npm:fast-json-patch@^3.1.1",
+    "js-yaml": "npm:js-yaml@^4.1.1",
+    "knip": "npm:knip@^5.82.1",
+    "lodash": "npm:lodash@^4.17.21",
+    "lucide-react": "npm:lucide-react@^0.562.0",
+    "oxlint": "npm:oxlint@^1.60.0",
+    "postcss": "npm:postcss@^8.5.10",
+    "react": "npm:react@^19.0.0",
+    "react-dom": "npm:react-dom@^19.0.0",
+    "react-virtuoso": "npm:react-virtuoso@^4.18.1",
+    "tailwindcss": "npm:tailwindcss@^4.2.3",
+    "type-fest": "npm:type-fest@^5.7.0",
+    "typescript": "npm:typescript@^5.7.3",
+    "vite": "npm:vite@^8.0.9",
+    "vitest": "npm:vitest@^4.0.0",
+    "zod": "npm:zod@^4.3.5",
+    "zustand": "npm:zustand@^5.0.0"
+  }
 }

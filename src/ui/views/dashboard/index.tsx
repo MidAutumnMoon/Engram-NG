@@ -8,7 +8,7 @@
  */
 import { NAV_ITEMS } from "@/ui/navigation.ts";
 import { Logger } from "@/logger/Logger.ts";
-import type { LogEntry } from "@/logger/types";
+import type { LogEntry } from "@/logger/Logger.ts";
 import { Switch } from "@/ui/components/core/Switch.tsx";
 import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
 import { Divider } from "@/ui/components/layout/Divider.tsx";
