@@ -74,8 +74,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     // PC 端侧边栏
     if (!isMobile) {
         return (
-            <aside className="flex w-36 shrink-0 bg-sidebar/80 flex-col z-40 pt-4 px-2 border-r border-border/50 max-md:hidden">
-                <nav className="flex-1 w-full flex flex-col gap-1 overflow-y-auto no-scrollbar">
+            <aside className="flex w-44 shrink-0 bg-sidebar/80 flex-col z-40 pt-4 px-3 border-r border-border/50 max-md:hidden">
+                <nav className="flex-1 w-full flex flex-col gap-1.5 overflow-y-auto no-scrollbar">
                     {NAV_ITEMS.map((item) => {
                         const Icon = item.icon;
                         const isActive = activeTab === item.id;
@@ -84,7 +84,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 key={item.id}
                                 onClick={() => handleNavClick(item.id)}
                                 className={`
-                                    group w-full flex items-center gap-2 px-2 py-2 rounded-lg text-left
+                                    group w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left
 
                                     ${
                                     isActive
@@ -94,12 +94,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 `}
                             >
                                 <Icon
-                                    size={18}
+                                    size={20}
                                     strokeWidth={isActive ? 2 : 1.5}
                                     className="shrink-0 group-hover:scale-110"
                                 />
                                 <span
-                                    className={`text-xs ${
+                                    className={`text-sm ${
                                         isActive ? "font-medium" : "font-normal"
                                     }`}
                                 >
