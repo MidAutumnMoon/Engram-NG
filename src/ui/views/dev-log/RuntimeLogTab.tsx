@@ -3,9 +3,14 @@
  *
  * 从 DevLog 抽取：订阅 Logger、过滤/展示运行时日志。
  * 模型日志、召回日志各自有独立 store 与组件，本 Tab 只处理 runtime。
+ *
+ * 虚拟化：使用 react-virtuoso 渲染日志，DOM 节点数固定在可见窗口大小，
+ * 不随 logCache 增长。followOutput 取代手动 auto-scroll——仅当用户停在
+ * 底部时跟随新日志；用户上滑阅读时新日志不打扰。
  */
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDownToLine, Search, Terminal, Trash2 } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Search, Terminal, Trash2 } from "lucide-react";
+import { Virtuoso } from "react-virtuoso";
 import type { LogEntry, LogLevel } from "@/logger/Logger.ts";
 import { Logger, LogLevelConfig } from "@/logger/Logger.ts";
 import { ALL_MODULES } from "@/logger/LogModule.ts";
@@ -39,9 +44,6 @@ export const RuntimeLogTab: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [levelFilter, setLevelFilter] = useState<LogLevel | null>(null);
     const [moduleFilter, setModuleFilter] = useState("ALL");
-    const [autoScroll, setAutoScroll] = useState(true);
-
-    const scrollRef = useRef<HTMLDivElement>(null);
 
     // 初始化和订阅日志
     useEffect(() => {
@@ -73,44 +75,9 @@ export const RuntimeLogTab: React.FC = () => {
         return result;
     }, [logs, levelFilter, moduleFilter, searchQuery]);
 
-    // 自动滚动 — 仅在日志增长时触发，clear (N→0) 和过滤变化不触发
-    useEffect(() => {
-        if (autoScroll && scrollRef.current && logs.length > 0) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-    }, [logs.length, autoScroll]);
-
     const handleClear = () => {
         Logger.clear();
         setLogs([]);
-    };
-
-    const renderContent = () => {
-        if (logs.length === 0) {
-            return (
-                <EmptyState
-                    icon={Terminal}
-                    title="暂无日志记录"
-                    className="h-full"
-                />
-            );
-        }
-        if (filteredLogs.length === 0) {
-            return (
-                <EmptyState
-                    icon={Search}
-                    title="没有匹配的日志"
-                    description="尝试调整筛选条件"
-                    className="h-full"
-                />
-            );
-        }
-        return filteredLogs.map((log) => (
-            <LogEntryItem
-                key={log.id}
-                entry={log}
-            />
-        ));
     };
 
     return (
@@ -155,18 +122,6 @@ export const RuntimeLogTab: React.FC = () => {
                     <div className="flex items-center gap-1 ml-auto">
                         <button
                             type="button"
-                            className={`p-1.5 rounded transition-colors ${
-                                autoScroll
-                                    ? "text-primary"
-                                    : "text-muted-foreground hover:text-foreground"
-                            }`}
-                            onClick={() => setAutoScroll(!autoScroll)}
-                            title="自动滚动"
-                        >
-                            <ArrowDownToLine size={14} />
-                        </button>
-                        <button
-                            type="button"
                             className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
                             onClick={handleClear}
                             title="清空"
@@ -177,13 +132,44 @@ export const RuntimeLogTab: React.FC = () => {
                 </div>
             </div>
 
-            {/* 日志内容区 - 无边框 */}
-            <div
-                ref={scrollRef}
-                className="flex-1 overflow-y-auto font-mono text-xs leading-relaxed py-2"
-            >
-                {renderContent()}
-            </div>
+            {/* 日志内容区 — 虚拟化：DOM 节点数固定，不随 logCache 增长 */}
+            {logs.length === 0
+                ? (
+                    <EmptyState
+                        icon={Terminal}
+                        title="暂无日志记录"
+                        className="flex-1"
+                    />
+                )
+                : filteredLogs.length === 0
+                ? (
+                    <EmptyState
+                        icon={Search}
+                        title="没有匹配的日志"
+                        description="尝试调整筛选条件"
+                        className="flex-1"
+                    />
+                )
+                : (
+                    <div className="flex-1 min-h-0">
+                        <Virtuoso
+                            style={{ height: "100%" }}
+                            className="font-mono text-xs leading-relaxed py-2"
+                            data={filteredLogs}
+                            // 打开页面即定位到最新日志（日志查看器的标准行为）
+                            initialTopMostItemIndex={Math.max(
+                                0,
+                                filteredLogs.length - 1,
+                            )}
+                            // 用户停在底部 → 新日志自动跟随；用户上滑阅读 → 不打扰
+                            followOutput={(isAtBottom) =>
+                                isAtBottom ? "auto" : false}
+                            itemContent={(_index, log) => (
+                                <LogEntryItem entry={log} />
+                            )}
+                        />
+                    </div>
+                )}
 
             {/* 状态栏 - 简化 */}
             <div className="text-[10px] text-muted-foreground py-2 border-t border-border">
