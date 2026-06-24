@@ -224,6 +224,7 @@ export const SummaryReview: React.FC<SummaryReviewProps> = (
                                     />
                                 </div>
                                 <button
+                                    type="button"
                                     onClick={() => handleRemoveEvent(idx)}
                                     className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 bg-background/50 rounded"
                                     title="移除此片段"
@@ -260,6 +261,7 @@ export const SummaryReview: React.FC<SummaryReviewProps> = (
                 )}
 
                 <button
+                    type="button"
                     onClick={handleAddEvent}
                     className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-muted/50 rounded-md w-full justify-center border border-dashed border-border hover:border-primary/30"
                 >

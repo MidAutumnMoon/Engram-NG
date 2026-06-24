@@ -75,6 +75,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
             {/* 保存按钮 - 有修改时显示 */}
             {hasChanges && (
                 <button
+                    type="button"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary hover:text-primary-foreground hover:bg-primary border border-primary/50 rounded"
                     onClick={onSave}
                 >
@@ -85,6 +86,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
 
             {/* 刷新按钮 */}
             <button
+                type="button"
                 onClick={onRefresh}
                 className="p-1.5 rounded-md text-muted-foreground hover:text-foreground"
                 title="刷新"
@@ -98,6 +100,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
             {/* 批量删除 */}
             {checkedCount > 0 && (
                 <button
+                    type="button"
                     onClick={onBatchDelete}
                     className="flex items-center gap-1 px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10 rounded-md"
                 >
@@ -113,6 +116,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                         {/* 手动添加按钮 */}
                         {onCreate && (
                             <button
+                                type="button"
                                 onClick={onCreate}
                                 className="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded"
                                 title={viewTab === "list"
@@ -124,6 +128,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                             </button>
                         )}
                         <button
+                            type="button"
                             onClick={onImportClick}
                             className="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded"
                             title="导入历史分卷/外部库"
@@ -134,6 +139,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
 
                         {viewTab === "list" && (
                             <button
+                                type="button"
                                 onClick={onReembed}
                                 disabled={isReembedding}
                                 className="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded disabled:opacity-50"
@@ -153,6 +159,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
 
                         {viewTab === "list" && (
                             <button
+                                type="button"
                                 onClick={onSortToggle}
                                 className="p-1.5 rounded-md text-muted-foreground hover:text-foreground"
                                 title={sortOrder === "asc"
@@ -170,6 +177,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
 
                         {viewTab === "list" && (
                             <button
+                                type="button"
                                 onClick={onActiveToggle}
                                 className={`p-1.5 rounded-md ${
                                     showActiveOnly
@@ -185,6 +193,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                         )}
 
                         <button
+                            type="button"
                             onClick={handlePreviewOpen}
                             className="p-1.5 rounded-md text-muted-foreground hover:text-foreground"
                             title="查看当前注入内容"
@@ -197,6 +206,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                     // =============== 移动端折叠菜单 ===============
                     <div className="relative">
                         <button
+                            type="button"
                             onClick={onMobileActionsToggle}
                             className="p-1.5 rounded-md text-muted-foreground hover:text-foreground"
                         >
@@ -226,6 +236,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                                 <div className="absolute right-0 top-full mt-2 w-40 bg-background border border-border rounded-md shadow-lg py-1 z-50 flex flex-col">
                                     {onCreate && (
                                         <button
+                                            type="button"
                                             onClick={() => {
                                                 onCreate();
                                                 onMobileActionsClose();
@@ -242,6 +253,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                                         </button>
                                     )}
                                     <button
+                                        type="button"
                                         onClick={() => {
                                             onImportClick();
                                             onMobileActionsClose();
@@ -258,6 +270,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                                     {viewTab === "list" && (
                                         <>
                                             <button
+                                                type="button"
                                                 onClick={() => {
                                                     onReembed();
                                                     onMobileActionsClose();
@@ -277,6 +290,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                                             </button>
 
                                             <button
+                                                type="button"
                                                 onClick={() => {
                                                     onSortToggle();
                                                     onMobileActionsClose();
@@ -297,6 +311,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                                             </button>
 
                                             <button
+                                                type="button"
                                                 onClick={() => {
                                                     onActiveToggle();
                                                     onMobileActionsClose();
@@ -317,6 +332,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                                     )}
 
                                     <button
+                                        type="button"
                                         onClick={() => {
                                             handlePreviewOpen();
                                             onMobileActionsClose();

@@ -327,6 +327,7 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                 {isProcessing
                     ? (
                         <button
+                            type="button"
                             onClick={handleStopEmbedding}
                             className="inline-flex items-center gap-2 px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90"
                         >
@@ -337,6 +338,7 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                     : (
                         <>
                             <button
+                                type="button"
                                 onClick={handleStartEmbedding}
                                 disabled={stats.pending === 0 ||
                                     !isVectorConfigValid}
@@ -346,6 +348,7 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                                 嵌入未处理 ({stats.pending})
                             </button>
                             <button
+                                type="button"
                                 onClick={handleReembedAll}
                                 disabled={stats.total === 0 ||
                                     !isVectorConfigValid}
@@ -355,6 +358,7 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                                 重新嵌入所有
                             </button>
                             <button
+                                type="button"
                                 onClick={refreshStats}
                                 className="inline-flex items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground"
                             >

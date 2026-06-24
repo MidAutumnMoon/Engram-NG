@@ -54,6 +54,7 @@ export const TabPills: React.FC<TabPillsProps> = (
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
+                        type="button"
                         onClick={() => onChange(tab.id)}
                         className={`
                             group flex items-center gap-2 whitespace-nowrap px-4 py-1.5 text-sm relative

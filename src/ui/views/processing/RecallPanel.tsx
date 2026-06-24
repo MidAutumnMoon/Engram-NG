@@ -214,6 +214,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                             )}
                     </div>
                     <button
+                        type="button"
                         onClick={handleScanDryRun}
                         disabled={!scanQuery.trim()}
                         className={`
@@ -270,6 +271,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                     />
                     <div className="flex flex-col gap-2">
                         <button
+                            type="button"
                             onClick={handlePreviewTest}
                             disabled={!testQuery.trim() || isTesting}
                             className={`
@@ -304,6 +306,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                         </button>
                         {isAgenticMode && currentRecalls.length > 0 && (
                             <button
+                                type="button"
                                 onClick={() => setIsModalOpen(true)}
                                 disabled={isTesting}
                                 className={`

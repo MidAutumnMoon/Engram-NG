@@ -176,6 +176,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
             <div className="flex items-start gap-3">
                 {/* 状态图标 */}
                 <button
+                    type="button"
                     className={`
                     w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0
                     ${
@@ -239,6 +240,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                 }`}
             >
                 <button
+                    type="button"
                     className="p-1.5 rounded text-muted-foreground hover:text-foreground"
                     onClick={handleImportClick}
                     title="Import"
@@ -246,6 +248,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                     <FolderInput size={12} />
                 </button>
                 <button
+                    type="button"
                     className="p-1.5 rounded text-muted-foreground hover:text-foreground"
                     onClick={handleExport}
                     title="Export"
@@ -253,6 +256,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                     <Download size={12} />
                 </button>
                 <button
+                    type="button"
                     className="p-1.5 rounded text-muted-foreground hover:text-foreground"
                     onClick={(e) => {
                         e.stopPropagation();
@@ -264,6 +268,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                 </button>
                 {template.isBuiltIn && (
                     <button
+                        type="button"
                         className="p-1.5 hover:bg-emphasis/10 rounded text-muted-foreground hover:text-emphasis"
                         onClick={(e) => {
                             e.stopPropagation();
@@ -299,6 +304,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                 )}
                 {!template.isBuiltIn && (
                     <button
+                        type="button"
                         className="p-1.5 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive"
                         onClick={(e) => {
                             e.stopPropagation();

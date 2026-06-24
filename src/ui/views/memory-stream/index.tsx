@@ -61,6 +61,7 @@ export const MemoryStream: React.FC<MemoryStreamProps> = ({ initialTab }) => {
                         <div className="flex items-center">
                             {ms.hasChanges && (
                                 <button
+                                    type="button"
                                     onClick={ms.handleBatchSave}
                                     className="p-1.5 hover:bg-primary/10 rounded text-primary mr-1"
                                     title="保存"
@@ -69,6 +70,7 @@ export const MemoryStream: React.FC<MemoryStreamProps> = ({ initialTab }) => {
                                 </button>
                             )}
                             <button
+                                type="button"
                                 onClick={() =>
                                     ms.selectedId &&
                                     ms.handleDelete(ms.selectedId)}
@@ -100,6 +102,7 @@ export const MemoryStream: React.FC<MemoryStreamProps> = ({ initialTab }) => {
                         <div className="flex items-center">
                             {ms.hasChanges && (
                                 <button
+                                    type="button"
                                     onClick={ms.handleBatchSave}
                                     className="p-1.5 hover:bg-primary/10 rounded text-primary mr-1"
                                     title="保存"
@@ -108,6 +111,7 @@ export const MemoryStream: React.FC<MemoryStreamProps> = ({ initialTab }) => {
                                 </button>
                             )}
                             <button
+                                type="button"
                                 onClick={() =>
                                     ms.selectedId &&
                                     ms.handleDelete(ms.selectedId)}

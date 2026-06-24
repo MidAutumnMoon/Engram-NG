@@ -31,6 +31,7 @@ export const CustomMacroList: React.FC<CustomMacroListProps> = ({
                 自定义宏
             </h3>
             <button
+                type="button"
                 className="text-muted-foreground hover:text-foreground"
                 onClick={onAdd}
                 title="添加新宏"
@@ -63,6 +64,7 @@ export const CustomMacroList: React.FC<CustomMacroListProps> = ({
                 >
                     {/* 状态图标 */}
                     <button
+                        type="button"
                         className={`
                                     w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0
                                     ${
@@ -104,6 +106,7 @@ export const CustomMacroList: React.FC<CustomMacroListProps> = ({
 
                     {/* 删除按钮 */}
                     <button
+                        type="button"
                         className={`p-1.5 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive ${
                             selectedId === macro.id
                                 ? "opacity-100"
@@ -125,6 +128,7 @@ export const CustomMacroList: React.FC<CustomMacroListProps> = ({
                     <Braces size={24} className="opacity-50" />
                     <p className="text-xs">暂无自定义宏</p>
                     <button
+                        type="button"
                         className="text-xs text-primary hover:underline"
                         onClick={onAdd}
                     >

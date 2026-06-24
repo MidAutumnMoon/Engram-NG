@@ -119,12 +119,14 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
             </span>
             <div className="flex gap-2">
                 <button
+                    type="button"
                     className="px-4 py-1.5 text-sm rounded-md bg-transparent border-border text-muted-foreground hover:bg-muted"
                     onClick={onClose}
                 >
                     取消
                 </button>
                 <button
+                    type="button"
                     className="px-4 py-1.5 text-sm rounded-md bg-primary text-bg-app shadow-[0_4px_12px_rgba(var(--primary-rgb),0.25)] hover:brightness-110"
                     onClick={handleConfirm}
                 >
@@ -157,6 +159,7 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="flex items-start gap-2 flex-1">
                                         <button
+                                            type="button"
                                             className="mt-0.5 text-primary cursor-pointer hover:text-destructive shrink-0"
                                             onClick={() =>
                                                 handleRemoveActive(evt.id)}
@@ -281,6 +284,7 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex items-start gap-2 flex-1">
                                             <button
+                                                type="button"
                                                 className="mt-0.5 text-muted-foreground/50 cursor-pointer hover:text-primary shrink-0"
                                                 onClick={() =>
                                                     handleToggleInactive(
@@ -310,6 +314,7 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
                                                 { label: "高", val: 0.9 },
                                             ].map((btn) => (
                                                 <button
+                                                    type="button"
                                                     key={btn.label}
                                                     onClick={() =>
                                                         handleToggleInactive(

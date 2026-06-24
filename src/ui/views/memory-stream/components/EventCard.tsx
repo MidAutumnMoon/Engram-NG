@@ -189,6 +189,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                 <div className="flex items-center gap-1">
                     {/* 锁定按钮 */}
                     <button
+                        type="button"
                         className={`p-1.5 rounded-md ${
                             isLocked
                                 ? "text-emphasis bg-emphasis/10"
@@ -205,6 +206,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
                     {/* 归档按钮 (紧凑模式) */}
                     <button
+                        type="button"
                         className={`p-1.5 rounded-md ${
                             event.is_archived
                                 ? "text-emphasis bg-emphasis/10"
@@ -284,6 +286,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                 <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
                     {/* 归档按钮 (桌面模式) */}
                     <button
+                        type="button"
                         className={`
                             p-1.5 rounded-md
                             ${
@@ -308,6 +311,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
                     {/* 锁定按钮 (桌面模式) */}
                     <button
+                        type="button"
                         className={`
                             p-1.5 rounded-md
                             ${
@@ -329,6 +333,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
                     {/* 删除按钮 (桌面模式) - 保持谨慎颜色 */}
                     <button
+                        type="button"
                         className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                         onClick={(e) => {
                             e.stopPropagation();

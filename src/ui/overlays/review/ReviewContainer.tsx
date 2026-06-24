@@ -282,6 +282,7 @@ export const ReviewContainer: React.FC = () => {
             <div className="engram-app-root" style={{ display: "contents" }}>
                 <div className="fixed bottom-4 right-4 z-[9999] pointer-events-auto">
                     <button
+                        type="button"
                         onClick={handleRestore}
                         className="flex items-center gap-2 px-4 py-3 bg-primary text-primary-foreground shadow-lg rounded-full hover:scale-105 font-medium border-2 border-primary-foreground/20"
                     >
@@ -311,6 +312,7 @@ export const ReviewContainer: React.FC = () => {
                                 const isActive = req.id === activeId;
                                 return (
                                     <button
+                                        type="button"
                                         key={req.id}
                                         onClick={() => setActiveId(req.id)}
                                         className={`
@@ -333,6 +335,7 @@ export const ReviewContainer: React.FC = () => {
                         {/* Window Controls */}
                         <div className="flex items-center gap-1 mb-1 px-2">
                             <button
+                                type="button"
                                 onClick={() => setIsMinimized(true)}
                                 className="p-1.5 text-muted-foreground hover:text-foreground rounded-md"
                                 title="最小化"
@@ -340,6 +343,7 @@ export const ReviewContainer: React.FC = () => {
                                 <Minus size={16} />
                             </button>
                             <button
+                                type="button"
                                 onClick={() => {
                                     if (activeId) {
                                         // Cancel active request

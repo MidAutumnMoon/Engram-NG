@@ -32,6 +32,7 @@ export const MobileFullscreenForm: React.FC<MobileFullscreenFormProps> = ({
                 {/* 头部 */}
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-border shrink-0">
                     <button
+                        type="button"
                         onClick={onClose}
                         className="p-1 hover:bg-accent rounded"
                     >

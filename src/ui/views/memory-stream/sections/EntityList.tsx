@@ -184,6 +184,7 @@ export const EntityList: React.FC<EntityListProps> = ({
                                             className="border border-border/40 rounded-md overflow-hidden"
                                         >
                                             <button
+                                                type="button"
                                                 onClick={() =>
                                                     toggleGroup(group.key)}
                                                 className="w-full px-3 py-2 text-left bg-muted/20 hover:bg-muted/30 flex items-center gap-2"

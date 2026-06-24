@@ -16,6 +16,7 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-3 w-16 md:w-64">
             {/* Mobile Menu Toggle */}
             <button
+                type="button"
                 className="p-2 -ml-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground md:hidden"
                 onClick={onToggleSidebar}
                 title="菜单"
@@ -36,6 +37,7 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-1 md:gap-2 ml-auto">
             <div className="h-4 w-[1px] bg-border mx-1" />
             <button
+                type="button"
                 className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground text-muted-foreground"
                 onClick={onClose}
                 title="关闭扩展"

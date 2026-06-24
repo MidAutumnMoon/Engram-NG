@@ -178,7 +178,6 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
                 ref={panelRef}
                 className="fixed z-[11000] flex flex-col rounded-lg shadow-2xl border border-border overflow-hidden"
                 style={{
-
                     backgroundColor: "var(--popover, #1a1a2e)",
                     height: size.height === "auto" ? "auto" : size.height,
                     left: position.x,
@@ -207,6 +206,7 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
                         </span>
                     </div>
                     <button
+                        type="button"
                         onClick={onClose}
                         className="p-1 text-muted-foreground hover:text-foreground rounded hover:rotate-90 hover:bg-accent"
                         style={{ backgroundColor: "transparent" }}

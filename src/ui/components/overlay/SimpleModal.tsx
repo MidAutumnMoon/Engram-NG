@@ -38,6 +38,7 @@ export const SimpleModal: React.FC<SimpleModalProps> = ({
                         {title}
                     </h3>
                     <button
+                        type="button"
                         onClick={onClose}
                         className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50"
                         title="关闭"

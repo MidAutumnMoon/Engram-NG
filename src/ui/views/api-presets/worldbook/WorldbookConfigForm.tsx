@@ -120,6 +120,7 @@ export const WorldbookConfigForm: React.FC<WorldbookConfigFormProps> = ({
                             />
                         </div>
                         <button
+                            type="button"
                             onClick={onRefresh}
                             className="inline-flex items-center justify-center rounded-md w-9 h-9 hover:bg-accent hover:text-accent-foreground"
                             title="刷新列表"
@@ -168,6 +169,7 @@ export const WorldbookConfigForm: React.FC<WorldbookConfigFormProps> = ({
                                             <div className="flex items-center justify-between p-3">
                                                 <div className="flex items-center gap-3 flex-1 overflow-hidden">
                                                     <button
+                                                        type="button"
                                                         onClick={() =>
                                                             toggleExpand(book)}
                                                         className="p-1 hover:bg-accent rounded-sm"

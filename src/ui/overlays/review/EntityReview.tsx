@@ -215,6 +215,7 @@ export const EntityReview: React.FC<EntityReviewProps> = (
                                 }`}
                             >
                                 <button
+                                    type="button"
                                     className="flex items-center justify-between w-full group cursor-pointer"
                                     onClick={() =>
                                         setIsEditorExpanded(!isEditorExpanded)}
@@ -265,6 +266,7 @@ export const EntityReview: React.FC<EntityReviewProps> = (
                                 }`}
                             >
                                 <button
+                                    type="button"
                                     className="flex items-center justify-between w-full group cursor-pointer"
                                     onClick={() =>
                                         setIsPreviewExpanded(
@@ -396,6 +398,7 @@ const EntityCard: React.FC<{
         >
             <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100">
                 <button
+                    type="button"
                     onClick={(e) => {
                         e.stopPropagation();
                         onEdit();
@@ -406,6 +409,7 @@ const EntityCard: React.FC<{
                     <Edit2 size={14} />
                 </button>
                 <button
+                    type="button"
                     onClick={(e) => {
                         e.stopPropagation();
                         onRemove();

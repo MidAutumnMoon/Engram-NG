@@ -103,6 +103,7 @@ const MacroItem = ({ macro }: { macro: MacroDef }) => {
                 </span>
             </div>
             <button
+                type="button"
                 onClick={handleCopy}
                 className="opacity-0 group-hover:opacity-100 p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
                 title="复制宏"

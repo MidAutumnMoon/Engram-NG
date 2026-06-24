@@ -322,6 +322,7 @@ const DetailPanel: React.FC<DetailPanelProps> = (
             {/* 移动端返回按钮 */}
             {isFullScreen && onClose && (
                 <button
+                    type="button"
                     onClick={onClose}
                     className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4"
                 >
@@ -427,6 +428,7 @@ const DetailPanel: React.FC<DetailPanelProps> = (
                     <Filter size={12} className="text-muted-foreground" />
                     {(["all", "topK", "reranked"] as ViewMode[]).map((mode) => (
                         <button
+                            type="button"
                             key={mode}
                             className={`px-2 py-1 rounded ${
                                 viewMode === mode
@@ -453,6 +455,7 @@ const DetailPanel: React.FC<DetailPanelProps> = (
                         "rerank",
                     ] as SortMode[]).map((mode) => (
                         <button
+                            type="button"
                             key={mode}
                             className={`px-2 py-1 rounded ${
                                 sortMode === mode
@@ -573,6 +576,7 @@ export const RecallLog: React.FC = () => {
                     </span>
                 </div>
                 <button
+                    type="button"
                     className="p-1.5 rounded-md text-muted-foreground hover:text-destructive"
                     onClick={() => clearLogs()}
                     title="清除日志"

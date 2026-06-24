@@ -117,6 +117,7 @@ export const MessageReview: React.FC<MessageReviewProps> = ({
                         </div>
                         {onOpenRecallModal && (
                             <button
+                                type="button"
                                 onClick={onOpenRecallModal}
                                 className="px-3 py-1 text-xs rounded border border-border bg-card/50 text-muted-foreground hover:bg-muted hover:text-foreground"
                             >

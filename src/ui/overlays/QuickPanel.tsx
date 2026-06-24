@@ -128,6 +128,7 @@ export function QuickPanel({ isOpen, onClose }: QuickPanelProps) {
                         const Icon = item.icon;
                         return (
                             <button
+                                type="button"
                                 key={item.id}
                                 onClick={() => handleNavigate(item.path)}
                                 className="w-full flex items-center gap-3 p-2 rounded-md text-left bg-muted/30 border border-border hover:border-primary/40 hover:bg-primary/5"

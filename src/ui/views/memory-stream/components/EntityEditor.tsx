@@ -350,6 +350,7 @@ export const EntityEditor = ({
                         烧录描述 (YAML/Text)
                     </label>
                     <button
+                        type="button"
                         onClick={handleGenerateDesc}
                         className="flex items-center gap-1 text-[10px] text-primary hover:underline"
                         title="基于 Profile 生成描述文本"
@@ -384,6 +385,7 @@ export const EntityEditor = ({
             <div className="h-full flex flex-col bg-transparent">
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50 shrink-0">
                     <button
+                        type="button"
                         onClick={onClose}
                         className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded"
                     >
@@ -391,6 +393,7 @@ export const EntityEditor = ({
                     </button>
                     <h2 className="text-sm font-medium flex-1">编辑实体</h2>
                     <button
+                        type="button"
                         onClick={() => isFullScreen && onDelete?.(entity.id)}
                         className="p-1.5 text-destructive hover:bg-destructive/10 rounded"
                     >
@@ -410,6 +413,7 @@ export const EntityEditor = ({
             {!isMobile && (
                 <div className="flex items-center gap-2 pb-4 border-b border-border shrink-0">
                     <button
+                        type="button"
                         onClick={onClose}
                         className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded"
                         title="返回"
@@ -420,6 +424,7 @@ export const EntityEditor = ({
                         编辑实体
                     </h3>
                     <button
+                        type="button"
                         onClick={() => onDelete?.(entity.id)}
                         className="p-1.5 text-destructive hover:bg-destructive/10 rounded"
                     >

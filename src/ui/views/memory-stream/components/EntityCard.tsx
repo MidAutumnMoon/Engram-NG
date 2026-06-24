@@ -116,6 +116,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
 
                 {/* 锁定按钮 (紧凑模式) */}
                 <button
+                    type="button"
                     className={`p-1 ${
                         isLocked
                             ? "text-emphasis"
@@ -132,6 +133,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
 
                 {/* 归档按钮 (紧凑模式) */}
                 <button
+                    type="button"
                     className="p-1 px-2 hover:bg-muted/50 rounded"
                     onClick={(e) => {
                         e.stopPropagation();
@@ -194,6 +196,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
 
                 {/* 锁定按钮 (桌面模式) */}
                 <button
+                    type="button"
                     className={`
                         ml-auto p-1.5 rounded-md
                         ${
@@ -215,6 +218,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
 
                 {/* 归档按钮 (桌面模式) */}
                 <button
+                    type="button"
                     className={`
                         p-1.5 rounded-md
                         ${

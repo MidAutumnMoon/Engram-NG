@@ -112,6 +112,7 @@ export const GlobalDatabaseList: React.FC = () => {
 
                 <div className="flex gap-2">
                     <button
+                        type="button"
                         onClick={fetchDatabases}
                         disabled={loading}
                         className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded disabled:opacity-50"
@@ -123,6 +124,7 @@ export const GlobalDatabaseList: React.FC = () => {
                         />
                     </button>
                     <button
+                        type="button"
                         onClick={handleDeleteAll}
                         disabled={loading || dbs.length === 0 ||
                             (dbs.length === 1 &&
@@ -176,6 +178,7 @@ export const GlobalDatabaseList: React.FC = () => {
                                             </div>
                                         </div>
                                         <button
+                                            type="button"
                                             onClick={() =>
                                                 handleDelete(db.chatId)}
                                             disabled={isCurrent || loading}

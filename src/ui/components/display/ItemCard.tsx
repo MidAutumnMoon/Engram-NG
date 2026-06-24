@@ -98,6 +98,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                     {hasToggle
                         ? (
                             <button
+                                type="button"
                                 className={`
                                 w-7 h-7 flex items-center justify-center rounded-md
                                 ${
@@ -201,6 +202,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                     {visibleActions.map((action, i) => (
                         <button
                             key={i}
+                            type="button"
                             className={`
                                 p-1.5 rounded
                                 ${

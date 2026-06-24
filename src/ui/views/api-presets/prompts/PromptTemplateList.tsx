@@ -88,6 +88,7 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
                 <div className="flex items-center gap-1">
                     {onResetAll && (
                         <button
+                            type="button"
                             className="text-muted-foreground hover:text-foreground p-1"
                             onClick={() => {
                                 if (
@@ -104,6 +105,7 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
                         </button>
                     )}
                     <button
+                        type="button"
                         className="text-muted-foreground hover:text-foreground p-1"
                         onClick={handleAdd}
                         title="新建模板"

@@ -131,6 +131,7 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = (
                             状态监控
                         </h2>
                         <button
+                            type="button"
                             className="p-1 rounded text-muted-foreground hover:text-foreground"
                             onClick={loadStatus}
                             title="刷新"
@@ -193,6 +194,7 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = (
 
                 <div className="flex gap-3">
                     <button
+                        type="button"
                         onClick={handleManualExtract}
                         disabled={isLoading || status?.isExtracting ||
                             !config.enabled}
@@ -206,6 +208,7 @@ export const EntityConfigPanel: React.FC<EntityConfigPanelProps> = (
                     </button>
 
                     <button
+                        type="button"
                         onClick={handleArchiveNow}
                         disabled={isLoading || !config.enabled}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-emphasis border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"

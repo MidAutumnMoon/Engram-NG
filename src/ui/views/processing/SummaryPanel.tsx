@@ -269,6 +269,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                             状态监控
                         </h2>
                         <button
+                            type="button"
                             className="p-1 rounded text-muted-foreground hover:text-foreground"
                             onClick={loadStatus}
                             title="刷新"
@@ -384,6 +385,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                                                 className="w-16 bg-transparent border-b border-border/50 focus:border-primary outline-none text-xl font-mono text-foreground/80 pb-0.5"
                                             />
                                             <button
+                                                type="button"
                                                 onClick={handleSetSummarizedFloor}
                                                 disabled={status
                                                     .lastSummarizedFloor ===
@@ -410,6 +412,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                                                 className="w-16 bg-transparent border-b border-border/50 focus:border-primary outline-none text-xl font-mono text-foreground/80 pb-0.5"
                                             />
                                             <button
+                                                type="button"
                                                 onClick={handleSetExtractedFloor}
                                                 disabled={extractedFloor ===
                                                     editExtractedFloor}
@@ -447,6 +450,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                     {status?.running
                         ? (
                             <button
+                                type="button"
                                 className="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg"
                                 onClick={handleStop}
                             >
@@ -456,6 +460,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                         )
                         : (
                             <button
+                                type="button"
                                 className="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg hover:border-foreground/30"
                                 onClick={handleStart}
                             >
@@ -464,6 +469,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                             </button>
                         )}
                     <button
+                        type="button"
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg disabled:opacity-50"
                         onClick={handleTrigger}
                         disabled={loading || status?.isSummarizing}
@@ -589,6 +595,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                 {/* 底部重置按钮区 */}
                 <div className="flex justify-end">
                     <button
+                        type="button"
                         className="inline-flex items-center gap-2 px-3 py-1.5 text-xs text-red-500 hover:text-red-400 border border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10 rounded"
                         onClick={handleReset}
                         disabled={loading}

@@ -73,6 +73,7 @@ export const WorldbookBindingField: React.FC<WorldbookBindingFieldProps> = ({
                                     {book}
                                 </span>
                                 <button
+                                    type="button"
                                     onClick={() => handleRemove(book)}
                                     className="p-0.5 hover:bg-primary/20 rounded-full"
                                     title="移除"
@@ -85,6 +86,7 @@ export const WorldbookBindingField: React.FC<WorldbookBindingFieldProps> = ({
 
                 {/* 添加按钮 */}
                 <button
+                    type="button"
                     onClick={() => setShowPicker(true)}
                     className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground border border-dashed border-border hover:border-foreground/50 rounded-full"
                 >

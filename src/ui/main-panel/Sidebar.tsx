@@ -43,6 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* 关闭扩展（仅 PC 端）*/}
             {onClosePanel && (
                 <button
+                    type="button"
                     onClick={onClosePanel}
                     className="group w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                     title="关闭扩展"
@@ -82,6 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         return (
                             <button
                                 key={item.id}
+                                type="button"
                                 onClick={() => handleNavClick(item.id)}
                                 className={`
                                     group w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left
@@ -141,6 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         导航
                     </span>
                     <button
+                        type="button"
                         onClick={onClose}
                         className="p-2 -mr-2 rounded-md hover:bg-sidebar-accent text-muted-foreground hover:text-sidebar-accent-foreground"
                     >
@@ -155,6 +158,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         return (
                             <button
                                 key={item.id}
+                                type="button"
                                 onClick={() => handleNavClick(item.id)}
                                 className={`
                                     group w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left

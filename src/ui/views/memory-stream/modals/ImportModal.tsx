@@ -27,12 +27,14 @@ export const ImportModal: React.FC<ImportModalProps> = ({
         footer={
             <div className="flex justify-end gap-2 w-full">
                 <button
+                    type="button"
                     onClick={onClose}
                     className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                 >
                     取消
                 </button>
                 <button
+                    type="button"
                     onClick={onExecute}
                     disabled={availableDbs.length === 0}
                     className="px-3 py-1.5 text-xs bg-primary text-primary-foreground rounded hover:opacity-90 disabled:opacity-50"

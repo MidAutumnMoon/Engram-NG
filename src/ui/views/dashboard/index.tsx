@@ -298,6 +298,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                                     { id, label, icon: Icon, path },
                                 ) => (
                                     <button
+                                        type="button"
                                         key={id}
                                         onClick={() =>
                                             handleNavigate(
@@ -380,6 +381,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                                     活动日志
                                 </h2>
                                 <button
+                                    type="button"
                                     onClick={() => handleNavigate("devlog")}
                                     className="text-[10px] text-link hover:underline flex items-center gap-0.5"
                                 >

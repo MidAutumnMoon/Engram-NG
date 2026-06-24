@@ -272,7 +272,11 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                     title="编辑 LLM 预设"
                     onClose={handleMobileClose}
                     actions={hasChanges && (
-                        <button className="p-2 text-primary" onClick={save}>
+                        <button
+                            type="button"
+                            className="p-2 text-primary"
+                            onClick={save}
+                        >
                             <Save size={18} />
                         </button>
                     )}
@@ -293,7 +297,11 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                         title="编辑提示词模板"
                         onClose={handleMobileClose}
                         actions={hasChanges && (
-                            <button className="p-2 text-primary" onClick={save}>
+                            <button
+                                type="button"
+                                className="p-2 text-primary"
+                                onClick={save}
+                            >
                                 <Save size={18} />
                             </button>
                         )}
@@ -318,6 +326,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                             onClose={handleMobileClose}
                             actions={hasChanges && (
                                 <button
+                                    type="button"
                                     className="p-2 text-primary"
                                     onClick={save}
                                 >
@@ -343,7 +352,11 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                     title="编辑正则规则"
                     onClose={handleMobileClose}
                     actions={hasChanges && (
-                        <button className="p-2 text-primary" onClick={save}>
+                        <button
+                            type="button"
+                            className="p-2 text-primary"
+                            onClick={save}
+                        >
                             <Save size={18} />
                         </button>
                     )}
@@ -374,6 +387,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                 onChange={(id: string) => setMainTab(id as MainTabType)}
                 actions={hasChanges && (
                     <button
+                        type="button"
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary hover:text-primary-foreground hover:bg-primary border border-primary/50 rounded"
                         onClick={save}
                     >
@@ -421,6 +435,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                                                 预设列表
                                             </h3>
                                             <button
+                                                type="button"
                                                 className="text-muted-foreground hover:text-foreground"
                                                 onClick={addPreset}
                                             >
@@ -495,6 +510,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                                 {/* V0.9.2: 子标签切换 */}
                                 <div className="flex items-center gap-2 mb-4">
                                     <button
+                                        type="button"
                                         onClick={() =>
                                             setPromptSubTab("templates")}
                                         className={`text-xs font-bold uppercase tracking-wider ${
@@ -509,6 +525,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                                         |
                                     </span>
                                     <button
+                                        type="button"
                                         onClick={() =>
                                             setPromptSubTab("macros")}
                                         className={`text-xs font-bold uppercase tracking-wider ${

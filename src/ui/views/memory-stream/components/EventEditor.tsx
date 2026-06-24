@@ -321,6 +321,7 @@ export const EventEditor = ({
                 <div className="flex justify-between items-center">
                     <label className="text-xs text-meta">摘要内容</label>
                     <button
+                        type="button"
                         onClick={() => {
                             const autoSummary = generateSummaryFromKV({
                                 event: eventType,
@@ -592,6 +593,7 @@ export const EventEditor = ({
                 {/* 头部 */}
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50 shrink-0">
                     <button
+                        type="button"
                         onClick={onClose}
                         className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded"
                     >
@@ -602,6 +604,7 @@ export const EventEditor = ({
                     </h2>
                     <div className="flex items-center gap-1">
                         <button
+                            type="button"
                             onClick={() => {
                                 const val = !isArchived;
                                 setIsArchived(val);
@@ -621,6 +624,7 @@ export const EventEditor = ({
                             />
                         </button>
                         <button
+                            type="button"
                             onClick={() => {
                                 const val = !isLocked;
                                 setIsLocked(val);
@@ -639,6 +643,7 @@ export const EventEditor = ({
                                 : <LockOpen size={16} />}
                         </button>
                         <button
+                            type="button"
                             onClick={handleDelete}
                             className="p-1.5 text-destructive hover:bg-destructive/10 rounded ml-1"
                             title="删除"
@@ -656,6 +661,7 @@ export const EventEditor = ({
                 {/* 底部操作栏 */}
                 <div className="p-4 border-t border-border shrink-0">
                     <button
+                        type="button"
                         onClick={onClose}
                         className="w-full py-2 text-sm border border-border rounded-md text-meta hover:text-foreground hover:border-foreground/30"
                     >
@@ -673,6 +679,7 @@ export const EventEditor = ({
             {!isMobile && (
                 <div className="flex items-center gap-2 pb-4 border-b border-border shrink-0">
                     <button
+                        type="button"
                         onClick={onClose}
                         className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded"
                     >
@@ -683,6 +690,7 @@ export const EventEditor = ({
                     </h3>
                     <div className="flex items-center gap-1">
                         <button
+                            type="button"
                             onClick={() => {
                                 const val = !isArchived;
                                 setIsArchived(val);
@@ -702,6 +710,7 @@ export const EventEditor = ({
                             />
                         </button>
                         <button
+                            type="button"
                             onClick={() => {
                                 const val = !isLocked;
                                 setIsLocked(val);
@@ -720,6 +729,7 @@ export const EventEditor = ({
                                 : <LockOpen size={16} />}
                         </button>
                         <button
+                            type="button"
                             onClick={handleDelete}
                             className="p-1.5 text-destructive hover:bg-destructive/10 rounded ml-1"
                             title="删除"

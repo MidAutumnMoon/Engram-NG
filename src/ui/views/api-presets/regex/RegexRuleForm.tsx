@@ -98,6 +98,7 @@ export const RegexRuleForm: React.FC<RegexRuleFormProps> = (
                     <div className="flex gap-2">
                         {REGEX_SCOPE_OPTIONS.map((opt) => (
                             <button
+                                type="button"
                                 key={opt.value}
                                 className={`flex-1 px-3 py-2 text-sm rounded-md border ${
                                     rule.scope === opt.value
@@ -176,6 +177,7 @@ export const RegexRuleForm: React.FC<RegexRuleFormProps> = (
                     <div className="flex flex-wrap gap-2">
                         {FLAGS_OPTIONS.map((opt) => (
                             <button
+                                type="button"
                                 key={opt.value}
                                 className={`px-2 py-1 text-xs rounded-md border ${
                                     rule.flags.includes(opt.value)
