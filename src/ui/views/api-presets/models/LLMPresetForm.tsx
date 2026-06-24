@@ -4,7 +4,7 @@
 import type { APISource, LLMPreset } from "@/config/types/llm.ts";
 import type { ModelInfo } from "@/integrations/llm/ModelDiscovery.ts";
 import { ModelService } from "@/integrations/llm/ModelDiscovery.ts";
-import { SliderField } from "@/ui/components/core/SliderField.tsx";
+import { SliderField } from "@/ui/components/form/SliderField.tsx";
 import {
     FormSection,
     SelectField,

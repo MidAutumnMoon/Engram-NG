@@ -1,6 +1,6 @@
 import type { EntityNode } from "@/data/types/graph.ts";
 import { EntityType } from "@/data/types/graph.ts";
-import { ModernButton as Button } from "@/ui/components/core/Button.tsx";
+import { ModernButton as Button } from "@/ui/components/form/Button.tsx";
 import * as jsYaml from "js-yaml";
 import {
     AlertTriangle,

@@ -16,7 +16,7 @@ import {
 } from "@/domain/memory/index.ts";
 import type { TrimmerStatus } from "@/domain/memory/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
-import { SliderField } from "@/ui/components/core/SliderField.tsx";
+import { SliderField } from "@/ui/components/form/SliderField.tsx";
 import { SwitchField } from "@/ui/components/form/FormComponents.tsx";
 import { Divider } from "@/ui/components/layout/Divider.tsx";
 import type { UseSummarizerConfigReturn } from "@/ui/hooks/useSummarizerConfig.ts";

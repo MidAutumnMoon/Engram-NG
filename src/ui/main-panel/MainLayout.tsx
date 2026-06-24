@@ -1,5 +1,5 @@
-import Header from "@/ui/shell/Header.tsx";
-import { Sidebar } from "@/ui/shell/Sidebar.tsx";
+import Header from "./Header.tsx";
+import { Sidebar } from "./Sidebar.tsx";
 import { GlobalStyles } from "@/ui/styles/GlobalStyles.tsx";
 import React from "react";
 

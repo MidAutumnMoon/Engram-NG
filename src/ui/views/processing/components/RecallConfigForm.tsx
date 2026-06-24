@@ -1,5 +1,5 @@
 import type { RecallConfig, RerankConfig } from "@/config/types/rag.ts";
-import { Switch } from "@/ui/components/core/Switch.tsx";
+import { Switch } from "@/ui/components/form/Switch.tsx";
 import { NumberField } from "@/ui/components/form/FormComponents.tsx";
 import {
     AlertTriangle,

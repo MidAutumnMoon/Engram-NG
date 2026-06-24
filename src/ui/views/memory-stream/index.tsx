@@ -1,7 +1,7 @@
 import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
 import { TabPills } from "@/ui/components/layout/TabPills.tsx";
 import { MasterDetailLayout } from "@/ui/components/layout/MasterDetailLayout.tsx";
-import { MobileFullscreenForm } from "@/ui/components/layout/MobileFullscreenForm.tsx";
+import { MobileFullscreenForm } from "@/ui/components/overlay/MobileFullscreenForm.tsx";
 import { Save, Trash2 } from "lucide-react";
 import React, { useRef } from "react";
 

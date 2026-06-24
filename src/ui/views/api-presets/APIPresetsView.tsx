@@ -32,9 +32,9 @@ import { RegexRuleList } from "./regex/RegexRuleList.tsx";
 import { PresetCard } from "./shared/PresetCard.tsx";
 import { WorldbookConfigForm } from "./worldbook/WorldbookConfigForm.tsx";
 
-import { EmptyState } from "@/ui/components/feedback/EmptyState.tsx";
+import { EmptyState } from "@/ui/components/display/EmptyState.tsx";
 import { MasterDetailLayout } from "@/ui/components/layout/MasterDetailLayout.tsx";
-import { MobileFullscreenForm } from "@/ui/components/layout/MobileFullscreenForm.tsx"; // Added import
+import { MobileFullscreenForm } from "@/ui/components/overlay/MobileFullscreenForm.tsx";
 import { useResponsive } from "@/ui/hooks/useResponsive.ts";
 // Hooks
 import { useConfig } from "../../hooks/useConfig.ts";

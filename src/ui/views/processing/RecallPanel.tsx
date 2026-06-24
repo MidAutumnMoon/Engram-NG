@@ -14,7 +14,7 @@ import type { AgenticRecall } from "@/config/types/rag.ts";
 import { retriever } from "@/domain/rag/retrieval/Retriever.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { notify } from "@/sillytavern/notify.ts";
-import { RecallDecisionModal } from "@/ui/panels/review/RecallDecisionModal.tsx";
+import { RecallDecisionModal } from "@/ui/overlays/review/RecallDecisionModal.tsx";
 import {
     BrainCircuit,
     Database,

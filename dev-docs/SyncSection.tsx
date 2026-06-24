@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useConfigStore } from "@/state/configStore";
-import { Switch } from "@/ui/components/core/Switch";
+import { Switch } from "@/ui/components/form/Switch.tsx";
 import { getCurrentChatId } from "@/sillytavern";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";

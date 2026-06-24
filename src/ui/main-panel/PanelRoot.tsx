@@ -8,7 +8,7 @@
  * MainLayout 的 onClose prop（Header 的关闭按钮直接调用该 prop）。
  */
 import { useUiStore } from "@/state/uiStore.ts";
-import { MainLayout } from "@/ui/shell/MainLayout.tsx";
+import { MainLayout } from "@/ui/main-panel/MainLayout.tsx";
 import React from "react";
 
 import { Dashboard } from "@/ui/views/dashboard/index.tsx";

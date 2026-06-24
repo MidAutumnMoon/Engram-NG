@@ -1,6 +1,6 @@
 import type { AgenticRecall } from "@/config/types/rag.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
-import { SimpleModal } from "@/ui/components/feedback/SimpleModal.tsx";
+import { SimpleModal } from "@/ui/components/overlay/SimpleModal.tsx";
 import {
     CheckSquare,
     Database,

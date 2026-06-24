@@ -1,6 +1,6 @@
 import React from "react";
 import { useConfigStore } from "@/state/configStore.ts";
-import { Switch } from "@/ui/components/core/Switch.tsx";
+import { Switch } from "@/ui/components/form/Switch.tsx";
 import { Brain, Eye, ShieldCheck } from "lucide-react";
 import { entityBuilder, summarizerService } from "@/domain/memory/index.ts";
 

@@ -1,5 +1,5 @@
 import type { EntityNode } from "@/data/types/graph.ts";
-import { EmptyState } from "@/ui/components/feedback/EmptyState.tsx";
+import { EmptyState } from "@/ui/components/display/EmptyState.tsx";
 import { ChevronDown, RefreshCw, Search, Users } from "lucide-react";
 import React from "react";
 import { EntityCard } from "../components/EntityCard.tsx";

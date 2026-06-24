@@ -1,6 +1,6 @@
 import type { EventNode } from "@/data/types/graph.ts";
-import { ErrorBoundary } from "@/ui/components/core/ErrorBoundary.tsx";
-import { EmptyState } from "@/ui/components/feedback/EmptyState.tsx";
+import { ErrorBoundary } from "@/ui/components/ErrorBoundary.tsx";
+import { EmptyState } from "@/ui/components/display/EmptyState.tsx";
 import { Brain, RefreshCw, Search } from "lucide-react";
 import React from "react";
 import { GroupedVirtuoso } from "react-virtuoso";

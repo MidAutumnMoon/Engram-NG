@@ -3,7 +3,7 @@ import type {
     ReviewRequest,
 } from "@/domain/review/ReviewBridge.ts";
 import { useReviewStore } from "@/state/reviewStore.ts";
-import { ModernButton as Button } from "@/ui/components/core/Button.tsx";
+import { ModernButton as Button } from "@/ui/components/form/Button.tsx";
 import {
     AlertTriangle,
     ArrowDownToLine,

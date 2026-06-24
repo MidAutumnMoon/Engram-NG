@@ -10,7 +10,7 @@
 import type { EntityExtractConfig } from "@/config/types/memory.ts";
 import { EventBus } from "@/events/index.ts";
 import { entityBuilder } from "@/domain/memory/EntityExtractor.ts";
-import { SliderField } from "@/ui/components/core/SliderField.tsx";
+import { SliderField } from "@/ui/components/form/SliderField.tsx";
 import { SwitchField } from "@/ui/components/form/FormComponents.tsx";
 import { Divider } from "@/ui/components/layout/Divider.tsx";
 import { Archive, RefreshCw } from "lucide-react";

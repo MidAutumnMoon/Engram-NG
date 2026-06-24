@@ -1,6 +1,6 @@
 import { useResponsive } from "@/ui/hooks/useResponsive.ts";
 import React from "react";
-import { MobileFullscreenForm } from "./MobileFullscreenForm.tsx";
+import { MobileFullscreenForm } from "../overlay/MobileFullscreenForm.tsx";
 
 interface MasterDetailLayoutProps {
     /** 列表区域内容 */

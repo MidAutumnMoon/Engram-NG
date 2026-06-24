@@ -34,7 +34,7 @@ export async function mountEngram(): Promise<void> {
         document.body.append(root);
     }
 
-    const { EngramRoot } = await import("@/ui/root/EngramRoot.tsx");
+    const { EngramRoot } = await import("@/ui/EngramRoot.tsx");
     createRoot(root).render(<EngramRoot />);
     mounted = true;
     Logger.info(LogModule.TAVERN_UI, "React 根已挂载 (#engram-root)");

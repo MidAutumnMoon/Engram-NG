@@ -1,4 +1,4 @@
-import { SimpleModal } from "@/ui/components/feedback/SimpleModal.tsx";
+import { SimpleModal } from "@/ui/components/overlay/SimpleModal.tsx";
 import { FileText } from "lucide-react";
 import React from "react";
 

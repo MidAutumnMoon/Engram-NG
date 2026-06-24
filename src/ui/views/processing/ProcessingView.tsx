@@ -16,8 +16,8 @@ import {
 } from "lucide-react";
 import type { Tab } from "@/ui/components/layout/TabPills.tsx";
 import { TabPills } from "@/ui/components/layout/TabPills.tsx";
-import type { QuickLink } from "@/ui/components/layout/QuickLinks.tsx";
-import { QuickLinks } from "@/ui/components/layout/QuickLinks.tsx";
+import type { QuickLink } from "@/ui/components/display/QuickLinks.tsx";
+import { QuickLinks } from "@/ui/components/display/QuickLinks.tsx";
 import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
 import { useConfig } from "@/ui/hooks/useConfig.ts";
 import { useSummarizerConfig } from "@/ui/hooks/useSummarizerConfig.ts";

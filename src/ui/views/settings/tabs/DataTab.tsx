@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useConfigStore } from "@/state/configStore.ts";
-import { Switch } from "@/ui/components/core/Switch.tsx";
+import { Switch } from "@/ui/components/form/Switch.tsx";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { getCurrentChatId } from "@/sillytavern/index.ts";
 import { RefreshCw, Trash2 } from "lucide-react";
