@@ -1,6 +1,5 @@
 import { getSettings } from "@/config/settings.ts";
-import { getSTContext } from "@/sillytavern/context.ts";
-import { getTavernHelper } from "./adapter.ts";
+import { getSTContext, getTavernHelper } from "@/sillytavern/context.ts";
 import { getEntries } from "./crud.ts";
 import type { WorldInfoEntry } from "./types.ts";
 import { Logger } from "@/logger/Logger.ts";

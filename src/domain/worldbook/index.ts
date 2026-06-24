@@ -1,4 +1,3 @@
-export * from "./adapter.ts";
 export * from "./crud.ts";
 export * from "./engram.ts";
 export * from "./metrics.ts";
@@ -7,8 +6,7 @@ export * from "./slot.ts";
 export * from "./types.ts";
 
 // Facade Implementation moved here
-import { getSTContext } from "@/sillytavern/context.ts";
-import { getTavernHelper } from "./adapter.ts";
+import { getSTContext, getTavernHelper } from "@/sillytavern/context.ts";
 import {
     createEntry,
     deleteEntries,

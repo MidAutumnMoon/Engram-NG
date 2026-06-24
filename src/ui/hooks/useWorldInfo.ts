@@ -74,7 +74,7 @@ export function useWorldInfo(): UseWorldInfoReturn {
         setWorldbookScopes(scopes);
 
         // 2. 加载当前角色状态 (仅记录当前角色世界书用于 fallback)
-        const helper = getTavernHelper();
+        const helper = window.TavernHelper;
         const charBooks = helper?.getCharWorldbookNames?.("current");
         if (charBooks?.primary) {
             setCurrentCharWorldbook(charBooks.primary);

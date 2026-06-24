@@ -1,6 +1,6 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getTavernHelper } from "./adapter.ts";
+import { getTavernHelper } from "@/sillytavern/context.ts";
 import type {
     CreateWorldInfoEntryParams,
     WorldInfoEntry,

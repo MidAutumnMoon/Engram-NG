@@ -15,6 +15,7 @@ import type { LLMPreset } from "@/config/types/llm.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { regexProcessor } from "@/domain/workflow/steps/processing/RegexProcessor.ts";
+import { getTavernHelper, TavernHelper } from "@/sillytavern/context.ts";
 
 /** LLM 生成请求 */
 interface LLMRequest {
@@ -49,21 +50,6 @@ interface QueuedRequest {
     request: LLMRequest;
     resolve: (value: LLMResponse) => void;
     reject: (reason: unknown) => void;
-}
-
-/**
- * 获取 TavernHelper API
- */
-function getTavernHelper(): {
-    generate?: (options: unknown) => Promise<string>;
-    generateRaw?: (options: unknown) => Promise<string>;
-} | null {
-    try {
-        // @ts-expect-error - TavernHelper 全局对象
-        return window.TavernHelper || null;
-    } catch {
-        return null;
-    }
 }
 
 /**
@@ -213,7 +199,7 @@ class LLMAdapter {
 
     private async callTavernHelper(
         request: LLMRequest,
-        helper: NonNullable<ReturnType<typeof getTavernHelper>>,
+        helper: NonNullable<TavernHelper>,
         customApiConfig?: Record<string, any>,
         currentPreset?: LLMPreset,
     ): Promise<LLMResponse> {

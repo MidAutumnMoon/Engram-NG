@@ -1,7 +1,6 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getSTContext } from "@/sillytavern/context.ts";
-import { getTavernHelper } from "./adapter.ts";
+import { getSTContext, getTavernHelper } from "@/sillytavern/context.ts";
 
 /**
  * WorldbookEngramService - Engram 特定的业务逻辑
