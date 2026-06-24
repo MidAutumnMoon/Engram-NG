@@ -1,7 +1,7 @@
 import { getSetting } from "@/config/settings.ts";
 import type { EntityNode, EventNode } from "@/data/types/graph.ts";
 import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
-import { MacroService } from "@/domain/macros/index.ts";
+import { refreshEngramCache } from "@/domain/macros/index.ts";
 import { getCurrentDb, useMemoryStore } from "@/state/memoryStore.ts";
 import { notify } from "@/sillytavern/notify.ts";
 import Dexie from "dexie";
@@ -271,7 +271,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                     )
                 );
 
-                await MacroService.refreshEngramCache();
+                await refreshEngramCache();
 
                 notify(
                     "success",

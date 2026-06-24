@@ -54,7 +54,7 @@ export const MODULE_META: Record<LogModule, ModuleMeta> = {
     [LogModule.TAVERN_EVENTS]: { icon: GitBranch },
     [LogModule.CHAT_HISTORY]: { icon: MessageSquare },
     [LogModule.EJS_PROCESSOR]: { icon: FileCode },
-    [LogModule.MACRO_SERVICE]: { icon: FileCode },
+    [LogModule.MACROS]: { icon: FileCode },
     [LogModule.WORLDBOOK]: { icon: FileText },
 
     // ===== LLM =====

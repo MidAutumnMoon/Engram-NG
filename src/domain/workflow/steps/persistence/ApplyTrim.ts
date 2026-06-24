@@ -2,7 +2,7 @@ import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph.ts";
-import { MacroService } from "@/domain/macros/index.ts";
+import { refreshCache } from "@/domain/macros/index.ts";
 import { embeddingService } from "@/domain/rag/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { notify } from "@/sillytavern/notify.ts";
@@ -104,7 +104,7 @@ export class ApplyTrim implements IStep {
         await store.archiveEvents(sourceEventIds);
 
         // 4. 刷新缓存
-        await MacroService.refreshCache();
+        await refreshCache();
 
         Logger.success(LogModule.WF_APPLY_TRIM, "精简完成", {
             merged: eventsToMerge.length,

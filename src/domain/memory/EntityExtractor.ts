@@ -16,7 +16,10 @@ import { chatManager } from "@/data/ChatManager.ts";
 import type { EntityNode } from "@/data/types/graph.ts";
 import { WorkflowEngine } from "@/domain/workflow/core/WorkflowEngine.ts";
 import { createEntityWorkflow } from "@/domain/workflow/definitions/EntityWorkflow.ts";
-import { MacroService } from "@/domain/macros/index.ts";
+import {
+    getChatHistory as getMacroChatHistory,
+    getCurrentMessageCount,
+} from "@/domain/macros/index.ts";
 import { onTavernEvent } from "@/sillytavern/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { dismissNotify, notify, notifyRunning } from "@/sillytavern/notify.ts";
@@ -116,7 +119,7 @@ export class EntityBuilder {
      * Handle message received event
      */
     private async handleMessageReceived(): Promise<void> {
-        const currentFloor = MacroService.getCurrentMessageCount();
+        const currentFloor = getCurrentMessageCount();
         const state = await chatManager.getState();
         const lastExtracted = state.last_extracted_floor || 0;
 
@@ -282,7 +285,7 @@ export class EntityBuilder {
                 (this.config.previewEnabled ?? true);
 
             // 获取聊天历史 (如果是单条楼层，则宏系统会自动处理)
-            const chatHistory = MacroService.getChatHistory(
+            const chatHistory = getMacroChatHistory(
                 range || [floor, floor],
             );
 
@@ -420,14 +423,14 @@ export class EntityBuilder {
 
     /**
      * 按楼层范围提取实体
-     * V0.9.9: 统一调用 MacroService 获取指定范围的历史
+     * V0.9.9: 统一调用 macros 模块获取指定范围的历史
      */
     async extractByRange(
         range: [number, number],
         manual = false,
     ): Promise<EntityBuildResult | null> {
         // 同步获取清洗后的历史记录
-        const chatHistory = MacroService.getChatHistory(range);
+        const chatHistory = getMacroChatHistory(range);
 
         if (!chatHistory) {
             Logger.warn(LogModule.MEMORY_ENTITY, "指定范围的历史记录为空", {
@@ -456,7 +459,7 @@ export class EntityBuilder {
         // 用户反馈: "上次提取" 会导致中间一段丢失上下文
         const state = await chatManager.getState();
         const lastSummarized = state.last_summarized_floor || 0;
-        const currentFloor = MacroService.getCurrentMessageCount();
+        const currentFloor = getCurrentMessageCount();
 
         // 计算范围: (lastSummarized + 1) -> current
         // 如果 lastSummarized 离现在太远 (>50)，则只取最近 50 层
@@ -485,7 +488,7 @@ export class EntityBuilder {
         updatedEntities: EntityNode[],
     ): Promise<void> {
         const store = useMemoryStore.getState();
-        const currentFloor = MacroService.getCurrentMessageCount();
+        const currentFloor = getCurrentMessageCount();
 
         Logger.info(LogModule.MEMORY_ENTITY, "开始保存实体 (saveRawEntities)", {
             newCount: newEntities.length,

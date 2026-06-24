@@ -92,7 +92,7 @@ export class BuildPrompt implements IStep {
             "{{chatHistory}}": context.input.chatHistory || "",
             "{{previousOutput}}": context.input.previousOutput || "",
             "{{feedback}}": context.input.feedback || "",
-            // ... 其他变量交由 MacroService 全局处理 (如 {{worldbookContext}})
+            // ... 其他变量交由 macros 模块全局处理 (如 {{worldbookContext}})
         };
 
         // 3. 初始替换 (处理 input 相关的本地变量)

@@ -19,7 +19,7 @@ import {
     getSTContext,
     onTavernEvent,
 } from "@/sillytavern/index.ts";
-import { MacroService } from "@/domain/macros/index.ts";
+import { refreshCache } from "@/domain/macros/index.ts";
 import { retriever } from "@/domain/rag/retrieval/Retriever.ts";
 
 interface GenerationAfterCommandsParams {
@@ -74,7 +74,7 @@ class Injector {
             Logger.debug(LogModule.RAG_INJECT, "捕获到 CHAT_CHANGED 事件");
             this.isProcessing = false;
             this.cacheInvalid = false; // 切换聊天时重置缓存状态
-            MacroService.refreshCache().catch((error) => {
+            refreshCache().catch((error) => {
                 Logger.warn(
                     LogModule.RAG_INJECT,
                     "聊天切换时刷新缓存失败",
@@ -298,7 +298,7 @@ class Injector {
                         //     const agenticRecalls: AgenticRecall[] = ...;
                         //     const agenticResult = await retriever.agenticSearch(agenticRecalls);
                         //     if (agenticResult.nodes.length > 0) {
-                        //         await MacroService.refreshCacheWithNodes(agenticResult.nodes);
+                        //         await refreshCache(agenticResult.nodes.map((n) => n.id));
                         //         ragHandled = true;
                         //     }
                         // }
@@ -325,8 +325,8 @@ class Injector {
                                     nodeCount: recallResult.nodes.length,
                                 },
                             );
-                            await MacroService.refreshCacheWithNodes(
-                                recallResult.nodes,
+                            await refreshCache(
+                                recallResult.nodes.map((n) => n.id),
                             );
                         } else {
                             Logger.debug(

@@ -2,7 +2,7 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import { hideMessageRange } from "@/sillytavern/chat/hideMessageRange.ts";
-import { MacroService } from "@/domain/macros/index.ts";
+import { refreshEngramCache } from "@/domain/macros/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { notify } from "@/sillytavern/notify.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
@@ -133,7 +133,7 @@ export class SaveEvent implements IStep {
         }
 
         // Refresh Macro Cache
-        await MacroService.refreshEngramCache();
+        await refreshEngramCache();
 
         // 5. Auto Hide (Optional) - Should this be a separate step?
         // 放在这里方便，或者放在 Workflow 的最后

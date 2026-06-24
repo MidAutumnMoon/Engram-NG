@@ -20,7 +20,7 @@ import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
 import { injector } from "@/domain/rag/injection/Injector.ts";
 import { WorldBookSlotService } from "@/domain/worldbook/slot.ts";
 import { initLinkedCleanup } from "@/domain/cleanup/LinkedCleanup.ts";
-import { MacroService } from "@/domain/macros/index.ts";
+import { initMacros } from "@/domain/macros/index.ts";
 
 /** Initialize a service with error isolation. Returns true on success. */
 async function tryInit(
@@ -101,8 +101,8 @@ initQuickPanelButton();
 // 6. React root
 await tryInit("Mount", () => mountEngram());
 
-// 7. MacroService (depends on worldbook being ready)
-if (worldbookReady) await tryInit("MacroService", () => MacroService.init());
+// 7. Macros (depends on worldbook being ready)
+if (worldbookReady) await tryInit("Macros", () => initMacros());
 
 Logger.success(
     LogModule.STBRIDGE,

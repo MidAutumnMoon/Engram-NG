@@ -25,7 +25,7 @@ export enum LogModule {
     TAVERN_EVENTS = "TavernEventBus",
     CHAT_HISTORY = "ChatHistoryHelper",
     EJS_PROCESSOR = "EjsProcessor",
-    MACRO_SERVICE = "MacroService",
+    MACROS = "Macros",
     WORLDBOOK = "Worldbook",
 
     // ===== LLM =====

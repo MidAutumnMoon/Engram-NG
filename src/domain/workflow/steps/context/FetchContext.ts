@@ -2,7 +2,11 @@ import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { getCurrentCharacter, getSTContext } from "@/sillytavern/index.ts";
-import { MacroService } from "@/domain/macros/index.ts";
+import {
+    getChatHistory as getMacroChatHistory,
+    getEntityStates,
+    getSummaries,
+} from "@/domain/macros/index.ts";
 import { PromptLoader } from "@/integrations/llm/PromptLoader.ts";
 import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import type { JobContext } from "../../core/JobContext.ts";
@@ -30,7 +34,7 @@ export class FetchContext implements IStep {
 
         // 2. 获取 Chat History
         // 优先使用任务输入中传入的明确范围 (range)，常用于批处理切片执行。
-        // 如果未传入 range，则回退到 MacroService 的默认逻辑（通常是获取最近的 N 条消息）。
+        // 如果未传入 range，则回退到 macros 模块的默认逻辑（通常是获取最近的 N 条消息）。
         const range = context.input.range as [number, number] | undefined;
         Logger.debug(LogModule.WF_FETCH_CONTEXT, "开始获取聊天记录", {
             currentStep: context.metadata.currentStep,
@@ -55,7 +59,7 @@ export class FetchContext implements IStep {
                 },
             );
         } else {
-            history = MacroService.getChatHistory(range);
+            history = getMacroChatHistory(range);
         }
 
         // 关键修复：确保 context.input.chatHistory 始终有值（即使为空字符串），
@@ -213,13 +217,13 @@ export class FetchContext implements IStep {
         context.input.context = wiContent;
 
         // 4. 获取 Engram Summaries
-        // V1.3.2: 统一使用 MacroService 缓存，确保包含 RAG 召回内容 (由 Injector 写入)
-        const summaryContent = MacroService.getSummaries();
+        // V1.3.2: 统一使用 macros 模块缓存，确保包含 RAG 召回内容 (由 Injector 写入)
+        const summaryContent = getSummaries();
         context.input.engramSummaries = summaryContent;
 
         // 5. V1.0.0: 获取 Engram Entity States
-        // 同样使用 MacroService 缓存
-        const entityStatesContent = MacroService.getEntityStates();
+        // 同样使用 macros 模块缓存
+        const entityStatesContent = getEntityStates();
         context.input.engramEntityStates = entityStatesContent;
 
         Logger.debug(LogModule.WF_FETCH_CONTEXT, "上下文获取完成", {
