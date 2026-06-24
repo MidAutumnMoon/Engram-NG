@@ -28,8 +28,9 @@ export class WorldBookSlotService {
     static async init(): Promise<void> {
         if (this.isInitialized) return;
 
+        let worldbookName: string | null = null;
         try {
-            const worldbookName = await WorldbookEngramService
+            worldbookName = await WorldbookEngramService
                 .getOrCreateWorldbook();
             if (!worldbookName) {
                 Logger.warn(LogModule.WORLDBOOK, "无法获取或创建世界书");
@@ -78,10 +79,17 @@ export class WorldBookSlotService {
                 });
                 this.isInitialized = true;
             } else {
-                Logger.error(LogModule.WORLDBOOK, "创建宏槽位条目失败");
+                Logger.error(
+                    LogModule.WORLDBOOK,
+                    `创建宏槽位条目失败 (worldbook: '${worldbookName}')`,
+                );
             }
         } catch (error) {
-            Logger.error(LogModule.WORLDBOOK, "初始化失败", error);
+            Logger.error(
+                LogModule.WORLDBOOK,
+                `初始化失败 (worldbook: '${worldbookName ?? "<unresolved>"}')`,
+                error,
+            );
         }
     }
 

@@ -77,7 +77,7 @@ export async function getEntries(
     } catch (error) {
         Logger.error(
             LogModule.WORLDBOOK,
-            `获取世界书“${worldbookName}”的条目失败`,
+            `获取世界书 '${worldbookName}' 的条目失败`,
             error,
         );
         return [];
@@ -118,7 +118,11 @@ export async function deleteWorldbook(worldbookName: string): Promise<boolean> {
         }
         return success;
     } catch (error) {
-        Logger.error(LogModule.WORLDBOOK, "删除世界书失败", error);
+        Logger.error(
+            LogModule.WORLDBOOK,
+            `删除世界书 '${worldbookName}' 失败`,
+            error,
+        );
         return false;
     }
 }
@@ -175,7 +179,11 @@ export async function createEntry(
         Logger.info(LogModule.WORLDBOOK, "条目已保存到世界书", worldbookName);
         return true;
     } catch (error) {
-        Logger.error(LogModule.WORLDBOOK, "创建世界书条目失败", error);
+        Logger.error(
+            LogModule.WORLDBOOK,
+            `在世界书 '${worldbookName}' 创建条目 '${params.name}' 失败`,
+            error,
+        );
         return false;
     }
 }
@@ -277,7 +285,11 @@ export async function updateEntry(
         });
         return true;
     } catch (error) {
-        Logger.error(LogModule.WORLDBOOK, "更新世界书条目失败", error);
+        Logger.error(
+            LogModule.WORLDBOOK,
+            `更新世界书 '${worldbookName}' 条目 #${uid} 失败`,
+            error,
+        );
         return false;
     }
 }
@@ -311,7 +323,11 @@ export async function deleteEntry(
         });
         return true;
     } catch (error) {
-        Logger.error(LogModule.WORLDBOOK, "删除世界书条目失败", error);
+        Logger.error(
+            LogModule.WORLDBOOK,
+            `删除世界书 '${worldbookName}' 条目 #${uid} 失败`,
+            error,
+        );
         return false;
     }
 }
@@ -346,7 +362,11 @@ export async function deleteEntries(
         });
         return true;
     } catch (error) {
-        Logger.error(LogModule.WORLDBOOK, "批量删除世界书条目失败", error);
+        Logger.error(
+            LogModule.WORLDBOOK,
+            `从世界书 '${worldbookName}' 批量删除 ${uids.length} 条目失败`,
+            error,
+        );
         return false;
     }
 }

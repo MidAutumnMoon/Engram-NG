@@ -98,7 +98,7 @@ export class ChatDatabase extends Dexie {
                 } catch (error) {
                     Logger.error(
                         LogModule.DATABASE,
-                        "异步更新 lastModified 失败",
+                        `异步更新 lastModified 失败 (chat: '${this.chatId}')`,
                         error,
                     );
                 }

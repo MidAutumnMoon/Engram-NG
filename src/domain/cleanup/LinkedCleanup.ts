@@ -240,7 +240,11 @@ async function findRelatedDatabases(
         const prefix = new RegExp(`^${escaped}(\\s|-|_|$)`, "i");
         return allIds.filter((id) => prefix.test(id));
     } catch (e) {
-        Logger.error(LogModule.DATA_CLEANUP, "scan related dbs failed", e);
+        Logger.error(
+            LogModule.DATA_CLEANUP,
+            `scan related dbs failed for character '${characterName}'`,
+            e,
+        );
         return [];
     }
 }

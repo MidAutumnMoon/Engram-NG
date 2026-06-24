@@ -43,6 +43,10 @@ export async function hideMessageRange(
             }
         }, 800);
     } catch (error) {
-        Logger.error(LogModule.TAVERN_CHAT, "Failed to hide messages:", error);
+        Logger.error(
+            LogModule.TAVERN_CHAT,
+            `Failed to hide messages ${start}-${end}`,
+            error,
+        );
     }
 }

@@ -70,7 +70,11 @@ export class WorldbookEngramService {
 
             return worldbookName;
         } catch (error) {
-            Logger.error(LogModule.WORLDBOOK, "获取/创建全局世界书失败", error);
+            Logger.error(
+                LogModule.WORLDBOOK,
+                "获取/创建全局世界书 '[Engram] Global' 失败",
+                error,
+            );
             return null;
         }
     }

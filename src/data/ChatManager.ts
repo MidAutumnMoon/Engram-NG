@@ -77,7 +77,11 @@ class ChatManager {
             }
             return DEFAULT_SCOPE_STATE;
         } catch (error) {
-            Logger.error(LogModule.CHAT_MANAGER, "获取状态失败:", error);
+            Logger.error(
+                LogModule.CHAT_MANAGER,
+                `获取状态失败 (chat: '${this.currentChatId}')`,
+                error,
+            );
             return DEFAULT_SCOPE_STATE;
         }
     }
@@ -94,7 +98,11 @@ class ChatManager {
             const newState = { ...currentState, ...partialState };
             await db.meta.put({ key: STATE_KEY, value: newState });
         } catch (error) {
-            Logger.error(LogModule.CHAT_MANAGER, "更新状态失败:", error);
+            Logger.error(
+                LogModule.CHAT_MANAGER,
+                `更新状态失败 (chat: '${this.currentChatId}')`,
+                error,
+            );
         }
     }
 

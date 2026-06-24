@@ -111,10 +111,10 @@ class LLMAdapter {
             };
         }
 
+        let preset: LLMPreset | undefined;
         try {
             // 获取预设配置
             const settings = getSettings();
-            let preset: LLMPreset | undefined;
 
             if (request.presetId) {
                 preset = settings.apiSettings?.llmPresets?.find((p) =>
@@ -143,7 +143,12 @@ class LLMAdapter {
             const errorMsg = error instanceof Error
                 ? error.message
                 : String(error);
-            Logger.error(LogModule.LLM_ADAPTER, "调用失败", error);
+            const presetLabel = preset?.name ?? request.presetId ?? "default";
+            Logger.error(
+                LogModule.LLM_ADAPTER,
+                `调用失败 (preset: '${presetLabel}')`,
+                error,
+            );
 
             return {
                 content: "",
