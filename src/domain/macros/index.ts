@@ -2,7 +2,7 @@ import { getSetting } from "@/config/settings.ts";
 import type { CustomMacro } from "@/config/types/prompt.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getSTContext } from "@/sillytavern/index.ts";
+import { getCurrentCharacterData, getSTContext } from "@/sillytavern/index.ts";
 import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
@@ -224,11 +224,7 @@ export function getCurrentMessageCount(): number {
  */
 function refreshCharDescription(): void {
     try {
-        const context = getSTContext();
-        if (context.characters && context.characterId >= 0) {
-            const char = context.characters[context.characterId];
-            cachedCharDescription = char?.description || "";
-        }
+        cachedCharDescription = getCurrentCharacterData()?.description ?? "";
     } catch (error) {
         Logger.debug(LogModule.MACROS, "刷新角色描述失败", error);
     }

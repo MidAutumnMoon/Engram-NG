@@ -1,6 +1,7 @@
 export type TavernContext = ReturnType<typeof window.SillyTavern.getContext>;
 
 export type TavernChatMessage = TavernContext["chat"][number];
+export type TavernCharacter = TavernContext["characters"][number];
 
 export function getSTContext(): TavernContext {
     return window.SillyTavern.getContext();
@@ -8,6 +9,19 @@ export function getSTContext(): TavernContext {
 
 export function getCurrentChatId(): string | null {
     return getSTContext().chatId || null;
+}
+
+/**
+ * Get the currently selected character's data, or null if none is selected.
+ *
+ * `characterId` is a stringified integer; per SillyTavern's `this_chid`
+ * convention, negative values (e.g. "-1") mean no character is selected.
+ */
+export function getCurrentCharacterData(): TavernCharacter | null {
+    const ctx = getSTContext();
+    const id = Number(ctx.characterId);
+    if (!ctx.characters || id < 0) return null;
+    return ctx.characters[id] ?? null;
 }
 
 export function getCurrentCharacter(): { name: string; id: string } {

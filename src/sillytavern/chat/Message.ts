@@ -4,7 +4,7 @@
  * 提供聊天消息获取、楼层计数等功能
  */
 
-import { getSTContext } from "@/sillytavern/index.ts";
+import { getCurrentCharacterData, getSTContext } from "@/sillytavern/index.ts";
 import type { TavernChatMessage } from "@/sillytavern/index.ts";
 
 /** 消息角色类型 */
@@ -142,11 +142,7 @@ export class MessageService {
      * 获取当前角色名称
      */
     static getCurrentCharacterName(): string | null {
-        const context = getSTContext();
-        if (!context.characters || context.characterId < 0) {
-            return null;
-        }
-        return context.characters[context.characterId]?.name || null;
+        return getCurrentCharacterData()?.name ?? null;
     }
 
     /**
