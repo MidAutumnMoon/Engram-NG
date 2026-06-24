@@ -27,6 +27,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 activeTab={activeTab}
                 onNavigate={setActiveTab}
                 isMobile={false}
+                onClosePanel={onClose}
             />
 
             {/* 移动端侧边栏（抽屉） */}
@@ -40,7 +41,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
             {/* Right Content Area (Header + Main) */}
             <div className="flex flex-1 flex-col overflow-hidden">
-                <div className="flex flex-col shrink-0 border-b border-border bg-sidebar/80 backdrop-blur-xl z-50">
+                <div className="flex flex-col shrink-0 border-b border-border bg-sidebar/80 backdrop-blur-xl z-50 md:hidden">
                     <Header
                         onToggleSidebar={() =>
                             setIsMobileMenuOpen(!isMobileMenuOpen)}

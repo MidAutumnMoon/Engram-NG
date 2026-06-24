@@ -18,8 +18,10 @@ interface SidebarProps {
     isMobile: boolean;
     /** 移动端：是否打开 */
     isOpen?: boolean;
-    /** 移动端：关闭回调 */
+    /** 移动端：关闭抽屉 */
     onClose?: () => void;
+    /** PC 端：关闭整个扩展面板 */
+    onClosePanel?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -28,6 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     isMobile,
     isOpen = false,
     onClose,
+    onClosePanel,
 }) => {
     const handleNavClick = (tabId: string) => {
         onNavigate(tabId);
@@ -37,6 +40,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
     // 统一的底部区域组件
     const BottomArea = () => (
         <div className="pt-4 border-t border-border/30 mt-2 space-y-2">
+            {/* 关闭扩展（仅 PC 端）*/}
+            {onClosePanel && (
+                <button
+                    onClick={onClosePanel}
+                    className="group w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                    title="关闭扩展"
+                >
+                    <X
+                        size={16}
+                        strokeWidth={1.5}
+                    />
+                    <span className="text-xs">关闭</span>
+                </button>
+            )}
+
             {/* GitHub */}
             <a
                 href="https://github.com/shiyue137mh-netizen/Engram"
@@ -83,7 +101,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 onClick={() => handleNavClick(item.id)}
                                 className={`
                                     group w-full flex items-center gap-2 px-2 py-2 rounded-lg text-left
-                                   
+
                                     ${
                                     isActive
                                         ? "bg-primary/10 text-primary"
@@ -156,7 +174,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 onClick={() => handleNavClick(item.id)}
                                 className={`
                                     group w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left
-                                   
+
                                     active:scale-[0.98]
                                     ${
                                     isActive
