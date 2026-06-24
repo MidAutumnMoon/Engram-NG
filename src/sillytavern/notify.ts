@@ -20,7 +20,10 @@ export function notify(
     } else {
         console.log(`[Engram] ${level}: ${title} - ${message}`);
     }
-    Logger[level === "warning" ? "warn" : level]("Notification", message);
+    Logger[level === "warning" ? "warn" : level](
+        LogModule.NOTIFICATION,
+        message,
+    );
 }
 
 /** Show a persistent notification with an optional cancel button. Returns a handle for later removal. */
@@ -38,8 +41,7 @@ export function notifyRunning(
         ? `${message} <small style="opacity:0.7">(点击取消)</small>`
         : message;
 
-    let toast: JQuery;
-    toast = t.info(display, title, {
+    const toast: JQuery = t.info(display, title, {
         timeOut: 20_000,
         extendedTimeOut: 0,
         closeButton: false,

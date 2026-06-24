@@ -1,15 +1,16 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
+import { getSTContext } from "@/sillytavern/context.ts";
 
 export async function hideMessageRange(
     start: number,
     end: number,
 ): Promise<void> {
-    const { SillyTavern } = window;
     try {
-        const result = await SillyTavern.executeSlashCommandsWithOptions(
-            `/hide ${start}-${end}`,
-        );
+        const result = await getSTContext()
+            .executeSlashCommandsWithOptions(
+                `/hide ${start}-${end}`,
+            );
 
         if (result.isAborted || result.isError) {
             Logger.warn(LogModule.TAVERN_CHAT, "Hide command did not execute", {
