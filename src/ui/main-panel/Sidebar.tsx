@@ -5,7 +5,7 @@
  */
 import { NAV_ITEMS } from "@/ui/navigation.ts";
 import { EngramTextLogo } from "@/ui/assets/icons/EngramTextLogo.tsx";
-import { Github, X } from "lucide-react";
+import { X } from "lucide-react";
 import React from "react";
 import manifest from "../../../manifest.json" with { type: "json" };
 
@@ -54,25 +54,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <span className="text-xs">关闭</span>
                 </button>
             )}
-
-            {/* GitHub */}
-            <a
-                href="https://github.com/shiyue137mh-netizen/Engram"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/10"
-                title="点个星⭐支持一下"
-            >
-                <Github
-                    size={16}
-                    strokeWidth={1.5}
-                    className="group-hover:text-primary"
-                />
-                <span className="text-xs">GitHub</span>
-                <span className="ml-auto text-[10px] text-primary opacity-0 group-hover:opacity-100">
-                    Star ⭐
-                </span>
-            </a>
 
             {/* Logo + 版本号 */}
             <div className="flex items-center gap-2 px-2 py-1 opacity-50">
