@@ -406,7 +406,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
             >
                 {/* 模型配置 Tab */}
                 {mainTab === "model" && (
-                    <div className="flex flex-col gap-2">
+                    <div className="flex-1 flex flex-col gap-2 min-h-0">
                         {/* 子 Tab - 使用负边距扩展到边缘 */}
                         <TabPills
                             tabs={MODEL_SUB_TABS.map((t) => ({
@@ -424,7 +424,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                         {/* LLM 预设 - Master-Detail */}
                         {modelSubTab === "llm" && (
                             <MasterDetailLayout
-                                className="h-full"
+                                className="flex-1 min-h-0"
                                 mobileDetailOpen={false} // Handled by early return
                                 onMobileDetailClose={handleMobileClose}
                                 listWidth="30%"

@@ -76,11 +76,10 @@ export const MasterDetailLayout: React.FC<MasterDetailLayoutProps> = ({
                 {/* 左侧：列表区域 */}
                 <div
                     className={`
-                        flex flex-col min-h-0 shrink-0
+                        flex flex-col min-h-0 shrink-0 overflow-y-auto
                         ${
                         isMobile ? "w-full" : "border-r border-border/50 pr-4"
-                    }
-                    `}
+                    }`}
                     ref={listRef}
                     style={{
                         minWidth: isMobile ? "auto" : "240px",
@@ -95,7 +94,7 @@ export const MasterDetailLayout: React.FC<MasterDetailLayoutProps> = ({
                     detail && (
                         <div
                             key="detail-pane"
-                            className="flex-1 flex flex-col min-h-0 min-w-0"
+                            className="flex-1 flex flex-col min-h-0 min-w-0 overflow-y-auto"
                         >
                             {detail}
                         </div>
