@@ -1,0 +1,29 @@
+name: ci
+
+# 在源码分支推送 / PR 时跑编译与测试。
+# 与 release.yml 分工：本工作流只验证，不发布产物。
+
+on:
+    push:
+        branches: [master]
+    pull_request:
+
+jobs:
+    check:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Deno
+              uses: denoland/setup-deno@v2
+              with:
+                  deno-version: v2.x
+
+            # `deno task build` 是编译正确性的唯一来源（AGENTS.md）。
+            # Vite/esbuild 跳过严格类型检查，所以这一步不替代 tsc。
+            - name: Build
+              run: deno task build
+
+            - name: Test
+              run: deno task test
