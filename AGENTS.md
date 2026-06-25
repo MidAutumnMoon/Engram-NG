@@ -8,10 +8,9 @@ This file intentionally omits directory layouts, entry-point paths, and module-t
 
 ## Rules
 
-- Use `deno task <name>` for all scripts. There is no `package.json` — tasks live in `deno.jsonc`.
+- Use `deno task <name>` for all scripts.
 - When editing TS/TSX, match existing style: 4-space indent, double quotes, trailing commas, semicolons.
 - Use the `@/` alias for everything under `src/`.
-- This is a fork mid-refactor. Version strings and license fields are known-stale. Don't "fix" them unless asked.
 - Do not read files in `dist/` — it's generated build output and is gitignored on the source branch. Run `deno task build` to (re)generate it locally.
 - Take care when reading `vendor/` or grepping for texts — third-party source may contain very large files. Check size first and avoid grepping without guards.
 - New or edited imports must be non-sloppy: include the explicit file extension (`.ts` / `.tsx`), or `/index.ts` for barrels. Existing sloppy imports across the codebase will be cleaned up incrementally — don't mass-rewrite them, but don't add new ones.
@@ -23,7 +22,6 @@ This file intentionally omits directory layouts, entry-point paths, and module-t
 
 ## Current Status
 
-- The `test/` suite is **broken post-fork**. Many tests reference deleted modules (Batch engine, Input Preprocessor, etc.) and stale paths (`@/core/...`). They have not been updated to match the refactor. Do not treat `deno task test` failures as regressions you caused, and don't "fix" the tests unless the task is explicitly about tests.
 - `deno task build` is the source of truth for "does this compile". Run it after structural changes.
 - The agent `grep` tool is **unreliable** currently (tracked: zed#59677). Few failure modes:
   - Parallel calls with overlapping regexes can swap/corrupt each other's results — including across different regexes, not just identical ones. **Run grep calls sequentially, never in parallel**, unless correctness doesn't matter.
@@ -31,6 +29,18 @@ This file intentionally omits directory layouts, entry-point paths, and module-t
   - When a grep returns "No matches" and that's surprising, don't trust it — retry with a different pattern form, or cross-check with `find_path` / `deno task build` before concluding the symbol is absent.
 
 For the time being, apply the workaround or shell out to `grep` or `rg` which you are more confident in (take extra care when escaping).
+
+## Dev Loop
+
+SillyTavern URL: <http://127.0.0.1:8000>. If you cannot access it, then it means User forgot to launch SillyTavern. Tell them about that.
+
+SillyTavern loads the extension from `dist/index.js` (per `manifest.json`), not from a dev server. Source changes don't take effect until `dist/` is rebuilt and the browser is refreshed.
+
+After editing files under `src/`:
+1. Run `deno task build` (~2s).
+2. Refresh the browser via Playwright MCP (`browser_navigate` to the ST URL, or `browser_evaluate` with `location.reload()`).
+
+Do this automatically after UI-affecting changes — don't wait to be asked. Batch the build: if making multiple edits, build once after all edits are done.
 
 ## Look Things Up
 

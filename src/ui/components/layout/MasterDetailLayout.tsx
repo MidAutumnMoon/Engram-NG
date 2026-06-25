@@ -11,8 +11,6 @@ interface MasterDetailLayoutProps {
     header?: React.ReactNode;
     /** PC端列表宽度，默认 '30%'，最小 '240px' */
     listWidth?: string;
-    /** 列表区域 Ref (用于控制滚动) */
-    listRef?: React.RefObject<HTMLDivElement | null>;
 
     // --- 移动端相关配置 ---
 
@@ -35,7 +33,6 @@ export const MasterDetailLayout: React.FC<MasterDetailLayoutProps> = ({
     list,
     detail,
     header,
-    listRef,
     listWidth = "30%",
     mobileDetailOpen = false,
     onMobileDetailClose,
@@ -80,7 +77,6 @@ export const MasterDetailLayout: React.FC<MasterDetailLayoutProps> = ({
                         ${
                         isMobile ? "w-full" : "border-r border-border/50 pr-4"
                     }`}
-                    ref={listRef}
                     style={{
                         minWidth: isMobile ? "auto" : "240px",
                         width: isMobile ? "100%" : listWidth,

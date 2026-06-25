@@ -34,3 +34,8 @@ npm-debug.log*
 test/private/
 coverage/
 .vite/
+.playwright-mcp/
+
+# Nix / direnv
+.direnv/
+result

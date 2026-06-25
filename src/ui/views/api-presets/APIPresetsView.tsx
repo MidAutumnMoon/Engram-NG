@@ -259,10 +259,6 @@ export const APIPresets: React.FC<APIPresetsProps> = (
         setShowMobileForm(false);
     };
 
-    // 判断当前是否应该使用 Master-Detail 布局 (需要独立滚动)
-    const isMasterDetail = ["prompt", "regex"].includes(mainTab) ||
-        (mainTab === "model" && modelSubTab === "llm");
-
     // =============== 移动端独立渲染 (顶层覆盖) ===============
     if (isMobile && showMobileForm) {
         // 1. LLM 预设编辑
@@ -397,13 +393,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                 )}
             />
 
-            <div
-                className={`flex-1 ${
-                    isMasterDetail
-                        ? "overflow-hidden flex flex-col"
-                        : "overflow-y-auto no-scrollbar"
-                }`}
-            >
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                 {/* 模型配置 Tab */}
                 {mainTab === "model" && (
                     <div className="flex-1 flex flex-col gap-2 min-h-0">
@@ -489,15 +479,23 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                         )}
 
                         {modelSubTab === "vector" &&
-                            <VectorConfigForm
-                                config={settings.vectorConfig}
-                                onChange={updateVectorConfig}
-                            />}
+                            (
+                                <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar">
+                                    <VectorConfigForm
+                                        config={settings.vectorConfig}
+                                        onChange={updateVectorConfig}
+                                    />
+                                </div>
+                            )}
                         {modelSubTab === "rerank" &&
-                            <RerankConfigForm
-                                config={settings.rerankConfig}
-                                onChange={updateRerankConfig}
-                            />}
+                            (
+                                <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar">
+                                    <RerankConfigForm
+                                        config={settings.rerankConfig}
+                                        onChange={updateRerankConfig}
+                                    />
+                                </div>
+                            )}
                     </div>
                 )}
 
@@ -669,34 +667,30 @@ export const APIPresets: React.FC<APIPresetsProps> = (
 
                 {/* 世界书配置 Tab */}
                 {mainTab === "worldbook" && (
-                    <div className="flex flex-col h-full gap-2">
-                        {/* V1.2.8: 移除知识库方案子标签，仅保留全局设置 */}
-
-                        <div className="max-w-2xl py-4 flex-1 overflow-y-auto custom-scrollbar">
-                            <WorldbookConfigForm
-                                config={worldbookConfig ||
-                                    {
-                                        disabledWorldbooks: [],
-                                        enabled: false,
-                                        includeGlobal: false,
-                                    }}
-                                onChange={updateWorldbookConfig}
-                                worldbookStructure={Object.fromEntries(
-                                    Object.entries(worldbookStructure || {})
-                                        .filter(([key]) => {
-                                            const scopes = worldbookScopes ||
-                                                { chat: [], global: [] };
-                                            return scopes.global.includes(
-                                                key,
-                                            ) || scopes.chat.includes(key);
-                                        }),
-                                )}
-                                disabledEntries={disabledEntries}
-                                onToggleWorldbook={toggleWorldbook}
-                                onToggleEntry={toggleEntry}
-                                onRefresh={refreshWorldbooks}
-                            />
-                        </div>
+                    <div className="max-w-2xl py-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+                        <WorldbookConfigForm
+                            config={worldbookConfig ||
+                                {
+                                    disabledWorldbooks: [],
+                                    enabled: false,
+                                    includeGlobal: false,
+                                }}
+                            onChange={updateWorldbookConfig}
+                            worldbookStructure={Object.fromEntries(
+                                Object.entries(worldbookStructure || {})
+                                    .filter(([key]) => {
+                                        const scopes = worldbookScopes ||
+                                            { chat: [], global: [] };
+                                        return scopes.global.includes(
+                                            key,
+                                        ) || scopes.chat.includes(key);
+                                    }),
+                            )}
+                            disabledEntries={disabledEntries}
+                            onToggleWorldbook={toggleWorldbook}
+                            onToggleEntry={toggleEntry}
+                            onRefresh={refreshWorldbooks}
+                        />
                     </div>
                 )}
             </div>
