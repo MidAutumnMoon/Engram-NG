@@ -73,7 +73,6 @@ const injectChatContext = (): void => {
     if (!chatId) return;
     const ctx: ChatContext = { chatId, db: getDbForChat(chatId) };
     summarizerService.setChatContext(ctx);
-    entityBuilder.setChatContext(ctx);
     eventTrimmer.setChatContext(ctx);
     Logger.debug(LogModule.STBRIDGE, "Chat context injected", {
         chatId: ctx.chatId,
