@@ -10,8 +10,6 @@ export const createRetrievalWorkflow = (): WorkflowDefinition => ({
         new KeywordRetrieveStep(), // 优先进行关键词硬扫
         new VectorRetrieveStep(), // 然后进行向量检索
         new RerankMergeStep(), // 合并两者并可选执行 Rerank
-        // REFERENCE: BrainRecallStep was removed from the hot path.
-        // The algorithm was relocated to dev-docs/BrainRecall/ for future review.
         new RecordRecallLogStep(),
     ],
 });

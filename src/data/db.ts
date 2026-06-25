@@ -55,6 +55,24 @@ export class ChatDatabase extends Dexie {
             meta: "key",
         });
 
+        // V2.0.0: Schema 升级 - episode-as-source-of-truth 重构
+        // schema string 不变（新字段 field_history/episode_id 是非索引 JSON），
+        // 仅需一个 upgrade 钩子把 v3 实体的 profile 状态字段回填到 field_history。
+        // 事件侧的 entity_refs/episode_id 由新写入时补充，旧事件保持 undefined（读路径容错）。
+        this.version(4).stores({
+            events:
+                "id, timestamp, significance_score, level, is_archived, is_embedded",
+            entities: "id, type, name, *aliases, is_archived",
+            meta: "key",
+        }).upgrade(async (tx) => {
+            const { migrateEntityV3toV4 } = await import(
+                "./migrations/v4.ts"
+            );
+            await tx.table("entities").toCollection().modify((entity) => {
+                Object.assign(entity, migrateEntityV3toV4(entity));
+            });
+        });
+
         // 注册数据变动监听钩子
         const handleChange = () => this.updateLastModified();
 

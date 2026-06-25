@@ -23,6 +23,7 @@ import {
 import { onTavernEvent } from "@/sillytavern/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { dismissNotify, notify, notifyRunning } from "@/sillytavern/notify.ts";
+import { generateShortUUID } from "@/utils/shortUUID.ts";
 import type { ChatContext } from "./types.ts";
 
 /**
@@ -316,9 +317,15 @@ export class EntityBuilder {
                     logType: "entity_extraction", // For LlmRequest logging
                     templateId: this.config.promptTemplateId, // V0.9.10: Support custom prompt
                     category: "entity_extraction", // V1.0.8: Explicitly pass category for FetchContext to find default template
+                    // episode-as-source-of-truth: 状态字段历史化配置
+                    stateFields: this.config.stateFields,
+                    stateChangeEmitThreshold:
+                        this.config.stateChangeEmitThreshold,
                 },
                 input: {
                     chatHistory,
+                    // episode_id: 标识本次 extraction pass，stamp 到写入的实体/事件上（同层溯源用）
+                    episode_id: generateShortUUID("ep_"),
                     range: range || [floor, floor],
                 },
                 signal,

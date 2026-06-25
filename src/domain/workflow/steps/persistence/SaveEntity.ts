@@ -4,6 +4,7 @@ import { RobustJsonParser } from "@/utils/JsonParser.ts";
 import type { EntityNode } from "@/data/types/graph.ts";
 import { EntityType } from "@/data/types/graph.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
+import { appendInterval, currentValue } from "@/domain/memory/fieldHistory.ts";
 import * as jsonpatch from "fast-json-patch";
 import * as yaml from "js-yaml";
 import { z } from "zod";
@@ -84,6 +85,15 @@ export class SaveEntity implements IStep {
         // V1.2.7: 优先使用构造函数配置，其次是 context.config
         const isDryRun = this.config.dryRun ?? context.config.dryRun === true;
 
+        // 状态字段历史化配置：从 EntityExtractConfig 读取，默认覆盖常见 RP 状态字段。
+        // 这些字段的变更走 interval-append 而非覆盖，并向 timeline 发射 state-change 事件。
+        const stateFields =
+            (context.config.stateFields as string[] | undefined) ??
+                ["state", "status", "location", "mood"];
+        const stateChangeEmitThreshold =
+            (context.config.stateChangeEmitThreshold as number | undefined) ??
+                0.6;
+
         // V1.3.1: 检查是否为已处理的数据 (来自 DryRun + UserReview)
         const processedResult = ProcessedResultSchema.safeParse(sourceContent);
         const hasProcessedData = processedResult.success &&
@@ -118,6 +128,9 @@ export class SaveEntity implements IStep {
                     isDryRun,
                     newEntities,
                     updatedEntities,
+                    context,
+                    stateFields,
+                    stateChangeEmitThreshold,
                 );
             } else {
                 // 向后兼容 Legacy 格式
@@ -130,6 +143,9 @@ export class SaveEntity implements IStep {
                         isDryRun,
                         newEntities,
                         updatedEntities,
+                        context,
+                        stateFields,
+                        stateChangeEmitThreshold,
                     );
                 } else {
                     // 如果既不是 Processed，也不是 Patch，也不是 Legacy，那可能是个空对象或者格式错乱
@@ -221,6 +237,9 @@ export class SaveEntity implements IStep {
         isDryRun: boolean,
         newEntities: EntityNode[],
         updatedEntities: EntityNode[],
+        context: JobContext,
+        stateFields: string[],
+        stateChangeEmitThreshold: number,
     ): Promise<void> {
         const patchesByEntity = new Map<
             string,
@@ -288,6 +307,9 @@ export class SaveEntity implements IStep {
                     store,
                     isDryRun,
                     updatedEntities,
+                    context,
+                    stateFields,
+                    stateChangeEmitThreshold,
                 );
             }
         }
@@ -384,6 +406,9 @@ export class SaveEntity implements IStep {
         store: ReturnType<typeof useMemoryStore.getState>,
         isDryRun: boolean,
         updatedEntities: EntityNode[],
+        context: JobContext,
+        stateFields: string[],
+        stateChangeEmitThreshold: number,
     ) {
         try {
             // P1 Fix: 使用 structuredClone 替代昂贵的 JSON 序列化
@@ -396,17 +421,63 @@ export class SaveEntity implements IStep {
                 targetDoc,
             );
 
-            if (relativeOps.length > 0) {
+            // 分流：状态字段 op 走 interval-append，其余走原有 jsonpatch 覆盖路径。
+            // 状态字段历史化是 episode-as-source-of-truth 的核心：旧值不丢，timeline 可回溯。
+            const { stateOps, regularOps } = partitionStateOps(
+                relativeOps,
+                stateFields,
+            );
+
+            // 先应用状态字段（interval-append + profile 同步写）
+            const emittedChanges: {
+                field: string;
+                from: unknown;
+                to: unknown;
+            }[] = [];
+            if (stateOps.length > 0) {
+                if (!targetDoc.field_history) targetDoc.field_history = {};
+                const fromIndex = context.input.range?.[1] ?? 0;
+                const episodeId = context.input.episode_id ?? null;
+                for (const op of stateOps) {
+                    const field = extractStateField(op.path);
+                    if (!field) continue;
+                    const oldValue = currentValue(
+                        targetDoc.field_history[field],
+                    );
+                    // appendInterval 同时关闭上一段 open interval
+                    targetDoc.field_history[field] = appendInterval(
+                        targetDoc.field_history[field],
+                        {
+                            from_index: fromIndex,
+                            value: op.value,
+                            episode_id: episodeId,
+                        },
+                    );
+                    // profile 同步写：旧读路径仍读 profile，保持当前快照正确（迁移期临时）
+                    if (targetDoc.profile) targetDoc.profile[field] = op.value;
+                    emittedChanges.push({
+                        field,
+                        from: oldValue,
+                        to: op.value,
+                    });
+                }
+            }
+
+            // 再应用普通字段（覆盖语义，不变）
+            if (regularOps.length > 0) {
                 Logger.debug(
                     LogModule.WF_SAVE_ENTITY,
-                    `Applying ${relativeOps.length} patches to ${entityName}`,
-                    { ops: relativeOps },
+                    `Applying ${regularOps.length} patches to ${entityName}`,
+                    { ops: regularOps },
                 );
                 jsonpatch.applyPatch(
                     targetDoc,
-                    relativeOps as jsonpatch.Operation[],
+                    regularOps as jsonpatch.Operation[],
                 );
+            }
 
+            const hasAnyChange = stateOps.length > 0 || regularOps.length > 0;
+            if (hasAnyChange) {
                 if (!isDryRun) {
                     const description = this.profileToYaml(
                         targetDoc.name,
@@ -415,25 +486,59 @@ export class SaveEntity implements IStep {
                     );
                     await store.updateEntity(existing.id, {
                         aliases: targetDoc.aliases,
+                        // episode_refs 追加本次 pass
+                        episode_refs: appendEpisodeRef(
+                            targetDoc.episode_refs,
+                            context.input.episode_id,
+                        ),
+                        field_history: targetDoc.field_history,
                         description,
                         name: targetDoc.name,
                         profile: targetDoc.profile,
                         type: targetDoc.type,
                     });
                     updatedEntities.push(targetDoc);
+
+                    // 状态变更发射事件：把状态变化写进 timeline（第二个 timeline feeder）。
+                    // 只有达到阈值的状态变更才发射，避免 "knight sat down" 之类的噪声。
+                    // 这让 timeline 不再落后于实体状态——状态变化本身就是 timeline 条目。
+                    if (emittedChanges.length > 0) {
+                        await this.emitStateChangeEvents(
+                            targetDoc,
+                            emittedChanges,
+                            context,
+                            stateChangeEmitThreshold,
+                        );
+                    }
                 } else {
-                    const diffs = relativeOps.map((op) => {
-                        let oldValue;
-                        try {
-                            if (op.op === "replace" || op.op === "remove") {
-                                oldValue = jsonpatch.getValueByPointer(
-                                    existing,
-                                    op.path,
-                                );
-                            }
-                        } catch { /* Ignore */ }
-                        return { ...op, oldValue };
-                    });
+                    // DryRun: 为 EntityReview 构建 _diff（供 UI 渲染变更预览）。
+                    // 状态字段 diff 带 from/to；普通字段用 jsonpatch 取旧值。
+                    const diffs = [
+                        ...stateOps.map((op) => {
+                            const field = extractStateField(op.path);
+                            const change = emittedChanges.find((c) =>
+                                c.field === field
+                            );
+                            return {
+                                op: op.op,
+                                path: op.path,
+                                oldValue: change?.from,
+                                value: op.value,
+                            };
+                        }),
+                        ...regularOps.map((op) => {
+                            let oldValue;
+                            try {
+                                if (op.op === "replace" || op.op === "remove") {
+                                    oldValue = jsonpatch.getValueByPointer(
+                                        existing,
+                                        op.path,
+                                    );
+                                }
+                            } catch { /* Ignore */ }
+                            return { ...op, oldValue };
+                        }),
+                    ];
                     targetDoc.description = this.profileToYaml(
                         targetDoc.name,
                         targetDoc.type,
@@ -449,6 +554,67 @@ export class SaveEntity implements IStep {
                 `Patch failed for ${entityName}`,
                 error,
             );
+        }
+    }
+
+    /**
+     * 把达到阈值的状态变更作为 minimal EventNode 写入 timeline。
+     * 这些事件 level=0、带 entity_refs、source_range 与本 pass 一致，
+     * 是 episode-as-source-of-truth 的「状态变化即 timeline 条目」实现。
+     */
+    private async emitStateChangeEvents(
+        entity: EntityNode,
+        changes: { field: string; from: unknown; to: unknown }[],
+        context: JobContext,
+        threshold: number,
+    ): Promise<void> {
+        const store = useMemoryStore.getState();
+        const range = context.input.range || [0, 0];
+        const episodeId = context.input.episode_id ?? null;
+
+        for (const change of changes) {
+            // 显著性：值确实变化才发；阈值统一给 0.5（与 SaveEvent 默认一致），可按需精化
+            // 这里用 threshold 作为「是否发射」开关——达到阈值才发，significance_score 取 threshold
+            if (threshold <= 0) continue; // 用户关掉了状态变更发射
+            const fromStr = formatStateValue(change.from);
+            const toStr = formatStateValue(change.to);
+            if (fromStr === toStr) continue; // 无实质变化
+
+            const summary =
+                `${entity.name} ${change.field}: ${fromStr} → ${toStr}`;
+            try {
+                await store.saveEvent({
+                    episode_id: episodeId,
+                    entity_refs: [entity.id],
+                    is_archived: false,
+                    is_embedded: false,
+                    level: 0,
+                    significance_score: threshold,
+                    source_range: {
+                        end_index: range[1],
+                        start_index: range[0],
+                    },
+                    structured_kv: {
+                        causality: "state_change",
+                        event: `${change.field}_change`,
+                        location: [],
+                        logic: [],
+                        role: [entity.name],
+                        time_anchor: "",
+                    },
+                    summary,
+                });
+                Logger.debug(
+                    LogModule.WF_SAVE_ENTITY,
+                    `[state-change] emitted timeline event: ${summary}`,
+                );
+            } catch (e) {
+                Logger.warn(
+                    LogModule.WF_SAVE_ENTITY,
+                    `[state-change] failed to emit for ${entity.name}.${change.field}`,
+                    e,
+                );
+            }
         }
     }
 
@@ -552,6 +718,9 @@ export class SaveEntity implements IStep {
         isDryRun: boolean,
         newEntities: EntityNode[],
         updatedEntities: EntityNode[],
+        context: JobContext,
+        stateFields: string[],
+        stateChangeEmitThreshold: number,
     ): Promise<void> {
         // 1. Process New Entities
         if (data.entities) {
@@ -585,6 +754,8 @@ export class SaveEntity implements IStep {
         }
 
         // 2. Process Patches
+        // Legacy ops 用裸路径（无 /entities/{name} 前缀），转换成统一前缀后复用 applyMergePatches，
+        // 这样状态字段也能走 interval-append + state-change 发射。
         if (data.patches) {
             for (const patch of data.patches) {
                 if (!patch.name) {
@@ -600,48 +771,25 @@ export class SaveEntity implements IStep {
                 );
                 if (!target) continue;
 
-                try {
-                    const targetDoc = JSON.parse(JSON.stringify(target));
-                    jsonpatch.applyPatch(targetDoc, patch.ops);
+                // 裸路径 -> /entities/{name}{path}
+                const prefixedOps = patch.ops.map((op: any) => ({
+                    ...op,
+                    path: `/entities/${
+                        encodeURIComponent(patch.name)
+                    }${op.path}`,
+                }));
 
-                    if (!isDryRun) {
-                        const description = this.profileToYaml(
-                            targetDoc.name,
-                            targetDoc.type,
-                            targetDoc.profile || {},
-                        );
-                        await store.updateEntity(target.id, {
-                            aliases: targetDoc.aliases,
-                            description,
-                            name: targetDoc.name,
-                            profile: targetDoc.profile,
-                            type: targetDoc.type,
-                        });
-                        updatedEntities.push(targetDoc);
-                    } else {
-                        // DryRun: Attach diffs with old/new values
-                        const diffs = patch.ops.map((op) => {
-                            let oldValue;
-                            try {
-                                if (op.op === "replace" || op.op === "remove") {
-                                    oldValue = jsonpatch.getValueByPointer(
-                                        target,
-                                        op.path,
-                                    ); // Note: use 'target' (original) here
-                                }
-                            } catch { /* Ignore */ }
-                            return { ...op, oldValue };
-                        });
-                        (targetDoc as any)._diff = diffs;
-                        updatedEntities.push(targetDoc);
-                    }
-                } catch (error) {
-                    Logger.warn(
-                        LogModule.WF_SAVE_ENTITY,
-                        `Patch failed for ${patch.name}`,
-                        error,
-                    );
-                }
+                await this.applyMergePatches(
+                    patch.name,
+                    target,
+                    prefixedOps,
+                    store,
+                    isDryRun,
+                    updatedEntities,
+                    context,
+                    stateFields,
+                    stateChangeEmitThreshold,
+                );
             }
         }
     }
@@ -696,5 +844,71 @@ export class SaveEntity implements IStep {
         }
 
         return results;
+    }
+}
+
+// ============================================================================
+// Module-level helpers for state-field history routing
+// ============================================================================
+
+/**
+ * 把一组 relative ops 分流为状态字段 ops 与普通 ops。
+ * 状态字段 = 路径末段命中 stateFields 的 replace/add op（profile/<field> 形态）。
+ * 状态字段 op 走 interval-append（历史化），其余走原 jsonpatch 覆盖路径。
+ */
+function partitionStateOps(
+    ops: any[],
+    stateFields: string[],
+): { stateOps: any[]; regularOps: any[] } {
+    const fieldSet = new Set(stateFields);
+    const stateOps: any[] = [];
+    const regularOps: any[] = [];
+    for (const op of ops) {
+        const field = extractStateField(op.path);
+        const isStateFieldMutation = field &&
+            fieldSet.has(field) &&
+            (op.op === "replace" || op.op === "add");
+        if (isStateFieldMutation) {
+            stateOps.push(op);
+        } else {
+            regularOps.push(op);
+        }
+    }
+    return { stateOps, regularOps };
+}
+
+/**
+ * 从一个相对 JSON pointer 提取状态字段名。
+ * 匹配 /profile/<field> 或 /<field>（顶层）形态。返回字段名或 undefined。
+ */
+function extractStateField(path: string): string | undefined {
+    // 形如 /profile/state 或 /state
+    const m = path.match(/^\/(?:profile\/)?([^/]+)$/);
+    return m ? m[1] : undefined;
+}
+
+/**
+ * 追加一个 episode_id 到 episode_refs，去重。
+ */
+function appendEpisodeRef(
+    refs: string[] | undefined,
+    episodeId: string | undefined,
+): string[] | undefined {
+    if (!episodeId) return refs;
+    const set = new Set([...(refs ?? []), episodeId]);
+    return [...set];
+}
+
+/**
+ * 把状态字段值格式化为可读字符串（用于 state-change 事件 summary）。
+ */
+function formatStateValue(v: unknown): string {
+    if (v === undefined || v === null) return "∅";
+    if (typeof v === "string") return v;
+    if (typeof v === "number" || typeof v === "boolean") return String(v);
+    try {
+        return JSON.stringify(v);
+    } catch {
+        return String(v);
     }
 }

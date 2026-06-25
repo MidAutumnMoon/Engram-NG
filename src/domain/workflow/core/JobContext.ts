@@ -21,6 +21,13 @@ export interface JobContext {
         text?: string; // 原始文本输入 (Preprocessor)
         range?: [number, number]; // 楼层范围 (Summary/Entity)
         chatHistory?: string; // 原始聊天记录 (Entity)
+        /**
+         * Episode id —— 产生本 pass 的 extraction pass 标识（同层溯源用）。
+         * 由 orchestrator 在 run start 时生成并传入；SaveEvent/SaveEntity 读取并
+         * stamp 到写入的记录上。注意：总结 pass 与实体 pass 是不同 pass、不同 episode_id，
+         * 它们之间靠消息索引（source_range）对齐，而非 episode_id。
+         */
+        episode_id?: string;
         [key: string]: any;
     };
 

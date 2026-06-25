@@ -10,6 +10,7 @@ export const promptCategorySchema = z.enum([
     "summary", // 剧情摘要 (V0.5 统一为 JSON 输出)
     "trim", // 精简/修剪
     "entity_extraction", // V0.9: 实体提取
+    "entity_resolve", // 实体解析（episode-as-source-of-truth：合并重复实体）
 ]);
 export type PromptCategory = z.infer<typeof promptCategorySchema>;
 
@@ -32,6 +33,11 @@ export const PROMPT_CATEGORIES: {
         description: "从事件中提取角色、地点、物品等实体",
         label: "实体提取",
         value: "entity_extraction",
+    },
+    {
+        description: "判断新实体是否与现有实体重复并合并",
+        label: "实体解析",
+        value: "entity_resolve",
     },
 ];
 

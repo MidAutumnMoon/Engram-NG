@@ -96,6 +96,8 @@ export class SaveEvent implements IStep {
             const burnedSummary = `${titleLine}${metaLine}${rawSummary}`;
 
             const saved = await store.saveEvent({
+                // episode_id: 标识产生本事件的 extraction pass（同层溯源用）
+                episode_id: context.input.episode_id ?? null,
                 is_archived: false,
                 is_embedded: false,
                 level: 0,

@@ -50,6 +50,22 @@ export const entityExtractConfigSchema = z.object({
     archiveLimit: z.number().int().positive().default(50),
     /** 是否启用预览确认 */
     previewEnabled: z.boolean().default(true),
+    /**
+     * 状态字段列表——这些字段的变更会被历史化（追加 ValueInterval 而非覆盖），
+     * 并在变更时向 timeline 发射一个 state-change 事件。
+     * 默认覆盖常见的 RP 状态字段。
+     */
+    stateFields: z.array(z.string()).default([
+        "state",
+        "status",
+        "location",
+        "mood",
+    ]),
+    /**
+     * state-change 事件发射阈值（significance_score）。
+     * 只有达到此阈值的状态变更才发射事件，避免 "knight sat down" 之类的噪声进入 timeline。
+     */
+    stateChangeEmitThreshold: z.number().min(0).max(1).default(0.6),
 });
 
 export type EntityExtractConfig = z.infer<typeof entityExtractConfigSchema>;

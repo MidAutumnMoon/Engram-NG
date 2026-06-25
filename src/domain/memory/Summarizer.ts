@@ -12,6 +12,7 @@ import { getSTContext, onTavernEvent } from "@/sillytavern/index.ts";
 import { WorldBookSlotService } from "@/domain/worldbook/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts"; // Used for setLastSummarizedFloor
 import { dismissNotify, notify, notifyRunning } from "@/sillytavern/notify.ts";
+import { generateShortUUID } from "@/utils/shortUUID.ts";
 import type {
     ChatContext,
     SummarizerConfig,
@@ -392,6 +393,8 @@ class SummarizerService {
                     templateId: this.config.promptTemplateId,
                 },
                 input: {
+                    // episode_id: 标识本次总结 pass，stamp 到写入的事件上（同层溯源用）
+                    episode_id: generateShortUUID("ep_"),
                     range: range,
                 },
                 signal: cancelSignal,

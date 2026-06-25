@@ -1,9 +1,35 @@
 /**
+ * ValueInterval - 一个状态字段在某段消息区间内的取值
+ *
+ * 半开区间 [from_index, to_index)：from_index 处取新值，to_index 处已切换到下一段。
+ * 与 Graphiti 的 [valid_at, invalid_at) 语义一致。
+ *
+ * to_index = null 表示该取值至今仍有效（当前状态）。
+ * 一条 field_history 内同一时刻只有一个 open interval（to_index = null）。
+ */
+export interface ValueInterval {
+    /** 该取值生效时的值（任意 JSON） */
+    value: unknown;
+    /** 生效起始消息索引（inclusive） */
+    from_index: number;
+    /** 失效起始消息索引（exclusive）；null = 至今有效 */
+    to_index: number | null;
+    /** 产生该变更的 episode（extraction pass）id；null = 迁移回填 */
+    episode_id: string | null;
+}
+
+/**
  * EventNode - The atom of memory
  * Represents a single processed event, either from raw chat or higher-level summary.
  *
  * V0.6: 移除 scope_id - 每个聊天有独立数据库，不需要分区字段
  * V0.7: 添加 embedding 相关字段
+ *
+ * Episode-as-source-of-truth:
+ * - `entity_refs` 是前向指针，指向该事件涉及/确立的实体 ID。
+ * - `episode_id` 标识产生本事件的 extraction pass（总结 pass 或实体 pass）。
+ *   注意：episode_id 只在「同一层内」做溯源，不能跨层 join —— 总结 pass 与实体 pass
+ *   是不同 pass、不同窗口，它们之间靠消息索引（source_range）对齐，而非 episode_id。
  */
 export interface EventNode {
     /** UUID */
@@ -81,6 +107,15 @@ export interface EventNode {
     is_locked?: boolean;
 
     timestamp: number;
+
+    /**
+     * 该事件涉及/确立的已解析实体 ID 列表（前向 provenance 指针）。
+     * 替代 structured_kv.role/location 中的裸字符串——后者仅用于展示。
+     */
+    entity_refs?: string[];
+
+    /** 产生本事件的 extraction pass id（null = 迁移回填 / 旧数据） */
+    episode_id?: string | null;
 }
 
 /**
@@ -116,6 +151,14 @@ export interface EntityRelation {
  * 设计理念:
  * - For Model: description 字段存储 YAML 格式的烧录文本
  * - For Machine: profile 字段存储开放式 JSON 结构
+ *
+ * Episode-as-source-of-truth:
+ * - `profile` 是「当前状态投影」——是 field_history 的派生视图。
+ *   迁移期：状态字段变更时，field_history 追加一段区间，profile[field] 同步写为新值，
+ *   让旧的读路径（仍读 profile）继续工作。读路径迁移后，profile 的状态字段写入移除。
+ * - `field_history` 是「状态字段历史」——键为字段名（如 "state"、"status"），
+ *   值为按消息索引排序、互不重叠的 ValueInterval 数组。
+ * - `episode_refs` 记录所有触碰过本实体的 extraction pass id（同层溯源用）。
  */
 export interface EntityNode {
     /** UUID */
@@ -145,8 +188,21 @@ export interface EntityNode {
      * - identity: string (核心身份)
      * - description: string (在剧情中的简短定位)
      * - tags: string[] (特征标签)
+     *
+     * 注意：状态类字段（state/status/...）的「真相」在 field_history，
+     * profile 仅是当前快照（派生视图）。
      */
     profile: Record<string, unknown>;
+
+    /**
+     * 状态字段历史——键为字段名，值为 ValueInterval[]。
+     * 用于按消息索引做 as-of 查询（flashback / 时间一致性）。
+     * 缺省/空对象表示该实体尚未启用历史化字段（旧数据迁移后亦可能为空对象）。
+     */
+    field_history?: Record<string, ValueInterval[]>;
+
+    /** 触碰过本实体的 extraction pass id 列表（同层溯源用） */
+    episode_refs?: string[];
 
     /**
      * 是否已归档 (隐藏)
