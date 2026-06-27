@@ -10,8 +10,7 @@ import type { TrimConfig, TrimTriggerType } from "@/config/types/memory.ts";
 import { ingestionService } from "@/domain/memory/IngestionService.ts";
 import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
 import { chatManager } from "@/data/ChatManager.ts";
-import { SliderField } from "@/ui/components/form/SliderField.tsx";
-import { SwitchField } from "@/ui/components/form/FormComponents.tsx";
+import { NumberField, SwitchField } from "@/ui/components/form/FormComponents.tsx";
 import { Divider } from "@/ui/components/layout/Divider.tsx";
 import { Brain, RotateCcw, Scissors, Sparkles, RefreshCw } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
@@ -149,7 +148,7 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                     onChange={handleMasterToggle}
                 />
 
-                <SliderField
+                <NumberField
                     label="楼层间隔"
                     description="每 N 楼触发一次摄取（summary 与 entity 共享）"
                     min={5}
@@ -157,10 +156,11 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                     step={5}
                     value={config.floorInterval}
                     onChange={handleFloorInterval}
+                    suffix="楼"
                     disabled={!config.enabled}
                 />
 
-                <SliderField
+                <NumberField
                     label="缓冲层"
                     description="保留最近 N 层不参与本轮摄取"
                     min={0}
@@ -168,6 +168,7 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                     step={1}
                     value={config.bufferSize}
                     onChange={handleBufferSize}
+                    suffix="层"
                     disabled={!config.enabled}
                 />
 
@@ -235,7 +236,7 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                     disabled={!config.enabled || !config.entity.enabled}
                 />
 
-                <SliderField
+                <NumberField
                     label="活跃实体上限"
                     description="超过此值时触发自动归档"
                     min={10}
@@ -243,6 +244,7 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                     step={5}
                     value={config.entity.archiveLimit}
                     onChange={handleArchiveLimit}
+                    suffix="个"
                     disabled={
                         !config.enabled ||
                         !config.entity.enabled ||
@@ -299,7 +301,7 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                         </div>
                     </div>
 
-                    <SliderField
+                    <NumberField
                         label={trim.trigger === "token" ? "Token 阈值" : "事件数阈值"}
                         description={
                             trim.trigger === "token"
@@ -315,10 +317,11 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                                 : trim.countLimit
                         }
                         onChange={handleTrimThreshold}
+                        suffix={trim.trigger === "token" ? "tokens" : "条"}
                         disabled={!trim.enabled}
                     />
 
-                    <SliderField
+                    <NumberField
                         label="保留最近 N 条"
                         description="精简时保留最近 N 条事件不合并"
                         min={0}
@@ -326,6 +329,7 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                         step={1}
                         value={trim.keepRecentCount}
                         onChange={handleTrimKeepRecent}
+                        suffix="条"
                         disabled={!trim.enabled}
                     />
                 </section>

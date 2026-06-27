@@ -442,49 +442,30 @@ export const EventEditor = ({
             <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
                     <label className="text-xs text-meta">重要性分数</label>
-                    <span
-                        className={`text-xs font-mono ${
-                            score >= 0.8
-                                ? "text-emphasis"
-                                : (score >= 0.5 ? "text-value" : "text-label")
-                        }`}
-                    >
-                        {score.toFixed(2)}
-                    </span>
-                </div>
-                <div className="relative h-4 flex items-center group cursor-pointer">
-                    <div
-                        className="absolute inset-x-0 h-px"
-                        style={{ backgroundColor: "var(--border)" }}
-                    />
-                    <div
-                        className={`absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full shadow-sm pointer-events-none group-hover:scale-125 ${
-                            score >= 0.8
-                                ? "bg-emphasis"
-                                : (score >= 0.5 ? "bg-value" : "bg-label")
-                        }`}
-                        style={{
-                            left: `${score * 100}%`,
-                            transform: `translate(-50%, -50%)`,
-                        }}
-                    />
-                    <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.05"
-                        value={score}
-                        onChange={(e) => {
-                            const val = Number.parseFloat(e.target.value);
-                            setScore(val);
-                            setIsDirty(true);
-                        }}
-                        onMouseUp={() => syncToParent({ score })}
-                        onTouchEnd={() => syncToParent({ score })}
-                        onKeyUp={() => syncToParent({ score })}
-                        className="absolute inset-x-0 w-full h-full opacity-0 cursor-pointer z-10 m-0"
-                        style={{ WebkitAppearance: "none", appearance: "none" }}
-                    />
+                    <div className="flex items-center gap-1">
+                        <input
+                            type="number"
+                            min={0}
+                            max={1}
+                            step={0.05}
+                            value={score}
+                            onChange={(e) => {
+                                let val = Number.parseFloat(e.target.value);
+                                if (Number.isNaN(val)) val = 0;
+                                val = Math.max(0, Math.min(1, val));
+                                setScore(val);
+                                setIsDirty(true);
+                                syncToParent({ score: val });
+                            }}
+                            className={`bg-transparent border-0 border-b border-transparent focus:border-border outline-none text-base font-medium mx-0.5 text-right w-16 px-0 py-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+                                score >= 0.8
+                                    ? "text-emphasis"
+                                    : (score >= 0.5
+                                        ? "text-value"
+                                        : "text-label")
+                            }`}
+                        />
+                    </div>
                 </div>
             </div>
 

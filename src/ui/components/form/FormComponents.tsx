@@ -160,11 +160,11 @@ interface NumberFieldProps extends BaseFieldProps {
     max?: number;
     step?: number;
     suffix?: string;
+    disabled?: boolean;
 }
 
 /**
- * 极简数字输入 - 细线滑块 + 底部衬线输入框
- * 完全使用 div 模拟滑块外观，input opacity=0 负责交互
+ * 极简数字输入 - 标签/值同行，无框流体设计
  */
 
 export const NumberField: React.FC<NumberFieldProps> = ({
@@ -179,8 +179,13 @@ export const NumberField: React.FC<NumberFieldProps> = ({
     max,
     step = 1,
     suffix,
+    disabled,
 }) => (
-    <div className={`flex flex-col gap-2 ${className}`}>
+    <div
+        className={`flex flex-col gap-2 ${className} ${
+            disabled ? "opacity-50 pointer-events-none" : ""
+        }`}
+    >
         <div className="flex justify-between items-center">
             <label className="text-xs text-muted-foreground flex items-center gap-1">
                 {label}
@@ -193,8 +198,9 @@ export const NumberField: React.FC<NumberFieldProps> = ({
                     max={max}
                     step={step}
                     value={value}
+                    disabled={disabled}
                     onChange={(e) => onChange(Number(e.target.value))}
-                    className="bg-transparent border-0 border-b border-transparent focus:border-border outline-none text-base font-medium text-foreground mx-0.5 text-right w-16 px-0 py-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:text-primary"
+                    className="bg-transparent border-0 border-b border-transparent focus:border-border outline-none text-base font-medium text-foreground mx-0.5 text-right w-16 px-0 py-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:text-primary disabled:cursor-not-allowed"
                 />
                 {suffix &&
                     <span className="text-sm font-medium text-muted-foreground">
