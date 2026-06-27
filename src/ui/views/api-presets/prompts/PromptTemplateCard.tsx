@@ -283,8 +283,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                                 onResetToDefault({
                                     ...defaultTemplate,
                                     enabled: template.enabled,
-                                    extraWorldbooks: template.extraWorldbooks,
-                                    id: template.id, // V1.3.3: 保留绑定的世界书
+                                    id: template.id,
                                 });
                             }
                         }}

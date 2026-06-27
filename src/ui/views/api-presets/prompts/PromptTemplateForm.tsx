@@ -8,7 +8,6 @@ import {
     SelectField,
     TextField,
 } from "@/ui/components/form/FormComponents.tsx";
-import { WorldbookBindingField } from "./WorldbookBindingField.tsx";
 import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
 import { Check, Copy } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -200,15 +199,6 @@ export const PromptTemplateForm: React.FC<PromptTemplateFormProps> = ({
                             Tokens
                         </span>
                     }
-                />
-            </FormSection>
-
-            {/* 额外世界书绑定 (V1.2.8) */}
-            <FormSection title="知识库绑定">
-                <WorldbookBindingField
-                    selectedBooks={template.extraWorldbooks || []}
-                    onChange={(books) =>
-                        updateTemplate({ extraWorldbooks: books })}
                 />
             </FormSection>
 

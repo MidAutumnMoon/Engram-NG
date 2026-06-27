@@ -52,7 +52,6 @@ export const promptTemplateSchema = z.object({
     category: promptCategorySchema,
     enabled: z.boolean().default(false),
     isBuiltIn: z.boolean().default(false),
-    extraWorldbooks: z.array(z.string()).optional(),
     systemPrompt: z.string().default(""),
     userPromptTemplate: z.string().default(""),
     createdAt: z.number().default(() => Date.now()),
@@ -63,7 +62,7 @@ export type PromptTemplate = z.infer<typeof promptTemplateSchema>;
 
 // ==================== Export DTOs ====================
 
-// 导出时排除: id, isBuiltIn, enabled, createdAt, updatedAt, extraWorldbooks
+// 导出时排除: id, isBuiltIn, enabled, createdAt, updatedAt
 const promptTemplateExportShape = {
     name: z.string(),
     category: promptCategorySchema,
@@ -81,7 +80,6 @@ export type PromptTemplateSingleExport = z.infer<
 export const promptTemplateExportSchema = z.object({
     version: z.string(),
     exportedAt: z.number(),
-    // V1.2.8: 导出时排除 extraWorldbooks（可能包含私人信息）
     templates: z.array(promptTemplateSingleExportSchema),
 });
 export type PromptTemplateExport = z.infer<typeof promptTemplateExportSchema>;

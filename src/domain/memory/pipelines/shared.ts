@@ -184,14 +184,6 @@ export interface FetchContextInput {
     /** Override text for import mode (falls back to chatHistory). */
     text?: string;
     chatHistory?: string;
-    /** Prompt-template-driven extra worldbooks (merged in addition to global/char books). */
-    extraWorldbooks?: string[];
-    /**
-     * Template hint used to discover template-bound extra worldbooks before
-     * BuildPrompt runs. Mirrors the FetchContext -> BuildPrompt templateId/category.
-     */
-    templateId?: string;
-    category?: string;
 }
 
 export interface FetchContextResult {
@@ -265,57 +257,13 @@ export async function fetchContext(
         ? []
         : (scopes.global || []);
     const charBooks = scopes.chat || [];
-    let extraBooks = input.extraWorldbooks ?? [];
 
-    // Discover template-bound extra worldbooks (FetchContext runs before BuildPrompt).
-    try {
-        let templateId = input.templateId;
-        const category = input.category;
-        const builtinTemplates = BUILTIN_PROMPTS;
-        const userTemplates = getSetting("apiSettings")?.promptTemplates || [];
-
-        if (!templateId && category) {
-            const enabledTemplate = builtinTemplates.find((t) =>
-                t.category === category && t.enabled === true
-            );
-            if (enabledTemplate) templateId = enabledTemplate.id;
-        }
-
-        if (templateId) {
-            const userTemplate = userTemplates.find((t) => t.id === templateId);
-            const extraWorldbooks = userTemplate?.extraWorldbooks;
-            if (extraWorldbooks && extraWorldbooks.length > 0) {
-                const builtin = builtinTemplates.find((t) =>
-                    t.id === templateId
-                );
-                Logger.debug(
-                    LogModule.WF_FETCH_CONTEXT,
-                    `发现模板 [${
-                        builtin?.name ?? templateId
-                    }] 绑定的额外世界书`,
-                    { books: extraWorldbooks },
-                );
-                extraBooks = [...extraBooks, ...extraWorldbooks];
-            }
-        }
-    } catch (error) {
-        Logger.warn(
-            LogModule.WF_FETCH_CONTEXT,
-            "获取模板绑定世界书失败",
-            error,
-        );
-    }
-
-    const allBooks = [
-        ...new Set([...globalBooks, ...charBooks, ...extraBooks]),
-    ];
-    const worldbooksToScan = allBooks.filter((name: string) =>
-        !name.startsWith("[Engram]")
-    );
+    const worldbooksToScan = [
+        ...new Set([...globalBooks, ...charBooks]),
+    ].filter((name: string) => !name.startsWith("[Engram]"));
 
     Logger.debug(LogModule.WF_FETCH_CONTEXT, "世界书扫描列表", {
         char: charBooks.length,
-        extra: extraBooks.length,
         global: globalBooks.length,
         list: worldbooksToScan,
         totalFilter: worldbooksToScan.length,
@@ -335,25 +283,9 @@ export async function fetchContext(
 
     const worldInfoContentParts: string[] = [];
 
-    // Template-bound extra books: forceInclude, ignore global disable.
-    for (const book of extraBooks) {
-        if (!book.startsWith("[Engram]")) {
-            const content = await WorldInfoService.scanWorldbook(
-                book,
-                scanText,
-                { forceInclude: true },
-            );
-            if (content) worldInfoContentParts.push(content);
-        }
-    }
-
-    // Other books (global, char, task-input extras not already covered).
-    const booksToScanNormally = worldbooksToScan.filter((book) =>
-        !extraBooks.includes(book)
-    );
-    if (booksToScanNormally.length > 0) {
+    if (worldbooksToScan.length > 0) {
         const results = await Promise.all(
-            booksToScanNormally.map((wbName: string) =>
+            worldbooksToScan.map((wbName: string) =>
                 WorldInfoService.scanWorldbook(wbName, scanText)
             ),
         );

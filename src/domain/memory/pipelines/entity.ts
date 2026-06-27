@@ -49,8 +49,6 @@ export interface EntityInput {
     chatHistory: string;
     /** External-import override text. */
     text?: string;
-    /** Extra worldbooks bound to the chosen template. */
-    extraWorldbooks?: string[];
 }
 
 export interface EntityConfig {
@@ -102,9 +100,6 @@ export async function runEntityExtraction(
         range: input.range,
         chatHistory: input.chatHistory,
         text: input.text,
-        extraWorldbooks: input.extraWorldbooks,
-        category: "entity_extraction",
-        templateId: cfg.templateId ?? undefined,
     });
     if (isCancelled(signal)) throwUserCancelled();
 

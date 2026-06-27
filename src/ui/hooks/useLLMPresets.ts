@@ -214,7 +214,7 @@ export function useLLMPresets(): UseLLMPresetsReturn {
                 !t.isBuiltIn
             );
 
-            // 合并默认值与当前状态 (保留 enabled 和 extraWorldbooks)
+            // 合并默认值与当前状态 (保留 enabled)
             const mergedDefaults = builtInDefaults.map((def) => {
                 const current = prev.promptTemplates.find((t) =>
                     t.id === def.id
@@ -223,7 +223,6 @@ export function useLLMPresets(): UseLLMPresetsReturn {
                     return {
                         ...def,
                         enabled: current.enabled,
-                        extraWorldbooks: current.extraWorldbooks,
                     };
                 }
                 return def;

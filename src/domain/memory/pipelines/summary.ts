@@ -39,8 +39,6 @@ export interface SummaryInput {
     isImport?: boolean;
     /** Import override text. */
     text?: string;
-    /** Extra worldbooks bound to the chosen template. */
-    extraWorldbooks?: string[];
 }
 
 export interface SummaryConfig {
@@ -97,9 +95,6 @@ export async function runSummary(
         range: input.range,
         isImport: input.isImport,
         text: input.text,
-        extraWorldbooks: input.extraWorldbooks,
-        category: "summary",
-        templateId: cfg.templateId ?? undefined,
     });
     if (isCancelled(signal)) throwUserCancelled();
 
