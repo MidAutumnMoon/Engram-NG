@@ -72,7 +72,7 @@ export function formatEntityYaml(
     target_index: number,
 ): string {
     const rendered = getEntityDisplaySnapshot(entity, target_index);
-    return entityToYaml(entity.name, rendered);
+    return profileToYaml(entity.name, rendered);
 }
 
 /**
@@ -82,7 +82,7 @@ export function formatEntityYaml(
  */
 export function formatEntityDescription(entity: EntityNode): string {
     const rendered = getEntityDisplaySnapshot(entity);
-    return entityToYaml(entity.name, rendered);
+    return profileToYaml(entity.name, rendered);
 }
 
 /**
@@ -146,11 +146,12 @@ export function formatArchivedEntityBlock(
 }
 
 /**
- * 用 js-yaml 序列化实体 profile 为 YAML 字符串（name 行 + profile YAML）。
- * 与 SaveEntity.profileToYaml 同算法，保证 LLM 注入路径和 UI 一致。
+ * 用 js-yaml 把实体 profile 序列化为 YAML 字符串（name 行 + profile YAML）。
+ * 这是 entity YAML 序列化的唯一入口——写路径（SaveEntity）和读路径（注入/UI）共用，
+ * 保证 LLM 注入和存储的 description 形态完全一致。
  * js-yaml 自动处理特殊字符转义（冒号、#、- 开头等），避免手写序列化器的引号 bug。
  */
-function entityToYaml(
+export function profileToYaml(
     name: string,
     profile: Record<string, unknown>,
 ): string {

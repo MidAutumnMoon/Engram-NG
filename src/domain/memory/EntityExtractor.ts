@@ -1,11 +1,3 @@
-/**
- * EntityBuilder - 实体构建服务
- *
- * V0.9.1: 与 SummarizerService 并行，从原始 chatHistory 提取
- * - 楼层触发器 (floorInterval)
- * - 输入从原始对话提取，而非 Summary
- */
-
 import { getSetting } from "@/config/settings.ts";
 import { entityExtractConfigSchema } from "@/config/types/memory.ts";
 import type { EntityExtractConfig } from "@/config/types/memory.ts";

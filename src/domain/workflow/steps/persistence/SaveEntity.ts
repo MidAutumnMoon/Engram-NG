@@ -4,9 +4,14 @@ import { RobustJsonParser } from "@/utils/JsonParser.ts";
 import type { EntityNode } from "@/data/types/graph.ts";
 import { EntityType } from "@/data/types/graph.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
-import { appendInterval, backfillFromProfile, currentValue } from "@/domain/memory/fieldHistory.ts";
+import {
+    appendInterval,
+    backfillFromProfile,
+    currentValue,
+} from "@/domain/memory/fieldHistory.ts";
+import { profileToYaml } from "@/domain/memory/entityFormat.ts";
+import { stringCandidates } from "@/domain/memory/entityResolve.ts";
 import * as jsonpatch from "fast-json-patch";
-import * as yaml from "js-yaml";
 import { z } from "zod";
 import type { JobContext } from "../../core/JobContext.ts";
 import type { IStep } from "../../core/Step.ts";
@@ -191,8 +196,8 @@ export class SaveEntity implements IStep {
                     const { id: _id, ...entityData } = entity;
                     // 为新实体 seed field_history（与 createNewEntity 一致）
                     const declaredTracked = Array.isArray(
-                        (entityData as any).tracked_fields,
-                    )
+                            (entityData as any).tracked_fields,
+                        )
                         ? (entityData as any).tracked_fields as string[]
                         : [];
                     const profile = entityData.profile || {};
@@ -236,7 +241,7 @@ export class SaveEntity implements IStep {
                         // 回退到 existing 的声明，再回退到全局 stateFields
                         const trackedFields =
                             (Array.isArray(entity.tracked_fields) &&
-                                entity.tracked_fields.length > 0)
+                                    entity.tracked_fields.length > 0)
                                 ? entity.tracked_fields
                                 : (Array.isArray(existing?.tracked_fields) &&
                                         existing.tracked_fields.length > 0)
@@ -284,9 +289,8 @@ export class SaveEntity implements IStep {
                             }
                         }
 
-                        const description = this.profileToYaml(
+                        const description = profileToYaml(
                             entity.name,
-                            entity.type || "unknown",
                             newProfile,
                         );
                         await store.updateEntity(entity.id, {
@@ -422,28 +426,25 @@ export class SaveEntity implements IStep {
         }
     }
 
-    /** 消除别名歧义匹配 */
+    /**
+     * 字符串解析兜底：ResolveEntitiesStep（embedding+LLM 两段式）之后的纯字符串回退。
+     * 委托给 entityResolve.stringCandidates，保证「字符串解析」逻辑只有一个实现。
+     * 多别名歧义时仍取第一个避免崩溃（ResolveEntitiesStep 本应已消歧，到这说明降级路径）。
+     */
     private resolveEntityIdentity(
         entityName: string,
         existingEntities: EntityNode[],
     ): EntityNode | undefined {
-        // 1. 精确匹配名称优先
-        const exactMatch = existingEntities.find((e) => e.name === entityName);
-        if (exactMatch) return exactMatch;
-
-        // 2. 别名匹配（可能冲突）
-        const aliasMatches = existingEntities.filter((e) =>
-            e.aliases?.includes(entityName)
-        );
-        if (aliasMatches.length === 1) {
-            return aliasMatches[0];
-        } else if (aliasMatches.length > 1) {
+        const { exact, ambiguous } = stringCandidates(entityName, existingEntities);
+        if (exact) return exact;
+        if (ambiguous.length === 1) return ambiguous[0];
+        if (ambiguous.length > 1) {
             Logger.warn(
                 LogModule.WF_SAVE_ENTITY,
-                `⚠️ Alias conflict detected for "${entityName}". Multiple entities share this alias. Falling back to first match to avoid crash, but data overwrite may occur.`,
-                { matches: aliasMatches.map((e) => e.name) },
+                `⚠️ Alias conflict for "${entityName}". ResolveEntitiesStep 未消歧，取第一个避免崩溃（可能覆写）。`,
+                { matches: ambiguous.map((e) => e.name) },
             );
-            return aliasMatches[0];
+            return ambiguous[0];
         }
         return undefined;
     }
@@ -479,9 +480,8 @@ export class SaveEntity implements IStep {
 
         const entity: any = {
             aliases: value?.aliases || [],
-            description: this.profileToYaml(
+            description: profileToYaml(
                 entityName,
-                value?.type || "unknown",
                 profile,
             ),
             episode_refs: episodeId ? [episodeId] : undefined,
@@ -637,9 +637,8 @@ export class SaveEntity implements IStep {
             const hasAnyChange = stateOps.length > 0 || regularOps.length > 0;
             if (hasAnyChange) {
                 if (!isDryRun) {
-                    const description = this.profileToYaml(
+                    const description = profileToYaml(
                         targetDoc.name,
-                        targetDoc.type,
                         targetDoc.profile || {},
                     );
                     await store.updateEntity(existing.id, {
@@ -697,9 +696,8 @@ export class SaveEntity implements IStep {
                             return { ...op, oldValue };
                         }),
                     ];
-                    targetDoc.description = this.profileToYaml(
+                    targetDoc.description = profileToYaml(
                         targetDoc.name,
-                        targetDoc.type,
                         targetDoc.profile || {},
                     );
                     targetDoc._diff = diffs;
@@ -893,9 +891,8 @@ export class SaveEntity implements IStep {
 
                 const entity: any = {
                     aliases: extracted.aliases || [],
-                    description: this.profileToYaml(
+                    description: profileToYaml(
                         extracted.name,
-                        extracted.type,
                         extracted.profile || {},
                     ),
                     name: extracted.name,
@@ -951,22 +948,6 @@ export class SaveEntity implements IStep {
                     stateChangeEmitThreshold,
                 );
             }
-        }
-    }
-
-    private profileToYaml(name: string, type: string, profile: any): string {
-        try {
-            const entityObj = { profile };
-            const yamlContent = yaml.dump(entityObj, {
-                indent: 2,
-                lineWidth: -1,
-                noRefs: true,
-                sortKeys: false,
-            });
-            return `${name}\n${yamlContent.trim()}`;
-        } catch (error) {
-            Logger.warn(LogModule.WF_SAVE_ENTITY, "YAML Dump failed", error);
-            return `${name} (${type})\n${JSON.stringify(profile, null, 2)}`;
         }
     }
 

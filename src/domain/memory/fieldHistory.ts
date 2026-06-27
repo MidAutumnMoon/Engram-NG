@@ -95,25 +95,7 @@ export function currentValue(
 }
 
 /**
- * 显式关闭上一段 open interval（在合并实体等场景使用）。
- * 不改变除最后一段之外的任何区间。
- */
-export function endLastInterval(
-    history: ValueInterval[] | undefined,
-    at_index: number,
-): ValueInterval[] {
-    if (!history || history.length === 0) return history ? [...history] : [];
-    const base = [...history];
-    const last = base[base.length - 1];
-    if (last.to_index === null) {
-        base[base.length - 1] = { ...last, to_index: at_index };
-    }
-    validateHistory(base);
-    return base;
-}
-
-/**
- * 校验历史满足不变量。违反时抛错——尽早暴露数据腐败。
+ * 显式校验历史满足不变量。违反时抛错——尽早暴露数据腐败。
  */
 export function validateHistory(
     history: ValueInterval[] | undefined,

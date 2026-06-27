@@ -14,7 +14,6 @@ import {
     appendInterval,
     backfillFromProfile,
     currentValue,
-    endLastInterval,
     resolveAt,
     validateHistory,
 } from "@/domain/memory/fieldHistory.ts";
@@ -132,29 +131,6 @@ describe("currentValue", () => {
     it("returns undefined for empty history", () => {
         expect(currentValue(undefined)).toBeUndefined();
         expect(currentValue([])).toBeUndefined();
-    });
-});
-
-describe("endLastInterval", () => {
-    it("closes an open last interval at the given index", () => {
-        const h: ValueInterval[] = [
-            { value: "a", from_index: 0, to_index: null, episode_id: "ep1" },
-        ];
-        const out = endLastInterval(h, 30);
-        expect(out[0].to_index).toBe(30);
-    });
-
-    it("leaves an already-closed tail unchanged", () => {
-        const h: ValueInterval[] = [
-            { value: "a", from_index: 0, to_index: 10, episode_id: "ep1" },
-        ];
-        const out = endLastInterval(h, 30);
-        expect(out[0].to_index).toBe(10);
-    });
-
-    it("returns empty/undefined as-is", () => {
-        expect(endLastInterval(undefined, 5)).toEqual([]);
-        expect(endLastInterval([], 5)).toEqual([]);
     });
 });
 

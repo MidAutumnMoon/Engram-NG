@@ -12,7 +12,7 @@
  * 无 vectorConfig 时优雅降级为纯字符串解析（embeddingCandidates 返回空）。
  *
  * 重要：本步骤只重写 patch 路径；真正的合并写入由 SaveEntity 在 applyMergePatches
- * 里完成（patch 命中既有节点即合并）。entityResolve.mergeEntities 用于显式合并场景。
+ * 里完成（patch 命中既有节点即合并）。
  */
 
 import {
