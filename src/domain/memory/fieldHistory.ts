@@ -162,15 +162,20 @@ export function validateHistory(
 }
 
 /**
- * 从旧 profile 回填 field_history（迁移用）。
+ * 从旧 profile 回填 field_history（迁移 + 新实体 seed 共用）。
  * 对每个命中 stateFields 的字段，生成一段 synthetic 区间：
- * { value: profile[field], from_index: 0, to_index: null, episode_id: null }
+ * { value: profile[field], from_index, to_index: null, episode_id }
+ *
+ * - 迁移用：from_index=0, episode_id=null（旧数据无溯源）
+ * - 新实体 seed：from_index=该实体首次出现的消息索引, episode_id=创建它的 pass
  *
  * 字段值为 undefined/缺失时跳过该字段。
  */
 export function backfillFromProfile(
     profile: Record<string, unknown> | undefined | null,
     stateFields: readonly string[],
+    from_index: number = 0,
+    episode_id: string | null = null,
 ): Record<string, ValueInterval[]> {
     const out: Record<string, ValueInterval[]> = {};
     if (!profile) return out;
@@ -183,9 +188,9 @@ export function backfillFromProfile(
         ) {
             out[field] = [{
                 value: profile[field],
-                from_index: 0,
+                from_index,
                 to_index: null,
-                episode_id: null,
+                episode_id,
             }];
         }
     }

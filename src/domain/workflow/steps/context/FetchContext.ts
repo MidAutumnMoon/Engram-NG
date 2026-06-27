@@ -94,15 +94,17 @@ export class FetchContext implements IStep {
         // 因为 FetchContext 在 BuildPrompt 之前运行，我们需要提前预判或查找模板
         try {
             // 确定 templateId (逻辑同 BuildPrompt)
+            // 模板内容（systemPrompt/userPromptTemplate）以内置 YAML 为唯一真相来源；
+            // 用户存储的模板只保留元数据：enabled 标志 + extraWorldbooks 绑定。
             let { templateId } = context.config;
             const { category } = context.config;
+            const builtinTemplates = PromptLoader.getAllTemplates(); // 内置为真相
+            const userTemplates =
+                getSetting("apiSettings")?.promptTemplates || [];
 
             if (!templateId && category) {
-                // 简单查找该分类下启用的模板
-                // 注意：这里只是为了获取 worldbooks，做个尽力而为的查找
-                const allTemplates =
-                    getSetting("apiSettings")?.promptTemplates || [];
-                const enabledTemplate = allTemplates.find((t) =>
+                // 查找该分类下启用的内置模板
+                const enabledTemplate = builtinTemplates.find((t) =>
                     t.category === category && t.enabled === true
                 );
                 if (enabledTemplate) {
@@ -111,28 +113,26 @@ export class FetchContext implements IStep {
             }
 
             if (templateId) {
-                // 读取完整模板配置（包含 user override）
-                const userTemplates =
-                    getSetting("apiSettings")?.promptTemplates || [];
-                const builtinTemplates = PromptLoader.getAllTemplates(); // 确保加载内置
-
-                const template = userTemplates.find((t) =>
+                // extraWorldbooks 是合法的用户元数据（世界书绑定），从用户模板读取
+                const userTemplate = userTemplates.find((t) =>
                     t.id === templateId
-                ) ||
-                    builtinTemplates.find((t) => t.id === templateId);
+                );
+                const extraWorldbooks = userTemplate?.extraWorldbooks;
 
                 if (
-                    template && template.extraWorldbooks &&
-                    template.extraWorldbooks.length > 0
+                    extraWorldbooks && extraWorldbooks.length > 0
                 ) {
+                    const builtin = builtinTemplates.find((t) =>
+                        t.id === templateId
+                    );
                     Logger.debug(
                         LogModule.WF_FETCH_CONTEXT,
-                        `发现模板 [${template.name}] 绑定的额外世界书`,
+                        `发现模板 [${builtin?.name ?? templateId}] 绑定的额外世界书`,
                         {
-                            books: template.extraWorldbooks,
+                            books: extraWorldbooks,
                         },
                     );
-                    extraBooks = [...extraBooks, ...template.extraWorldbooks];
+                    extraBooks = [...extraBooks, ...extraWorldbooks];
                 }
             }
         } catch (error) {

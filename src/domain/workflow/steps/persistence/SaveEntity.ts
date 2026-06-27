@@ -4,7 +4,7 @@ import { RobustJsonParser } from "@/utils/JsonParser.ts";
 import type { EntityNode } from "@/data/types/graph.ts";
 import { EntityType } from "@/data/types/graph.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
-import { appendInterval, currentValue } from "@/domain/memory/fieldHistory.ts";
+import { appendInterval, backfillFromProfile, currentValue } from "@/domain/memory/fieldHistory.ts";
 import * as jsonpatch from "fast-json-patch";
 import * as yaml from "js-yaml";
 import { z } from "zod";
@@ -283,6 +283,7 @@ export class SaveEntity implements IStep {
                         store,
                         isDryRun,
                         newEntities,
+                        context,
                     );
                     continue;
                 } else {
@@ -347,16 +348,40 @@ export class SaveEntity implements IStep {
         store: ReturnType<typeof useMemoryStore.getState>,
         isDryRun: boolean,
         newEntities: EntityNode[],
+        context: JobContext,
     ) {
+        // tracked_fields：由 prompt 声明的可变状态字段。只保留 profile 中实际存在的键。
+        const declaredTracked = Array.isArray(value?.tracked_fields)
+            ? (value.tracked_fields as string[])
+            : [];
+        const profile = value?.profile || {};
+        const trackedFields = declaredTracked.filter((f) =>
+            f in profile && profile[f] !== undefined && profile[f] !== null
+        );
+
+        // 首次创建即 seed field_history：与 v4 迁移用同一份 backfill 逻辑，
+        // 让新实体从诞生起就有一段 [from_index, null) 区间，不依赖后续 update 才出现。
+        const fromIndex = context.input.range?.[0] ?? 0;
+        const episodeId = context.input.episode_id ?? null;
+        const fieldHistory = backfillFromProfile(
+            profile,
+            trackedFields,
+            fromIndex,
+            episodeId,
+        );
+
         const entity: any = {
             aliases: value?.aliases || [],
             description: this.profileToYaml(
                 entityName,
                 value?.type || "unknown",
-                value?.profile || {},
+                profile,
             ),
+            episode_refs: episodeId ? [episodeId] : undefined,
+            field_history: fieldHistory,
             name: entityName,
-            profile: value?.profile || {},
+            profile,
+            tracked_fields: trackedFields,
             type: (value?.type as EntityType) || EntityType.Unknown,
         };
 
@@ -423,9 +448,16 @@ export class SaveEntity implements IStep {
 
             // 分流：状态字段 op 走 interval-append，其余走原有 jsonpatch 覆盖路径。
             // 状态字段历史化是 episode-as-source-of-truth 的核心：旧值不丢，timeline 可回溯。
+            // 优先用该实体声明的 tracked_fields（prompt 在创建时声明，最准确），
+            // 回退到全局 stateFields 配置（兼容旧实体/未声明的情况）。
+            const effectiveTrackedFields =
+                (Array.isArray(existing.tracked_fields) &&
+                        existing.tracked_fields.length > 0)
+                    ? existing.tracked_fields
+                    : stateFields;
             const { stateOps, regularOps } = partitionStateOps(
                 relativeOps,
-                stateFields,
+                effectiveTrackedFields,
             );
 
             // 先应用状态字段（interval-append + profile 同步写）

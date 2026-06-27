@@ -1,6 +1,10 @@
 import { generateShortUUID } from "@/utils/shortUUID.ts";
 import type { EntityNode } from "@/data/types/graph.ts";
 import type { StateCreator } from "zustand";
+import {
+    formatArchivedEntityBlock,
+    formatEntityStateBlocks,
+} from "@/domain/memory/entityFormat.ts";
 import { getCurrentDb, tryGetCurrentDb } from "./coreSlice.ts";
 
 export interface EntityState {
@@ -24,7 +28,7 @@ export interface EntityState {
     findEntityByName: (name: string) => Promise<EntityNode | null>;
     archiveEntities: (entityIds: string[]) => Promise<void>;
     toggleEntityLock: (entityId: string) => Promise<boolean>;
-    getEntityStates: (ids?: string[]) => Promise<string>;
+    getEntityStates: (ids?: string[], target_index?: number) => Promise<string>;
 }
 
 export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
@@ -103,11 +107,14 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
         }
     },
 
-    getEntityStates: async (ids?: string[]) => {
+    getEntityStates: async (ids?: string[], target_index?: number) => {
         const db = tryGetCurrentDb();
         if (!db) return "";
 
         try {
+            // target_index 缺省 = 最新（取一个足够大的索引，resolveAt 会落到最后一段 open interval）
+            const at = target_index ?? Number.MAX_SAFE_INTEGER;
+
             let fullEntities: EntityNode[] = [];
             let summaryEntities: EntityNode[] = [];
 
@@ -135,60 +142,14 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
                 return "";
             }
 
-            const groups: Record<string, EntityNode[]> = {
-                char: [],
-                loc: [],
-                item: [],
-                concept: [],
-                unknown: [],
-            };
-
-            for (const entity of fullEntities) {
-                const typeKey = entity.type || "unknown";
-                if (groups[typeKey]) {
-                    groups[typeKey].push(entity);
-                } else {
-                    groups.unknown.push(entity);
-                }
-            }
-
-            const tagMap: Record<string, string> = {
-                char: "character_state",
-                loc: "scene_state",
-                item: "item_state",
-                concept: "concept_state",
-                unknown: "entity_state",
-            };
-
+            // 状态字段从 field_history as-of 解析（field_history 为真相）；
+            // 其余字段从 profile 读取。归档实体不解析（仅恒定标识）。
             const sections: string[] = [];
+            const stateBlocks = formatEntityStateBlocks(fullEntities, at);
+            if (stateBlocks) sections.push(stateBlocks);
 
-            for (const [typeKey, entityList] of Object.entries(groups)) {
-                if (entityList.length === 0) continue;
-
-                const tag = tagMap[typeKey];
-                const contents = entityList
-                    .map((e) => e.description || `# ${e.name}\n(无详细信息)`)
-                    .join("\n---\n");
-
-                sections.push(`<${tag}>\n${contents}\n</${tag}>`);
-            }
-
-            // 补充未登场/未召回的已归档实体（仅提供极简特征作为防遗忘和防重提醒）
-            if (summaryEntities.length > 0) {
-                const yamlLines = [
-                    "<archived_entities>",
-                    "以下实体目前未出场，但需要你保持对其设定的认知，请勿重复创建新实体:",
-                ];
-                for (const e of summaryEntities) {
-                    const identity = e.profile?.identity ?? "未知身份";
-                    const description = e.profile?.description ?? "无具体备注";
-                    yamlLines.push(`${e.name}:`);
-                    yamlLines.push(`  identity: ${identity}`);
-                    yamlLines.push(`  description: ${description}`);
-                }
-                yamlLines.push("</archived_entities>");
-                sections.push(yamlLines.join("\n"));
-            }
+            const archivedBlock = formatArchivedEntityBlock(summaryEntities);
+            if (archivedBlock) sections.push(archivedBlock);
 
             return sections.join("\n\n");
         } catch (e) {

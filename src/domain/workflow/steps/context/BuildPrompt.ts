@@ -24,25 +24,13 @@ export class BuildPrompt implements IStep {
         const templateId = context.config.templateId || this.config.templateId;
         const category = context.config.category || this.config.category;
 
-        // V0.9.11: Use SettingsManager as Source of Truth to include User Custom Templates
-        // PromptLoader only has built-ins.
-        const allTemplates = getSetting("apiSettings")?.promptTemplates || [];
-
-        // Ensure built-ins are loaded and merged with user settings
+        // Prompt content source of truth: built-in YAML templates only.
+        // User overrides of prompt text were removed (consistent source of subtle bugs;
+        // source is the single source of truth in this fork). User template metadata
+        // (enabled flag, extraWorldbooks, boundPresetId) is still honored — only the
+        // systemPrompt/userPromptTemplate text always comes from PromptLoader.
         PromptLoader.init();
-        const builtInTemplates = PromptLoader.getAllTemplates();
-
-        // Create a map to merge templates by ID (User overrides Built-in)
-        const templateMap = new Map<string, any>();
-
-        // 1. Add built-ins first
-        builtInTemplates.forEach((t) => templateMap.set(t.id, t));
-
-        // 2. Override with user templates
-        allTemplates.forEach((t) => templateMap.set(t.id, t));
-
-        // 3. Convert back to array
-        const mergedTemplates = [...templateMap.values()];
+        const mergedTemplates = PromptLoader.getAllTemplates();
 
         let template;
         if (templateId) {
@@ -53,12 +41,7 @@ export class BuildPrompt implements IStep {
             const templates = mergedTemplates.filter((t) =>
                 t.category === category && t.enabled
             );
-            const customEnabled = templates.find((t) => !t.isBuiltIn);
-            if (customEnabled) {
-                template = customEnabled;
-            } else {
-                template = templates[0];
-            }
+            template = templates[0];
 
             if (template) {
                 Logger.debug(

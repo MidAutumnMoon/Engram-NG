@@ -201,6 +201,15 @@ export interface EntityNode {
      */
     field_history?: Record<string, ValueInterval[]>;
 
+    /**
+     * 该实体被声明为「可变状态」的 profile 字段名列表。
+     * 由 entity_extraction prompt 在首次创建实体时通过 tracked_fields 声明，
+     * 持久化在此。后续 update pass 据此决定哪些 replace op 走 interval-append。
+     * 这是「哪些字段历史化」的真实来源——比全局 stateFields 配置更准确，
+     * 因为不同实体有不同的可变状态（角色有 mood，地点有 atmosphere，等）。
+     */
+    tracked_fields?: string[];
+
     /** 触碰过本实体的 extraction pass id 列表（同层溯源用） */
     episode_refs?: string[];
 
