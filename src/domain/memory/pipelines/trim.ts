@@ -14,7 +14,7 @@ import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph.ts";
-import { refreshCache } from "@/domain/macros/Macros.ts";
+import { refreshEngramCache } from "@/domain/macros/Macros.ts";
 import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { notify } from "@/sillytavern/notify.ts";
@@ -199,7 +199,7 @@ Significance: ${e.significance_score}`;
 
     // 归档原始事件
     await store.archiveEvents(sourceEventIds);
-    await refreshCache();
+    await refreshEngramCache();
 
     Logger.success(LogModule.WF_APPLY_TRIM, "精简完成", {
         merged: eventsToMerge.length,

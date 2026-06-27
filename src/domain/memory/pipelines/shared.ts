@@ -13,6 +13,7 @@ import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { getCurrentCharacter, getSTContext } from "@/sillytavern/context.ts";
+import { processEjs } from "@/sillytavern/prompt/ejsProcessor.ts";
 import {
     getChatHistory as getMacroChatHistory,
     getEntityStates,
@@ -286,7 +287,12 @@ export async function fetchContext(
         worldInfoContentParts.push(...results.filter(Boolean));
     }
 
-    const wiContent = worldInfoContentParts.filter(Boolean).join("\n\n");
+    // EJS-render the scanned worldbook content. Some character cards ship
+    // worldbook entries as EJS templates (ST-Prompt-Template); render them
+    // before the text reaches {{worldbookContext}}. No-ops when the plugin
+    // isn't installed.
+    const rawWiContent = worldInfoContentParts.filter(Boolean).join("\n\n");
+    const [wiContent = ""] = await processEjs([rawWiContent]);
 
     // 4. Engram summaries + entity states (cached by macros module)
     const engramSummaries = getSummaries();

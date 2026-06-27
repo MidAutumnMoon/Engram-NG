@@ -1,14 +1,9 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import {
-    getCurrentCharacterData,
-    getSTContext,
-} from "@/sillytavern/context.ts";
-import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
+import { getSTContext } from "@/sillytavern/context.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
 import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
-import { processEjs } from "@/sillytavern/prompt/ejsProcessor.ts";
 
 /**
  * 宏模块
@@ -18,13 +13,7 @@ let isInitialized = false;
 
 // --- 缓存 ---
 let cachedSummaries = "";
-let cachedWorldbookContext = "";
-let cachedCharDescription = "";
-let cachedArchivedSummaries = "";
-let cachedUserPersona = "";
 let cachedEntityStates = "";
-let cachedAgenticIndex = "";
-let cachedPureActiveEvents = "";
 
 // --- 内置宏规格表 ---
 // 单一来源：注册和启动日志都读这张表，避免注册名与日志名重复维护
@@ -33,24 +22,7 @@ const BUILTIN_MACROS: ReadonlyArray<{
     get: () => string;
 }> = [
     { name: "engramSummaries", get: () => cachedSummaries },
-    { name: "worldbookContext", get: () => cachedWorldbookContext },
-    { name: "chatHistory", get: () => getChatHistory() },
-    { name: "context", get: () => cachedCharDescription },
-    { name: "engramArchivedSummaries", get: () => cachedArchivedSummaries },
-    {
-        name: "userPersona",
-        get: () => {
-            // 实时优先：人设切换频繁，优先读取酒馆原生变量
-            const liveDescription = getSTContext().powerUserSettings
-                ?.persona_description;
-            return typeof liveDescription === "string"
-                ? liveDescription
-                : cachedUserPersona;
-        },
-    },
     { name: "engramEntityStates", get: () => cachedEntityStates },
-    { name: "engramIndex", get: () => cachedAgenticIndex },
-    { name: "engramActiveEvents", get: () => cachedPureActiveEvents },
 ];
 
 /**
@@ -73,7 +45,7 @@ export async function initMacros(): Promise<void> {
         });
 
         // 初始化缓存
-        await refreshCache();
+        await refreshEngramCache();
 
         // 监听聊天切换事件，刷新缓存
         const { eventSource } = context;
@@ -81,19 +53,8 @@ export async function initMacros(): Promise<void> {
             eventSource.on("chat_id_changed", () => {
                 Logger.info(LogModule.MACROS, "聊天切换，清理旧缓存");
                 clearCache();
-                refreshCache().catch((error) =>
+                refreshEngramCache().catch((error) =>
                     Logger.warn(LogModule.MACROS, "刷新缓存失败", error)
-                );
-            });
-
-            // V1.0.1: 监听设置更新（通常包含人设描述变更）
-            eventSource.on("settings_updated", () => {
-                refreshCache().catch((error) =>
-                    Logger.warn(
-                        LogModule.MACROS,
-                        "设置更新后刷新缓存失败",
-                        error,
-                    )
                 );
             });
         }
@@ -107,13 +68,7 @@ export async function initMacros(): Promise<void> {
  */
 export function clearCache(): void {
     cachedSummaries = "";
-    cachedWorldbookContext = "";
-    cachedCharDescription = "";
-    cachedArchivedSummaries = "";
-    cachedUserPersona = "";
     cachedEntityStates = "";
-    cachedAgenticIndex = "";
-    cachedPureActiveEvents = "";
 }
 
 /**
@@ -131,28 +86,11 @@ export function getEntityStates(): string {
 }
 
 /**
- * 刷新所有缓存 (包括耗时的世界书扫描)
+ * 刷新 Engram DB 缓存 (事件摘要 + 实体状态)。
  * @param recalledIds 可选，RAG 召回的事件 ID 列表
  * @param target_index 可选，实体状态 as-of 解析的消息索引（用于 flashback 查询）。
  *   缺省 = 最新（latest）。Injector 在召回命中过去事件时传入该事件的 end_index，
  *   使 {{engramEntityStates}} 渲染为「那个叙事时刻」的状态快照。
- */
-export async function refreshCache(
-    recalledIds?: string[],
-    target_index?: number,
-): Promise<void> {
-    await Promise.all([
-        refreshEngramCache(recalledIds, target_index),
-        refreshWorldbookCache(),
-    ]);
-
-    // 刷新用户设定 (轻量)
-    refreshUserPersona();
-}
-
-/**
- * 仅刷新 Engram 相关的 DB 缓存 (快速)
- * 用于 Pipeline 结束后的快速更新，避免触发全量世界书扫描
  */
 export async function refreshEngramCache(
     recalledIds?: string[],
@@ -164,18 +102,11 @@ export async function refreshEngramCache(
         // 1. 刷新事件摘要（带召回 ID）
         cachedSummaries = await store.getEventSummaries(recalledIds);
 
-        // 2. 刷新归档摘要
-        await refreshArchivedSummaries();
-
-        // 3. V1.0.0: 刷新实体状态（target_index 透传给 as-of 解析）
+        // 2. 刷新实体状态（target_index 透传给 as-of 解析）
         cachedEntityStates = await store.getEntityStates(
             undefined,
             target_index,
         );
-
-        // 4. Agentic RAG: 刷新目录索引和纯蓝灯事件
-        cachedAgenticIndex = await store.getAgenticIndex();
-        cachedPureActiveEvents = await store.getPureActiveEvents();
 
         Logger.debug(LogModule.MACROS, "Engram DB 缓存已刷新", {
             recalledCount: recalledIds?.length ?? 0,
@@ -183,29 +114,6 @@ export async function refreshEngramCache(
         });
     } catch (error) {
         Logger.warn(LogModule.MACROS, "刷新 Engram DB 缓存失败", error);
-    }
-}
-
-/**
- * 仅刷新世界书上下文 (耗时操作)
- * 涉及全量历史扫描，仅在初始化或明确需要时调用
- */
-export async function refreshWorldbookCache(): Promise<void> {
-    try {
-        // 刷新世界书上下文 (支持 EJS)
-        const rawContext = await WorldInfoService.getActivatedWorldInfo();
-        const sanitized = await processEjs([rawContext]);
-        cachedWorldbookContext = sanitized[0] || "";
-
-        // 刷新角色描述
-        refreshCharDescription();
-
-        Logger.debug(LogModule.MACROS, "世界书上下文已刷新", {
-            worldbookLength: cachedWorldbookContext.length,
-        });
-    } catch (error) {
-        Logger.debug(LogModule.MACROS, "获取世界书内容失败", error);
-        cachedWorldbookContext = "";
     }
 }
 
@@ -224,47 +132,6 @@ export function getChatHistory(floorRange?: [number, number]): string {
  */
 export function getCurrentMessageCount(): number {
     return ChatHistoryHelper.getCurrentMessageCount();
-}
-
-/**
- * 刷新角色描述缓存
- */
-function refreshCharDescription(): void {
-    try {
-        cachedCharDescription = getCurrentCharacterData()?.description ?? "";
-    } catch (error) {
-        Logger.debug(LogModule.MACROS, "刷新角色描述失败", error);
-    }
-}
-
-/**
- * V0.9.2: 刷新归档摘要缓存
- * 仅返回 is_archived=true 的事件摘要
- */
-async function refreshArchivedSummaries(): Promise<void> {
-    try {
-        const store = useMemoryStore.getState();
-        cachedArchivedSummaries = await store.getArchivedEventSummaries();
-        Logger.debug(LogModule.MACROS, "归档摘要缓存已刷新", {
-            length: cachedArchivedSummaries.length,
-        });
-    } catch (error) {
-        Logger.warn(LogModule.MACROS, "刷新归档摘要失败", error);
-        cachedArchivedSummaries = "";
-    }
-}
-
-function refreshUserPersona(): void {
-    try {
-        const powerUser = getSTContext().powerUserSettings;
-        cachedUserPersona = powerUser?.persona_description || "";
-        Logger.debug(LogModule.MACROS, "用户设定缓存已刷新", {
-            length: cachedUserPersona.length,
-        });
-    } catch (error) {
-        Logger.debug(LogModule.MACROS, "刷新用户设定失败", error);
-        cachedUserPersona = "";
-    }
 }
 
 /**
