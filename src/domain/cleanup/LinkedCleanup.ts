@@ -19,17 +19,15 @@ import { LogModule } from "@/logger/LogModule.ts";
 import { callPopup, getSTContext } from "@/sillytavern/index.ts";
 import { notify } from "@/sillytavern/notify.ts";
 
-/** SillyTavern CHARACTER_DELETED 事件载荷 (仅取需要的字段)。 */
-interface CharacterDeletedPayload {
-    id?: string;
-    character?: { name?: string; data?: { name?: string } };
-}
+type CharacterDeletedPayload = Parameters<
+    ListenerType[typeof tavern_events.CHARACTER_DELETED]
+>[0];
 
-let isInitialized = false;
+let alreadyInitialized = false;
 
 /** Wire SillyTavern character/chat deletion events. Idempotent. */
 export function initLinkedCleanup(): void {
-    if (isInitialized) return;
+    if (alreadyInitialized) return;
 
     const context = getSTContext();
     context.eventSource.on(
@@ -57,7 +55,7 @@ export function initLinkedCleanup(): void {
         },
     );
 
-    isInitialized = true;
+    alreadyInitialized = true;
     Logger.debug(LogModule.DATA_CLEANUP, "cleanup listeners registered");
 }
 
