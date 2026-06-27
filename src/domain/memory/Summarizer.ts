@@ -9,6 +9,7 @@
 import { chatManager } from "@/data/ChatManager.ts";
 import { getProcessedFloor } from "@/data/types/graph.ts";
 import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { getSTContext, onTavernEvent } from "@/sillytavern/context.ts";
 import type { ChatContext, SummarizerStatus } from "./types.ts";
 
@@ -47,7 +48,7 @@ class SummarizerService {
      */
     start(): void {
         if (this.isRunning) {
-            Logger.warn("Summarizer", "服务已在运行");
+            Logger.warn(LogModule.STBRIDGE, "Summarizer 服务已在运行");
             return;
         }
         this.initializeForCurrentChat();
@@ -56,7 +57,10 @@ class SummarizerService {
             this.handleChatChanged.bind(this),
         );
         this.isRunning = true;
-        Logger.info("Summarizer", "服务已启动 (仅 chat_id_changed 订阅)");
+        Logger.info(
+            LogModule.STBRIDGE,
+            "Summarizer 服务已启动 (仅 chat_id_changed 订阅)",
+        );
     }
 
     stop(): void {
@@ -65,7 +69,7 @@ class SummarizerService {
             this.unsubscribeChat = null;
         }
         this.isRunning = false;
-        Logger.info("Summarizer", "服务已停止");
+        Logger.info(LogModule.STBRIDGE, "Summarizer 服务已停止");
     }
 
     /**
@@ -79,7 +83,11 @@ class SummarizerService {
             const state = await chatManager.getState();
             this._lastProcessedFloor = getProcessedFloor(state);
         } catch (error) {
-            Logger.warn("Summarizer", "读取游标失败，使用默认值 0", error);
+            Logger.warn(
+                LogModule.STBRIDGE,
+                "Summarizer 读取游标失败，使用默认值 0",
+                error,
+            );
         }
     }
 

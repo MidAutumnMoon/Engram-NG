@@ -95,5 +95,5 @@ export const MODULE_META: Record<LogModule, ModuleMeta> = {
  * 按模块名查询元数据。
  */
 export function getModuleMeta(module: LogModule): ModuleMeta {
-    return MODULE_META[module];
+    return MODULE_META[module] ?? { icon: Terminal };
 }
