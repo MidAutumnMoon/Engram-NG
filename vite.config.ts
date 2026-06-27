@@ -46,6 +46,7 @@ export default defineConfig(({ mode }) => ({
                     }
                     return "assets/[name][extname]";
                 },
+                minify: { mangle: false, compress: true },
             },
         },
 
