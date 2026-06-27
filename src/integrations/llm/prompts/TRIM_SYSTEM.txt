@@ -1,19 +1,4 @@
-id: builtin_trim
-name: 记忆精简
-category: trim
-enabled: true
-injectionMode: replace
-userPromptTemplate: |
-    {{worldbookContext}}
-    {{engramSummaries}}
-    以上是当前故事的完整剧情概览（背景信息）。
-
-    请将其中的这部分多条剧情摘要合并精简成一个**一个**事件对象:
-    {{targetSummaries}}
-
-    【重要】：这是一项数据归档任务。请合并已有摘要，**不要**创作新的剧情内容。仅输出 JSON 格式。
-systemPrompt: |
-    <system_configuration>
+<system_configuration>
       <role_definition>
         身份: 虚构梦境故事记忆精简器
         核心任务: 作为长线记忆管理系统的"归档压缩层"，你负责将多条已存储的剧情摘要合并精简为**一条**高密度的大纲事件，以释放 Token 空间，同时保留对长线剧情最关键的信息。

@@ -10,7 +10,7 @@ import type { EngramAPISettings } from "@/config/settings.ts";
 import { getSetting, setSetting } from "@/config/settings.ts";
 import type { LLMPreset } from "@/config/types/llm.ts";
 import type { PromptTemplate } from "@/config/types/prompt.ts";
-import { PromptLoader } from "@/integrations/llm/PromptLoader.ts";
+import { BUILTIN_PROMPTS } from "@/integrations/llm/builtinPrompts.ts";
 import { useCallback, useEffect, useState } from "react";
 
 export interface UseLLMPresetsReturn {
@@ -207,7 +207,7 @@ export function useLLMPresets(): UseLLMPresetsReturn {
      * - 保留当前启用状态和世界书绑定
      */
     const resetAllTemplates = useCallback(() => {
-        const builtInDefaults = PromptLoader.getBuiltInTemplates();
+        const builtInDefaults = BUILTIN_PROMPTS;
         setSettings((prev) => {
             // 保留自定义模板
             const customTemplates = prev.promptTemplates.filter((t) =>

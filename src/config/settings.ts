@@ -10,7 +10,7 @@ import { z } from "zod";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { getSTContext } from "@/sillytavern/context.ts";
-import { PromptLoader } from "@/integrations/llm/PromptLoader.ts";
+import { BUILTIN_PROMPTS } from "@/integrations/llm/builtinPrompts.ts";
 import { safeStringify } from "@/utils/safeStringify.ts";
 
 import { type LLMPreset, llmPresetSchema } from "@/config/types/llm.ts";
@@ -133,7 +133,7 @@ export function getDefaultAPISettings(): EngramAPISettings {
         selectedPresetId: null,
         vectorConfig: { ...DEFAULT_VECTOR_CONFIG },
         rerankConfig: { ...DEFAULT_RERANK_CONFIG },
-        promptTemplates: PromptLoader.getBuiltInTemplates(),
+        promptTemplates: BUILTIN_PROMPTS,
         worldbookConfig: { ...DEFAULT_WORLDBOOK_CONFIG },
         regexConfig: { ...DEFAULT_REGEX_CONFIG },
         recallConfig: { ...DEFAULT_RECALL_CONFIG },

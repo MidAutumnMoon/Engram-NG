@@ -1,7 +1,10 @@
 import { createPromptTemplate } from "@/config/settings.ts";
 import type { PromptCategory, PromptTemplate } from "@/config/types/prompt.ts";
 import { PROMPT_CATEGORIES } from "@/config/types/prompt.ts";
-import { PromptLoader } from "@/integrations/llm/PromptLoader.ts";
+import {
+    getBuiltinById,
+    getBuiltinByCategory,
+} from "@/integrations/llm/builtinPrompts.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { notify } from "@/sillytavern/notify.ts";
@@ -274,13 +277,13 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                             let defaultTemplate:
                                 | PromptTemplate
                                 | null
-                                | undefined = PromptLoader.getById(
+                                | undefined = getBuiltinById(
                                     template.id,
                                 );
 
                             // 如果找不到 (可能是旧数据的随机 ID)，回退到分类匹配
                             if (!defaultTemplate) {
-                                defaultTemplate = PromptLoader.getByCategory(
+                                defaultTemplate = getBuiltinByCategory(
                                     template.category,
                                 );
                             }

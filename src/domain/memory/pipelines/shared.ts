@@ -18,7 +18,10 @@ import {
     getEntityStates,
     getSummaries,
 } from "@/domain/macros/Macros.ts";
-import { PromptLoader } from "@/integrations/llm/PromptLoader.ts";
+import {
+    BUILTIN_PROMPTS,
+    getBuiltinByCategory,
+} from "@/integrations/llm/builtinPrompts.ts";
 import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
 import { llmAdapter } from "@/integrations/llm/Adapter.ts";
 import { useModelLogStore } from "@/logger/modelLog.ts";
@@ -268,7 +271,7 @@ export async function fetchContext(
     try {
         let templateId = input.templateId;
         const category = input.category;
-        const builtinTemplates = PromptLoader.getAllTemplates();
+        const builtinTemplates = BUILTIN_PROMPTS;
         const userTemplates = getSetting("apiSettings")?.promptTemplates || [];
 
         if (!templateId && category) {
@@ -428,8 +431,7 @@ export async function buildPrompt(
     const templateId = input.templateId;
     const category = input.category;
 
-    PromptLoader.init();
-    const mergedTemplates = PromptLoader.getAllTemplates();
+    const mergedTemplates = BUILTIN_PROMPTS;
 
     let template;
     if (templateId) {
@@ -448,7 +450,7 @@ export async function buildPrompt(
     }
 
     if (!template && category) {
-        template = PromptLoader.getByCategory(category as any);
+        template = getBuiltinByCategory(category as any) ?? undefined;
         Logger.debug(
             LogModule.WF_BUILD_PROMPT,
             `Fallback to builtin template: ${template?.name}`,
