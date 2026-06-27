@@ -11,11 +11,9 @@
  *   - summaryData:    any     (summary events)
  *   - entityData:     { newEntities, updatedEntities }
  *
- * Per-section mini-actions (e.g. summary reroll) are surfaced to the
- * orchestrator via the `sections` field on the review result — but those
- * are decided by the *orchestrator* based on the global action + which
- * section changed. This component itself stays presentational: it just
- * composes the two existing editors.
+ * The orchestrator decides per-section follow-up (e.g. summary reroll) based
+ * on the global action + which section changed. This component stays
+ * presentational: it just composes the two existing editors.
  */
 import React from "react";
 import { SummaryReview } from "./SummaryReview.tsx";
