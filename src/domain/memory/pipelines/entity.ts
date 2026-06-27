@@ -14,7 +14,10 @@ import {
     embeddingCandidates,
     stringCandidates,
 } from "@/domain/memory/entityResolve.ts";
-import { saveEntities } from "@/domain/memory/saveEntities.ts";
+import {
+    applyEntityChanges,
+    computeEntityPreview,
+} from "@/domain/memory/saveEntities.ts";
 import { llmAdapter } from "@/integrations/llm/Adapter.ts";
 import { getSetting } from "@/config/settings.ts";
 import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
@@ -161,11 +164,10 @@ export async function runEntityExtraction(
         );
     }
 
-    // 7. SaveEntity (dryRun) — produces preview
-    const dryRunResult = await saveEntities({
+    // 7. Compute preview (no I/O, no side effects)
+    const dryRunResult = await computeEntityPreview({
         sourceContent: parsed,
         existingEntities,
-        dryRun: true,
         range: input.range,
         episodeId: input.episodeId,
         stateFields: cfg.stateFields,
@@ -179,11 +181,10 @@ export async function runEntityExtraction(
 
     // 8. UserReview (entity data, not text)
     if (!cfg.previewEnabled) {
-        // No preview: persist the dry-run result directly.
-        const final = await saveEntities({
+        // No preview: persist the compute result directly.
+        const final = await applyEntityChanges({
             sourceContent: dryRunResult,
             existingEntities,
-            dryRun: false,
             range: input.range,
             episodeId: input.episodeId,
             stateFields: cfg.stateFields,
@@ -213,13 +214,11 @@ export async function runEntityExtraction(
 
     // confirm / fill / reject / reroll all funnel to: persist the (possibly
     // edited) entity data. The original EntityWorkflow had no jump-back loop —
-    // a single SaveEntity(dryRun:false) after review regardless of action
-    // (except cancel). Preserve that.
+    // a single apply after review regardless of action (except cancel).
     const editedData = result.data ?? reviewData;
-    const final = await saveEntities({
+    const final = await applyEntityChanges({
         sourceContent: editedData,
         existingEntities,
-        dryRun: false,
         range: input.range,
         episodeId: input.episodeId,
         stateFields: cfg.stateFields,

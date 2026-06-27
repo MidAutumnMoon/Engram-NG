@@ -35,7 +35,7 @@ import { dismissNotify, notify, notifyRunning } from "@/sillytavern/notify.ts";
 import { generateShortUUID } from "@/utils/shortUUID.ts";
 import { runSummary, saveSummaryEvents } from "@/domain/memory/pipelines/summary.ts";
 import { runEntityExtraction } from "@/domain/memory/pipelines/entity.ts";
-import { saveEntities } from "@/domain/memory/saveEntities.ts";
+import { applyEntityChanges } from "@/domain/memory/saveEntities.ts";
 import { reviewService } from "@/domain/review/ReviewBridge.ts";
 
 class IngestionService {
@@ -524,16 +524,15 @@ class IngestionService {
                 }
             }
 
-            // Persist entities (real save, not dry-run)
+            // Persist entities (real save)
             if (
                 confirmedEntityData &&
                 ((confirmedEntityData.newEntities?.length ?? 0) > 0 ||
                     (confirmedEntityData.updatedEntities?.length ?? 0) > 0)
             ) {
                 try {
-                    await saveEntities({
+                    await applyEntityChanges({
                         sourceContent: confirmedEntityData,
-                        dryRun: false,
                         range,
                         episodeId,
                         stateFields: config.entity.stateFields,
