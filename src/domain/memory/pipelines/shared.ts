@@ -23,7 +23,7 @@ import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import { llmAdapter } from "@/integrations/llm/Adapter.ts";
 import { useModelLogStore } from "@/logger/modelLog.ts";
 import type { ModelLogEntry } from "@/logger/modelLog.ts";
-import { regexProcessor } from "@/domain/regex/index.ts";
+import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
 import type { RegexScope } from "@/config/types/data_processing.ts";
 
 // ============================================================================

@@ -1,4 +1,4 @@
-import type { RegexRule } from "@/domain/regex/index.ts";
+import type { RegexRule } from "@/domain/regex/RegexProcessor.ts";
 import { Switch } from "@/ui/components/form/Switch.tsx";
 import { GripVertical, Plus, Power, Trash2 } from "lucide-react";
 import React, { useState } from "react";

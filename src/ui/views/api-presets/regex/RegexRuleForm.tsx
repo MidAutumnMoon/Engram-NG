@@ -5,7 +5,7 @@ import {
     REGEX_SCOPE_OPTIONS,
     RegexProcessor,
     type RegexRule,
-} from "@/domain/regex/index.ts";
+} from "@/domain/regex/RegexProcessor.ts";
 import { AlertCircle, CheckCircle, Info, Play } from "lucide-react";
 import React, { useEffect, useState } from "react";
 

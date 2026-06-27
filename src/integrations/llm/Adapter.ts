@@ -14,7 +14,7 @@ import { getSettings } from "@/config/settings.ts";
 import type { LLMPreset } from "@/config/types/llm.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { regexProcessor } from "@/domain/regex/index.ts";
+import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
 import { getTavernHelper, TavernHelper } from "@/sillytavern/context.ts";
 
 /** LLM 生成请求 */

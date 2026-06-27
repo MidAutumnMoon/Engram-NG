@@ -2,13 +2,13 @@
  * UseRegexRules - 正则替换规则管理
  */
 
-import { useCallback, useEffect, useState } from "react";
-import type { RegexRule } from "@/domain/regex/index.ts";
+import { getSetting, setSetting } from "@/config/settings.ts";
 import {
     DEFAULT_REGEX_RULES,
     regexProcessor,
-} from "@/domain/regex/index.ts";
-import { getSetting, setSetting } from "@/config/settings.ts";
+    type RegexRule,
+} from "@/domain/regex/RegexProcessor.ts";
+import { useCallback, useEffect, useState } from "react";
 
 export interface UseRegexRulesReturn {
     regexRules: RegexRule[];

@@ -22,7 +22,7 @@ import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag.ts";
 import type { RecallConfig } from "@/config/types/rag.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
-import { regexProcessor } from "@/domain/regex/index.ts";
+import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
 import type { AgenticRecall } from "@/config/types/rag.ts";
 import { WorkflowEngine } from "@/domain/workflow/core/WorkflowEngine.ts";
 import { KeywordRetrieveStep } from "@/domain/workflow/steps/rag/KeywordRetrieveStep.ts";
