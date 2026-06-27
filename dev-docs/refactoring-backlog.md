@@ -9,7 +9,7 @@ Fix the remaining violations with **arguments and return values**, not new abstr
 
 ### 2.2 + 2.4 — Merged Pass: `memoryStore` and `SettingsManager` Isolation
 
-**Done together, not sequenced.** Both concerns share the same files (`Summarizer.ts`, `EntityExtractor.ts`, `EventTrimmer.ts`, `ApplyTrim.ts`) and the same lifecycle moment. 2.2 establishes what `setChatContext()` looks like; 2.4 establishes what `init(config)` looks like — a single pass gets both right.
+**Done together, not sequenced.** Both concerns share the same files (`Summarizer.ts`, `EventTrimmer.ts`, `ApplyTrim.ts`) and the same lifecycle moment. 2.2 establishes what `setChatContext()` looks like; 2.4 establishes what `init(config)` looks like — a single pass gets both right.
 
 #### Rules
 
@@ -22,7 +22,7 @@ After this, `state/memoryStore.ts` becomes a UI-only convenience wrapper. `modul
 
 #### Singleton lifecycle contract
 
-`summarizerService`, `entityBuilder`, `eventTrimmer` are module-level singletons. Config and chat context change at different cadences, so they get separate entry points:
+`summarizerService` and `eventTrimmer` are module-level singletons (`entityBuilder` removed — logic merged into IngestionService). Config and chat context change at different cadences, so they get separate entry points:
 
 ```ts
 // Called once at startup (and when user edits settings).
@@ -45,7 +45,8 @@ Natural stopping points exist after each step — the app should build and run a
   - `getEventsToMerge` / `countEventTokens` inlined as private methods (faithful copy from `eventSlice.ts`). The store versions still exist — other consumers (workflow steps in step D) haven't been migrated yet.
   - `WorldInfoService` import surfaced (was hidden inside the store). This is a pre-existing `modules/ → integrations/` coupling — Phase 2.7 / 3.1 will address.
   - `notificationService` stays (step 2.3 scope, not step B).
-- [ ] **C. `Summarizer.ts` + `EntityExtractor.ts`** — larger, have start/stop, cross-reference each other (Summarizer → `entityBuilder.extractByRange`, Summarizer → `eventTrimmer.trim`). Remove `SettingsManager.get()` in constructor + `triggerSummary`, `SettingsManager.set()` in `updateConfig`, and `useMemoryStore.getState()` in `setLastSummarizedFloor`. `setLastSummarizedFloor` writes directly to `chatManager` / `db`.
+- [x] ~~**C. `EntityExtractor.ts`** — removed (V2.3: logic merged into IngestionService).~~
+- [ ] **C. `Summarizer.ts`** — large, has start/stop, cross-references `eventTrimmer.trim`. Remove `SettingsManager.get()` in constructor + `triggerSummary`, `SettingsManager.set()` in `updateConfig`, and `useMemoryStore.getState()` in `setLastSummarizedFloor`. `setLastSummarizedFloor` writes directly to `chatManager` / `db`.
 - [ ] **D. Workflow steps.** Per-step; each step resolves what it needs from `JobContext`:
   - `SaveEvent.ts`, `FetchExistingEntities.ts`, `FetchEventsToTrim.ts`, `SaveEntity.ts` — pure 2.2: `useMemoryStore.getState()` → `getDbForChat(context.chatId)`.
   - `VectorRetrieveStep.ts`, `KeywordRetrieveStep.ts` — pure 2.4: `SettingsManager.get("apiSettings")` → read from `context.config` (set at workflow construction).
@@ -78,7 +79,7 @@ const vectorConfig = SettingsManager.get("apiSettings")?.vectorConfig;
 **Rule:** Business logic returns results; the UI/integration layer decides whether to toast.
 
 - [ ] `Summarizer.ts`: remove `notificationService.*` calls. Return `SummaryResult` with a `status` field.
-- [ ] `EntityExtractor.ts`: remove toast calls. Return `EntityBuildResult`.
+- [x] ~~`EntityExtractor.ts`: removed (dead file, logic merged into IngestionService).~~
 - [ ] `SaveEvent.ts`, `ApplyTrim.ts`: remove any direct `notificationService` calls.
 - [ ] `CharacterCleanup.ts`: remove toast calls. Return `{ deleted: number }`.
 
