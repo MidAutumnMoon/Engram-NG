@@ -19,7 +19,7 @@ import {
     getSTContext,
     onTavernEvent,
 } from "@/sillytavern/index.ts";
-import { refreshCache } from "@/domain/macros/index.ts";
+import { refreshCache, refreshEngramCache } from "@/domain/macros/index.ts";
 import { retriever } from "@/domain/rag/retrieval/Retriever.ts";
 
 interface GenerationAfterCommandsParams {
@@ -174,6 +174,21 @@ class Injector {
                     "检测到第三方扩展发出的格式化空载荷假事件，直接跳过处理",
                 );
                 return;
+            }
+
+            // V2.2: 无条件刷新 Engram 宏缓存。
+            // 保证 {{engramSummaries}} / {{engramEntityStates}} 等反映最新 DB 状态，
+            // 不依赖各写路径记得 refresh（写路径漏 refresh 曾导致实体状态注入滞后）。
+            // 仅 DB 读取（无世界书扫描）；recall 的命中分支会用其 recalledIds/flashback
+            // 在此之上再做一次定向刷新。
+            try {
+                await refreshEngramCache();
+            } catch (e) {
+                Logger.warn(
+                    LogModule.RAG_INJECT,
+                    "生成前刷新 Engram 缓存失败（继续使用可能滞后的缓存）",
+                    e,
+                );
             }
 
             const chatId = getCurrentChatId();
