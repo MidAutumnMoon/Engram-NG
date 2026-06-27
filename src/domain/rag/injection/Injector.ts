@@ -327,19 +327,29 @@ class Injector {
                             );
 
                             // Flashback heuristic：召回工作流已按相关性排序，
-                            // nodes[0] 是最相关的事件。若它指向过去某个叙事时刻，
+                            // nodes[0] 是最相关的事件。若它指向足够久远的叙事时刻，
                             // 把实体状态渲染锚定到该事件的 end_index——
                             // 「召回命中了过去事件，则用户很可能在问那个时刻」。
-                            // 命中最近事件时 end_index 接近当前，行为近似今日；仅在
-                            // 真正的 flashback 查询（召回旧事件）时才显著不同。
-                            // 缺省回退（无节点 / 无 source_range）= latest。
+                            // Recency guard：仅当 top 事件距当前消息超过一定距离时
+                            // 才锚定，避免普通查询误锚定到近期事件导致状态偏移。
+                            // 缺省回退（无节点 / 近期事件 / 无 source_range）= latest。
                             const topNode = recallResult.nodes[0];
-                            const targetIndex = topNode?.source_range
+                            const topEndIndex = topNode?.source_range
                                 ?.end_index;
-                            if (targetIndex != null) {
+                            const currentMsgCount = chat.length;
+                            // 锚定阈值：top 事件距今至少 10 条消息才视为 flashback。
+                            // 10 条 ≈ 一两轮对话，保证普通「当前状态」查询不被误锚定。
+                            const FLASHBACK_MIN_DISTANCE = 10;
+                            const isFlashback = topEndIndex != null &&
+                                topEndIndex <=
+                                    currentMsgCount - FLASHBACK_MIN_DISTANCE;
+                            const targetIndex = isFlashback
+                                ? topEndIndex!
+                                : undefined;
+                            if (isFlashback) {
                                 Logger.debug(
                                     LogModule.RAG_INJECT,
-                                    `[flashback] 实体状态锚定到 msg ${targetIndex}`,
+                                    `[flashback] 实体状态锚定到 msg ${topEndIndex} (当前 ${currentMsgCount})`,
                                     { topEvent: topNode.id },
                                 );
                             }

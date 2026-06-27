@@ -82,13 +82,16 @@ export function resolveAt(
 }
 
 /**
- * 返回当前（最近一段 open / 最后一段）取值。
+ * 返回当前取值（最近一段 open interval 的 value）。
+ * 若所有区间均已关闭（to_index !== null，数据损坏或实体已「死亡」），返回 undefined。
+ * 语义与 resolveAt(history, MAX_SAFE_INTEGER) 等价，但无需遍历。
  */
 export function currentValue(
     history: ValueInterval[] | undefined,
 ): unknown | undefined {
     if (!history || history.length === 0) return undefined;
-    return history[history.length - 1].value;
+    const last = history[history.length - 1];
+    return last.to_index === null ? last.value : undefined;
 }
 
 /**

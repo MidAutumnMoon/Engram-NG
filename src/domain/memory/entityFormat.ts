@@ -16,6 +16,7 @@
 import type { EntityNode } from "@/data/types/graph.ts";
 import { EntityType } from "@/data/types/graph.ts";
 import { resolveAt } from "@/domain/memory/fieldHistory.ts";
+import yaml from "js-yaml";
 
 /** 实体类型 → XML 标签名 */
 const TYPE_TAG_MAP: Record<string, string> = {
@@ -145,62 +146,24 @@ export function formatArchivedEntityBlock(
 }
 
 /**
- * 简易 YAML 序列化（不引第三方库）。
- * - 字符串：原样输出（不含特殊字符时）
- * - 数组：YAML block sequence
- * - 对象：递归 block mapping
- * - null/undefined：跳过该键
- *
- * 足够渲染实体 profile；复杂转义场景交给调用方用 js-yaml 兜底（见 entitySlice 的 description 生成）。
+ * 用 js-yaml 序列化实体 profile 为 YAML 字符串（name 行 + profile YAML）。
+ * 与 SaveEntity.profileToYaml 同算法，保证 LLM 注入路径和 UI 一致。
+ * js-yaml 自动处理特殊字符转义（冒号、#、- 开头等），避免手写序列化器的引号 bug。
  */
 function entityToYaml(
     name: string,
     profile: Record<string, unknown>,
 ): string {
-    const lines = [name];
-    appendYamlFields(profile, lines, 0);
-    return lines.join("\n");
-}
-
-function appendYamlFields(
-    obj: Record<string, unknown>,
-    lines: string[],
-    indent: number,
-): void {
-    const pad = "  ".repeat(indent);
-    for (const [key, value] of Object.entries(obj)) {
-        if (value === undefined || value === null) continue;
-        if (Array.isArray(value)) {
-            if (value.length === 0) continue;
-            lines.push(`${pad}${key}:`);
-            for (const item of value) {
-                if (item !== null && typeof item === "object") {
-                    lines.push(`${pad}-`);
-                    appendYamlFields(
-                        item as Record<string, unknown>,
-                        lines,
-                        indent + 2,
-                    );
-                } else {
-                    lines.push(`${pad}- ${formatScalar(item)}`);
-                }
-            }
-        } else if (typeof value === "object") {
-            const subKeys = Object.keys(value as Record<string, unknown>);
-            if (subKeys.length === 0) continue;
-            lines.push(`${pad}${key}:`);
-            appendYamlFields(
-                value as Record<string, unknown>,
-                lines,
-                indent + 1,
-            );
-        } else {
-            lines.push(`${pad}${key}: ${formatScalar(value)}`);
-        }
+    try {
+        const yamlContent = yaml.dump({ profile }, {
+            indent: 2,
+            lineWidth: -1,
+            noRefs: true,
+            sortKeys: false,
+        });
+        return `${name}\n${yamlContent.trim()}`;
+    } catch {
+        // 兜底：js-yaml 失败时用 JSON（绝不抛错——渲染是只读路径）
+        return `${name}\n${JSON.stringify(profile, null, 2)}`;
     }
-}
-
-function formatScalar(v: unknown): string {
-    if (typeof v === "string") return v;
-    return JSON.stringify(v);
 }

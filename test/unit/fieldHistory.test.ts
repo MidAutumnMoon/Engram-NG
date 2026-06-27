@@ -114,17 +114,19 @@ describe("resolveAt — half-open [from, to)", () => {
 });
 
 describe("currentValue", () => {
-    it("returns the value of the last interval regardless of to_index", () => {
+    it("returns the value of the last interval only when open", () => {
         const open: ValueInterval[] = [
             { value: "x", from_index: 0, to_index: null, episode_id: "ep1" },
         ];
         expect(currentValue(open)).toBe("x");
+    });
 
+    it("returns undefined when the last interval is closed (no current state)", () => {
         const closed: ValueInterval[] = [
             { value: "x", from_index: 0, to_index: 5, episode_id: "ep1" },
             { value: "y", from_index: 5, to_index: 10, episode_id: "ep2" },
         ];
-        expect(currentValue(closed)).toBe("y");
+        expect(currentValue(closed)).toBeUndefined();
     });
 
     it("returns undefined for empty history", () => {

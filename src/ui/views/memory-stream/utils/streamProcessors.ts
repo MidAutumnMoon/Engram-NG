@@ -109,7 +109,11 @@ export interface EntityGroup {
 }
 
 /**
- * 过滤实体列表
+ * 过滤实体列表。
+ *
+ * 搜索文本来源：优先用预存储的 description（YAML 快照，O(1) 读取）；
+ * 仅当 description 为空时回退到 formatEntityDescription（需解析 field_history + js-yaml）。
+ * 这保证了按键级搜索的性能——大多数实体都有预存储的 description。
  */
 export function filterEntities(
     entities: EntityNode[],
@@ -127,7 +131,7 @@ export function filterEntities(
     return result.filter((e) =>
         e.name.toLowerCase().includes(q) ||
         e.aliases?.some((a: string) => a.toLowerCase().includes(q)) ||
-        formatEntityDescription(e).toLowerCase().includes(q)
+        (e.description || formatEntityDescription(e)).toLowerCase().includes(q)
     );
 }
 

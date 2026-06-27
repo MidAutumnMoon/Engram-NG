@@ -179,7 +179,9 @@ export class SaveEntity implements IStep {
         stateFields: string[],
         stateChangeEmitThreshold: number,
     ): Promise<void> {
-        const fromIndex = context.input.range?.[0] ?? 0;
+        // range[1] (window end) — 与 applyMergePatches 和 SaveEvent 一致，
+        // 让 field_history 的 from_index 与事件的 source_range.end_index 对齐。
+        const fromIndex = context.input.range?.[1] ?? 0;
         const episodeId = context.input.episode_id ?? null;
 
         // 保存新实体
@@ -465,7 +467,8 @@ export class SaveEntity implements IStep {
 
         // 首次创建即 seed field_history：与 v4 迁移用同一份 backfill 逻辑，
         // 让新实体从诞生起就有一段 [from_index, null) 区间，不依赖后续 update 才出现。
-        const fromIndex = context.input.range?.[0] ?? 0;
+        // range[1] (window end) — 与 applyMergePatches 和 SaveEvent 一致。
+        const fromIndex = context.input.range?.[1] ?? 0;
         const episodeId = context.input.episode_id ?? null;
         const fieldHistory = backfillFromProfile(
             profile,
@@ -728,9 +731,8 @@ export class SaveEntity implements IStep {
         const episodeId = context.input.episode_id ?? null;
 
         for (const change of changes) {
-            // 显著性：值确实变化才发；阈值统一给 0.5（与 SaveEvent 默认一致），可按需精化
-            // 这里用 threshold 作为「是否发射」开关——达到阈值才发，significance_score 取 threshold
-            if (threshold <= 0) continue; // 用户关掉了状态变更发射
+            // threshold <= 0 = 用户关掉了状态变更发射
+            if (threshold <= 0) continue;
             const fromStr = formatStateValue(change.from);
             const toStr = formatStateValue(change.to);
             if (fromStr === toStr) continue; // 无实质变化
@@ -744,7 +746,10 @@ export class SaveEntity implements IStep {
                     is_archived: false,
                     is_embedded: false,
                     level: 0,
-                    significance_score: threshold,
+                    // 状态变更事件始终有意义（模型判定该字段确实变了），
+                    // significance_score 与 threshold 解耦：threshold 只管是否发射，
+                    // score 固定为 0.7——高于普通事件但低于关键剧情节点。
+                    significance_score: 0.7,
                     source_range: {
                         end_index: range[1],
                         start_index: range[0],
