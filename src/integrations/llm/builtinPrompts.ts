@@ -40,8 +40,6 @@ function makeTemplate(
         id,
         name,
         category,
-        enabled: true,
-        isBuiltIn: true,
         systemPrompt,
         userPromptTemplate,
         createdAt: 0,

@@ -362,30 +362,13 @@ export async function buildPrompt(
     const templateId = input.templateId;
     const category = input.category;
 
-    const mergedTemplates = BUILTIN_PROMPTS;
-
+    // Templates are built-in only (defined in source). Resolve by id, else by
+    // category (unique per category).
     let template;
     if (templateId) {
-        template = mergedTemplates.find((t) => t.id === templateId);
+        template = BUILTIN_PROMPTS.find((t) => t.id === templateId);
     } else if (category) {
-        const templates = mergedTemplates.filter((t) =>
-            t.category === category && t.enabled
-        );
-        template = templates[0];
-        if (template) {
-            Logger.debug(
-                LogModule.WF_BUILD_PROMPT,
-                `Using auto-detected enabled template: ${template.name}`,
-            );
-        }
-    }
-
-    if (!template && category) {
         template = getBuiltinByCategory(category as any) ?? undefined;
-        Logger.debug(
-            LogModule.WF_BUILD_PROMPT,
-            `Fallback to builtin template: ${template?.name}`,
-        );
     }
 
     if (!template) {
@@ -393,6 +376,11 @@ export async function buildPrompt(
             `BuildPrompt: 未找到可用模板 (ID: ${templateId}, Category: ${category})`,
         );
     }
+
+    Logger.debug(
+        LogModule.WF_BUILD_PROMPT,
+        `Using template: ${template.name}`,
+    );
 
     const ctx = input.ctx;
 

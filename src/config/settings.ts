@@ -10,7 +10,6 @@ import { z } from "zod";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { getSTContext } from "@/sillytavern/context.ts";
-import { BUILTIN_PROMPTS } from "@/integrations/llm/builtinPrompts.ts";
 import { safeStringify } from "@/utils/safeStringify.ts";
 
 import { type LLMPreset, llmPresetSchema } from "@/config/types/llm.ts";
@@ -38,9 +37,6 @@ import {
 } from "@/config/types/rag.ts";
 import {
     DEFAULT_WORLDBOOK_CONFIG,
-    type PromptCategory,
-    type PromptTemplate,
-    promptTemplateSchema,
     worldbookConfigProfileSchema,
     worldbookConfigSchema,
 } from "@/config/types/prompt.ts";
@@ -58,8 +54,6 @@ const engramApiSettingsSchema = z.object({
     vectorConfig: vectorConfigSchema.prefault({}),
     /** Rerank 配置 */
     rerankConfig: rerankConfigSchema.prefault({}),
-    /** 提示词模板列表 */
-    promptTemplates: z.array(promptTemplateSchema).default([]),
     /** 世界书配置 */
     worldbookConfig: worldbookConfigSchema.prefault({}),
     /** 正则配置 (V0.8) */
@@ -89,7 +83,6 @@ export type EngramAPISettings = z.infer<typeof engramApiSettingsSchema>;
 // ============================================================================
 
 const engramSettingsSchema = z.object({
-    promptTemplates: z.array(promptTemplateSchema).default([]),
     lastOpenedTab: z.string().default("dashboard"),
     summarizerConfig: summarizerConfigSchema.prefault({}),
     globalPreviewEnabled: z.boolean().default(true),
@@ -112,28 +105,12 @@ export function createDefaultLLMPreset(name: string = "默认预设"): LLMPreset
     return llmPresetSchema.parse({ name });
 }
 
-export function createPromptTemplate(
-    name: string,
-    category: PromptCategory,
-    options:
-        & Partial<
-            Omit<
-                PromptTemplate,
-                "name" | "category" | "createdAt" | "updatedAt"
-            >
-        >
-        & { id?: string } = {},
-): PromptTemplate {
-    return promptTemplateSchema.parse({ name, category, ...options });
-}
-
 export function getDefaultAPISettings(): EngramAPISettings {
     return {
         llmPresets: [createDefaultLLMPreset()],
         selectedPresetId: null,
         vectorConfig: { ...DEFAULT_VECTOR_CONFIG },
         rerankConfig: { ...DEFAULT_RERANK_CONFIG },
-        promptTemplates: BUILTIN_PROMPTS,
         worldbookConfig: { ...DEFAULT_WORLDBOOK_CONFIG },
         regexConfig: { ...DEFAULT_REGEX_CONFIG },
         recallConfig: { ...DEFAULT_RECALL_CONFIG },

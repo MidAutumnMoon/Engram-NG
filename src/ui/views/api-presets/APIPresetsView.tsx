@@ -29,6 +29,7 @@ import { RegexRuleList } from "./regex/RegexRuleList.tsx";
 import { PresetCard } from "./shared/PresetCard.tsx";
 import { WorldbookConfigForm } from "./worldbook/WorldbookConfigForm.tsx";
 
+import { BUILTIN_PROMPTS } from "@/integrations/llm/builtinPrompts.ts";
 import { EmptyState } from "@/ui/components/display/EmptyState.tsx";
 import { MasterDetailLayout } from "@/ui/components/layout/MasterDetailLayout.tsx";
 import { MobileFullscreenForm } from "@/ui/components/overlay/MobileFullscreenForm.tsx";
@@ -135,27 +136,27 @@ export const APIPresets: React.FC<APIPresetsProps> = (
         }
     }, [initialTab, initialTabPath]);
 
-    // 使用 Hook 管理业务状态
     // 使用组合 Hooks 管理业务状态
     const {
         llmPresets,
         selectedPresetId,
-        promptTemplates,
         editingPreset,
-        editingTemplate,
         hasChanges: llmHasChanges,
         selectPreset,
         addPreset,
         updatePreset,
         copyPreset,
         deletePreset,
-        selectTemplate,
-        addTemplate,
-        updateTemplate,
-        deleteTemplate,
-        resetAllTemplates, // V1.0.2
         saveLLMSettings,
     } = useLLMPresets();
+
+    // 提示词模板为内置（源码定义），仅本地跟踪选中项用于展示
+    const [selectedTemplateId, setSelectedTemplateId] = useState<
+        string | null
+    >(null);
+    const selectedTemplate = selectedTemplateId
+        ? BUILTIN_PROMPTS.find((t) => t.id === selectedTemplateId) ?? null
+        : null;
 
     const {
         vectorConfig,
@@ -212,7 +213,6 @@ export const APIPresets: React.FC<APIPresetsProps> = (
     // 为了最小化 JSX 变动，我们重构 JSX 中的引用
     const settings = {
         llmPresets,
-        promptTemplates,
         regexConfig,
         rerankConfig,
         selectedPresetId,
@@ -258,26 +258,14 @@ export const APIPresets: React.FC<APIPresetsProps> = (
             );
         }
 
-        // 2. 提示词模板
-        if (mainTab === "prompt" && editingTemplate) {
+        // 2. 提示词模板 (只读)
+        if (mainTab === "prompt" && selectedTemplate) {
             return (
                 <MobileFullscreenForm
-                    title="编辑提示词模板"
+                    title="提示词模板"
                     onClose={handleMobileClose}
-                    actions={hasChanges && (
-                        <button
-                            type="button"
-                            className="p-2 text-primary"
-                            onClick={save}
-                        >
-                            <Save size={18} />
-                        </button>
-                    )}
                 >
-                    <PromptTemplateForm
-                        template={editingTemplate}
-                        onChange={updateTemplate}
-                    />
+                    <PromptTemplateForm template={selectedTemplate} />
                 </MobileFullscreenForm>
             );
         }
@@ -440,31 +428,25 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                     </div>
                 )}
 
-                {/* 提示词模板 Tab - Master-Detail */}
+                {/* 提示词模板 Tab - Master-Detail (只读) */}
                 {mainTab === "prompt" && (
                     <MasterDetailLayout
                         listWidth="30%"
                         list={
                             <PromptTemplateList
-                                templates={settings.promptTemplates}
-                                selectedId={editingTemplate?.id ||
-                                    null}
+                                templates={BUILTIN_PROMPTS}
+                                selectedId={selectedTemplateId}
                                 onSelect={(t) =>
                                     handleMobileSelect(() =>
-                                        selectTemplate(t)
+                                        setSelectedTemplateId(t.id)
                                     )}
-                                onAdd={addTemplate}
-                                onUpdate={updateTemplate}
-                                onDelete={deleteTemplate}
-                                onResetAll={resetAllTemplates}
                             />
                         }
-                        detail={editingTemplate
+                        detail={selectedTemplate
                             ? (
                                 <div>
                                     <PromptTemplateForm
-                                        template={editingTemplate}
-                                        onChange={updateTemplate}
+                                        template={selectedTemplate}
                                     />
                                 </div>
                             )
@@ -472,7 +454,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                                 <EmptyState
                                     icon={FileText}
                                     title="未选择模板"
-                                    description="选择一个模板进行编辑"
+                                    description="选择一个模板查看内容"
                                 />
                             )}
                     />

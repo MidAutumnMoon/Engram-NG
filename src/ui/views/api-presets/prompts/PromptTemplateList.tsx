@@ -1,7 +1,6 @@
-import { createPromptTemplate } from "@/config/settings.ts";
 import type { PromptTemplate } from "@/config/types/prompt.ts";
 import { PROMPT_CATEGORIES } from "@/config/types/prompt.ts";
-import { FileText, Plus, RotateCcw } from "lucide-react";
+import { FileText } from "lucide-react";
 import React from "react";
 import { PromptTemplateCard } from "./PromptTemplateCard.tsx";
 
@@ -9,68 +8,13 @@ interface PromptTemplateListProps {
     templates: PromptTemplate[];
     selectedId: string | null;
     onSelect: (template: PromptTemplate) => void;
-    onAdd: (template: PromptTemplate) => void;
-    onUpdate: (template: PromptTemplate) => void;
-    onDelete: (template: PromptTemplate) => void;
-    /** V1.0.2: 重置所有模板为默认 */
-    onResetAll?: () => void;
 }
 
 export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
     templates,
     selectedId,
     onSelect,
-    onAdd,
-    onUpdate,
-    onDelete,
-    onResetAll,
 }) => {
-    // 新建模板
-    const handleAdd = () => {
-        const newTemplate = createPromptTemplate(
-            `新模板 ${templates.length + 1}`,
-            "summary",
-        );
-        onAdd(newTemplate);
-        onSelect(newTemplate);
-    };
-
-    // 复制模板
-    const handleCopy = (template: PromptTemplate) => {
-        const copy = createPromptTemplate(
-            `${template.name} (副本)`,
-            template.category,
-            {
-                enabled: false, // 副本默认不启用
-                systemPrompt: template.systemPrompt,
-                userPromptTemplate: template.userPromptTemplate,
-            },
-        );
-        onAdd(copy);
-    };
-
-    // 切换启用状态
-    const handleToggleEnabled = (
-        template: PromptTemplate,
-        enabled: boolean,
-    ) => {
-        // 如果启用，同分类的其他模板要禁用（每个分类只有一个启用）
-        if (enabled) {
-            templates
-                .filter((t) =>
-                    t.category === template.category && t.id !== template.id &&
-                    t.enabled
-                )
-                .forEach((t) => onUpdate({ ...t, enabled: false }));
-        }
-        onUpdate({ ...template, enabled });
-    };
-
-    // 导入覆盖模板
-    const handleImport = (importedTemplate: PromptTemplate) => {
-        onUpdate(importedTemplate);
-    };
-
     // 按分类分组
     const groupedTemplates = PROMPT_CATEGORIES.map((category) => ({
         ...category,
@@ -79,39 +23,11 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
 
     return (
         <div className="flex flex-col gap-4 h-full">
-            {/* 头部操作栏 */}
+            {/* 头部 */}
             <div className="flex items-center justify-between gap-2">
                 <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                     提示词模板
                 </h3>
-                <div className="flex items-center gap-1">
-                    {onResetAll && (
-                        <button
-                            type="button"
-                            className="text-muted-foreground hover:text-foreground p-1"
-                            onClick={() => {
-                                if (
-                                    confirm(
-                                        "确定要重置所有内置模板为默认值吗？\n\n这将恢复所有内置模板的原始内容，但不会删除你创建的自定义模板。",
-                                    )
-                                ) {
-                                    onResetAll();
-                                }
-                            }}
-                            title="重置所有模板为默认"
-                        >
-                            <RotateCcw size={14} />
-                        </button>
-                    )}
-                    <button
-                        type="button"
-                        className="text-muted-foreground hover:text-foreground p-1"
-                        onClick={handleAdd}
-                        title="新建模板"
-                    >
-                        <Plus size={16} />
-                    </button>
-                </div>
             </div>
 
             {/* 模板列表 */}
@@ -129,16 +45,6 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
                                         template={template}
                                         isSelected={selectedId === template.id}
                                         onSelect={() => onSelect(template)}
-                                        onCopy={() => handleCopy(template)}
-                                        onDelete={() => onDelete(template)}
-                                        onToggleEnabled={(enabled) =>
-                                            handleToggleEnabled(
-                                                template,
-                                                enabled,
-                                            )}
-                                        onImport={handleImport}
-                                        onResetToDefault={(resetTemplate) =>
-                                            onUpdate(resetTemplate)}
                                     />
                                 </div>
                             ))}

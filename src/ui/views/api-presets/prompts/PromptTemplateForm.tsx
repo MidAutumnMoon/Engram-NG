@@ -1,23 +1,18 @@
 /**
- * 提示词模板编辑表单
+ * 提示词模板只读展示
+ *
+ * 模板为内置（源码定义）；此组件仅展示模板内容，不提供编辑。
  */
-import type { PromptCategory, PromptTemplate } from "@/config/types/prompt.ts";
 import { PROMPT_CATEGORIES } from "@/config/types/prompt.ts";
-import {
-    FormSection,
-    SelectField,
-    TextField,
-} from "@/ui/components/form/FormComponents.tsx";
+import { FormSection } from "@/ui/components/form/FormComponents.tsx";
 import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
 import { Check, Copy } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import type { PromptTemplate } from "@/config/types/prompt.ts";
 
 interface PromptTemplateFormProps {
     template: PromptTemplate;
-    onChange: (template: PromptTemplate) => void;
 }
-
-// ... imports
 
 interface MacroDef {
     name: string;
@@ -114,7 +109,6 @@ const MacroItem = ({ macro }: { macro: MacroDef }) => {
 
 export const PromptTemplateForm: React.FC<PromptTemplateFormProps> = ({
     template,
-    onChange,
 }) => {
     // Token 计数
     const [sysTokens, setSysTokens] = useState(0);
@@ -140,11 +134,6 @@ export const PromptTemplateForm: React.FC<PromptTemplateFormProps> = ({
         return () => clearTimeout(timer);
     }, [template.systemPrompt, template.userPromptTemplate]);
 
-    // 更新模板字段
-    const updateTemplate = (updates: Partial<PromptTemplate>) => {
-        onChange({ ...template, ...updates, updatedAt: Date.now() });
-    };
-
     // Group macros
     const groupedMacros = AVAILABLE_MACROS.reduce((acc, macro) => {
         if (!acc[macro.category]) acc[macro.category] = [];
@@ -156,71 +145,66 @@ export const PromptTemplateForm: React.FC<PromptTemplateFormProps> = ({
         <div className="flex flex-col gap-4">
             {/* 基本信息 */}
             <FormSection title="基本信息">
-                <TextField
-                    label="模板名称"
-                    value={template.name}
-                    onChange={(value) => updateTemplate({ name: value })}
-                    placeholder="输入模板名称"
-                    required
-                    disabled={template.isBuiltIn}
-                />
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs text-muted-foreground">
+                        模板名称
+                    </label>
+                    <span className="text-sm text-foreground">
+                        {template.name}
+                    </span>
+                </div>
 
-                <SelectField
-                    label="模板分类"
-                    value={template.category}
-                    onChange={(value) =>
-                        updateTemplate({ category: value as PromptCategory })}
-                    options={PROMPT_CATEGORIES.map((c) => ({
-                        label: c.label,
-                        value: c.value,
-                    }))}
-                    description={PROMPT_CATEGORIES.find((c) =>
-                        c.value === template.category
-                    )?.description}
-                />
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs text-muted-foreground">
+                        模板分类
+                    </label>
+                    <span className="text-sm text-foreground">
+                        {PROMPT_CATEGORIES.find((c) =>
+                            c.value === template.category
+                        )?.label || template.category}
+                    </span>
+                </div>
             </FormSection>
 
             {/* 提示词内容 */}
             <FormSection title="提示词内容">
-                <TextField
-                    label="系统提示词"
-                    value={template.systemPrompt}
-                    onChange={(value) =>
-                        updateTemplate({ systemPrompt: value })}
-                    placeholder="输入系统提示词..."
-                    multiline
-                    rows={4}
-                    description={
-                        <span className="flex items-center gap-1 text-muted-foreground mt-1">
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center justify-between">
+                        <label className="text-xs text-muted-foreground">
+                            系统提示词
+                        </label>
+                        <span className="flex items-center gap-1 text-muted-foreground">
                             约{" "}
                             <strong className="text-value font-mono font-medium">
                                 {sysTokens}
                             </strong>{" "}
                             Tokens
                         </span>
-                    }
-                />
+                    </div>
+                    <pre className="text-xs text-foreground whitespace-pre-wrap break-words font-mono bg-muted/30 rounded-md p-3 border border-border/50 max-h-96 overflow-y-auto">
+                        {template.systemPrompt}
+                    </pre>
+                </div>
             </FormSection>
 
             <FormSection title="用户输入">
-                <TextField
-                    label="用户提示词模板"
-                    value={template.userPromptTemplate}
-                    onChange={(value) =>
-                        updateTemplate({ userPromptTemplate: value })}
-                    placeholder="输入用户提示词模板..."
-                    multiline
-                    rows={6}
-                    description={
-                        <span className="flex items-center gap-1 text-muted-foreground mt-1">
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center justify-between">
+                        <label className="text-xs text-muted-foreground">
+                            用户提示词模板
+                        </label>
+                        <span className="flex items-center gap-1 text-muted-foreground">
                             约{" "}
                             <strong className="text-value font-mono font-medium">
                                 {userTokens}
                             </strong>{" "}
                             Tokens
                         </span>
-                    }
-                />
+                    </div>
+                    <pre className="text-xs text-foreground whitespace-pre-wrap break-words font-mono bg-muted/30 rounded-md p-3 border border-border/50 max-h-96 overflow-y-auto">
+                        {template.userPromptTemplate}
+                    </pre>
+                </div>
             </FormSection>
 
             {/* 可用宏提示 */}

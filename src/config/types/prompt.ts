@@ -50,8 +50,6 @@ export const promptTemplateSchema = z.object({
     ),
     name: z.string(),
     category: promptCategorySchema,
-    enabled: z.boolean().default(false),
-    isBuiltIn: z.boolean().default(false),
     systemPrompt: z.string().default(""),
     userPromptTemplate: z.string().default(""),
     createdAt: z.number().default(() => Date.now()),
@@ -62,7 +60,7 @@ export type PromptTemplate = z.infer<typeof promptTemplateSchema>;
 
 // ==================== Export DTOs ====================
 
-// 导出时排除: id, isBuiltIn, enabled, createdAt, updatedAt
+// 导出时排除: id, createdAt, updatedAt
 const promptTemplateExportShape = {
     name: z.string(),
     category: promptCategorySchema,

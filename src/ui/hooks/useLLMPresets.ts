@@ -1,5 +1,8 @@
 /**
- * UseLLMPresets - LLM 预设与提示词模板管理
+ * UseLLMPresets - LLM 预设管理
+ *
+ * Prompt templates are built-in only (see `@/integrations/llm/builtinPrompts.ts`)
+ * and no longer part of the persisted LLM settings, so this hook is presets-only.
  */
 
 import {
@@ -9,16 +12,12 @@ import {
 import type { EngramAPISettings } from "@/config/settings.ts";
 import { getSetting, setSetting } from "@/config/settings.ts";
 import type { LLMPreset } from "@/config/types/llm.ts";
-import type { PromptTemplate } from "@/config/types/prompt.ts";
-import { BUILTIN_PROMPTS } from "@/integrations/llm/builtinPrompts.ts";
 import { useCallback, useEffect, useState } from "react";
 
 export interface UseLLMPresetsReturn {
     llmPresets: LLMPreset[];
     selectedPresetId: string | null;
-    promptTemplates: PromptTemplate[];
     editingPreset: LLMPreset | null;
-    editingTemplate: PromptTemplate | null;
     hasChanges: boolean;
 
     // 预设操作
@@ -28,46 +27,8 @@ export interface UseLLMPresetsReturn {
     copyPreset: (preset: LLMPreset) => void;
     deletePreset: (preset: LLMPreset) => void;
 
-    // 模板操作
-    selectTemplate: (template: PromptTemplate) => void;
-    addTemplate: (template: PromptTemplate) => void;
-    updateTemplate: (template: PromptTemplate) => void;
-    deleteTemplate: (template: PromptTemplate) => void;
-    /** V1.0.2: 重置所有内置模板为默认值 */
-    resetAllTemplates: () => void;
-
     // 保存
     saveLLMSettings: () => void;
-}
-
-/**
- * 合并提示词模板 (Helper)
- */
-function mergePromptTemplates(
-    defaultTemplates: PromptTemplate[],
-    savedTemplates: PromptTemplate[],
-): PromptTemplate[] {
-    const result: PromptTemplate[] = [];
-    for (const defaultTemplate of defaultTemplates.filter((t) => t.isBuiltIn)) {
-        let savedBuiltIn = savedTemplates.find((t) =>
-            t.id === defaultTemplate.id
-        );
-        if (!savedBuiltIn) {
-            savedBuiltIn = savedTemplates.find(
-                (t) =>
-                    t.isBuiltIn && t.category === defaultTemplate.category &&
-                    t.name === defaultTemplate.name,
-            );
-        }
-        if (savedBuiltIn) {
-            result.push({ ...savedBuiltIn, id: defaultTemplate.id });
-        } else {
-            result.push(defaultTemplate);
-        }
-    }
-    const customTemplates = savedTemplates.filter((t) => !t.isBuiltIn);
-    result.push(...customTemplates);
-    return result;
 }
 
 export function useLLMPresets(): UseLLMPresetsReturn {
@@ -75,9 +36,6 @@ export function useLLMPresets(): UseLLMPresetsReturn {
         getDefaultAPISettings,
     );
     const [editingPreset, setEditingPreset] = useState<LLMPreset | null>(null);
-    const [editingTemplate, setEditingTemplate] = useState<
-        PromptTemplate | null
-    >(null);
     const [hasChanges, setHasChanges] = useState(false);
 
     // 加载配置
@@ -91,10 +49,6 @@ export function useLLMPresets(): UseLLMPresetsReturn {
                 llmPresets: savedAPISettings.llmPresets?.length > 0
                     ? savedAPISettings.llmPresets
                     : defaultSettings.llmPresets,
-                promptTemplates: mergePromptTemplates(
-                    defaultSettings.promptTemplates,
-                    savedAPISettings.promptTemplates || [],
-                ),
                 selectedPresetId: savedAPISettings.selectedPresetId ||
                     defaultSettings.selectedPresetId,
             });
@@ -163,80 +117,6 @@ export function useLLMPresets(): UseLLMPresetsReturn {
         setHasChanges(true);
     }, []);
 
-    const selectTemplate = useCallback((template: PromptTemplate) => {
-        setEditingTemplate(template);
-    }, []);
-
-    const addTemplate = useCallback((template: PromptTemplate) => {
-        setSettings((prev) => ({
-            ...prev,
-            promptTemplates: [...prev.promptTemplates, template],
-        }));
-        setHasChanges(true);
-    }, []);
-
-    const updateTemplate = useCallback((updated: PromptTemplate) => {
-        setSettings((prev) => ({
-            ...prev,
-            promptTemplates: prev.promptTemplates.map((t) =>
-                t.id === updated.id ? updated : t
-            ),
-        }));
-        setEditingTemplate(updated);
-        setHasChanges(true);
-    }, []);
-
-    const deleteTemplate = useCallback((template: PromptTemplate) => {
-        if (template.isBuiltIn) return;
-        setSettings((prev) => ({
-            ...prev,
-            promptTemplates: prev.promptTemplates.filter((t) =>
-                t.id !== template.id
-            ),
-        }));
-        setEditingTemplate((current) =>
-            current?.id === template.id ? null : current
-        );
-        setHasChanges(true);
-    }, []);
-
-    /**
-     * V1.3.3: 重置所有内置模板为默认值
-     * - 将所有内置模板恢复为默认内容
-     * - 保留用户自定义的模板
-     * - 保留当前启用状态和世界书绑定
-     */
-    const resetAllTemplates = useCallback(() => {
-        const builtInDefaults = BUILTIN_PROMPTS;
-        setSettings((prev) => {
-            // 保留自定义模板
-            const customTemplates = prev.promptTemplates.filter((t) =>
-                !t.isBuiltIn
-            );
-
-            // 合并默认值与当前状态 (保留 enabled)
-            const mergedDefaults = builtInDefaults.map((def) => {
-                const current = prev.promptTemplates.find((t) =>
-                    t.id === def.id
-                );
-                if (current) {
-                    return {
-                        ...def,
-                        enabled: current.enabled,
-                    };
-                }
-                return def;
-            });
-
-            return {
-                ...prev,
-                promptTemplates: [...mergedDefaults, ...customTemplates],
-            };
-        });
-        setEditingTemplate(null);
-        setHasChanges(true);
-    }, []);
-
     const saveLLMSettings = useCallback(() => {
         // 仅保存 LLM 相关设置，保留其他设置
         const currentSettings = getSetting("apiSettings") ??
@@ -244,7 +124,6 @@ export function useLLMPresets(): UseLLMPresetsReturn {
         setSetting("apiSettings", {
             ...currentSettings,
             llmPresets: settings.llmPresets,
-            promptTemplates: settings.promptTemplates,
             selectedPresetId: settings.selectedPresetId,
         });
         setHasChanges(false);
@@ -252,21 +131,14 @@ export function useLLMPresets(): UseLLMPresetsReturn {
 
     return {
         addPreset,
-        addTemplate,
         copyPreset,
         deletePreset,
-        deleteTemplate,
         editingPreset,
-        editingTemplate,
         hasChanges,
         llmPresets: settings.llmPresets,
-        promptTemplates: settings.promptTemplates,
-        resetAllTemplates,
         saveLLMSettings,
         selectPreset,
-        selectTemplate,
         selectedPresetId: settings.selectedPresetId,
         updatePreset,
-        updateTemplate,
     };
 }
