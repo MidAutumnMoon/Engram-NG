@@ -9,7 +9,6 @@ import React, { useRef } from "react";
 import { useMemoryStream } from "./hooks/useMemoryStream.ts";
 
 // Sections & Modals
-import { ImportModal } from "./modals/ImportModal.tsx";
 import { PreviewModal } from "./modals/PreviewModal.tsx";
 import { ActionBar } from "./sections/ActionBar.tsx";
 import { EntityList } from "./sections/EntityList.tsx";
@@ -164,7 +163,6 @@ export const MemoryStream: React.FC<MemoryStreamProps> = ({ initialTab }) => {
                             ms.loadEntities();
                         }}
                         onBatchDelete={ms.handleBatchDelete}
-                        onImportClick={ms.handleOpenImportModal}
                         onReembed={ms.handleReembedAll}
                         onSortToggle={() =>
                             ms.setSortOrder(
@@ -277,15 +275,6 @@ export const MemoryStream: React.FC<MemoryStreamProps> = ({ initialTab }) => {
                 isOpen={ms.showPreview}
                 onClose={() => ms.setShowPreview(false)}
                 content={ms.previewContent}
-            />
-
-            <ImportModal
-                isOpen={ms.showImportModal}
-                onClose={() => ms.setShowImportModal(false)}
-                onExecute={ms.handleImportExecute}
-                availableDbs={ms.availableDbs}
-                selectedDb={ms.selectedDbToImport}
-                onSelectDb={ms.setSelectedDbToImport}
             />
         </div>
     );

@@ -1,7 +1,6 @@
 import { getEntityStates, getSummaries } from "@/domain/macros/index.ts";
 import {
     ArrowDownUp,
-    Database,
     FileText,
     Filter,
     Plus,
@@ -29,7 +28,6 @@ interface ActionBarProps {
     onSave: () => void;
     onRefresh: () => void;
     onBatchDelete: () => void;
-    onImportClick: () => void;
     onReembed: () => void;
     onSortToggle: () => void;
     onActiveToggle: () => void;
@@ -53,7 +51,6 @@ export const ActionBar: React.FC<ActionBarProps> = ({
     onSave,
     onRefresh,
     onBatchDelete,
-    onImportClick,
     onReembed,
     onSortToggle,
     onActiveToggle,
@@ -127,16 +124,6 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                                 添加
                             </button>
                         )}
-                        <button
-                            type="button"
-                            onClick={onImportClick}
-                            className="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded"
-                            title="导入历史分卷/外部库"
-                        >
-                            <Database size={12} />
-                            合并导入
-                        </button>
-
                         {viewTab === "list" && (
                             <button
                                 type="button"
@@ -252,21 +239,6 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                                                 : "添加实体"}
                                         </button>
                                     )}
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            onImportClick();
-                                            onMobileActionsClose();
-                                        }}
-                                        className="flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-muted text-left"
-                                    >
-                                        <Database
-                                            size={14}
-                                            className="text-muted-foreground"
-                                        />
-                                        合并导入
-                                    </button>
-
                                     {viewTab === "list" && (
                                         <>
                                             <button

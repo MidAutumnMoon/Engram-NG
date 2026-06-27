@@ -2,9 +2,8 @@ import { getSetting } from "@/config/settings.ts";
 import type { EntityNode, EventNode } from "@/data/types/graph.ts";
 import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
 import { refreshEngramCache } from "@/domain/macros/index.ts";
-import { getCurrentDb, useMemoryStore } from "@/state/memoryStore.ts";
+import { useMemoryStore } from "@/state/memoryStore.ts";
 import { notify } from "@/sillytavern/notify.ts";
-import Dexie from "dexie";
 import {
     filterEntities,
     filterEvents,
@@ -72,9 +71,6 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
     // 但为了完全替代原组件，包含它们：
     const [showPreview, setShowPreview] = useState(false);
     const [previewContent, setPreviewContent] = useState("");
-    const [showImportModal, setShowImportModal] = useState(false);
-    const [availableDbs, setAvailableDbs] = useState<string[]>([]);
-    const [selectedDbToImport, setSelectedDbToImport] = useState<string>("");
     const [showMobileActions, setShowMobileActions] = useState(false);
 
     const store = useMemoryStore();
@@ -577,70 +573,6 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
         }
     }, [store.saveEntity, loadEntities]);
 
-    const handleOpenImportModal = useCallback(async () => {
-        if (hasChanges) {
-            if (
-                !confirm(
-                    "您有未保存的编辑内容，导入历史记忆库并合并可能覆盖您刚刚的修改，确定要继续吗？",
-                )
-            ) {
-                return;
-            }
-        }
-        try {
-            const names = await Dexie.getDatabaseNames();
-            const currentDbName = getCurrentDb()?.name || "";
-            const engramDbs = names.filter((n) =>
-                n.startsWith("Engram_") && n !== currentDbName
-            );
-            setAvailableDbs(engramDbs);
-            if (engramDbs.length > 0) {
-                setSelectedDbToImport(engramDbs[0]);
-            }
-            setShowImportModal(true);
-        } catch (error) {
-            console.error(
-                "[MemoryStream] Failed to get database names:",
-                error,
-            );
-            notify("error", "获取历史数据库列表失败", "MemoryStream");
-        }
-    }, [hasChanges]);
-
-    const handleImportExecute = useCallback(async () => {
-        if (!selectedDbToImport) {
-            notify("warning", "请选择要导入的数据库", "MemoryStream");
-            return;
-        }
-        if (
-            !confirm(
-                `确定要将 [${selectedDbToImport}] 的数据合并到当前聊天吗？这不会影响被合并的源数据库。`,
-            )
-        ) return;
-
-        try {
-            setIsLoading(true);
-            setShowImportModal(false);
-            const res = await store.importDatabase(selectedDbToImport);
-            notify(
-                "success",
-                `导入成功！事件 ${res.events} 条, 实体 ${res.entities} 条。`,
-                "MemoryStream",
-            );
-            await loadEvents();
-            await loadEntities();
-        } catch (error: any) {
-            console.error("[MemoryStream] Import failed:", error);
-            notify(
-                "error",
-                "导入失败: " + (error.message || "未知错误"),
-                "MemoryStream",
-            );
-        } finally {
-            setIsLoading(false);
-        }
-    }, [selectedDbToImport, store.importDatabase, loadEvents, loadEntities]);
-
     return {
         // State
         events,
@@ -664,9 +596,6 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
         pendingEntityChanges,
         showPreview,
         previewContent,
-        showImportModal,
-        availableDbs,
-        selectedDbToImport,
         showMobileActions,
 
         // Derived State
@@ -686,8 +615,6 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
         setEntityGroupMode,
         setShowPreview,
         setPreviewContent,
-        setShowImportModal,
-        setSelectedDbToImport,
         setShowMobileActions,
         setCheckedIds,
 
@@ -706,8 +633,6 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
         handleDelete,
         handleBatchDelete,
         handleReembedAll,
-        handleOpenImportModal,
-        handleImportExecute,
         handleCreateEvent,
         handleCreateEntity,
         loadEvents,

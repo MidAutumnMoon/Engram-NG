@@ -1,16 +1,12 @@
 import { generateShortUUID } from "@/utils/shortUUID.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import type { StateCreator } from "zustand";
-import Dexie from "dexie";
 import { getCurrentDb, tryGetCurrentDb } from "./coreSlice.ts";
 
 export interface EventState {
     saveEvent: (
         event: Omit<EventNode, "id" | "timestamp"> & { timestamp?: number },
     ) => Promise<EventNode>;
-    importDatabase: (
-        sourceDbName: string,
-    ) => Promise<{ events: number; entities: number }>;
     getEventSummaries: (recalledIds?: string[]) => Promise<string>;
 
     getEventsToMerge: (keepRecentCount?: number) => Promise<EventNode[]>;
@@ -62,42 +58,6 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
         }));
 
         return event;
-    },
-
-    importDatabase: async (sourceDbName: string) => {
-        const destDb = getCurrentDb();
-        if (!destDb) {
-            throw new Error(
-                "[MemoryStore] No current chat context to import into",
-            );
-        }
-
-        const sourceDb = new Dexie(sourceDbName);
-        sourceDb.version(3).stores({
-            entities: "id, name, last_updated_at",
-            events:
-                "id, timestamp, level, is_archived, [source_range.start_index+source_range.end_index]",
-            meta: "key",
-        });
-
-        try {
-            if (!(await Dexie.exists(sourceDbName))) {
-                throw new Error(`Database ${sourceDbName} does not exist`);
-            }
-            await sourceDb.open();
-
-            const allEvents = await sourceDb.table("events").toArray();
-            const allEntities = await sourceDb.table("entities").toArray();
-
-            if (allEvents.length > 0) await destDb.events.bulkPut(allEvents);
-            if (allEntities.length > 0) {
-                await destDb.entities.bulkPut(allEntities);
-            }
-
-            return { entities: allEntities.length, events: allEvents.length };
-        } finally {
-            if (sourceDb.isOpen()) sourceDb.close();
-        }
     },
 
     getEventSummaries: async (recalledIds?: string[]) => {
