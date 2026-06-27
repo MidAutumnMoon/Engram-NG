@@ -12,7 +12,7 @@
 import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getCurrentCharacter, getSTContext } from "@/sillytavern/index.ts";
+import { getCurrentCharacter, getSTContext } from "@/sillytavern/context.ts";
 import {
     getChatHistory as getMacroChatHistory,
     getEntityStates,

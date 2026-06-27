@@ -13,8 +13,8 @@ import {
 } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getCurrentChatId, getSTContext } from "@/sillytavern/index.ts";
-import { summarizerService } from "@/domain/memory/index.ts";
+import { getCurrentChatId, getSTContext } from "@/sillytavern/context.ts";
+import { summarizerService } from "@/domain/memory/Summarizer.ts";
 import { tryGetDbForChat } from "@/data/db.ts";
 
 import { useConfigStore } from "@/state/configStore.ts";

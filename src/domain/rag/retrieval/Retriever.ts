@@ -13,7 +13,7 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { useRecallLogStore } from "@/logger/recallLog.ts";
 import { tryGetDbForChat } from "@/data/db.ts";
-import { getCurrentChatId } from "@/sillytavern/index.ts";
+import { getCurrentChatId } from "@/sillytavern/context.ts";
 
 import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag.ts";
 import type { RecallConfig } from "@/config/types/rag.ts";

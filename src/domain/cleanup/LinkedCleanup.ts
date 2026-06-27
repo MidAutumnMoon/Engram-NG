@@ -17,7 +17,8 @@ import { getSettings } from "@/config/settings.ts";
 import { deleteDatabase, hasDbForChat, listAllChatIds } from "@/data/db.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { callPopup, getSTContext } from "@/sillytavern/index.ts";
+import { getSTContext } from "@/sillytavern/context.ts";
+import { callPopup } from "@/sillytavern/popups.ts";
 import { notify } from "@/sillytavern/notify.ts";
 
 type CharacterDeletedPayload = Parameters<

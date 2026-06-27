@@ -27,13 +27,16 @@ import { getProcessedFloor } from "@/data/types/graph.ts";
 import type { IngestionConfig } from "@/config/types/ingestion.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { onTavernEvent } from "@/sillytavern/index.ts";
+import { onTavernEvent } from "@/sillytavern/context.ts";
 import { getCurrentMessageCount } from "@/domain/macros/index.ts";
 import { getChatHistory as getMacroChatHistory } from "@/domain/macros/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { dismissNotify, notify, notifyRunning } from "@/sillytavern/notify.ts";
 import { generateShortUUID } from "@/utils/shortUUID.ts";
-import { runSummary, saveSummaryEvents } from "@/domain/memory/pipelines/summary.ts";
+import {
+    runSummary,
+    saveSummaryEvents,
+} from "@/domain/memory/pipelines/summary.ts";
 import { runEntityExtraction } from "@/domain/memory/pipelines/entity.ts";
 import { applyEntityChanges } from "@/domain/memory/saveEntities.ts";
 import { reviewService } from "@/domain/review/ReviewBridge.ts";
@@ -126,7 +129,9 @@ class IngestionService {
                     last_processed_floor: currentFloor,
                 });
             } catch (e) {
-                Logger.error(LogModule.STBRIDGE, "楼层回溯对齐失败", { error: e });
+                Logger.error(LogModule.STBRIDGE, "楼层回溯对齐失败", {
+                    error: e,
+                });
             }
             return;
         }
@@ -141,12 +146,16 @@ class IngestionService {
             return;
         }
 
-        Logger.info(LogModule.STBRIDGE, "Ingestion: 达到触发条件，启动摄取 pass", {
-            currentFloor,
-            cursor,
-            pendingFloors,
-            floorInterval: config.floorInterval,
-        });
+        Logger.info(
+            LogModule.STBRIDGE,
+            "Ingestion: 达到触发条件，启动摄取 pass",
+            {
+                currentFloor,
+                cursor,
+                pendingFloors,
+                floorInterval: config.floorInterval,
+            },
+        );
 
         await this.runIngestionPass({ manual: false });
     }
@@ -163,7 +172,10 @@ class IngestionService {
         opts: { manual?: boolean; range?: [number, number] } = {},
     ): Promise<void> {
         if (this.isRunning) {
-            Logger.warn(LogModule.STBRIDGE, "Ingestion: 已有 pass 在运行，跳过");
+            Logger.warn(
+                LogModule.STBRIDGE,
+                "Ingestion: 已有 pass 在运行，跳过",
+            );
             return;
         }
         const config = this.getConfig();
@@ -208,7 +220,11 @@ class IngestionService {
                 );
                 if (!computed) {
                     if (manual) {
-                        notify("info", "暂无足够的新内容需要摄取 (缓冲期内)", "Engram");
+                        notify(
+                            "info",
+                            "暂无足够的新内容需要摄取 (缓冲期内)",
+                            "Engram",
+                        );
                     }
                     return;
                 }
@@ -219,7 +235,8 @@ class IngestionService {
             const episodeId = generateShortUUID("ep_");
 
             // 3. Effective preview (global ∧ ingestion preview)
-            const globalPreviewEnabled = getSetting("globalPreviewEnabled") ?? true;
+            const globalPreviewEnabled = getSetting("globalPreviewEnabled") ??
+                true;
             const previewEnabled = globalPreviewEnabled &&
                 (config.previewEnabled ?? true);
 
@@ -243,7 +260,13 @@ class IngestionService {
             if (useCombinedPreview) {
                 await this.runCombinedPass(config, range, episodeId, signal);
             } else {
-                await this.runSequentialPhases(config, range, episodeId, signal, previewEnabled);
+                await this.runSequentialPhases(
+                    config,
+                    range,
+                    episodeId,
+                    signal,
+                    previewEnabled,
+                );
             }
 
             // 6. Post-pass: auto-trim (if summary ran) + auto-archive (if entity ran)
@@ -270,7 +293,11 @@ class IngestionService {
                 Logger.info(
                     LogModule.STBRIDGE,
                     "Ingestion: 游标推进",
-                    { lastEpisodeId: episodeId, lastPassRange: range, lastProcessedFloor: range[1] },
+                    {
+                        lastEpisodeId: episodeId,
+                        lastPassRange: range,
+                        lastProcessedFloor: range[1],
+                    },
                 );
             }
 
@@ -283,7 +310,9 @@ class IngestionService {
                 Logger.info(LogModule.STBRIDGE, "Ingestion: 已取消");
                 return;
             }
-            Logger.error(LogModule.STBRIDGE, "Ingestion pass 异常", { error: msg });
+            Logger.error(LogModule.STBRIDGE, "Ingestion pass 异常", {
+                error: msg,
+            });
             if (manual) {
                 notify("error", `摄取异常: ${msg}`, "Engram 错误");
             }
@@ -323,7 +352,9 @@ class IngestionService {
 
         if (
             !confirm(
-                `确定重新总结楼层 ${range[0]}-${range[1]}？\n将删除该轮的摘要事件并重新生成。`,
+                `确定重新总结楼层 ${range[0]}-${
+                    range[1]
+                }？\n将删除该轮的摘要事件并重新生成。`,
             )
         ) {
             return;
@@ -383,7 +414,9 @@ class IngestionService {
                 Logger.info(LogModule.STBRIDGE, "rerunSummary: 已取消");
                 return;
             }
-            Logger.error(LogModule.STBRIDGE, "rerunSummary 异常", { error: msg });
+            Logger.error(LogModule.STBRIDGE, "rerunSummary 异常", {
+                error: msg,
+            });
             notify("error", `重新总结失败: ${msg}`, "Engram 错误");
         } finally {
             dismissNotify(runningToast);
@@ -419,7 +452,9 @@ class IngestionService {
 
         if (
             !confirm(
-                `确定重新提取楼层 ${range[0]}-${range[1]} 的实体？\n将保留现有实体，仅补充/更新。`,
+                `确定重新提取楼层 ${range[0]}-${
+                    range[1]
+                } 的实体？\n将保留现有实体，仅补充/更新。`,
             )
         ) {
             return;
@@ -466,7 +501,10 @@ class IngestionService {
         } catch (error) {
             const msg = error instanceof Error ? error.message : String(error);
             if (msg === "UserCancelled") {
-                Logger.info(LogModule.STBRIDGE, "rerunEntityExtraction: 已取消");
+                Logger.info(
+                    LogModule.STBRIDGE,
+                    "rerunEntityExtraction: 已取消",
+                );
                 return;
             }
             Logger.error(
@@ -603,14 +641,21 @@ class IngestionService {
             } catch (e) {
                 const msg = e instanceof Error ? e.message : String(e);
                 if (msg === "UserCancelled") {
-                    Logger.info(LogModule.STBRIDGE, "Ingestion: 用户取消 (summary)");
+                    Logger.info(
+                        LogModule.STBRIDGE,
+                        "Ingestion: 用户取消 (summary)",
+                    );
                     signal.cancelled = true;
                     return;
                 }
                 // Summary failure should not block entity — log and continue.
-                Logger.error(LogModule.STBRIDGE, "Ingestion: summary 阶段失败", {
-                    error: msg,
-                });
+                Logger.error(
+                    LogModule.STBRIDGE,
+                    "Ingestion: summary 阶段失败",
+                    {
+                        error: msg,
+                    },
+                );
             }
         }
 
@@ -638,7 +683,10 @@ class IngestionService {
             } catch (e) {
                 const msg = e instanceof Error ? e.message : String(e);
                 if (msg === "UserCancelled") {
-                    Logger.info(LogModule.STBRIDGE, "Ingestion: 用户取消 (entity)");
+                    Logger.info(
+                        LogModule.STBRIDGE,
+                        "Ingestion: 用户取消 (entity)",
+                    );
                     signal.cancelled = true;
                     return;
                 }
@@ -691,9 +739,13 @@ class IngestionService {
                 signal.cancelled = true;
                 return;
             }
-            Logger.error(LogModule.STBRIDGE, "Ingestion: summary preview 失败", {
-                error: msg,
-            });
+            Logger.error(
+                LogModule.STBRIDGE,
+                "Ingestion: summary preview 失败",
+                {
+                    error: msg,
+                },
+            );
             // Summary preview failure → skip summary, still attempt entity.
         }
 
@@ -749,14 +801,20 @@ class IngestionService {
             );
 
             if (result.action === "cancel") {
-                Logger.info(LogModule.STBRIDGE, "Ingestion: 用户取消 (combined)");
+                Logger.info(
+                    LogModule.STBRIDGE,
+                    "Ingestion: 用户取消 (combined)",
+                );
                 signal.cancelled = true;
                 return;
             }
 
             if (result.action === "reroll") {
                 // Reroll summary only; keep entity preview. Re-run summary preview.
-                Logger.info(LogModule.STBRIDGE, "Ingestion: summary 重抽 (combined)");
+                Logger.info(
+                    LogModule.STBRIDGE,
+                    "Ingestion: summary 重抽 (combined)",
+                );
                 try {
                     const rp = await runSummary(
                         { range, episodeId },
@@ -780,9 +838,13 @@ class IngestionService {
                         signal.cancelled = true;
                         return;
                     }
-                    Logger.error(LogModule.STBRIDGE, "Ingestion: summary 重抽失败", {
-                        error: msg,
-                    });
+                    Logger.error(
+                        LogModule.STBRIDGE,
+                        "Ingestion: summary 重抽失败",
+                        {
+                            error: msg,
+                        },
+                    );
                     // fall through to confirm with old content
                 }
             }
@@ -790,7 +852,8 @@ class IngestionService {
             // confirm / fill → persist both phases
             const confirmedSummaryContent = result.data?.summaryContent ??
                 summaryContent;
-            const confirmedEntityData = result.data?.entityData ?? entityPreview;
+            const confirmedEntityData = result.data?.entityData ??
+                entityPreview;
 
             // Persist summary
             if (confirmedSummaryContent) {
@@ -807,9 +870,13 @@ class IngestionService {
                         { episodeId, range },
                     );
                 } catch (e) {
-                    Logger.error(LogModule.STBRIDGE, "Ingestion: summary 持久化失败", {
-                        error: e instanceof Error ? e.message : String(e),
-                    });
+                    Logger.error(
+                        LogModule.STBRIDGE,
+                        "Ingestion: summary 持久化失败",
+                        {
+                            error: e instanceof Error ? e.message : String(e),
+                        },
+                    );
                 }
             }
 
@@ -834,9 +901,13 @@ class IngestionService {
                         { episodeId, range },
                     );
                 } catch (e) {
-                    Logger.error(LogModule.STBRIDGE, "Ingestion: entity 持久化失败", {
-                        error: e instanceof Error ? e.message : String(e),
-                    });
+                    Logger.error(
+                        LogModule.STBRIDGE,
+                        "Ingestion: entity 持久化失败",
+                        {
+                            error: e instanceof Error ? e.message : String(e),
+                        },
+                    );
                 }
             }
 
@@ -856,7 +927,10 @@ class IngestionService {
             "message_received",
             this.handleMessageReceived.bind(this),
         );
-        Logger.info(LogModule.STBRIDGE, "Ingestion 服务已启动 (message_received 订阅)");
+        Logger.info(
+            LogModule.STBRIDGE,
+            "Ingestion 服务已启动 (message_received 订阅)",
+        );
     }
 
     /** Stop the automatic ingestion subscription. */

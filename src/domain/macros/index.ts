@@ -1,6 +1,9 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getCurrentCharacterData, getSTContext } from "@/sillytavern/index.ts";
+import {
+    getCurrentCharacterData,
+    getSTContext,
+} from "@/sillytavern/context.ts";
 import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";

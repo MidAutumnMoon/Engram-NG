@@ -9,7 +9,7 @@
 import { chatManager } from "@/data/ChatManager.ts";
 import { getProcessedFloor } from "@/data/types/graph.ts";
 import { Logger } from "@/logger/Logger.ts";
-import { getSTContext, onTavernEvent } from "@/sillytavern/index.ts";
+import { getSTContext, onTavernEvent } from "@/sillytavern/context.ts";
 import type { ChatContext, SummarizerStatus } from "./types.ts";
 
 class SummarizerService {

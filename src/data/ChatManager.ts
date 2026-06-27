@@ -8,7 +8,10 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { type ChatDatabase, getDbForChat } from "./db.ts";
-import { getCurrentCharacter, getCurrentChatId } from "@/sillytavern/index.ts";
+import {
+    getCurrentCharacter,
+    getCurrentChatId,
+} from "@/sillytavern/context.ts";
 import { DEFAULT_SCOPE_STATE, type ScopeState } from "./types/graph.ts";
 
 /** Meta 表中的状态 key */

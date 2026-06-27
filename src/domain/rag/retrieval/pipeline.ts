@@ -27,7 +27,7 @@ import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { tryGetDbForChat } from "@/data/db.ts";
-import { getCurrentChatId } from "@/sillytavern/index.ts";
+import { getCurrentChatId } from "@/sillytavern/context.ts";
 import { matchEvent, scanEntities } from "@/domain/memory/EntityScanner.ts";
 import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
 import {
@@ -173,7 +173,9 @@ function getRetryConfig(source: "vector" | "rerank"): RetryConfig {
  * index has existed since DB schema v3, so this is a direct indexed lookup.
  * Returns true on error (fail-open) so a flaky query doesn't disable event recall.
  */
-async function hasAnyArchivedEvents(db: NonNullable<ReturnType<typeof tryGetDbForChat>>): Promise<boolean> {
+async function hasAnyArchivedEvents(
+    db: NonNullable<ReturnType<typeof tryGetDbForChat>>,
+): Promise<boolean> {
     try {
         const count = await db.events.where("is_archived").equals(1).limit(1)
             .count();

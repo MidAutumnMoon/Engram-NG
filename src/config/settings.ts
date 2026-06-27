@@ -9,7 +9,7 @@
 import { z } from "zod";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getSTContext } from "@/sillytavern/index.ts";
+import { getSTContext } from "@/sillytavern/context.ts";
 import { PromptLoader } from "@/integrations/llm/PromptLoader.ts";
 import { safeStringify } from "@/utils/safeStringify.ts";
 
@@ -180,9 +180,7 @@ function migrateIngestionConfig(parsed: EngramSettings): EngramSettings {
             oldSummary[k as keyof typeof oldSummary] !== undefined
         );
     const hasOldEntity = oldEntity &&
-        Object.keys(oldEntity).some((k) =>
-            (oldEntity as any)[k] !== undefined
-        );
+        Object.keys(oldEntity).some((k) => (oldEntity as any)[k] !== undefined);
 
     if (!hasOldSummary && !hasOldEntity) return parsed;
 
@@ -228,7 +226,9 @@ export function initSettings(): void {
         return;
     }
     const raw = context.extensionSettings[EXTENSION_NAME];
-    const parsed = migrateIngestionConfig(engramSettingsSchema.parse(raw ?? {}));
+    const parsed = migrateIngestionConfig(
+        engramSettingsSchema.parse(raw ?? {}),
+    );
     context.extensionSettings[EXTENSION_NAME] = parsed;
     save();
     Logger.debug(LogModule.SETTINGS, "Settings initialized and validated");

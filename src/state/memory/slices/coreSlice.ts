@@ -7,7 +7,7 @@ import {
 } from "@/data/db.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import { getProcessedFloor } from "@/data/types/graph.ts";
-import { getCurrentChatId } from "@/sillytavern/index.ts";
+import { getCurrentChatId } from "@/sillytavern/context.ts";
 import type { StateCreator } from "zustand";
 
 export interface CoreState {

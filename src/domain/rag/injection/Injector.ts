@@ -18,7 +18,7 @@ import {
     getCurrentChatId,
     getSTContext,
     onTavernEvent,
-} from "@/sillytavern/index.ts";
+} from "@/sillytavern/context.ts";
 import { refreshCache, refreshEngramCache } from "@/domain/macros/index.ts";
 import { retriever } from "@/domain/rag/retrieval/Retriever.ts";
 

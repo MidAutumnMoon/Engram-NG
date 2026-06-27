@@ -1,7 +1,7 @@
 import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getSTContext } from "@/sillytavern/index.ts";
+import { getSTContext } from "@/sillytavern/context.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 
 export class ChatHistoryHelper {

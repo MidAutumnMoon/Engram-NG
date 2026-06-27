@@ -6,7 +6,7 @@
 
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getRequestHeaders } from "@/sillytavern/index.ts";
+import { getRequestHeaders } from "@/sillytavern/context.ts";
 
 /**
  * 模型信息
