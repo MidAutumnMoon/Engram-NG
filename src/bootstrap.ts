@@ -21,7 +21,7 @@ import { ingestionService } from "@/domain/memory/IngestionService.ts";
 import { injector } from "@/domain/rag/injection/Injector.ts";
 import { WorldBookSlotService } from "@/domain/worldbook/slot.ts";
 import { initLinkedCleanup } from "@/domain/cleanup/LinkedCleanup.ts";
-import { initMacros } from "@/domain/macros/index.ts";
+import { initMacros } from "@/domain/macros/Macros.ts";
 
 /** Initialize a service with error isolation. Returns true on success. */
 async function tryInit(

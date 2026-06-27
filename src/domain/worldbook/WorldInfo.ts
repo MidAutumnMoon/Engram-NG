@@ -1,26 +1,13 @@
-export * from "./crud.ts";
-export * from "./engram.ts";
-export * from "./metrics.ts";
-export * from "./scanner.ts";
-export * from "./slot.ts";
-export * from "./types.ts";
-
-// Facade Implementation
 import { getTavernHelper } from "@/sillytavern/context.ts";
 import { getEntries } from "./crud.ts";
-import {
-    WorldbookEngramService,
-    getCurrentCharWorldbooks,
-} from "./engram.ts";
+import { getCurrentCharWorldbooks, WorldbookEngramService } from "./engram.ts";
 import { countTokens } from "./metrics.ts";
 import { WorldbookScannerService } from "./scanner.ts";
 
 /**
- * WorldInfoService (Facade)
+ * WorldInfoService — 聚合各个分散模块的功能，提供统一的静态方法访问接口。
  *
- * 聚合各个分散模块的功能，提供统一的静态方法访问接口。
- *
- * 注意：仅保留有外部消费者的方法。CRUD 原语、token 统计等
+ * 仅保留有外部消费者的方法。CRUD 原语、token 统计等
  * 请直接从对应模块 (crud.ts / metrics.ts) 导入。
  */
 export class WorldInfoService {

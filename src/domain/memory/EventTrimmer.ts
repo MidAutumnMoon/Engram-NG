@@ -10,7 +10,7 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import type { ChatDatabase } from "@/data/db.ts";
-import { WorldInfoService } from "@/domain/worldbook/index.ts";
+import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
 import { notify } from "@/sillytavern/notify.ts";
 import type { ChatContext } from "./types.ts";
 import { runTrim } from "./pipelines/trim.ts";

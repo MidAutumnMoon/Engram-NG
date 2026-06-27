@@ -1,7 +1,7 @@
 import { getSetting } from "@/config/settings.ts";
 import type { EntityNode, EventNode } from "@/data/types/graph.ts";
 import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
-import { refreshEngramCache } from "@/domain/macros/index.ts";
+import { refreshEngramCache } from "@/domain/macros/Macros.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { notify } from "@/sillytavern/notify.ts";
 import {

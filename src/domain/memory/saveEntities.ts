@@ -30,7 +30,7 @@ import {
 } from "@/domain/memory/fieldHistory.ts";
 import { profileToYaml } from "@/domain/memory/entityFormat.ts";
 import { stringCandidates } from "@/domain/memory/entityResolve.ts";
-import { refreshEngramCache } from "@/domain/macros/index.ts";
+import { refreshEngramCache } from "@/domain/macros/Macros.ts";
 import * as jsonpatch from "fast-json-patch";
 import { z } from "zod";
 

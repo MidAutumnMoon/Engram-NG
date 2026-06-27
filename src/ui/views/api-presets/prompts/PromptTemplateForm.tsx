@@ -10,7 +10,7 @@ import {
     TextField,
 } from "@/ui/components/form/FormComponents.tsx";
 import { WorldbookBindingField } from "./WorldbookBindingField.tsx";
-import { WorldInfoService } from "@/domain/worldbook/index.ts";
+import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
 import { Check, Copy } from "lucide-react";
 import React, { useEffect, useState } from "react";
 

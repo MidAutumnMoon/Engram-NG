@@ -14,7 +14,7 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import { hideMessageRange } from "@/sillytavern/chat/hideMessageRange.ts";
-import { refreshEngramCache } from "@/domain/macros/index.ts";
+import { refreshEngramCache } from "@/domain/macros/Macros.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { notify } from "@/sillytavern/notify.ts";
 import { reviewService } from "@/domain/review/ReviewBridge.ts";

@@ -29,7 +29,7 @@ export default defineConfig(({ mode }) => ({
         // 不需要 index.html。此前一度改用 App 模式是为绕开 Tailwind v4.0 的
         // lib 模式不输出 CSS 的 bug；该问题在 v4.2 已修复，当前锁定 v4.3+。
         lib: {
-            entry: "src/index.ts",
+            entry: "src/bootstrap.ts",
             formats: ["es"],
             fileName: "index",
         },

@@ -19,7 +19,7 @@ import {
     getSTContext,
     onTavernEvent,
 } from "@/sillytavern/context.ts";
-import { refreshCache, refreshEngramCache } from "@/domain/macros/index.ts";
+import { refreshCache, refreshEngramCache } from "@/domain/macros/Macros.ts";
 import { retriever } from "@/domain/rag/retrieval/Retriever.ts";
 
 interface GenerationAfterCommandsParams {

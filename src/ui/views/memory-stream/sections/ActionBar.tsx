@@ -1,4 +1,4 @@
-import { getEntityStates, getSummaries } from "@/domain/macros/index.ts";
+import { getEntityStates, getSummaries } from "@/domain/macros/Macros.ts";
 import {
     ArrowDownUp,
     FileText,

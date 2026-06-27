@@ -28,8 +28,8 @@ import type { IngestionConfig } from "@/config/types/ingestion.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { onTavernEvent } from "@/sillytavern/context.ts";
-import { getCurrentMessageCount } from "@/domain/macros/index.ts";
-import { getChatHistory as getMacroChatHistory } from "@/domain/macros/index.ts";
+import { getCurrentMessageCount } from "@/domain/macros/Macros.ts";
+import { getChatHistory as getMacroChatHistory } from "@/domain/macros/Macros.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { dismissNotify, notify, notifyRunning } from "@/sillytavern/notify.ts";
 import { generateShortUUID } from "@/utils/shortUUID.ts";
@@ -41,7 +41,7 @@ import { runEntityExtraction } from "@/domain/memory/pipelines/entity.ts";
 import { applyEntityChanges } from "@/domain/memory/saveEntities.ts";
 import { reviewService } from "@/domain/review/ReviewBridge.ts";
 import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
-import { EventBus } from "@/events/index.ts";
+import { EventBus } from "@/events/EventBus.ts";
 
 class IngestionService {
     private isRunning = false;

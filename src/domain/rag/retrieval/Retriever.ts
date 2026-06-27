@@ -27,7 +27,7 @@ import {
     vectorRetrieve,
 } from "@/domain/rag/retrieval/pipeline.ts";
 import type { ScoredEvent } from "@/domain/rag/retrieval/Scorer.ts";
-import { WorldInfoService } from "@/domain/worldbook/index.ts";
+import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
 
 // ==================== 类型定义 ====================
 

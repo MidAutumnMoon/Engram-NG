@@ -9,7 +9,7 @@ import type {
 } from "@/config/types/prompt.ts";
 import type { EngramAPISettings } from "@/config/settings.ts";
 import { getTavernHelper } from "@/sillytavern/context.ts";
-import { WorldInfoService } from "@/domain/worldbook/index.ts";
+import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
 import { useCallback, useEffect, useState } from "react";
 
 export interface UseWorldInfoReturn {

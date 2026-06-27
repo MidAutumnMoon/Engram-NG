@@ -17,9 +17,9 @@ import {
     getChatHistory as getMacroChatHistory,
     getEntityStates,
     getSummaries,
-} from "@/domain/macros/index.ts";
+} from "@/domain/macros/Macros.ts";
 import { PromptLoader } from "@/integrations/llm/PromptLoader.ts";
-import { WorldInfoService } from "@/domain/worldbook/index.ts";
+import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
 import { llmAdapter } from "@/integrations/llm/Adapter.ts";
 import { useModelLogStore } from "@/logger/modelLog.ts";
 import type { ModelLogEntry } from "@/logger/modelLog.ts";

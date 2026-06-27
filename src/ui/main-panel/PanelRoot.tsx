@@ -11,11 +11,11 @@ import { useUiStore } from "@/state/uiStore.ts";
 import { MainLayout } from "@/ui/main-panel/MainLayout.tsx";
 import React, { useEffect } from "react";
 
-import { Dashboard } from "@/ui/views/dashboard/index.tsx";
+import { Dashboard } from "@/ui/views/dashboard/Dashboard.tsx";
 import { DevLog } from "@/ui/views/dev-log/DevLog.tsx";
 import { APIPresets } from "@/ui/views/api-presets/APIPresetsView.tsx";
-import { Settings } from "@/ui/views/settings/index.tsx";
-import { MemoryStream } from "@/ui/views/memory-stream/index.tsx";
+import { Settings } from "@/ui/views/settings/Settings.tsx";
+import { MemoryStream } from "@/ui/views/memory-stream/MemoryStream.tsx";
 import { ProcessingView } from "@/ui/views/processing/ProcessingView.tsx";
 
 const PanelRoot: React.FC = () => {
