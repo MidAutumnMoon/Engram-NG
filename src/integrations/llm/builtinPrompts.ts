@@ -3,15 +3,18 @@
  *
  * Prompt bodies live as plain `.txt` files in `./prompts/` and are inlined at
  * build time via Vite's `?raw` import. This keeps the long, mostly-CJK strings
- * out of the TS source (no backtick/`${}` escaping gymnastics) while staying
- * type-safe and import-traceable — no runtime YAML parsing, no `js-yaml`.
+ * out of the TS source (no backtick/`${}` escaping gymnastics).
+ *
+ * `BUILTIN_PROMPTS` is the display source for the read-only 提示词模板 panel.
+ * Runtime prompt assembly is done inline in each pipeline
+ * (`domain/memory/pipelines/{summary,entity,trim}.ts`) — those import the
+ * `.txt` files directly too; this array is no longer part of the runtime
+ * prompt path.
  */
 import type { PromptTemplate } from "@/config/types/prompt.ts";
 
 import ENTITY_EXTRACTION_SYSTEM from "./prompts/ENTITY_EXTRACTION_SYSTEM.txt?raw";
 import ENTITY_EXTRACTION_USER from "./prompts/ENTITY_EXTRACTION_USER.txt?raw";
-import ENTITY_RESOLVE_SYSTEM from "./prompts/ENTITY_RESOLVE_SYSTEM.txt?raw";
-import ENTITY_RESOLVE_USER from "./prompts/ENTITY_RESOLVE_USER.txt?raw";
 import SUMMARY_SYSTEM from "./prompts/SUMMARY_SYSTEM.txt?raw";
 import SUMMARY_USER from "./prompts/SUMMARY_USER.txt?raw";
 import TRIM_SYSTEM from "./prompts/TRIM_SYSTEM.txt?raw";
@@ -20,7 +23,7 @@ import TRIM_USER from "./prompts/TRIM_USER.txt?raw";
 // ==================== Template objects ====================
 
 /**
- * Build-time built-in prompt templates. Identified solely by `id`.
+ * Built-in prompt templates for UI display. Identified solely by `id`.
  *
  * createdAt/updatedAt are 0: these are immutable defaults baked into the
  * bundle, not records created "now".
@@ -47,11 +50,6 @@ export const BUILTIN_PROMPTS: PromptTemplate[] = [
         ENTITY_EXTRACTION_SYSTEM,
         ENTITY_EXTRACTION_USER,
     ),
-    makeTemplate(
-        "builtin_entity_resolve",
-        ENTITY_RESOLVE_SYSTEM,
-        ENTITY_RESOLVE_USER,
-    ),
 ];
 
 /**
@@ -60,7 +58,6 @@ export const BUILTIN_PROMPTS: PromptTemplate[] = [
  */
 export const TEMPLATE_LABELS: Record<string, string> = {
     builtin_entity_extraction: "实体提取",
-    builtin_entity_resolve: "实体解析",
     builtin_summary: "剧情摘要",
     builtin_trim: "记忆精简",
 };

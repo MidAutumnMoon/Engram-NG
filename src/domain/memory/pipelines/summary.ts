@@ -20,8 +20,9 @@ import { notify } from "@/sillytavern/notify.ts";
 import { reviewService } from "@/domain/review/ReviewBridge.ts";
 import type { ReviewAction } from "@/domain/review/ReviewBridge.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
+import SUMMARY_SYSTEM from "@/integrations/llm/prompts/SUMMARY_SYSTEM.txt?raw";
+import SUMMARY_USER from "@/integrations/llm/prompts/SUMMARY_USER.txt?raw";
 import {
-    buildPrompt,
     cleanRegex,
     fetchContext,
     isCancelled,
@@ -29,7 +30,35 @@ import {
     stopGeneration,
     type CancelSignal,
     type FetchContextResult,
+    type LlmPrompt,
 } from "./shared.ts";
+
+/**
+ * Build the summary prompt from ctx. Replaces the old macro-substitution path:
+ * the user-prompt template (SUMMARY_USER.txt) is filled via a small, explicit
+ * replace chain, and the optional feedback block is appended on regeneration.
+ */
+function buildSummaryPrompt(
+    ctx: FetchContextResult,
+    feedback?: string,
+    previousOutput?: string,
+): LlmPrompt {
+    let userPrompt = SUMMARY_USER
+        .replaceAll("{{userPersona}}", ctx.userPersona)
+        .replaceAll("{{worldbookContext}}", ctx.worldbookContext)
+        .replaceAll("{{engramSummaries}}", ctx.engramSummaries)
+        .replaceAll("{{chatHistory}}", ctx.chatHistory);
+
+    // Feedback block (regeneration from rejection)
+    if (feedback) {
+        userPrompt +=
+            `\n---\n【用户反馈 - 请依据此修正上一次的生成】\n上一次的生成内容:\n${
+                previousOutput ?? ""
+            }\n\n用户的修改意见:\n${feedback}\n`;
+    }
+
+    return { system: SUMMARY_SYSTEM, user: userPrompt };
+}
 
 export interface SummaryInput {
     range: [number, number];
@@ -103,12 +132,7 @@ export async function runSummary(
     let cleanedContent = "";
 
     while (true) {
-        const prompt = await buildPrompt({
-            templateId: "builtin_summary",
-            ctx,
-            feedback,
-            previousOutput,
-        });
+        const prompt = buildSummaryPrompt(ctx, feedback, previousOutput);
         if (isCancelled(signal)) throwUserCancelled();
 
         const llm = await runLlm(prompt, {

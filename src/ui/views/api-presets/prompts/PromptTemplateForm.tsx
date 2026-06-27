@@ -18,27 +18,17 @@ interface MacroDef {
     desc: string;
     category:
         | "Context (上下文)"
-        | "Text Generation (文本生成)"
-        | "Data Layer (数据层)";
+        | "Engram Data (记忆数据)";
 }
 
-// 可用宏定义及说明
+// 模板中实际会被替换的占位符（由各 pipeline 的 buildXxxPrompt 填充）。
+// 仅作展示参考；提示词内容本身不可编辑。
 const AVAILABLE_MACROS: MacroDef[] = [
     // Context
     {
         category: "Context (上下文)",
-        desc: "当前用户输入的内容",
-        name: "{{userInput}}",
-    },
-    {
-        category: "Context (上下文)",
-        desc: "最近的对话历史（从总结配置读取数量）",
+        desc: "最近的对话历史",
         name: "{{chatHistory}}",
-    },
-    {
-        category: "Context (上下文)",
-        desc: "角色卡原始设定 (Description/Persona...)",
-        name: "{{context}}",
     },
     {
         category: "Context (上下文)",
@@ -50,26 +40,22 @@ const AVAILABLE_MACROS: MacroDef[] = [
         desc: "用户角色设定 (Persona Description)",
         name: "{{userPersona}}",
     },
-    { category: "Context (上下文)", desc: "当前角色名称", name: "{{char}}" },
-    { category: "Context (上下文)", desc: "用户名称", name: "{{user}}" },
 
-    // Text Generation
+    // Engram Data
     {
-        category: "Text Generation (文本生成)",
+        category: "Engram Data (记忆数据)",
         desc: "所有已生成的事件摘要 (纯文本, 用于剧情回顾/精简)",
         name: "{{engramSummaries}}",
     },
     {
-        category: "Text Generation (文本生成)",
-        desc: "已归档的历史摘要 (绿灯事件)",
-        name: "{{engramArchivedSummaries}}",
+        category: "Engram Data (记忆数据)",
+        desc: "当前实体状态 (用于实体提取)",
+        name: "{{engramEntityStates}}",
     },
-
-    // Data Layer
     {
-        category: "Data Layer (数据层)",
-        desc: "完整的图谱数据 JSON (用于实体提取/图谱操作)",
-        name: "{{engramGraph}}",
+        category: "Engram Data (记忆数据)",
+        desc: "精简流程中待合并的摘要文本",
+        name: "{{targetSummaries}}",
     },
 ];
 

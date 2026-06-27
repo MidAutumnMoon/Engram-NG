@@ -19,13 +19,29 @@ import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { notify } from "@/sillytavern/notify.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
+import TRIM_SYSTEM from "@/integrations/llm/prompts/TRIM_SYSTEM.txt?raw";
+import TRIM_USER from "@/integrations/llm/prompts/TRIM_USER.txt?raw";
 import {
-    buildPrompt,
     type CancelSignal,
+    type LlmPrompt,
     cleanRegex,
     runLlm,
     stopGeneration,
 } from "./shared.ts";
+
+/**
+ * Build the trim prompt. Trim has no character/worldbook context — the only
+ * real input is the formatted events text. Per the old macro path it was
+ * bound to both {{worldbookContext}} and {{targetSummaries}}, with an empty
+ * {{engramSummaries}}.
+ */
+function buildTrimPrompt(formattedText: string): LlmPrompt {
+    const userPrompt = TRIM_USER
+        .replaceAll("{{worldbookContext}}", formattedText)
+        .replaceAll("{{engramSummaries}}", "")
+        .replaceAll("{{targetSummaries}}", formattedText);
+    return { system: TRIM_SYSTEM, user: userPrompt };
+}
 
 export interface TrimRunConfig {
     keepRecentCount: number;
@@ -94,24 +110,7 @@ Significance: ${e.significance_score}`;
     );
 
     // 4-6. Build prompt → LLM → clean
-    // Trim has no per-character context (FetchContext is absent from the trim
-    // workflow today); pass a minimal ctx carrying the formatted events as
-    // chatHistory so BuildPrompt's {{targetSummaries}} / {{chatHistory}} resolve.
-    const prompt = await buildPrompt({
-        templateId: "builtin_trim",
-        ctx: {
-            charName: undefined,
-            charPersona: "",
-            chatHistory: "",
-            context: formattedText,
-            worldbookContext: formattedText,
-            engramEntityStates: "",
-            engramSummaries: "",
-            userName: "",
-            userPersona: "",
-        },
-        targetSummaries: formattedText,
-    });
+    const prompt = buildTrimPrompt(formattedText);
 
     const llm = await runLlm(prompt, {
         logType: "trim",

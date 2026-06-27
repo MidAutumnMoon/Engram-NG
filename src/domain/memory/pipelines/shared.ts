@@ -18,7 +18,6 @@ import {
     getEntityStates,
     getSummaries,
 } from "@/domain/macros/Macros.ts";
-import { BUILTIN_PROMPTS } from "@/integrations/llm/builtinPrompts.ts";
 import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
 import { llmAdapter } from "@/integrations/llm/Adapter.ts";
 import { useModelLogStore } from "@/logger/modelLog.ts";
@@ -192,8 +191,6 @@ export interface FetchContextResult {
     chatHistory: string;
     /** Scanned world-info text. */
     worldbookContext: string;
-    /** Alias kept for templates that use {{context}}. */
-    context: string;
     engramSummaries: string;
     engramEntityStates: string;
 }
@@ -305,7 +302,6 @@ export async function fetchContext(
         charName,
         charPersona,
         chatHistory: history,
-        context: wiContent,
         worldbookContext: wiContent,
         engramEntityStates,
         engramSummaries,
@@ -315,152 +311,15 @@ export async function fetchContext(
 }
 
 // ============================================================================
-// BuildPrompt
+// LlmRequest
 // ============================================================================
 
-export interface BuildPromptInput {
-    /** Built-in template id (e.g. "builtin_summary"). Required — sole resolution key. */
-    templateId: string;
-    /** Explicit chat history (overrides ctx.chatHistory). Usually ctx.chatHistory. */
-    chatHistory?: string;
-    /** Pre-resolved fetch context. */
-    ctx: FetchContextResult;
-    /** Optional feedback from a rejected previous generation. */
-    feedback?: string;
-    /** Previous output, shown when regenerating from feedback. */
-    previousOutput?: string;
-    /** Optional user-input text (preprocessor-style). */
-    userInput?: string;
-    /**
-     * Names of entities hit by keyword recall, joined for the {{hitEntities}} macro.
-     * Populated by the caller from `keywordRetrieve(...).entities` (see
-     * `domain/rag/retrieval/pipeline.ts`).
-     */
-    hitEntities?: string;
-    /** Target-summaries text (trim pipeline: the events being trimmed). */
-    targetSummaries?: string;
-    /** Extra vars to merge in. */
-    vars?: Record<string, string>;
-}
-
-export interface BuiltPrompt {
+/** A fully-assembled prompt ready to send to the LLM adapter. */
+export interface LlmPrompt {
     system: string;
     user: string;
-    templateId?: string;
 }
 
-/**
- * Resolve a prompt template, fill macros, and apply ST's native macro substitution.
- * Mirrors `BuildPrompt` step logic exactly.
- */
-export async function buildPrompt(
-    input: BuildPromptInput,
-): Promise<BuiltPrompt> {
-    const templateId = input.templateId;
-
-    // Templates are built-in only (defined in source), keyed by id.
-    const template = BUILTIN_PROMPTS.find((t) => t.id === templateId);
-    if (!template) {
-        throw new Error(`BuildPrompt: 未找到模板 (ID: ${templateId})`);
-    }
-
-    Logger.debug(
-        LogModule.WF_BUILD_PROMPT,
-        `Using template: ${template.id}`,
-    );
-
-    const ctx = input.ctx;
-
-    // 1. Local variable substitution
-    const variables: Record<string, string> = {
-        ...input.vars,
-        "{{userInput}}": input.userInput || "",
-        "{{chatHistory}}": input.chatHistory ?? ctx.chatHistory ?? "",
-        "{{previousOutput}}": input.previousOutput || "",
-        "{{feedback}}": input.feedback || "",
-    };
-
-    let { systemPrompt } = template;
-    let userPrompt = template.userPromptTemplate;
-
-    // Feedback block (regeneration from rejection)
-    if (input.feedback) {
-        const feedbackTemplate = `
----
-【用户反馈 - 请依据此修正上一次的生成】
-上一次的生成内容:
-{{previousOutput}}
-
-用户的修改意见:
-{{feedback}}
-`;
-        userPrompt += feedbackTemplate;
-        Logger.debug(
-            LogModule.WF_BUILD_PROMPT,
-            "检测到反馈，已自动附加反馈模板",
-        );
-    }
-
-    for (const [key, value] of Object.entries(variables)) {
-        const regex = new RegExp(
-            key.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`),
-            "g",
-        );
-        systemPrompt = systemPrompt.replace(regex, value);
-        userPrompt = userPrompt.replace(regex, value);
-    }
-
-    // 2. Context-derived macros: only replace when defined (let ST global macros
-    //    backstop undefined ones, e.g. {{engramSummaries}}).
-    const potentialMacros: Record<string, string | undefined> = {
-        "{{chatHistory}}": input.chatHistory ?? ctx.chatHistory,
-        "{{engramSummaries}}": ctx.engramSummaries,
-        "{{engramEntityStates}}": ctx.engramEntityStates,
-        "{{targetSummaries}}": input.targetSummaries ?? ctx.context,
-        "{{worldbookContext}}": ctx.worldbookContext,
-        "{{context}}": ctx.context || ctx.worldbookContext,
-        "{{userPersona}}": ctx.userPersona,
-        "{{hitEntities}}": input.hitEntities ?? "无",
-        "{{char}}": ctx.charName,
-        "{{user}}": ctx.userName,
-    };
-
-    for (const [key, value] of Object.entries(potentialMacros)) {
-        if (value !== undefined && value !== null) {
-            systemPrompt = systemPrompt.split(key).join(value);
-            userPrompt = userPrompt.split(key).join(value);
-        }
-    }
-
-    // 3. ST native macro substitution ({{time}}, {{date}}, {{user}}, ...)
-    try {
-        const stContext = getSTContext();
-        const substituteParams = stContext.substituteParams;
-        if (typeof substituteParams === "function") {
-            systemPrompt = substituteParams(systemPrompt);
-            userPrompt = substituteParams(userPrompt);
-        }
-    } catch (error) {
-        Logger.warn(LogModule.WF_BUILD_PROMPT, "酒馆原生宏替换失败", error);
-    }
-
-    const result: BuiltPrompt = {
-        system: systemPrompt,
-        templateId: template.id,
-        user: userPrompt,
-    };
-
-    Logger.debug(
-        LogModule.WF_BUILD_PROMPT,
-        `Prompt 构建完成 (Template: ${template.id})`,
-        { systemLen: systemPrompt.length, userLen: userPrompt.length },
-    );
-
-    return result;
-}
-
-// ============================================================================
-// LlmRequest
 // ============================================================================
 
 export interface LlmRunOptions {
@@ -485,7 +344,7 @@ export interface LlmResult {
  * `UserCancelled` convention.
  */
 export async function runLlm(
-    prompt: BuiltPrompt,
+    prompt: LlmPrompt,
     opts: LlmRunOptions = {},
 ): Promise<LlmResult> {
     const logId = useModelLogStore.getState().logSend({

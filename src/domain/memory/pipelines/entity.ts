@@ -28,15 +28,31 @@ import { useMemoryStore } from "@/state/memoryStore.ts";
 import { reviewService } from "@/domain/review/ReviewBridge.ts";
 import type { ReviewAction } from "@/domain/review/ReviewBridge.ts";
 import type { EntityNode } from "@/data/types/graph.ts";
+import ENTITY_EXTRACTION_SYSTEM from "@/integrations/llm/prompts/ENTITY_EXTRACTION_SYSTEM.txt?raw";
+import ENTITY_EXTRACTION_USER from "@/integrations/llm/prompts/ENTITY_EXTRACTION_USER.txt?raw";
 import {
-    buildPrompt,
     cleanRegex,
     fetchContext,
     isCancelled,
     runLlm,
     type CancelSignal,
     type FetchContextResult,
+    type LlmPrompt,
 } from "./shared.ts";
+
+/**
+ * Build the entity-extraction prompt from ctx. Replaces the old macro path;
+ * the user-prompt template (ENTITY_EXTRACTION_USER.txt) is filled via an
+ * explicit replace chain.
+ */
+function buildEntityExtractionPrompt(ctx: FetchContextResult): LlmPrompt {
+    const userPrompt = ENTITY_EXTRACTION_USER
+        .replaceAll("{{worldbookContext}}", ctx.worldbookContext)
+        .replaceAll("{{engramSummaries}}", ctx.engramSummaries)
+        .replaceAll("{{engramEntityStates}}", ctx.engramEntityStates)
+        .replaceAll("{{chatHistory}}", ctx.chatHistory);
+    return { system: ENTITY_EXTRACTION_SYSTEM, user: userPrompt };
+}
 
 /** LLM is_duplicate 判定的余弦候选 TopK */
 const RESOLVE_TOP_K = 5;
@@ -104,29 +120,9 @@ export async function runEntityExtraction(
 
     const store = useMemoryStore.getState();
     const existingEntities = await store.getAllEntities();
-    // Simplified entity list for the prompt's existing-entities context.
-    const existingEntitiesJson = JSON.stringify(
-        existingEntities.map((e) => ({
-            aliases: e.aliases || [],
-            name: e.name,
-            type: e.type,
-        })),
-        null,
-        2,
-    );
 
-    // 2. BuildPrompt
-    const prompt = await buildPrompt({
-        templateId: "builtin_entity_extraction",
-        ctx,
-        // Inject the existing-entities list into {{chatHistory}}? No — the
-        // entity template uses its own macros; existingEntities is surfaced
-        // via the macro system. Keep parity: FetchExistingEntities wrote to
-        // context.input.existingEntities, which BuildPrompt did NOT auto-map.
-        // It relied on the global macro {{existingEntities}}. We pass it as
-        // a var so templates referencing it resolve consistently.
-        vars: { "{{existingEntities}}": existingEntitiesJson },
-    });
+    // 2. Build prompt
+    const prompt = buildEntityExtractionPrompt(ctx);
     if (isCancelled(signal)) throwUserCancelled();
 
     // 3-5. LLM → Clean → Parse
