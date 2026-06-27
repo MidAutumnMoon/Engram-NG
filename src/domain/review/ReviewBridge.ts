@@ -2,12 +2,34 @@ import { useReviewStore } from "@/state/reviewStore.ts";
 
 export type ReviewAction = "confirm" | "fill" | "reject" | "reroll" | "cancel";
 
+/**
+ * V2.1: 复合审查类型，供统一摄取 pass 使用。
+ * 一个 modal 同时展示 summary + entity 两段，每段可独立 mini-action。
+ */
+export type ReviewType =
+    | "text"
+    | "json"
+    | "entity"
+    | "summary"
+    | "combined";
+
+/**
+ * V2.1: 每段独立的审查结果。让一次 onResult 能表达
+ * 「summary 重抽，但 entity 确认」这类组合。
+ */
+export interface ReviewSectionResult {
+    action: ReviewAction;
+    content?: string;
+    feedback?: string;
+    data?: any;
+}
+
 export interface ReviewRequest {
     id: string; // V1.3.1: Unique ID for multi-tab support
     title: string;
     description: string;
     content: string; // Fallback text
-    type?: "text" | "json" | "entity" | "summary"; // V1.2
+    type?: ReviewType; // V1.2
     data?: any; // Structured data for specialized views
     actions?: ReviewAction[];
     onResult: (
@@ -16,6 +38,11 @@ export interface ReviewRequest {
             content: string;
             feedback?: string;
             data?: any;
+            /** V2.1: 复合审查时，每段的独立结果 */
+            sections?: {
+                summary?: ReviewSectionResult;
+                entity?: ReviewSectionResult;
+            };
         },
     ) => void;
 }
@@ -35,11 +62,18 @@ class ReviewService {
         description: string,
         content: string,
         actions: ReviewAction[] = ["confirm"],
-        type: "text" | "json" | "entity" | "summary" = "text",
+        type: ReviewType = "text",
         data?: any,
-    ): Promise<
-        { action: ReviewAction; content: string; feedback?: string; data?: any }
-    > {
+    ): Promise<{
+        action: ReviewAction;
+        content: string;
+        feedback?: string;
+        data?: any;
+        sections?: {
+            summary?: ReviewSectionResult;
+            entity?: ReviewSectionResult;
+        };
+    }> {
         return new Promise((resolve) => {
             const id = Date.now().toString(36) +
                 Math.random().toString(36).slice(2, 5);

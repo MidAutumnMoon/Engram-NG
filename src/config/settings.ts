@@ -23,6 +23,11 @@ import {
     trimConfigSchema,
 } from "@/config/types/memory.ts";
 import {
+    DEFAULT_INGESTION_CONFIG,
+    ingestionConfigSchema,
+    migrateToIngestionConfig,
+} from "@/config/types/ingestion.ts";
+import {
     DEFAULT_RECALL_CONFIG,
     DEFAULT_RERANK_CONFIG,
     DEFAULT_VECTOR_CONFIG,
@@ -67,8 +72,14 @@ const engramApiSettingsSchema = z.object({
     embeddingConfig: embeddingConfigSchema.optional(),
     /** V0.8.5: 召回配置 */
     recallConfig: recallConfigSchema.optional(),
-    /** V0.9: 实体提取配置 */
+    /** V0.9: 实体提取配置 (deprecated — 见 ingestionConfig；迁移期保留兜底) */
     entityExtractConfig: entityExtractConfigSchema.optional(),
+    /**
+     * 统一摄取配置 (summary + entity 共享触发/游标/预览/间隔)。
+     * 取代 summarizerConfig (root) + entityExtractConfig (nested)。
+     * 迁移期：getSettings() 在缺省时从旧字段回填。
+     */
+    ingestionConfig: ingestionConfigSchema.prefault({}),
     /** V0.9.2: 自定义宏 */
     customMacros: z.array(customMacroSchema).optional(),
     /** V1.1.0: 世界书配置方案 */
@@ -150,6 +161,7 @@ export function getDefaultAPISettings(): EngramAPISettings {
         worldbookConfig: { ...DEFAULT_WORLDBOOK_CONFIG },
         regexConfig: { ...DEFAULT_REGEX_CONFIG },
         recallConfig: { ...DEFAULT_RECALL_CONFIG },
+        ingestionConfig: { ...DEFAULT_INGESTION_CONFIG },
         customMacros: [...DEFAULT_CUSTOM_MACROS],
         worldbookProfiles: [],
     };
@@ -162,6 +174,56 @@ export function getDefaultAPISettings(): EngramAPISettings {
 const EXTENSION_NAME = "engram";
 
 /**
+ * 迁移兜底：若 ingestionConfig 仍是 schema 默认值，但从旧字段
+ * (root summarizerConfig + nested entityExtractConfig) 能映射出非默认值，
+ * 则用映射结果覆盖。这样新代码读 ingestionConfig 时，旧存档自动升级。
+ *
+ * 仅当 ingestionConfig 明显未迁移（floorInterval 仍是默认 25 且 enabled 仍是
+ * 默认 true，而旧字段携带了用户自定义值）时触发。迁移一次后持久化，
+ * 后续不再触发。
+ */
+function migrateIngestionConfig(parsed: EngramSettings): EngramSettings {
+    if (!parsed.apiSettings) return parsed;
+    const api = parsed.apiSettings;
+
+    const oldSummary = parsed.summarizerConfig;
+    const oldEntity = api.entityExtractConfig;
+    const currentIngestion = api.ingestionConfig;
+
+    // 检测是否已迁移过：若 ingestionConfig 非空对象且至少有一个非默认值，视为已迁移。
+    // schema 的 prefault({}) 总会填默认，所以用「用户是否改过 floorInterval」作为信号。
+    const looksMigrated = currentIngestion &&
+        (currentIngestion.floorInterval !== 25 ||
+            currentIngestion.enabled !== true ||
+            (oldSummary && oldSummary.floorInterval === undefined));
+
+    if (looksMigrated) return parsed;
+
+    // 仅当旧字段确实存在且携带值时才映射；否则保持 schema 默认。
+    const hasOldSummary = oldSummary &&
+        Object.keys(oldSummary).some((k) =>
+            oldSummary[k as keyof typeof oldSummary] !== undefined
+        );
+    const hasOldEntity = oldEntity &&
+        Object.keys(oldEntity).some((k) =>
+            (oldEntity as any)[k] !== undefined
+        );
+
+    if (!hasOldSummary && !hasOldEntity) return parsed;
+
+    const migrated = migrateToIngestionConfig(
+        oldSummary as Record<string, any> | null,
+        oldEntity as Record<string, any> | null,
+        null, // 强制重新映射，不用 existing
+    );
+
+    return {
+        ...parsed,
+        apiSettings: { ...api, ingestionConfig: migrated },
+    };
+}
+
+/**
  * 获取扩展设置对象 (schema-validated, defaults filled)
  *
  * `initSettings()` must be called at startup to ensure ST storage exists.
@@ -170,14 +232,16 @@ const EXTENSION_NAME = "engram";
  */
 export function getSettings(): EngramSettings {
     const raw = getSTContext().extensionSettings?.[EXTENSION_NAME];
-    return engramSettingsSchema.parse(raw ?? {});
+    const parsed = engramSettingsSchema.parse(raw ?? {});
+    return migrateIngestionConfig(parsed);
 }
 
 /**
  * 初始化设置（在扩展加载时调用）
  *
  * Validates ST storage against the schema, fills missing fields with
- * defaults, and persists the result.
+ * defaults, and persists the result. Also runs the ingestionConfig migration
+ * so new code can read the unified config immediately.
  */
 export function initSettings(): void {
     const context = getSTContext();
@@ -189,7 +253,7 @@ export function initSettings(): void {
         return;
     }
     const raw = context.extensionSettings[EXTENSION_NAME];
-    const parsed = engramSettingsSchema.parse(raw ?? {});
+    const parsed = migrateIngestionConfig(engramSettingsSchema.parse(raw ?? {}));
     context.extensionSettings[EXTENSION_NAME] = parsed;
     save();
     Logger.debug(LogModule.SETTINGS, "Settings initialized and validated");

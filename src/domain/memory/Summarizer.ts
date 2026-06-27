@@ -4,6 +4,7 @@
 
 import { getSetting, setSetting } from "@/config/settings.ts";
 import { chatManager } from "@/data/ChatManager.ts";
+import { getProcessedFloor } from "@/data/types/graph.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
 import { getSTContext, onTavernEvent } from "@/sillytavern/index.ts";
@@ -88,15 +89,16 @@ class SummarizerService {
         // 直接从 IndexedDB 读取，避免 memoryStore 缓存未初始化的问题
         try {
             const state = await chatManager.getState();
-            this._lastSummarizedFloor = state.last_summarized_floor;
-            this.log("debug", "从 DB 读取 lastSummarizedFloor", {
+            // 统一摄取游标（含旧字段兜底）
+            this._lastSummarizedFloor = getProcessedFloor(state);
+            this.log("debug", "从 DB 读取 lastProcessedFloor", {
                 value: this._lastSummarizedFloor,
             });
             return this._lastSummarizedFloor;
         } catch (error) {
             this.log(
                 "warn",
-                "读取 lastSummarizedFloor 失败，使用默认值 0",
+                "读取 lastProcessedFloor 失败，使用默认值 0",
                 error,
             );
             return 0;
@@ -106,13 +108,15 @@ class SummarizerService {
     /**
      * 设置上次总结的楼层
      * V0.5: 保存到 memoryStore (IndexedDB)
+     *
+     * 统一摄取重构后写统一游标 last_processed_floor。
      */
     public async setLastSummarizedFloor(floor: number): Promise<void> {
         this._lastSummarizedFloor = floor;
 
-        // 保存到 memoryStore
+        // 保存到 memoryStore（统一游标）
         const store = useMemoryStore.getState();
-        await store.setLastSummarizedFloor(floor);
+        await store.setLastProcessedFloor(floor);
     }
 
     // ==================== 楼层计算 ====================
@@ -141,7 +145,10 @@ class SummarizerService {
 
     /**
      * 启动服务，开始监听事件
-     * V0.5: 使用 EventWatcher 统一监听
+     *
+     * V2.1: message_received 触发已迁移到 IngestionService（统一摄取）。
+     * 此处仅保留 chat_id_changed 订阅以重置内部缓存；手动触发入口
+     * (triggerSummary) 仍可供 UI 使用。
      */
     start(): void {
         if (this.isRunning) {
@@ -152,19 +159,11 @@ class SummarizerService {
         // 初始化当前聊天状态
         this.initializeForCurrentChat();
 
-        // 注册回调
-        // V0.9.11: Always subscribe to messages to support Entity Extraction even if Summary is Manual
-        this.unsubscribeMessage = onTavernEvent(
-            "message_received",
-            this.handleMessageReceived.bind(this),
-        );
-        this.log("debug", "已订阅消息事件");
-
         this.unsubscribeChat = onTavernEvent(
             "chat_id_changed",
             this.handleChatChanged.bind(this),
         );
-        this.log("debug", "已订阅聊天切换事件");
+        this.log("debug", "已订阅聊天切换事件 (message_received 由 IngestionService 处理)");
 
         this.isRunning = true;
 

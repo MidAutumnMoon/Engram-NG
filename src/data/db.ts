@@ -17,6 +17,14 @@ import type { Table } from "dexie";
 import Dexie from "dexie";
 import type { EntityNode, EventNode } from "./types/graph.ts";
 
+/** 迁移用的 ScopeState 结构形状（避免把整份 ScopeState 类型耦合进 db.ts） */
+interface ScopeStateLike {
+    last_summarized_floor?: number;
+    last_extracted_floor?: number;
+    last_processed_floor?: number;
+    [key: string]: unknown;
+}
+
 /**
  * 每个聊天的元数据存储
  */
@@ -71,6 +79,30 @@ export class ChatDatabase extends Dexie {
             await tx.table("entities").toCollection().modify((entity) => {
                 Object.assign(entity, migrateEntityV3toV4(entity));
             });
+        });
+
+        // V2.1.0: 统一摄取游标 —— 把 last_summarized_floor / last_extracted_floor
+        // 合并为 last_processed_floor。schema string 不变（新字段是非索引 JSON），
+        // 仅 reconcile meta 表里的 scope_state 行。旧字段保留作兜底。
+        this.version(5).stores({
+            events:
+                "id, timestamp, significance_score, level, is_archived, is_embedded",
+            entities: "id, type, name, *aliases, is_archived",
+            meta: "key",
+        }).upgrade(async (tx) => {
+            const { reconcileCursors } = await import(
+                "./migrations/v5.ts"
+            );
+            const stateRow = await tx.table("meta").get("scope_state");
+            if (stateRow?.value) {
+                const reconciled = reconcileCursors(
+                    stateRow.value as ScopeStateLike,
+                );
+                await tx.table("meta").put({
+                    key: "scope_state",
+                    value: reconciled,
+                });
+            }
         });
 
         // 注册数据变动监听钩子

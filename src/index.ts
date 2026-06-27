@@ -17,6 +17,7 @@ import { useUiStore } from "@/state/uiStore.ts";
 import { summarizerService } from "@/domain/memory/Summarizer.ts";
 import { entityBuilder } from "@/domain/memory/EntityExtractor.ts";
 import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
+import { ingestionService } from "@/domain/memory/IngestionService.ts";
 import { injector } from "@/domain/rag/injection/Injector.ts";
 import { WorldBookSlotService } from "@/domain/worldbook/slot.ts";
 import { initLinkedCleanup } from "@/domain/cleanup/LinkedCleanup.ts";
@@ -83,8 +84,11 @@ injectChatContext();
 onTavernEvent("chat_id_changed", injectChatContext);
 
 // 4. Start services
+// V2.1: IngestionService owns the message_received trigger (unified summary+entity).
+// Summarizer/EntityBuilder keep their chat_id_changed subs + manual-trigger entry points.
 await tryInit("Summarizer", () => summarizerService.start());
 await tryInit("EntityBuilder", () => entityBuilder.start());
+await tryInit("Ingestion", () => ingestionService.start());
 await tryInit("Injector", () => injector.init());
 
 const worldbookReady = await tryInit(

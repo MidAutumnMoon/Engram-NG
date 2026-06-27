@@ -1,19 +1,22 @@
 import React from "react";
 import { useConfigStore } from "@/state/configStore.ts";
 import { Switch } from "@/ui/components/form/Switch.tsx";
-import { Brain, Eye, ShieldCheck } from "lucide-react";
-import { entityBuilder, summarizerService } from "@/domain/memory/index.ts";
+import { ShieldCheck } from "lucide-react";
 
+/**
+ * FeaturesTab — 预览与审核总控。
+ *
+ * V2.1: 统一摄取后，summary 与 entity 共享一个预览开关
+ * (ingestionConfig.previewEnabled)。原先两个独立开关合并为一个。
+ */
 export const FeaturesTab: React.FC = () => {
     const {
-        summarizerConfig,
-        entityExtractConfig,
+        ingestionConfig,
         globalPreviewEnabled,
         updateConfig,
     } = useConfigStore();
 
-    const previewEnabled = summarizerConfig?.previewEnabled ?? true;
-    const entityPreviewEnabled = entityExtractConfig?.previewEnabled ?? true;
+    const previewEnabled = ingestionConfig?.previewEnabled ?? true;
 
     return (
         <div className="space-y-8">
@@ -59,19 +62,19 @@ export const FeaturesTab: React.FC = () => {
                 </div>
 
                 <div className="space-y-3">
-                    {/* 总结预览 */}
+                    {/* 统一摄取预览（summary + entity 共享） */}
                     <div className="bg-muted/30 border border-border rounded-lg p-4">
                         <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3 min-w-0 flex-1">
                                 <div className="p-2 rounded-lg bg-primary/10 text-primary flex-shrink-0">
-                                    <Brain size={20} />
+                                    <ShieldCheck size={20} />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <h4 className="font-medium text-heading truncate">
-                                        总结修订模式
+                                        摄取修订模式
                                     </h4>
                                     <p className="text-sm text-meta line-clamp-2">
-                                        在写入长期记忆前，弹出预览窗口
+                                        摄取 pass（摘要 + 实体）写入前，弹出预览窗口
                                     </p>
                                 </div>
                             </div>
@@ -79,47 +82,11 @@ export const FeaturesTab: React.FC = () => {
                                 disabled={!globalPreviewEnabled}
                                 checked={previewEnabled}
                                 onChange={(checked) => {
-                                    updateConfig("summarizerConfig", {
-                                        ...summarizerConfig,
+                                    if (!ingestionConfig) return;
+                                    updateConfig("ingestionConfig", {
+                                        ...ingestionConfig,
                                         previewEnabled: checked,
                                     });
-                                    summarizerService.updateConfig({
-                                        previewEnabled: checked,
-                                    });
-                                }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* 实体预览 */}
-                    <div className="bg-muted/30 border border-border rounded-lg p-4">
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                                <div className="p-2 rounded-lg bg-primary/10 text-primary flex-shrink-0">
-                                    <Eye size={20} />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <h4 className="font-medium text-heading truncate">
-                                        实体提取修订模式
-                                    </h4>
-                                    <p className="text-sm text-meta line-clamp-2">
-                                        检测到新实体时，弹出确认窗口
-                                    </p>
-                                </div>
-                            </div>
-                            <Switch
-                                disabled={!globalPreviewEnabled}
-                                checked={entityPreviewEnabled}
-                                onChange={(checked) => {
-                                    const newConfig = {
-                                        ...entityExtractConfig,
-                                        previewEnabled: checked,
-                                    };
-                                    updateConfig(
-                                        "entityExtractConfig",
-                                        newConfig,
-                                    );
-                                    entityBuilder.updateConfig(newConfig);
                                 }}
                             />
                         </div>

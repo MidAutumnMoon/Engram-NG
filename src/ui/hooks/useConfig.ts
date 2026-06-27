@@ -10,6 +10,7 @@ import type {
     EntityExtractConfig,
     GlobalRegexConfig,
 } from "@/config/types/memory.ts";
+import type { IngestionConfig } from "@/config/types/ingestion.ts";
 import type {
     EmbeddingConfig,
     RecallConfig,
@@ -25,6 +26,7 @@ export interface UseConfigReturn {
     recallConfig: RecallConfig;
     regexConfig: GlobalRegexConfig;
     entityExtractConfig: EntityExtractConfig;
+    ingestionConfig: IngestionConfig;
     embeddingConfig: EmbeddingConfig;
     customMacros: CustomMacro[];
 
@@ -33,6 +35,7 @@ export interface UseConfigReturn {
     updateRecallConfig: (config: RecallConfig) => void;
     updateRegexConfig: (config: GlobalRegexConfig) => void;
     updateEntityExtractConfig: (config: EntityExtractConfig) => void;
+    updateIngestionConfig: (config: IngestionConfig) => void;
     updateEmbeddingConfig: (config: EmbeddingConfig) => void;
 
     // Batch update interface (New Feature)
@@ -68,6 +71,7 @@ export function useConfig(): UseConfigReturn {
         embeddingConfig: store.embeddingConfig,
         entityExtractConfig: store.entityExtractConfig,
         hasChanges: store.hasChanges,
+        ingestionConfig: store.ingestionConfig,
         recallConfig: store.recallConfig,
         regexConfig: store.regexConfig,
 
@@ -77,6 +81,7 @@ export function useConfig(): UseConfigReturn {
         updateCustomMacro: store.updateCustomMacro,
         updateEmbeddingConfig: store.updateEmbeddingConfig,
         updateEntityExtractConfig: store.updateEntityExtractConfig,
+        updateIngestionConfig: store.updateIngestionConfig,
 
         updateMultipleConfigs: store.updateMultipleConfigs,
 

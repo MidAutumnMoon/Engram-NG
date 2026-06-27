@@ -47,12 +47,14 @@ export class ChatHistoryHelper {
                         },
                     );
                 } else {
-                    // 默认模式：智能增量 (Last Summarized -> End)
+                    // 默认模式：智能增量 (Last Processed -> End)
+                    // lastProcessedFloor 是统一摄取游标（summary+entity 共享），
+                    // 由 getProcessedFloor() 解析、含旧字段兜底。
                     const store = useMemoryStore.getState();
-                    const lastFloor = store.lastSummarizedFloor;
+                    const lastFloor = store.lastProcessedFloor;
 
                     if (lastFloor > 0) {
-                        // 如果有上次总结的记录，从下一层开始获取
+                        // 如果有上次处理的记录，从下一层开始获取
                         // LastFloor 是 index + 1 (1-based)
                         // Slice(lastFloor) 刚好是从 lastFloor (index) 开始，即 floor lastFloor + 1
                         messages = context.chat.slice(lastFloor);
@@ -61,7 +63,7 @@ export class ChatHistoryHelper {
                             "getChatHistory (Smart Incremental)",
                             {
                                 count: messages.length,
-                                lastSummarizedFloor: lastFloor,
+                                lastProcessedFloor: lastFloor,
                             },
                         );
                     } else {

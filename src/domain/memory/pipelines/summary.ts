@@ -49,6 +49,16 @@ export interface SummaryConfig {
     autoHide: boolean;
 }
 
+export interface SummaryRunOptions {
+    /**
+     * Preview-only: run build→llm→clean and return the content WITHOUT
+     * reviewing or persisting. Used by the unified ingestion combined-review
+     * path, which presents summary + entity previews in one modal and
+     * persists separately on confirm via `saveSummaryEvents`.
+     */
+    previewOnly?: boolean;
+}
+
 export interface SummaryOutput {
     savedEvents: EventNode[];
     /** The final reviewed/confirmed content (raw text). */
@@ -67,11 +77,16 @@ const SUMMARY_REVIEW_ACTIONS: ReviewAction[] = [
  * Summarize `input.range`. Runs the build→llm→clean→review loop until the
  * user confirms (or fills), then persists events. Throws `UserCancelled` if
  * the user cancels the review.
+ *
+ * When `opts.previewOnly` is true, skips review + save and returns the cleaned
+ * content as a preview (savedEvents is empty). The caller persists later via
+ * `saveSummaryEvents`.
  */
 export async function runSummary(
     input: SummaryInput,
     cfg: SummaryConfig,
     signal?: CancelSignal,
+    opts: SummaryRunOptions = {},
 ): Promise<SummaryOutput> {
     // 1. StopGeneration
     await stopGeneration();
@@ -117,6 +132,12 @@ export async function runSummary(
             throw new Error(
                 "生成的摘要内容为空，请检查模型输出或 Token 限制。",
             );
+        }
+
+        // Preview-only: return the generated content without review/save.
+        // The unified ingestion orchestrator presents this in a combined modal.
+        if (opts.previewOnly) {
+            return { savedEvents: [], cleanedContent };
         }
 
         // No-preview fast path: accept the LLM output as-is, skip the modal.
@@ -179,7 +200,7 @@ export async function runSummary(
 // SaveEvent (inline)
 // ============================================================================
 
-interface SaveSummaryEventsInput {
+export interface SaveSummaryEventsInput {
     content: string;
     range: [number, number];
     episodeId: string;
@@ -187,7 +208,11 @@ interface SaveSummaryEventsInput {
     isImport?: boolean;
 }
 
-async function saveSummaryEvents(
+/**
+ * Persist confirmed summary events. Exported so the unified ingestion
+ * orchestrator can save after a combined-review confirm.
+ */
+export async function saveSummaryEvents(
     input: SaveSummaryEventsInput,
 ): Promise<EventNode[]> {
     const { content, range, episodeId, autoHide, isImport } = input;
@@ -283,9 +308,9 @@ async function saveSummaryEvents(
         savedEvents.push(saved);
     }
 
-    // Update last summarized floor (skip for imports — cursor stays on main chat)
+    // Advance unified ingestion cursor (skip for imports — cursor stays on main chat)
     if (range[1] > 0 && !isImport) {
-        await store.setLastSummarizedFloor(range[1]);
+        await store.setLastProcessedFloor(range[1]);
     }
 
     await refreshEngramCache();

@@ -5,6 +5,7 @@ import { EventBus } from "@/events/index.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { chatManager } from "@/data/ChatManager.ts";
+import { getProcessedFloor } from "@/data/types/graph.ts";
 import type { EntityNode } from "@/data/types/graph.ts";
 import {
     getChatHistory as getMacroChatHistory,
@@ -76,17 +77,16 @@ export class EntityBuilder {
     // ==================== Event Listening (V0.9.14) ====================
 
     /**
-     * Start the Entity Extraction service
-     * V1.0.3 Fix: 使用顶层 import 替代 require，修复浏览器环境报错
+     * Start the Entity Extraction service.
+     *
+     * V2.1: message_received 自动触发已迁移到 IngestionService（统一摄取）。
+     * 此处不再订阅；手动提取入口 (extractManual / extractByRange) 仍供 UI 使用。
      */
     start(): void {
-        // Listen to message received events
-        onTavernEvent(
-            "message_received",
-            this.handleMessageReceived.bind(this),
+        Logger.info(
+            LogModule.MEMORY_ENTITY,
+            "EntityBuilder service started (auto-trigger moved to IngestionService)",
         );
-
-        Logger.info(LogModule.MEMORY_ENTITY, "EntityBuilder service started");
     }
 
     /**
@@ -95,14 +95,15 @@ export class EntityBuilder {
     private async handleMessageReceived(): Promise<void> {
         const currentFloor = getCurrentMessageCount();
         const state = await chatManager.getState();
-        const lastExtracted = state.last_extracted_floor || 0;
+        // 统一摄取游标（summary+entity 共享；含旧字段兜底）
+        const lastExtracted = getProcessedFloor(state);
 
         // 回溯保护（调用方处理副作用）：楼层回溯时对齐状态并终止本轮自动触发
         const pendingFloors = currentFloor - lastExtracted;
         if (pendingFloors < 0) {
             Logger.warn(
                 LogModule.MEMORY_ENTITY,
-                "检测到楼层回溯，自动对齐 last_extracted_floor 并跳过本轮触发",
+                "检测到楼层回溯，自动对齐 last_processed_floor 并跳过本轮触发",
                 {
                     currentFloor,
                     lastExtracted,
@@ -111,10 +112,10 @@ export class EntityBuilder {
 
             try {
                 await chatManager.updateState({
-                    last_extracted_floor: currentFloor,
+                    last_processed_floor: currentFloor,
                 });
                 Logger.info(LogModule.MEMORY_ENTITY, "楼层回溯状态对齐完成", {
-                    last_extracted_floor: currentFloor,
+                    last_processed_floor: currentFloor,
                 });
             } catch (error) {
                 Logger.error(LogModule.MEMORY_ENTITY, "楼层回溯状态对齐失败", {
@@ -137,7 +138,8 @@ export class EntityBuilder {
 
             // V1.0.6: 自动提取也统一使用 "上次总结" 到现在的范围
             // 确保上下文连贯，并在 extracting 阶段更新已有实体状态
-            const lastSummarized = state.last_summarized_floor || 0;
+            // 统一摄取游标后，summary 与 entity 共享一个进度。
+            const lastSummarized = getProcessedFloor(state);
             let startFloor = lastSummarized + 1;
 
             // 同样应用 50 层上限保护
@@ -306,7 +308,7 @@ export class EntityBuilder {
             if (!dryRun) {
                 const finalFloor = range?.[1] ?? floor;
                 await chatManager.updateState({
-                    last_extracted_floor: finalFloor,
+                    last_processed_floor: finalFloor,
                 });
 
                 Logger.success(LogModule.MEMORY_ENTITY, "实体提取完成", {
@@ -431,7 +433,7 @@ export class EntityBuilder {
         // 这样给 LLM 提供的上下文才是完整的 (避免 "他说了什么" 这种指代不明)
         // 用户反馈: "上次提取" 会导致中间一段丢失上下文
         const state = await chatManager.getState();
-        const lastSummarized = state.last_summarized_floor || 0;
+        const lastSummarized = getProcessedFloor(state);
         const currentFloor = getCurrentMessageCount();
 
         // 计算范围: (lastSummarized + 1) -> current
@@ -500,9 +502,9 @@ export class EntityBuilder {
                 }
             }
 
-            // 更新状态
+            // 更新状态（统一摄取游标）
             await chatManager.updateState({
-                last_extracted_floor: currentFloor,
+                last_processed_floor: currentFloor,
             });
 
             notify(
@@ -607,7 +609,7 @@ export class EntityBuilder {
             entityCount: entities.length,
             floorInterval: this.config.floorInterval,
             isExtracting: this.isExtracting,
-            lastExtractedFloor: state.last_extracted_floor,
+            lastExtractedFloor: getProcessedFloor(state),
             trigger: this.config.trigger,
         };
     }

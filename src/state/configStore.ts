@@ -9,6 +9,10 @@ import type {
     GlobalRegexConfig,
 } from "@/config/types/memory.ts";
 import {
+    DEFAULT_INGESTION_CONFIG,
+    type IngestionConfig,
+} from "@/config/types/ingestion.ts";
+import {
     DEFAULT_EMBEDDING_CONFIG,
     type EmbeddingConfig,
     type RecallConfig,
@@ -31,6 +35,7 @@ const debouncedSave = (state: ConfigState) => {
             customMacros: state.customMacros,
             embeddingConfig: state.embeddingConfig,
             entityExtractConfig: state.entityExtractConfig,
+            ingestionConfig: state.ingestionConfig,
             recallConfig: state.recallConfig,
             regexConfig: state.regexConfig,
             rerankConfig: state.rerankConfig,
@@ -53,6 +58,8 @@ export interface ConfigState {
     recallConfig: RecallConfig;
     regexConfig: GlobalRegexConfig;
     entityExtractConfig: EntityExtractConfig;
+    /** V2.1: 统一摄取配置（summary+entity 共享）。新代码读这个。 */
+    ingestionConfig: IngestionConfig;
     embeddingConfig: EmbeddingConfig;
     customMacros: CustomMacro[];
 
@@ -77,6 +84,8 @@ export interface ConfigState {
     updateRecallConfig: (config: RecallConfig) => void;
     updateRegexConfig: (config: GlobalRegexConfig) => void;
     updateEntityExtractConfig: (config: EntityExtractConfig) => void;
+    /** V2.1: unified ingestion config (summary + entity shared knobs) */
+    updateIngestionConfig: (config: IngestionConfig) => void;
     updateEmbeddingConfig: (config: EmbeddingConfig) => void;
 
     // Batch update to reduce re-renders
@@ -126,6 +135,8 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
             floorInterval: 10,
             keepRecentCount: 5,
         },
+    ingestionConfig: savedContext.ingestionConfig || defaults.ingestionConfig ||
+        { ...DEFAULT_INGESTION_CONFIG },
     globalPreviewEnabled: globalSettings.globalPreviewEnabled ?? true,
 
     hasChanges: false,
@@ -176,6 +187,8 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         set({ embeddingConfig: config, hasChanges: true }),
     updateEntityExtractConfig: (config) =>
         set({ entityExtractConfig: config, hasChanges: true }),
+    updateIngestionConfig: (config) =>
+        set({ ingestionConfig: config, hasChanges: true }),
 
     updateMultipleConfigs: (updates) => set({ ...updates, hasChanges: true }),
 

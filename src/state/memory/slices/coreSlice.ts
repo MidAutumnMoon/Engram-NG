@@ -6,18 +6,23 @@ import {
     tryGetDbForChat,
 } from "@/data/db.ts";
 import type { EventNode } from "@/data/types/graph.ts";
+import { getProcessedFloor } from "@/data/types/graph.ts";
 import { getCurrentChatId } from "@/sillytavern/index.ts";
 import type { StateCreator } from "zustand";
 
 export interface CoreState {
     currentChatId: string | null;
-    lastSummarizedFloor: number;
+    /**
+     * 统一摄取游标（summary + entity 共享）。
+     * 由 getProcessedFloor() 解析，含旧字段兜底。
+     */
+    lastProcessedFloor: number;
     isProcessing: boolean;
     recentEvents: EventNode[];
 
     // Actions
     initChat: () => Promise<ChatDatabase | null>;
-    setLastSummarizedFloor: (floor: number) => Promise<void>;
+    setLastProcessedFloor: (floor: number) => Promise<void>;
     setProcessing: (isProcessing: boolean) => void;
     reset: () => void;
     clearChatDatabase: () => Promise<void>;
@@ -77,7 +82,7 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (
                 },
             );
             set({
-                lastSummarizedFloor: 0,
+                lastProcessedFloor: 0,
                 recentEvents: [],
             });
             console.info("[MemoryStore] Database cleared successfully");
@@ -116,7 +121,7 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (
             set({
                 currentChatId: chatId,
                 currentScope: { id: 1 },
-                lastSummarizedFloor: state.last_summarized_floor,
+                lastProcessedFloor: getProcessedFloor(state),
                 recentEvents: [],
             });
         }
@@ -126,7 +131,7 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (
 
     isProcessing: false,
 
-    lastSummarizedFloor: 0,
+    lastProcessedFloor: 0,
 
     recentEvents: [],
 
@@ -134,7 +139,7 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (
         set({
             currentChatId: null,
             currentScope: null,
-            lastSummarizedFloor: 0,
+            lastProcessedFloor: 0,
             isProcessing: false,
             recentEvents: [],
         }),
@@ -142,13 +147,13 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (
     resolveScope: async (chatId, _characterName) => {
         set({ currentChatId: chatId, currentScope: { id: 1 } });
         const state = await chatManager.getState();
-        set({ lastSummarizedFloor: state.last_summarized_floor });
+        set({ lastProcessedFloor: getProcessedFloor(state) });
         return { id: 1 };
     },
 
-    setLastSummarizedFloor: async (floor) => {
-        await chatManager.updateState({ last_summarized_floor: floor });
-        set({ lastSummarizedFloor: floor });
+    setLastProcessedFloor: async (floor) => {
+        await chatManager.updateState({ last_processed_floor: floor });
+        set({ lastProcessedFloor: floor });
     },
 
     setProcessing: (isProcessing) => set({ isProcessing }),

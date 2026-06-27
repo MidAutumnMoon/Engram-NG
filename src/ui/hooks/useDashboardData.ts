@@ -92,13 +92,17 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
     const fetchSystemHealth = useCallback(() => {
         const stContext = getSTContext();
         const summarizerStatus = summarizerService.getStatus();
+        // V2.1: 摄取间隔来自统一 ingestionConfig（迁移期回退到旧 summarizerConfig）
+        const ingestionConfig = getSetting("apiSettings")?.ingestionConfig;
         const summarizerConfig = getSetting("summarizerConfig") || {};
+        const floorInterval = ingestionConfig?.floorInterval ??
+            summarizerConfig.floorInterval ?? 10;
 
         if (!isMounted.current) return;
         setSystem({
             characterName: stContext.name2,
             currentFloor: summarizerStatus.currentFloor,
-            floorInterval: summarizerConfig.floorInterval || 10,
+            floorInterval,
             isConnected: true,
             isSummarizing: summarizerStatus.isSummarizing,
             lastSummarizedFloor: summarizerStatus.lastSummarizedFloor,
@@ -160,9 +164,9 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
     const fetchFeatureStatus = useCallback(async () => {
         const defaults = getDefaultAPISettings();
         const apiSettings = getSetting("apiSettings") || defaults;
-        const currentSummarizerConfig = getSetting("summarizerConfig") || {};
-        const entityConfig = apiSettings?.entityExtractConfig ??
-            defaults.entityExtractConfig;
+        // V2.1: summary + entity unified under ingestionConfig
+        const ingestionConfig = apiSettings?.ingestionConfig ??
+            defaults.ingestionConfig;
         const embeddingConfig = apiSettings?.embeddingConfig ??
             defaults.embeddingConfig;
         const recallConfig = apiSettings?.recallConfig ?? defaults.recallConfig;
@@ -170,9 +174,12 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
         if (!isMounted.current) return;
         setFeatures({
             embedding: !!embeddingConfig?.enabled,
-            entity: !!entityConfig?.enabled,
+            // entity phase toggle (under unified ingestion)
+            entity: !!ingestionConfig?.entity?.enabled,
             recall: recallConfig?.enabled !== false,
-            summarizer: currentSummarizerConfig.enabled !== false,
+            // ingestion master (= summary phase on, since summary defaults enabled)
+            summarizer: !!ingestionConfig?.enabled &&
+                !!ingestionConfig?.summary?.enabled,
         });
     }, []);
 
@@ -203,38 +210,43 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
         const defaults = getDefaultAPISettings();
         const currentApiSettings = getSetting("apiSettings") ||
             defaults;
-        const currentSummarizerConfig = getSetting("summarizerConfig") || {};
+
+        // V2.1: summary + entity 统一在 ingestionConfig 下
+        const currentIngestion = currentApiSettings.ingestionConfig ||
+            defaults.ingestionConfig!;
 
         // 2. 获取当前功能状态并计算新值
         let nextVal: boolean;
 
         switch (feature) {
             case "summarizer": {
-                nextVal = !(currentSummarizerConfig.enabled !== false);
-                // 写入 SettingsManager
-                setSetting("summarizerConfig", {
-                    ...currentSummarizerConfig,
-                    enabled: nextVal,
+                // 主开关：翻转 ingestionConfig.enabled
+                nextVal = !currentIngestion.enabled;
+                const newIngestion = { ...currentIngestion, enabled: nextVal };
+                setSetting("apiSettings", {
+                    ...currentApiSettings,
+                    ingestionConfig: newIngestion,
                 });
-                summarizerService.updateConfig({ enabled: nextVal });
-                useConfigStore.getState().updateConfig("summarizerConfig", {
-                    ...currentSummarizerConfig,
-                    enabled: nextVal,
-                });
+                useConfigStore.getState().updateConfig(
+                    "ingestionConfig",
+                    newIngestion,
+                );
                 break;
             }
             case "entity": {
-                const entityConfig = currentApiSettings.entityExtractConfig ||
-                    defaults.entityExtractConfig!;
-                nextVal = !entityConfig.enabled;
-                const newConfig = { ...entityConfig, enabled: nextVal };
+                // 实体阶段开关：翻转 ingestionConfig.entity.enabled
+                nextVal = !currentIngestion.entity.enabled;
+                const newIngestion = {
+                    ...currentIngestion,
+                    entity: { ...currentIngestion.entity, enabled: nextVal },
+                };
                 setSetting("apiSettings", {
                     ...currentApiSettings,
-                    entityExtractConfig: newConfig,
+                    ingestionConfig: newIngestion,
                 });
                 useConfigStore.getState().updateConfig(
-                    "entityExtractConfig",
-                    newConfig,
+                    "ingestionConfig",
+                    newIngestion,
                 );
                 break;
             }

@@ -263,6 +263,30 @@ export interface ScopeState {
     last_extracted_floor: number;
     /** V0.9.10: 最后修改时间戳 (用于同步) */
     lastModified: number;
+    /**
+     * 统一摄取游标 —— summary 与 entity 共享这一个进度。
+     * v5 迁移从 max(last_summarized_floor, last_extracted_floor) 回填。
+     * 迁移过渡期，旧的 last_summarized_floor / last_extracted_floor 字段保留，
+     * 由 getProcessedFloor() 做兜底（新字段为 0 时回退到旧字段）。
+     */
+    last_processed_floor?: number;
+}
+
+/**
+ * 读取统一摄取游标，带迁移期兜底。
+ *
+ * - 优先返回 last_processed_floor；
+ * - 若为 0（未迁移或新聊天），回退到 max(last_summarized_floor, last_extracted_floor)。
+ *
+ * 这让「旧 build 写了旧字段、新 build 读」和「v5 迁移尚未跑」两种场景都能拿到正确进度。
+ */
+export function getProcessedFloor(state: ScopeState): number {
+    const unified = state.last_processed_floor ?? 0;
+    if (unified > 0) return unified;
+    return Math.max(
+        state.last_summarized_floor || 0,
+        state.last_extracted_floor || 0,
+    );
 }
 
 /**
@@ -274,6 +298,7 @@ export const DEFAULT_SCOPE_STATE: ScopeState = {
     lastModified: 0,
     last_compressed_at: 0,
     last_extracted_floor: 0,
+    last_processed_floor: 0,
     last_summarized_floor: 0,
     token_usage_accumulated: 0,
 };

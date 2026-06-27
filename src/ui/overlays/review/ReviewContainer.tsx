@@ -20,6 +20,7 @@ import { EntityReview } from "./EntityReview.tsx";
 import { MessageReview } from "./MessageReview.tsx";
 import { RecallDecisionModal } from "./RecallDecisionModal.tsx";
 import { SummaryReview } from "./SummaryReview.tsx"; // V1.2
+import { CombinedReview } from "./CombinedReview.tsx"; // V2.1 unified ingestion
 
 // --- Sub-component: ReviewSession ---
 // Encapsulates state and logic for a SINGLE review request
@@ -116,7 +117,14 @@ const ReviewSession: React.FC<ReviewSessionProps> = (
                         </div>
                     )
                     : (
-                        request.type === "entity"
+                        request.type === "combined"
+                            ? (
+                                <CombinedReview
+                                    data={data}
+                                    onChange={(newData) => setData(newData)}
+                                />
+                            )
+                            : request.type === "entity"
                             ? (
                                 <EntityReview
                                     data={data ||
