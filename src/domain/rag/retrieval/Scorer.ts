@@ -1,7 +1,9 @@
 /**
- * HybridScorer - 混合打分算法
+ * Scorer — 融合多路召回分数并排序。
  *
- * V0.8.5: 用于合并 Embedding 相似度分数和 Rerank 分数
+ * 融合公式：`hybridScore = max(embeddingScore, keywordScore) + rerankScore`
+ * —— 多路召回取最强基础分，Rerank 命中则叠加。当只有单路分数时，回退为
+ * 该路分数本身。
  */
 
 import { Logger } from "@/logger/Logger.ts";
@@ -24,47 +26,26 @@ export interface ScoredEvent {
     keywordScore?: number;
     /** Rerank 相关性分数 (0-1) */
     rerankScore?: number;
-    /** 混合分数 */
+    /** 融合分数 */
     hybridScore?: number;
     /** 原始事件节点 */
     node?: EventNode;
 }
 
-/**
- * 召回结果
- */
-export interface RecallResult {
-    /** 最终召回的事件 ID 列表 */
-    finalIds: string[];
-    /** 带分数的候选事件 */
-    scoredEvents: ScoredEvent[];
-    /** 统计信息 */
-    stats: {
-        embeddingCandidateCount: number;
-        rerankCandidateCount: number;
-        finalCount: number;
-        embeddingTime: number;
-        rerankTime: number;
-        totalTime: number;
-    };
-}
-
 // ==================== 打分函数 ====================
 
 /**
- * 计算混合分数
+ * 计算融合分数。
  *
  * @param embeddingScore Embedding 相似度分数 (0-1)
  * @param rerankScore Rerank 相关性分数 (0-1)
  * @param keywordScore 关键词硬匹配分数 (0-1)
- * @param alpha 混合权重 (0=纯基础分, 1=纯Rerank)
- * @returns 混合分数
+ * @returns 融合分数
  */
 function calculateHybridScore(
     embeddingScore: number | null | undefined,
     rerankScore: number | null | undefined,
     keywordScore: number | null | undefined,
-    _alpha: number,
 ): number {
     // 基础分：如果同时有 keyword 和 embedding，取最高者
     const baseScore = Math.max(embeddingScore ?? 0, keywordScore ?? 0);
@@ -74,38 +55,32 @@ function calculateHybridScore(
     if (baseScore === 0) return rerankScore ?? 0;
     if (rerankScore == null) return baseScore;
 
-    // 混合分数 = 基础分 (Embedding/Keyword) + Rerank 分数
+    // 融合分数 = 基础分 (Embedding/Keyword) + Rerank 分数
     // 这样做可以更直观地反映多路召回的累加贡献
     return baseScore + (rerankScore ?? 0);
 }
 
 /**
- * 对候选事件进行混合打分和排序
+ * 对候选事件进行融合打分和排序。
  *
  * @param candidates 候选事件列表
- * @param alpha 混合权重
  * @returns 排序后的事件列表
  */
-export function scoreAndSort(
-    candidates: ScoredEvent[],
-    alpha: number,
-): ScoredEvent[] {
-    // 计算每个事件的混合分数
+export function scoreAndSort(candidates: ScoredEvent[]): ScoredEvent[] {
+    // 计算每个事件的融合分数
     const scored = candidates.map((event) => ({
         ...event,
         hybridScore: calculateHybridScore(
             event.embeddingScore,
             event.rerankScore,
             event.keywordScore,
-            alpha,
         ),
     }));
 
-    // 按混合分数降序排列
+    // 按融合分数降序排列
     scored.sort((a, b) => (b.hybridScore ?? 0) - (a.hybridScore ?? 0));
 
-    Logger.debug(LogModule.RAG_INJECT, "混合打分完成", {
-        alpha,
+    Logger.debug(LogModule.RAG_INJECT, "融合打分完成", {
         candidateCount: scored.length,
         topScore: scored[0]?.hybridScore,
     });
@@ -114,30 +89,28 @@ export function scoreAndSort(
 }
 
 /**
- * 合并 Embedding 结果和 Rerank 结果
+ * 将 Rerank 分数合并回候选集并重新打分排序。
  *
- * @param embeddingResults Embedding 检索结果 (id -> score)
+ * @param candidatesById 候选事件 (id -> ScoredEvent)，会被就地写入 rerankScore
  * @param rerankResults Rerank 结果 (index -> score)
- * @param embeddingCandidates 原始候选列表 (用于索引映射)
- * @param alpha 混合权重
- * @returns 合并后的分数事件列表
+ * @param indexCandidates 原始候选列表 (用于索引映射)
+ * @returns 融合排序后的事件列表
  */
 export function mergeResults(
-    embeddingResults: Map<string, ScoredEvent>,
+    candidatesById: Map<string, ScoredEvent>,
     rerankResults: { index: number; relevance_score: number }[],
-    embeddingCandidates: ScoredEvent[],
-    alpha: number,
+    indexCandidates: ScoredEvent[],
 ): ScoredEvent[] {
-    // 将 Rerank 分数合并到 Embedding 结果中
+    // 将 Rerank 分数合并到候选结果中
     for (const rerankItem of rerankResults) {
-        const candidate = embeddingCandidates[rerankItem.index];
-        if (candidate && embeddingResults.has(candidate.id)) {
-            const event = embeddingResults.get(candidate.id)!;
+        const candidate = indexCandidates[rerankItem.index];
+        if (candidate && candidatesById.has(candidate.id)) {
+            const event = candidatesById.get(candidate.id)!;
             event.rerankScore = rerankItem.relevance_score;
         }
     }
 
-    // 转换为数组并计算混合分数
-    const candidates = [...embeddingResults.values()];
-    return scoreAndSort(candidates, alpha);
+    // 转换为数组并计算融合分数
+    const candidates = [...candidatesById.values()];
+    return scoreAndSort(candidates);
 }

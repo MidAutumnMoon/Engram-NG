@@ -8,17 +8,19 @@
  * `context.data` bag, so the contract between them is compile-checked. This
  * mirrors the convention already established by `domain/memory/pipelines`.
  *
- * Behaviour is preserved verbatim from the step classes:
+ * Behaviour preserved from the step classes:
  * - Keyword: composite scan text (history + intent + LLM queries), entity +
  *   archived-event guards, per-stream TopK, relation multi-hop (attenuation 0.8).
- * - Vector: embedding similarity, streaming TopK sort, char-safe truncation,
+ * - Vector: embedding similarity, bounded TopK insert, char-safe truncation,
  *   preset-driven retry on 429 / rate-limit / timeout / network.
- * - Rerank/Merge: dedup-by-id, hard-limit, rerank-with-fallback, hybrid alpha.
+ * - Rerank/Merge: dedup-by-id, hard-limit, rerank-with-fallback.
  *
  * Entity recall is *resurrected* here: the keyword stage returns the multi-hop
  * entity results as shaped `RecalledEntity[]` (previously computed then
  * discarded as the dead `context.data.keywordEntityIds`), so the "已唤醒实体"
  * panel and recall log actually populate.
+ *
+ * Fusion formula lives in `Scorer`: `max(embedding, keyword) + rerank`.
  */
 
 import { getSetting } from "@/config/settings.ts";
@@ -33,11 +35,11 @@ import {
     mergeResults,
     scoreAndSort,
     type ScoredEvent,
-} from "@/domain/rag/retrieval/HybridScorer.ts";
+} from "@/domain/rag/retrieval/Scorer.ts";
 import { rerankService } from "@/domain/rag/retrieval/Reranker.ts";
 import {
-    retryWithBackoff,
     type RetryConfig,
+    retryWithBackoff,
 } from "@/domain/memory/pipelines/shared.ts";
 
 // ============================================================================
@@ -63,9 +65,6 @@ export interface KeywordRetrieveInput {
     query?: string;
     /** Enhanced scan text (history-augmented). Falls back to chatHistory tail. */
     scanQuery?: string;
-    /** Preprocessor-style raw text input. */
-    text?: string;
-    chatHistory?: string;
     /** LLM-suggested expert terms (boost). */
     unifiedQueries?: string[];
 }
@@ -108,30 +107,28 @@ export interface MergeAndRerankResult {
 }
 
 // ============================================================================
-// Retry configs (ported from VectorRetrieveStep / RerankMergeStep getters)
+// Shared helpers
 // ============================================================================
 
-function getVectorRetryConfig(): RetryConfig {
-    const customConfig = getSetting("apiSettings")?.vectorConfig?.retryConfig;
-    return {
-        backoff: "exponential",
-        delay: customConfig?.retryDelay ?? 2000,
-        maxAttempts: customConfig?.maxAttempts ?? 3,
-        retryIf: (error: unknown) => {
-            const msg = error instanceof Error
-                ? error.message.toLowerCase()
-                : String(error).toLowerCase();
-            return msg.includes("429") ||
-                msg.includes("rate limit") ||
-                msg.includes("timeout") ||
-                msg.includes("network error") ||
-                msg.includes("failed to fetch");
-        },
-    };
+/**
+ * Effective event TopK cap. Keyword recall and merge share this hard-limit so
+ * a keyword candidate explosion can't leak past merge. Keyword's own cap is
+ * explicit; otherwise fall back to the embedding TopK, then a sane default.
+ */
+function effectiveEventTopK(config: RecallConfig): number {
+    return config.keywordTopK?.events ?? config.embedding?.topK ?? 50;
 }
 
-function getRerankRetryConfig(): RetryConfig {
-    const customConfig = getSetting("apiSettings")?.rerankConfig?.retryConfig;
+/**
+ * Preset-driven retry config for an external model call (vector / rerank).
+ * Both sources retry on the same transient-error signal; "network" matches
+ * either "network" or "network error".
+ */
+function getRetryConfig(source: "vector" | "rerank"): RetryConfig {
+    const customConfig = source === "vector"
+        ? getSetting("apiSettings")?.vectorConfig?.retryConfig
+        : getSetting("apiSettings")?.rerankConfig?.retryConfig;
+
     return {
         backoff: "exponential",
         delay: customConfig?.retryDelay ?? 2000,
@@ -149,6 +146,35 @@ function getRerankRetryConfig(): RetryConfig {
     };
 }
 
+/**
+ * Cheap existence check: is there at least one archived event? Used to skip
+ * the event-scan pass entirely when there's nothing to match. Returns true on
+ * error (fail-open) so a flaky index doesn't silently disable event recall.
+ */
+async function hasAnyArchivedEvents(db: any): Promise<boolean> {
+    try {
+        const indexed: any = (db.events as any).where?.("is_archived").equals(
+            1,
+        );
+        if (indexed) {
+            const count = await indexed.limit(1).count();
+            return count > 0;
+        }
+        // Fallback for environments without the boolean index (DataError).
+        const count = await db.events.toCollection().filter((e: any) =>
+            Boolean(e.is_archived)
+        ).limit(1).count();
+        return count > 0;
+    } catch (error) {
+        Logger.warn(
+            LogModule.WF_KEYWORD_RETRIEVE,
+            "无法检查归档事件状态，默认尝试扫描",
+            error,
+        );
+        return true;
+    }
+}
+
 // ============================================================================
 // Stage 1: keyword retrieve (port of KeywordRetrieveStep)
 // ============================================================================
@@ -159,23 +185,18 @@ export async function keywordRetrieve(
 ): Promise<KeywordRetrieveResult> {
     const startTime = Date.now();
 
-    const { query, scanQuery, text, chatHistory, unifiedQueries } = input;
+    const { query, scanQuery, unifiedQueries } = input;
 
     // V1.4.15: 综合扫描方案 - 始终包含基础上下文，叠加 LLM 查询词
     const scanParts: string[] = [];
 
-    // 1. 基础历史背景 (优先使用已增强的 scanQuery，否则从 chatHistory 截取最后 5 条)
+    // 1. 基础历史背景 (由调用方在 scanQuery 中预合并)
     if (scanQuery) {
         scanParts.push(scanQuery);
-    } else if (chatHistory) {
-        const lines = chatHistory.split("\n\n");
-        const recent = lines.slice(-5).join("\n\n");
-        if (recent) scanParts.push(recent);
     }
 
-    // 2. 当前意图与原文
+    // 2. 当前意图和原文
     if (query) scanParts.push(query);
-    if (text && text !== query) scanParts.push(text);
 
     // 3. LLM 建议的专家词 (增益)
     if (unifiedQueries && unifiedQueries.length > 0) {
@@ -208,73 +229,39 @@ export async function keywordRetrieve(
     const apiSettings = getSetting("apiSettings");
     const recallConfig = apiSettings?.recallConfig ?? config;
 
-    // P0 & P1 Fix: 此处不再因为无归档事件而直接返回
-    // 归档事件检查应仅限制在“事件扫描”部分，不能连累实体扫描
-    let hasArchivedEvents = false;
-    try {
-        const filtered: any = (db.events as any).where?.("is_archived")
-            .equals(1);
-        if (filtered) {
-            const count = await filtered.limit(1).count();
-            hasArchivedEvents = count > 0;
-        } else {
-            // 回退逻辑
-            const count = await db.events.toCollection().filter((e) =>
-                Boolean(e.is_archived)
-            ).limit(1).count();
-            hasArchivedEvents = count > 0;
-        }
-    } catch (error) {
-        Logger.warn(
-            LogModule.WF_KEYWORD_RETRIEVE,
-            "无法检查归档事件状态，默认尝试扫描",
-            error,
-        );
-        hasArchivedEvents = true;
-    }
+    const eventTopK = effectiveEventTopK(recallConfig);
+    const entityTopK = recallConfig.keywordTopK?.entities ?? 30;
 
-    // 1. 获取全量数据进行缓存 (P1 Fix: 内存优化，只拉取一次)
+    // 一次性拉取实体并构建查找索引：id -> 节点、(name|alias 小写) -> 节点。
+    // 复用给命中过滤、多跳联想和最终的 RecalledEntity 整形。
     const allEntities = await db.entities.toArray();
-    const entityIndex = allEntities.map((e) => ({
-        aliases: e.aliases,
-        id: e.id,
-        name: e.name,
-    }));
-
-    // 预构建实体名 -> 实体 Map 以便快速查找 (缓存给后续多跳联想使用)
-    const entryMap = new Map<string, any>();
+    const entityById = new Map<string, any>(allEntities.map((e) => [e.id, e]));
+    const entityByName = new Map<string, any>();
     for (const e of allEntities) {
-        entryMap.set(e.name.toLowerCase(), e);
+        entityByName.set(e.name.toLowerCase(), e);
         if (Array.isArray(e.aliases)) {
             for (const alias of e.aliases) {
-                entryMap.set(alias.toLowerCase(), e);
+                entityByName.set(alias.toLowerCase(), e);
             }
         }
     }
 
     Logger.debug(
         LogModule.RAG_INJECT,
-        `准备扫描。实体索引总量: ${entityIndex.length}`,
+        `准备扫描。实体索引总量: ${allEntities.length}`,
     );
 
-    // P1 Fix: Hard limit keyword results to avoid candidate explosion
-    const eventTopK = recallConfig.keywordTopK?.events ??
-        recallConfig.embedding?.topK ??
-        50;
-    const entityTopK = recallConfig.keywordTopK?.entities ?? 30;
-
-    let hitEntities: any[] = [];
-    const hitEvents: any[] = [];
-
-    // 2. 执行关键词扫描
     Logger.debug(
         LogModule.RAG_INJECT,
         `扫描文本预览: ${textToScan.slice(0, 50)}...`,
     );
 
-    // 实体扫描 (P0 Fix: 即使无事件也执行)
+    // --- 实体扫描 (P0 Fix: 即使无事件也执行) ---
+    let hitEntities: any[] = [];
+    const hitEvents: any[] = [];
+
     if (recallConfig.enableEntityKeyword !== false) {
-        const matchedIndex = scanEntities(textToScan, entityIndex as any)
+        const matchedIndex = scanEntities(textToScan, allEntities)
             .slice(0, entityTopK);
 
         if (matchedIndex.length > 0) {
@@ -292,14 +279,14 @@ export async function keywordRetrieve(
         Logger.debug(LogModule.RAG_INJECT, "实体关键词扫描已禁用");
     }
 
-    // 事件仅在配置开启且有归档事件时扫描 (P0 Fix: 守卫下沉)
+    // --- 事件扫描：仅在配置开启且有归档事件时进行 (P0 Fix: 守卫下沉) ---
     if (
         recallConfig.useKeywordRecall !== false &&
         recallConfig.enableEventKeyword !== false
     ) {
-        if (hasArchivedEvents) {
+        if (await hasAnyArchivedEvents(db)) {
             const scannedCount = { archived: 0, matched: 0, total: 0 };
-            await db.events.toCollection().each((event) => {
+            await db.events.toCollection().each((event: any) => {
                 scannedCount.total += 1;
 
                 if (!event.is_archived) {
@@ -339,7 +326,7 @@ export async function keywordRetrieve(
         );
     }
 
-    // 3. 将命中的事件转化为 ScoredEvent 格式，赋予高初始权重
+    // --- 将命中的事件转化为 ScoredEvent 格式，赋予高初始权重 ---
     const events: ScoredEvent[] = hitEvents.map((event) => ({
         id: event.id,
         summary: event.summary,
@@ -348,15 +335,15 @@ export async function keywordRetrieve(
         node: event,
     }));
 
-    // 4. 将命中的实体执行关系多跳 (Relation Multi-Hop)，输出为 RecalledEntity
-    const entityScoreMap = new Map<string, number>(); // Id -> score
+    // --- 实体关系多跳 (Relation Multi-Hop)，输出为 RecalledEntity ---
+    const entityScoreMap = new Map<string, number>(); // id -> score
 
-    // 4.1. 初始命中实体 (第一跳)
+    // 初始命中实体 (第一跳)
     for (const entity of hitEntities) {
         entityScoreMap.set(entity.id, 0.9); // 直接命中最高分
     }
 
-    // 4.2. 关系多跳 (第二跳)，衰减系数 0.8
+    // 关系多跳 (第二跳)，衰减系数 0.8
     const hopAttenuation = 0.8;
 
     for (const seedEntity of hitEntities) {
@@ -370,7 +357,7 @@ export async function keywordRetrieve(
 
         // 遍历声明的所有关联网
         for (const targetName of Object.keys(relations)) {
-            const targetEntity = entryMap.get(targetName.toLowerCase());
+            const targetEntity = entityByName.get(targetName.toLowerCase());
 
             if (targetEntity) {
                 const currentScore = entityScoreMap.get(targetEntity.id) || 0;
@@ -388,7 +375,6 @@ export async function keywordRetrieve(
     }
 
     // 把 entity id + score 映射回实体节点，整形为 RecalledEntity。
-    const entityById = new Map(allEntities.map((e) => [e.id, e]));
     const entities: RecalledEntity[] = [...entityScoreMap.entries()]
         .map(([id, score]) => {
             const node = entityById.get(id);
@@ -480,7 +466,7 @@ export async function vectorRetrieve(
     try {
         queryVector = await retryWithBackoff(
             () => embeddingService.embed(searchQuery),
-            getVectorRetryConfig(),
+            getRetryConfig("vector"),
         );
     } catch (error: any) {
         Logger.warn(LogModule.RAG_RETRIEVE, "生成查询向量失败", {
@@ -489,13 +475,15 @@ export async function vectorRetrieve(
         throw error;
     }
 
-    // 计算相似度（流式维护 TopK，避免全量事件入内存）
+    // 计算相似度并维护一个有界的 TopK 候选集。
+    // 未满 topK 时直接入列；满后只有超过当前最低分才替换尾元素，最后统一排序。
+    // Dexie 的 .each 仍会遍历全表，这里优化的是排序成本，而非内存占用。
     const candidates: ScoredEvent[] = [];
     let scannedEvents = 0;
     let embeddedEvents = 0;
     let matchedEvents = 0;
 
-    await db.events.toCollection().each((event) => {
+    await db.events.toCollection().each((event: any) => {
         scannedEvents += 1;
 
         if (!event.embedding || event.embedding.length === 0) {
@@ -522,22 +510,20 @@ export async function vectorRetrieve(
 
         if (candidates.length < topK) {
             candidates.push(candidate);
-            candidates.sort((a, b) =>
-                (b.embeddingScore || 0) - (a.embeddingScore || 0)
-            );
             return;
         }
 
+        // 满了：只在比当前最低分更高时替换尾元素。
         const tailScore = candidates.at(-1)?.embeddingScore || 0;
-        if (similarity <= tailScore) {
-            return;
+        if (similarity > tailScore) {
+            candidates[candidates.length - 1] = candidate;
         }
-
-        candidates[candidates.length - 1] = candidate;
-        candidates.sort((a, b) =>
-            (b.embeddingScore || 0) - (a.embeddingScore || 0)
-        );
     });
+
+    // 单次排序定稿，避免在遍历中反复 sort。
+    candidates.sort((a, b) =>
+        (b.embeddingScore || 0) - (a.embeddingScore || 0)
+    );
 
     const retrieveTime = Date.now() - startTime;
 
@@ -600,12 +586,11 @@ export async function mergeAndRerank(
     }
 
     // P1 Fix: 二次 hard-limit，避免 KeywordRetrieve 的候选爆炸穿透到后续
-    const hardLimit = config.keywordTopK?.events ??
-        config.embedding?.topK ?? 50;
+    const hardLimit = effectiveEventTopK(config);
     const limitedCandidates = candidates.slice(0, Math.max(1, hardLimit));
 
     // 在重试机制介入前，预先设置好降级候选列表，以防多次尝试彻底失败后继续使用空结果
-    let finalCandidates = scoreAndSort(limitedCandidates, 0);
+    let finalCandidates = scoreAndSort(limitedCandidates);
     let rerankTime = 0;
     let reranked = false;
 
@@ -619,20 +604,14 @@ export async function mergeAndRerank(
         try {
             const rerankResults = await retryWithBackoff(
                 () => rerankService.rerank(rerankQuery, documents),
-                getRerankRetryConfig(),
+                getRetryConfig("rerank"),
             );
             rerankTime = Date.now() - rerankStart;
 
-            const embeddingMap = new Map(
-                limitedCandidates.map((c) => [c.id, c]),
-            );
-            const alpha = rerankService.getHybridAlpha();
-
             finalCandidates = mergeResults(
-                embeddingMap,
+                new Map(limitedCandidates.map((c) => [c.id, c])),
                 rerankResults,
                 limitedCandidates,
-                alpha,
             );
             reranked = true;
         } catch (error: any) {

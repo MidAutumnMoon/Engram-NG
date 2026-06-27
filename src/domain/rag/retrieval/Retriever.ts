@@ -1,14 +1,9 @@
 /**
  * Retriever Service
  *
- * V0.8.5: 扩展支持向量检索 + Rerank 混合召回
- *
- * 召回模式：
- * - full: 预处理 + Embedding + Rerank
- * - standard: Embedding + Rerank
- * - light: 仅 Embedding
- * - llm_only: LLM 直接召回
- * - keyword_only: 仅关键词扫描
+ * 召回路径：关键词扫描 + 向量检索 (+ 可选 Rerank)。两条召回轨道并行执行，
+ * 按 ID 去重合并后在 Scorer 中融合排序。Agentic 路径 (LLM 钦定 ID)
+ * 走 agenticSearch。
  */
 
 import { getSetting } from "@/config/settings.ts";
@@ -27,10 +22,10 @@ import type { AgenticRecall } from "@/config/types/rag.ts";
 import {
     keywordRetrieve,
     mergeAndRerank,
-    vectorRetrieve,
     type RecalledEntity,
+    vectorRetrieve,
 } from "@/domain/rag/retrieval/pipeline.ts";
-import type { ScoredEvent } from "@/domain/rag/retrieval/HybridScorer.ts";
+import type { ScoredEvent } from "@/domain/rag/retrieval/Scorer.ts";
 import { WorldInfoService } from "@/domain/worldbook/index.ts";
 
 // ==================== 类型定义 ====================
@@ -46,38 +41,6 @@ export interface RetrievalResult {
 // ==================== Retriever ====================
 
 class Retriever {
-    // Fix P1: 缓存 hasVectorizedNodes 结果，避免每次都扫全表
-    private _hasVectorizedNodesCache: boolean | null = null;
-
-    /**
-     * 检查是否存在已向量化的节点
-     * 用于决定是否需要执行向量检索
-     */
-    async hasVectorizedNodes(): Promise<boolean> {
-        const chatId = getCurrentChatId();
-        if (!chatId) return false;
-
-        const db = tryGetDbForChat(chatId);
-        if (!db) return false;
-
-        // 检查是否存在任何带有 embeddings 的事件
-        // V1.5.0: 由于部分环境布尔索引兼容性问题 (DataError)，回退至 filter 模式
-        const count = await db.events
-            .filter((e) => Boolean(e.is_embedded))
-            .limit(1)
-            .count();
-
-        this._hasVectorizedNodesCache = count > 0;
-        return this._hasVectorizedNodesCache;
-    }
-
-    /**
-     * 清理矢量化节点缓存（暴露给外部在触发 embedding 构建后调用）
-     */
-    invalidateVectorCache(): void {
-        this._hasVectorizedNodesCache = null;
-    }
-
     /**
      * 获取指定深度的最近聊天上下文
      * @param count 消息条数
@@ -110,7 +73,7 @@ class Retriever {
         unifiedQueries?: string[],
         options?: { skipContext?: boolean; mode?: string },
     ): Promise<RetrievalResult> {
-        Logger.debug(LogModule.RAG_INJECT, ">>> Retriever.search 被调用 <<<", {
+        Logger.debug(LogModule.RAG_INJECT, "Retriever.search 被调用", {
             input: userInput.substring(0, 20),
             skipContext: options?.skipContext,
             unifiedCount: unifiedQueries?.length || 0,
@@ -208,9 +171,9 @@ class Retriever {
             }
         }
 
-        // 向量检索或关键词检索 (均走 RetrievalWorkflow)
+        // 向量检索或关键词检索
         if (recallConfig.enabled || recallConfig.useKeywordRecall) {
-            return this.hybridSearch(
+            return this.runRetrieval(
                 intentQuery,
                 unifiedQueries,
                 recallConfig,
@@ -222,7 +185,7 @@ class Retriever {
         return this.rollingSearch(recallConfig.embedding?.topK || 20);
     }
 
-    private async hybridSearch(
+    private async runRetrieval(
         userInput: string,
         unifiedQueries: string[] | undefined,
         config: RecallConfig,
@@ -231,17 +194,18 @@ class Retriever {
         const startTime = Date.now();
         Logger.debug(
             LogModule.RAG_INJECT,
-            "--- 进入 Hybrid Search 检索流水线 ---",
+            "--- 进入检索流水线 (keyword + vector 并行) ---",
             {
                 scanQueryLen: scanQuery?.length,
             },
         );
 
         try {
-            // Stage 1: keyword (entity + event). Entities are resurrected here —
-            // previously the multi-hop result was written to context.data and
-            // dropped. Now it flows straight into the returned RetrievalResult.
-            const keyword = await keywordRetrieve(
+            // Stage 1 + 2: keyword 和 vector 并行执行。两路独立，并行可省下
+            // 关键词扫描的整段时间。向量失败时降级为仅关键词结果。
+            // 实体在这里复活 —— 之前多跳结果被写进 context.data 后丢弃，
+            // 现在直接流回 RetrievalResult。
+            const keywordPromise = keywordRetrieve(
                 {
                     query: userInput,
                     scanQuery: scanQuery || userInput,
@@ -250,20 +214,22 @@ class Retriever {
                 config,
             );
 
-            // Stage 2: vector.
-            let vector = { candidates: [] as ScoredEvent[], retrieveTime: 0 };
-            try {
-                vector = await vectorRetrieve(
-                    { query: userInput, unifiedQueries },
-                    config,
-                );
-            } catch (error: any) {
+            const vectorPromise = vectorRetrieve(
+                { query: userInput, unifiedQueries },
+                config,
+            ).catch((error: any) => {
                 Logger.warn(
                     LogModule.RAG_INJECT,
                     "向量检索阶段失败，仅使用关键词结果",
                     { error: error.message },
                 );
-            }
+                return { candidates: [] as ScoredEvent[], retrieveTime: 0 };
+            });
+
+            const [keyword, vector] = await Promise.all([
+                keywordPromise,
+                vectorPromise,
+            ]);
 
             // Stage 3: merge + optional rerank.
             const merged = await mergeAndRerank(
@@ -285,6 +251,8 @@ class Retriever {
             const totalTime = Date.now() - startTime;
 
             // Record recall log (replaces RecordRecallLogStep).
+            // NOTE: "hybrid" 在这里是显示标签 (RecallLog UI 读取 entry.mode)，
+            // 不是代码分支名 —— 检索路径由 runRetrieval 统一承载。
             let worldbookEntriesCount = 0;
             try {
                 const worldInfoText = await WorldInfoService
@@ -322,7 +290,7 @@ class Retriever {
                 },
             });
 
-            Logger.info(LogModule.RAG_INJECT, "Hybrid Search 检索完成", {
+            Logger.info(LogModule.RAG_INJECT, "检索完成", {
                 candidateCount: candidates.length,
                 entityCount: recalledEntities.length,
                 isEmbedding: config.useEmbedding,
@@ -336,7 +304,7 @@ class Retriever {
         } catch (error: any) {
             Logger.error(
                 LogModule.RAG_INJECT,
-                "Hybrid Search 检索遭遇毁灭性失败",
+                "检索遭遇毁灭性失败",
                 {
                     error: error.message,
                     stack: error.stack,

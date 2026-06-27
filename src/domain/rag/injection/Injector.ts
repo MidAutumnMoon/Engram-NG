@@ -305,20 +305,6 @@ class Injector {
                 // RAG 召回 (如果启用)
                 if (recallConfig.enabled) {
                     try {
-                        // REFERENCE — Agentic RAG path (needs new input source)
-                        // The preprocessor used to produce AgenticRecall[] here.
-                        // To re-enable, generate recalls via a lightweight heuristic
-                        // or a dedicated LLM call, then pass them to retriever.agenticSearch().
-                        // if (recallConfig.useAgenticRAG) {
-                        //     const agenticRecalls: AgenticRecall[] = ...;
-                        //     const agenticResult = await retriever.agenticSearch(agenticRecalls);
-                        //     if (agenticResult.nodes.length > 0) {
-                        //         await refreshCache(agenticResult.nodes.map((n) => n.id));
-                        //         ragHandled = true;
-                        //     }
-                        // }
-                        // if (!ragHandled) { ... traditional RAG ... }
-
                         Logger.debug(LogModule.RAG_INJECT, "执行召回流程");
 
                         const recallResult = await retriever.search(

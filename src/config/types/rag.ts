@@ -57,8 +57,6 @@ export const rerankConfigSchema = z.object({
     model: z.string().default(""),
     /** 返回的结果数量 */
     topN: z.number().int().positive().default(5),
-    /** 混合评分权重 (0-1, 0=纯向量, 1=纯Rerank) */
-    hybridAlpha: z.number().min(0).max(1).default(0.5),
     /** 自动添加 URL 后缀 (默认 true) */
     autoSuffix: z.boolean().optional(),
     /** API 调用重试配置 */
