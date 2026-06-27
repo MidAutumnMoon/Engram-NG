@@ -71,7 +71,6 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
         const exportData = {
             boundPresetId: template.boundPresetId,
             category: template.category,
-            injectionMode: template.injectionMode,
             name: template.name,
             systemPrompt: template.systemPrompt,
             userPromptTemplate: template.userPromptTemplate,
@@ -118,10 +117,9 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                         {
                             enabled: template.enabled, // 保持当前启用状态
                             isBuiltIn: template.isBuiltIn, // 保持内置状态
-                            boundPresetId: templateData.boundPresetId,
-                            systemPrompt: templateData.systemPrompt,
-                            userPromptTemplate: templateData.userPromptTemplate,
-                            injectionMode: templateData.injectionMode,
+                        boundPresetId: templateData.boundPresetId,
+                        systemPrompt: templateData.systemPrompt,
+                        userPromptTemplate: templateData.userPromptTemplate,
                         },
                     );
                     // 保持原 ID

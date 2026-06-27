@@ -5,7 +5,6 @@ import {
     setSetting,
 } from "@/config/settings.ts";
 import type {
-    EntityExtractConfig,
     GlobalRegexConfig,
     TrimConfig,
 } from "@/config/types/memory.ts";
@@ -33,7 +32,6 @@ const debouncedSave = (state: ConfigState) => {
         const newApiSettings = {
             ...currentSettings.apiSettings,
             embeddingConfig: state.embeddingConfig,
-            entityExtractConfig: state.entityExtractConfig,
             ingestionConfig: state.ingestionConfig,
             recallConfig: state.recallConfig,
             regexConfig: state.regexConfig,
@@ -44,7 +42,6 @@ const debouncedSave = (state: ConfigState) => {
 
         // 直接更新 SettingsManager
         setSetting("apiSettings", newApiSettings as any);
-        setSetting("summarizerConfig", state.summarizerConfig);
         setSetting("globalPreviewEnabled", state.globalPreviewEnabled);
         setSetting("linkedDeletion", state.linkedDeletion);
     }, 500);
@@ -56,7 +53,6 @@ export interface ConfigState {
     rerankConfig: RerankConfig;
     recallConfig: RecallConfig;
     regexConfig: GlobalRegexConfig;
-    entityExtractConfig: EntityExtractConfig;
     /** V2.1: 统一摄取配置（summary+entity 共享）。新代码读这个。 */
     ingestionConfig: IngestionConfig;
     /** V2.3: 精简配置（事件压缩），独立于摄取但由摄取联动触发 */
@@ -64,7 +60,6 @@ export interface ConfigState {
     embeddingConfig: EmbeddingConfig;
 
     // UI & Settings
-    summarizerConfig: EngramSettings["summarizerConfig"];
     globalPreviewEnabled: boolean;
     linkedDeletion: EngramSettings["linkedDeletion"];
 
@@ -82,7 +77,6 @@ export interface ConfigState {
     updateRerankConfig: (config: RerankConfig) => void;
     updateRecallConfig: (config: RecallConfig) => void;
     updateRegexConfig: (config: GlobalRegexConfig) => void;
-    updateEntityExtractConfig: (config: EntityExtractConfig) => void;
     /** V2.1: unified ingestion config (summary + entity shared knobs) */
     updateIngestionConfig: (config: IngestionConfig) => void;
     updateTrimConfig: (config: TrimConfig) => void;
@@ -102,14 +96,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     // Init from SettingsManager
     embeddingConfig: savedContext.embeddingConfig || defaults.embeddingConfig ||
         DEFAULT_EMBEDDING_CONFIG,
-    entityExtractConfig: savedContext.entityExtractConfig ||
-        defaults.entityExtractConfig ||
-        {
-            enabled: false,
-            trigger: "floor",
-            floorInterval: 10,
-            keepRecentCount: 5,
-        },
     ingestionConfig: savedContext.ingestionConfig || defaults.ingestionConfig ||
         { ...DEFAULT_INGESTION_CONFIG },
     trimConfig: savedContext.trimConfig,
@@ -134,8 +120,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         set({ hasChanges: false });
     },
 
-    summarizerConfig: globalSettings.summarizerConfig || {},
-
     updateConfig: (key, value) => {
         set((state) => {
             const nextValue = typeof value === "function"
@@ -146,8 +130,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     },
     updateEmbeddingConfig: (config) =>
         set({ embeddingConfig: config, hasChanges: true }),
-    updateEntityExtractConfig: (config) =>
-        set({ entityExtractConfig: config, hasChanges: true }),
     updateIngestionConfig: (config) =>
         set({ ingestionConfig: config, hasChanges: true }),
     updateTrimConfig: (config) => set({ trimConfig: config, hasChanges: true }),

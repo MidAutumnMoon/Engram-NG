@@ -1,7 +1,6 @@
 import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import type { SummarizerConfig } from "@/domain/memory/types.ts";
 import { getSTContext } from "@/sillytavern/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 
@@ -232,14 +231,11 @@ export class ChatHistoryHelper {
      */
     static getDynamicChatHistoryLimit(): number {
         try {
-            const summarizerConfig = getSetting("summarizerConfig") as
-                | SummarizerConfig
-                | undefined;
-            const floorInterval = summarizerConfig?.floorInterval ?? 20;
-            const bufferSize = summarizerConfig?.bufferSize ?? 10;
-            // V1.2.7: 修正：使用 floorInterval 而非 bufferSize
-            // 原因：间隔 20，缓冲 10 时，第 11~20 层可能还没被总结但也不在缓冲区内
-            // 使用 floorInterval 确保完整覆盖可能出现在上下文中的内容
+            // V2.3: 从统一摄取配置读取楼层间隔和缓冲
+            const apiSettings = getSetting("apiSettings") as any;
+            const ingestionConfig = apiSettings?.ingestionConfig;
+            const floorInterval = ingestionConfig?.floorInterval ?? 25;
+            const bufferSize = ingestionConfig?.bufferSize ?? 10;
             const limit = Math.max(1, floorInterval);
             Logger.debug(
                 LogModule.CHAT_HISTORY,
@@ -250,10 +246,10 @@ export class ChatHistoryHelper {
         } catch (error) {
             Logger.warn(
                 LogModule.CHAT_HISTORY,
-                "动态计算 limit 失败，使用默认值 20",
+                "动态计算 limit 失败，使用默认值 25",
                 error,
             );
-            return 20; // 默认 floorInterval
+            return 25;
         }
     }
 }

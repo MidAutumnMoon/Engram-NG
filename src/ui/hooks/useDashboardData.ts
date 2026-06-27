@@ -92,11 +92,9 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
     const fetchSystemHealth = useCallback(() => {
         const stContext = getSTContext();
         const summarizerStatus = summarizerService.getStatus();
-        // V2.1: 摄取间隔来自统一 ingestionConfig（迁移期回退到旧 summarizerConfig）
+        // V2.3: 楼层间隔来自统一摄取配置
         const ingestionConfig = getSetting("apiSettings")?.ingestionConfig;
-        const summarizerConfig = getSetting("summarizerConfig") || {};
-        const floorInterval = ingestionConfig?.floorInterval ??
-            summarizerConfig.floorInterval ?? 10;
+        const floorInterval = ingestionConfig?.floorInterval ?? 25;
 
         if (!isMounted.current) return;
         setSystem({

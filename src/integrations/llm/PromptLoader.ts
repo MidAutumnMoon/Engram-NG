@@ -44,7 +44,6 @@ export class PromptLoader {
                     createdAt: Date.now(),
                     enabled: parsed.enabled ?? false,
                     id: parsed.id,
-                    injectionMode: parsed.injectionMode,
                     isBuiltIn: true,
                     name: parsed.name,
                     systemPrompt: parsed.systemPrompt || "",

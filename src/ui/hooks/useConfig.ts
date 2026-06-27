@@ -7,7 +7,6 @@
  */
 
 import type {
-    EntityExtractConfig,
     GlobalRegexConfig,
     TrimConfig,
 } from "@/config/types/memory.ts";
@@ -25,7 +24,6 @@ export interface UseConfigReturn {
     rerankConfig: RerankConfig;
     recallConfig: RecallConfig;
     regexConfig: GlobalRegexConfig;
-    entityExtractConfig: EntityExtractConfig;
     ingestionConfig: IngestionConfig;
     trimConfig?: TrimConfig;
     embeddingConfig: EmbeddingConfig;
@@ -34,7 +32,6 @@ export interface UseConfigReturn {
     updateRerankConfig: (config: RerankConfig) => void;
     updateRecallConfig: (config: RecallConfig) => void;
     updateRegexConfig: (config: GlobalRegexConfig) => void;
-    updateEntityExtractConfig: (config: EntityExtractConfig) => void;
     updateIngestionConfig: (config: IngestionConfig) => void;
     updateTrimConfig: (config: TrimConfig) => void;
     updateEmbeddingConfig: (config: EmbeddingConfig) => void;
@@ -46,7 +43,6 @@ export interface UseConfigReturn {
             rerankConfig: RerankConfig;
             recallConfig: RecallConfig;
             regexConfig: GlobalRegexConfig;
-            entityExtractConfig: EntityExtractConfig;
             embeddingConfig: EmbeddingConfig;
         }>,
     ) => void;
@@ -60,7 +56,6 @@ export function useConfig(): UseConfigReturn {
 
     return {
         embeddingConfig: store.embeddingConfig,
-        entityExtractConfig: store.entityExtractConfig,
         hasChanges: store.hasChanges,
         ingestionConfig: store.ingestionConfig,
         trimConfig: store.trimConfig,
@@ -70,7 +65,6 @@ export function useConfig(): UseConfigReturn {
         rerankConfig: store.rerankConfig,
         saveConfig: store.saveConfig,
         updateEmbeddingConfig: store.updateEmbeddingConfig,
-        updateEntityExtractConfig: store.updateEntityExtractConfig,
         updateIngestionConfig: store.updateIngestionConfig,
         updateTrimConfig: store.updateTrimConfig,
 
