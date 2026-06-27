@@ -3,11 +3,11 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import type { RegexRule } from "@/domain/workflow/steps/index.ts";
+import type { RegexRule } from "@/domain/regex/index.ts";
 import {
     DEFAULT_REGEX_RULES,
     regexProcessor,
-} from "@/domain/workflow/steps/index.ts";
+} from "@/domain/regex/index.ts";
 import { getSetting, setSetting } from "@/config/settings.ts";
 
 export interface UseRegexRulesReturn {

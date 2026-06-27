@@ -6,8 +6,6 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { chatManager } from "@/data/ChatManager.ts";
 import type { EntityNode } from "@/data/types/graph.ts";
-import { WorkflowEngine } from "@/domain/workflow/core/WorkflowEngine.ts";
-import { createEntityWorkflow } from "@/domain/workflow/definitions/EntityWorkflow.ts";
 import {
     getChatHistory as getMacroChatHistory,
     getCurrentMessageCount,
@@ -16,6 +14,7 @@ import { onTavernEvent } from "@/sillytavern/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { dismissNotify, notify, notifyRunning } from "@/sillytavern/notify.ts";
 import { generateShortUUID } from "@/utils/shortUUID.ts";
+import { runEntityExtraction } from "@/domain/memory/pipelines/entity.ts";
 
 /**
  * 实体构建结果
@@ -284,32 +283,25 @@ export class EntityBuilder {
                 );
             }
 
-            const contextPromise = WorkflowEngine.run(createEntityWorkflow(), {
-                config: {
-                    dryRun,
+            const result = await runEntityExtraction(
+                {
+                    chatHistory,
+                    // episode_id: 标识本次 extraction pass，stamp 到写入的实体/事件上（同层溯源用）
+                    episodeId: generateShortUUID("ep_"),
+                    range: range || [floor, floor],
+                },
+                {
                     previewEnabled,
-                    logType: "entity_extraction", // For LlmRequest logging
-                    templateId: this.config.promptTemplateId, // V0.9.10: Support custom prompt
-                    category: "entity_extraction", // V1.0.8: Explicitly pass category for FetchContext to find default template
+                    templateId: this.config.promptTemplateId,
                     // episode-as-source-of-truth: 状态字段历史化配置
                     stateFields: this.config.stateFields,
                     stateChangeEmitThreshold:
                         this.config.stateChangeEmitThreshold,
                 },
-                input: {
-                    chatHistory,
-                    // episode_id: 标识本次 extraction pass，stamp 到写入的实体/事件上（同层溯源用）
-                    episode_id: generateShortUUID("ep_"),
-                    range: range || [floor, floor],
-                },
                 signal,
-                trigger: manual ? "manual" : "auto",
-            });
-
-            const context = await contextPromise;
+                { dryRun },
+            );
             if (runningToast) dismissNotify(runningToast);
-
-            const result = context.output; // From SaveEntity
 
             if (!dryRun) {
                 const finalFloor = range?.[1] ?? floor;
@@ -334,7 +326,7 @@ export class EntityBuilder {
                     );
                 }
 
-                // P0 Bugfix: Workflow 路径保存后触发自动归档检查（与 saveRawEntities 对齐）
+                // P0 Bugfix: 保存后触发自动归档检查（与 saveRawEntities 对齐）
                 if (this.config.autoArchive ?? true) {
                     await new Promise((r) => setTimeout(r, 0));
                     await this.checkAndArchiveEntities();

@@ -5,7 +5,7 @@ import { getSetting, initSettings } from "@/config/settings.ts";
 import { trimConfigSchema } from "@/config/types/memory.ts";
 import { getDbForChat } from "@/data/db.ts";
 import type { ChatContext } from "@/domain/memory/types.ts";
-import { regexProcessor } from "@/domain/workflow/steps/processing/RegexProcessor.ts";
+import { regexProcessor } from "@/domain/regex/index.ts";
 import { getCurrentChatId, onTavernEvent } from "@/sillytavern/context.ts";
 import {
     createTopBarButton,

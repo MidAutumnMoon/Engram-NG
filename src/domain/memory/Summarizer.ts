@@ -5,14 +5,13 @@
 import { getSetting, setSetting } from "@/config/settings.ts";
 import { chatManager } from "@/data/ChatManager.ts";
 import { Logger } from "@/logger/Logger.ts";
-import { WorkflowEngine } from "@/domain/workflow/core/WorkflowEngine.ts";
-import { createSummaryWorkflow } from "@/domain/workflow/definitions/SummaryWorkflow.ts";
 import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
 import { getSTContext, onTavernEvent } from "@/sillytavern/index.ts";
 import { WorldBookSlotService } from "@/domain/worldbook/index.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts"; // Used for setLastSummarizedFloor
 import { dismissNotify, notify, notifyRunning } from "@/sillytavern/notify.ts";
 import { generateShortUUID } from "@/utils/shortUUID.ts";
+import { runSummary } from "@/domain/memory/pipelines/summary.ts";
 import type {
     ChatContext,
     SummarizerConfig,
@@ -385,36 +384,27 @@ class SummarizerService {
             const previewEnabled = globalPreviewEnabled &&
                 (this.config.previewEnabled ?? true);
 
-            const context = await WorkflowEngine.run(createSummaryWorkflow(), {
-                config: {
+            const context = await runSummary(
+                {
+                    // episode_id: 标识本次总结 pass，stamp 到写入的事件上（同层溯源用）
+                    episodeId: generateShortUUID("ep_"),
+                    range: range,
+                },
+                {
                     autoHide: this.config.autoHide,
-                    logType: "summarize",
                     previewEnabled: previewEnabled,
                     templateId: this.config.promptTemplateId,
                 },
-                input: {
-                    // episode_id: 标识本次总结 pass，stamp 到写入的事件上（同层溯源用）
-                    episode_id: generateShortUUID("ep_"),
-                    range: range,
-                },
-                signal: cancelSignal,
-                trigger: manual ? "manual" : "auto",
-            });
+                cancelSignal,
+            );
 
             // 3. Construct Result (Backward Compatibility)
-            // If SaveEvent returns array of events, we construct a SummaryResult-like object
-            // Or just return the list. Original method returned SummaryResult (single object).
-            // But now we have multiple events potentially.
-            // Let's verify `SummaryResult` type in `types.d.ts` or similar.
-            // It seems SummaryResult expects `content` string.
-
-            // If we have parsed multiple events, the "content" might            // The raw text
             const result: SummaryResult = {
                 id: Date.now().toString(),
-                content: context.cleanedContent || "", // The raw text
+                content: context.cleanedContent || "",
                 sourceFloors: range,
                 timestamp: Date.now(),
-                tokenCount: 0, // TODO: Get from context or re-measure
+                tokenCount: 0,
                 writtenToWorldbook: true,
             };
 

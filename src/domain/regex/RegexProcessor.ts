@@ -1,9 +1,11 @@
 /**
  * RegexProcessor - 正则处理器
  *
- * 提供可配置的正则规则，用于清洗聊天内容和 LLM 输出
+ * 提供可配置的正则规则，用于清洗聊天内容和 LLM 输出。
  *
- * 通用管道组件：可被多个模块复用
+ * 注意：本模块刻意不依赖 workflow core（Step/JobContext/WorkflowEngine）——
+ * 它是一个通用的文本清洗工具，被 macros / Adapter / regex UI / 各 pipeline 共用。
+ * 放在 `domain/regex/` 而非 `domain/workflow/steps/` 下，正是为了和 workflow 解耦。
  */
 
 import { Logger } from "@/logger/Logger.ts";
@@ -14,7 +16,7 @@ import {
     REGEX_SCOPE_OPTIONS,
 } from "@/config/types/data_processing.ts";
 
-// 重新导出以便其他模块使用
+// 重新导出以便其他模块使用（保持原有 import 路径兼容性的入口在 ./index.ts）
 export type { RegexRule, RegexScope };
 export { DEFAULT_REGEX_RULES, REGEX_SCOPE_OPTIONS };
 

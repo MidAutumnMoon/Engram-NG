@@ -10,11 +10,10 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import type { ChatDatabase } from "@/data/db.ts";
-import { WorkflowEngine } from "@/domain/workflow/core/WorkflowEngine.ts";
-import { createTrimmerWorkflow } from "@/domain/workflow/definitions/TrimmerWorkflow.ts";
 import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import { notify } from "@/sillytavern/notify.ts";
 import type { ChatContext } from "./types.ts";
+import { runTrim } from "./pipelines/trim.ts";
 
 interface TrimResult {
     /** 精简后的事件 */
@@ -187,23 +186,17 @@ class EventTrimmer {
 
         try {
             const config = this.getEffectiveConfig();
-            const context = await WorkflowEngine.run(createTrimmerWorkflow(), {
-                config: {
-                    keepRecentCount: config.keepRecentCount,
-                    previewEnabled: this.globalPreviewEnabled &&
-                        (config.previewEnabled ?? true),
-                    templateId: "builtin_trim", // Hardcoded for now, matches BuildPrompt category mapping potentially
-                    logType: "trimming",
-                },
+            const result = await runTrim({
+                keepRecentCount: config.keepRecentCount,
+                previewEnabled: this.globalPreviewEnabled &&
+                    (config.previewEnabled ?? true),
+                templateId: "builtin_trim",
                 trigger: manual ? "manual" : "auto",
             });
 
-            if (context.data?.skipTrimming) {
-                // Not strictly an error, just skipped
-                return null;
-            }
-
-            return context.output as TrimResult;
+            // runTrim returns null when there aren't enough events to merge
+            // (auto-trigger case) — equivalent to the old skipTrimming early-out.
+            return result;
         } catch (error) {
             const errorMsg = error instanceof Error
                 ? error.message
