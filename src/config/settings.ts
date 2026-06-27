@@ -97,8 +97,6 @@ const engramSettingsSchema = z.object({
     apiSettings: engramApiSettingsSchema.nullable().default(null),
     linkedDeletion: z.object({
         enabled: z.boolean().default(true),
-        deleteWorldbook: z.boolean().default(true),
-        deleteChatWorldbook: z.boolean().default(false),
         deleteIndexedDB: z.boolean().default(false),
         showConfirmation: z.boolean().default(true),
     }).prefault({}),

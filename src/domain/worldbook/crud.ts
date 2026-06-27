@@ -101,33 +101,6 @@ export async function getWorldbookNames(): Promise<string[]> {
 }
 
 /**
- * 删除世界书
- * @param worldbookName 世界书名称
- */
-export async function deleteWorldbook(worldbookName: string): Promise<boolean> {
-    const helper = getTavernHelper();
-    if (!helper?.deleteWorldbook) {
-        Logger.warn(LogModule.WORLDBOOK, "TavernHelper.deleteWorldbook 不可用");
-        return false;
-    }
-
-    try {
-        const success = await helper.deleteWorldbook(worldbookName);
-        if (success) {
-            Logger.info(LogModule.WORLDBOOK, "已删除世界书", worldbookName);
-        }
-        return success;
-    } catch (error) {
-        Logger.error(
-            LogModule.WORLDBOOK,
-            `删除世界书 '${worldbookName}' 失败`,
-            error,
-        );
-        return false;
-    }
-}
-
-/**
  * 创建新的世界书条目
  * @param worldbookName 世界书名称
  * @param params 条目参数

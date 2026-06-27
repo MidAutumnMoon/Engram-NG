@@ -14,7 +14,6 @@ import {
     createEntry,
     deleteEntries,
     deleteEntry,
-    deleteWorldbook,
     findEntryByKey,
     getEntries,
     getWorldbookNames,
@@ -68,10 +67,6 @@ export class WorldInfoService {
 
     static getWorldbookNames(): Promise<string[]> {
         return getWorldbookNames();
-    }
-
-    static deleteWorldbook(worldbookName: string): Promise<boolean> {
-        return deleteWorldbook(worldbookName);
     }
 
     static createEntry(

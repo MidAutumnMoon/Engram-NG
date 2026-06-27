@@ -105,8 +105,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     linkedDeletion: globalSettings.linkedDeletion ||
         {
             enabled: false,
-            deleteWorldbook: false,
-            deleteChatWorldbook: false,
             deleteIndexedDB: false,
             showConfirmation: true,
         },
