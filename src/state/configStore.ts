@@ -19,7 +19,6 @@ import {
     type RerankConfig,
     type VectorConfig,
 } from "@/config/types/rag.ts";
-import type { CustomMacro } from "@/config/types/prompt.ts";
 import { create } from "zustand";
 
 // 采用 debounce，防止高频 UI 调整（如滑块）导致的存取风暴
@@ -32,7 +31,6 @@ const debouncedSave = (state: ConfigState) => {
         // 我们需要把原本在 apiSettings 中的对象再装配进去
         const newApiSettings = {
             ...currentSettings.apiSettings,
-            customMacros: state.customMacros,
             embeddingConfig: state.embeddingConfig,
             entityExtractConfig: state.entityExtractConfig,
             ingestionConfig: state.ingestionConfig,
@@ -61,7 +59,6 @@ export interface ConfigState {
     /** V2.1: 统一摄取配置（summary+entity 共享）。新代码读这个。 */
     ingestionConfig: IngestionConfig;
     embeddingConfig: EmbeddingConfig;
-    customMacros: CustomMacro[];
 
     // UI & Settings
     summarizerConfig: EngramSettings["summarizerConfig"];
@@ -91,11 +88,6 @@ export interface ConfigState {
     // Batch update to reduce re-renders
     updateMultipleConfigs: (updates: Partial<ConfigState>) => void;
 
-    addCustomMacro: () => void;
-    updateCustomMacro: (id: string, updates: Partial<CustomMacro>) => void;
-    deleteCustomMacro: (id: string) => void;
-    toggleCustomMacro: (id: string) => void;
-
     saveConfig: () => void; // Legacy manual save
 }
 
@@ -105,26 +97,6 @@ const savedContext: any = globalSettings.apiSettings || {};
 
 export const useConfigStore = create<ConfigState>((set, get) => ({
     // Init from SettingsManager
-    addCustomMacro: () =>
-        set((state) => {
-            const newMacro: CustomMacro = {
-                id: `custom_${Date.now()}`,
-                name: "新宏",
-                content: "",
-                enabled: true,
-                createdAt: Date.now(),
-            };
-            return {
-                customMacros: [...state.customMacros, newMacro],
-                hasChanges: true,
-            };
-        }),
-    customMacros: savedContext.customMacros || defaults.customMacros || [],
-    deleteCustomMacro: (id) =>
-        set((state) => ({
-            customMacros: state.customMacros.filter((m) => m.id !== id),
-            hasChanges: true,
-        })),
     embeddingConfig: savedContext.embeddingConfig || defaults.embeddingConfig ||
         DEFAULT_EMBEDDING_CONFIG,
     entityExtractConfig: savedContext.entityExtractConfig ||
@@ -161,13 +133,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     summarizerConfig: globalSettings.summarizerConfig || {},
 
     syncConfig: globalSettings.syncConfig || { enabled: false, autoSync: true },
-    toggleCustomMacro: (id) =>
-        set((state) => ({
-            customMacros: state.customMacros.map((m) =>
-                m.id === id ? { ...m, enabled: !m.enabled } : m
-            ),
-            hasChanges: true,
-        })),
     updateConfig: (key, value) => {
         set((state) => {
             const nextValue = typeof value === "function"
@@ -176,13 +141,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
             return { [key]: nextValue, hasChanges: true } as any;
         });
     },
-    updateCustomMacro: (id, updates) =>
-        set((state) => ({
-            customMacros: state.customMacros.map((m) =>
-                m.id === id ? { ...m, ...updates } : m
-            ),
-            hasChanges: true,
-        })),
     updateEmbeddingConfig: (config) =>
         set({ embeddingConfig: config, hasChanges: true }),
     updateEntityExtractConfig: (config) =>

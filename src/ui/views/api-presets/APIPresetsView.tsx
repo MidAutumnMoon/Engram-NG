@@ -7,7 +7,6 @@
  */
 
 import {
-    Braces,
     Cpu,
     FileText,
     Key,
@@ -23,8 +22,6 @@ import { TabPills } from "@/ui/components/layout/TabPills.tsx";
 import { LLMPresetForm } from "./models/LLMPresetForm.tsx";
 import { RerankConfigForm } from "./models/RerankConfigForm.tsx";
 import { VectorConfigForm } from "./models/VectorConfigForm.tsx";
-import { CustomMacroForm } from "./prompts/CustomMacroForm.tsx"; // V0.9.2
-import { CustomMacroList } from "./prompts/CustomMacroList.tsx"; // V0.9.2
 import { PromptTemplateForm } from "./prompts/PromptTemplateForm.tsx";
 import { PromptTemplateList } from "./prompts/PromptTemplateList.tsx";
 import { RegexRuleForm } from "./regex/RegexRuleForm.tsx";
@@ -45,7 +42,6 @@ import { useWorldInfo } from "../../hooks/useWorldInfo.ts";
 // Tab 类型
 type MainTabType = "model" | "prompt" | "regex" | "worldbook";
 type ModelSubTabType = "llm" | "vector" | "rerank";
-type PromptSubTabType = "templates" | "macros"; // V0.9.2: 提示词模板子 Tab
 
 // 子 Tab 配置
 const MODEL_SUB_TABS: {
@@ -65,7 +61,7 @@ const TAB_INFO: Record<MainTabType, { title: string; subtitle: string }> = {
         title: "模型配置",
     },
     prompt: {
-        subtitle: "管理系统提示词、剧情推进和自定义宏",
+        subtitle: "管理系统提示词、剧情推进模板",
         title: "提示词模板",
     },
     regex: { subtitle: "配置基于正则的文本替换和处理规则", title: "正则规则" },
@@ -83,7 +79,6 @@ interface APIPresetsProps {
 
 const MAIN_TABS = ["model", "prompt", "regex", "worldbook"] as const;
 const MODEL_SUB_TAB_IDS = ["llm", "vector", "rerank"] as const;
-const PROMPT_SUB_TAB_IDS = ["templates", "macros"] as const;
 
 export const APIPresets: React.FC<APIPresetsProps> = (
     { initialTab, initialTabPath },
@@ -104,17 +99,8 @@ export const APIPresets: React.FC<APIPresetsProps> = (
             ? initialNestedTab as ModelSubTabType
             : "llm",
     );
-    const [promptSubTab, setPromptSubTab] = useState<PromptSubTabType>(
-        resolvedMainTab === "prompt" &&
-            PROMPT_SUB_TAB_IDS.includes(initialNestedTab as PromptSubTabType)
-            ? initialNestedTab as PromptSubTabType
-            : "templates",
-    ); // V0.9.2
     // Const [worldbookSubTab, setWorldbookSubTab] = useState<WorldbookSubTabType>('global');
     // Const [editingProfileId, setEditingProfileId] = useState<string | null>(null);
-
-    // V0.9.2: 编辑中的自定义宏
-    const [editingMacroId, setEditingMacroId] = useState<string | null>(null);
 
     // 移动端状态
     // V0.9.7: 使用统一的 useResponsive Hook
@@ -147,13 +133,6 @@ export const APIPresets: React.FC<APIPresetsProps> = (
         ) {
             setModelSubTab(nextNestedTab as ModelSubTabType);
         }
-
-        if (
-            resolvedNextMainTab === "prompt" &&
-            PROMPT_SUB_TAB_IDS.includes(nextNestedTab as PromptSubTabType)
-        ) {
-            setPromptSubTab(nextNestedTab as PromptSubTabType);
-        }
     }, [initialTab, initialTabPath]);
 
     // 使用 Hook 管理业务状态
@@ -182,14 +161,9 @@ export const APIPresets: React.FC<APIPresetsProps> = (
         vectorConfig,
         rerankConfig,
         regexConfig,
-        customMacros,
         updateVectorConfig,
         updateRerankConfig,
         updateRegexConfig,
-        addCustomMacro,
-        updateCustomMacro,
-        deleteCustomMacro,
-        toggleCustomMacro,
         saveConfig,
         hasChanges: configHasChanges,
     } = useConfig();
@@ -237,7 +211,6 @@ export const APIPresets: React.FC<APIPresetsProps> = (
     // 聚合 settings 对象以兼容旧代码解构（如果需要），或者直接替换下方 JSX 中的引用
     // 为了最小化 JSX 变动，我们重构 JSX 中的引用
     const settings = {
-        customMacros,
         llmPresets,
         promptTemplates,
         regexConfig,
@@ -285,60 +258,30 @@ export const APIPresets: React.FC<APIPresetsProps> = (
             );
         }
 
-        // 2. 提示词模板 / 宏
-        if (mainTab === "prompt") {
-            if (promptSubTab === "templates" && editingTemplate) {
-                return (
-                    <MobileFullscreenForm
-                        title="编辑提示词模板"
-                        onClose={handleMobileClose}
-                        actions={hasChanges && (
-                            <button
-                                type="button"
-                                className="p-2 text-primary"
-                                onClick={save}
-                            >
-                                <Save size={18} />
-                            </button>
-                        )}
-                    >
-                        <PromptTemplateForm
-                            template={editingTemplate}
-                            llmPresets={settings.llmPresets}
-                            defaultPresetId={settings.selectedPresetId}
-                            onChange={updateTemplate}
-                        />
-                    </MobileFullscreenForm>
-                );
-            }
-            if (promptSubTab === "macros") {
-                const editingMacro = (settings.customMacros || []).find((m) =>
-                    m.id === editingMacroId
-                );
-                if (editingMacro) {
-                    return (
-                        <MobileFullscreenForm
-                            title="编辑自定义宏"
-                            onClose={handleMobileClose}
-                            actions={hasChanges && (
-                                <button
-                                    type="button"
-                                    className="p-2 text-primary"
-                                    onClick={save}
-                                >
-                                    <Save size={18} />
-                                </button>
-                            )}
+        // 2. 提示词模板
+        if (mainTab === "prompt" && editingTemplate) {
+            return (
+                <MobileFullscreenForm
+                    title="编辑提示词模板"
+                    onClose={handleMobileClose}
+                    actions={hasChanges && (
+                        <button
+                            type="button"
+                            className="p-2 text-primary"
+                            onClick={save}
                         >
-                            <CustomMacroForm
-                                macro={editingMacro}
-                                onChange={(updates) =>
-                                    updateCustomMacro(editingMacro.id, updates)}
-                            />
-                        </MobileFullscreenForm>
-                    );
-                }
-            }
+                            <Save size={18} />
+                        </button>
+                    )}
+                >
+                    <PromptTemplateForm
+                        template={editingTemplate}
+                        llmPresets={settings.llmPresets}
+                        defaultPresetId={settings.selectedPresetId}
+                        onChange={updateTemplate}
+                    />
+                </MobileFullscreenForm>
+            );
         }
 
         // 3. 正则规则
@@ -504,118 +447,38 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                     <MasterDetailLayout
                         listWidth="30%"
                         list={
-                            <>
-                                {/* V0.9.2: 子标签切换 */}
-                                <div className="flex items-center gap-2 mb-4">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setPromptSubTab("templates")}
-                                        className={`text-xs font-bold uppercase tracking-wider ${
-                                            promptSubTab === "templates"
-                                                ? "text-primary"
-                                                : "text-muted-foreground hover:text-foreground"
-                                        }`}
-                                    >
-                                        提示词模板
-                                    </button>
-                                    <span className="text-muted-foreground/30">
-                                        |
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setPromptSubTab("macros")}
-                                        className={`text-xs font-bold uppercase tracking-wider ${
-                                            promptSubTab === "macros"
-                                                ? "text-primary"
-                                                : "text-muted-foreground hover:text-foreground"
-                                        }`}
-                                    >
-                                        自定义宏
-                                    </button>
-                                </div>
-
-                                {promptSubTab === "templates"
-                                    ? (
-                                        <PromptTemplateList
-                                            templates={settings.promptTemplates}
-                                            selectedId={editingTemplate?.id ||
-                                                null}
-                                            onSelect={(t) =>
-                                                handleMobileSelect(() =>
-                                                    selectTemplate(t)
-                                                )}
-                                            onAdd={addTemplate}
-                                            onUpdate={updateTemplate}
-                                            onDelete={deleteTemplate}
-                                            onResetAll={resetAllTemplates}
-                                        />
-                                    )
-                                    : (
-                                        <CustomMacroList
-                                            macros={settings.customMacros || []}
-                                            selectedId={editingMacroId}
-                                            onSelect={(macro) =>
-                                                handleMobileSelect(() =>
-                                                    setEditingMacroId(macro.id)
-                                                )}
-                                            onAdd={addCustomMacro}
-                                            onToggle={toggleCustomMacro}
-                                            onDelete={deleteCustomMacro}
-                                        />
+                            <PromptTemplateList
+                                templates={settings.promptTemplates}
+                                selectedId={editingTemplate?.id ||
+                                    null}
+                                onSelect={(t) =>
+                                    handleMobileSelect(() =>
+                                        selectTemplate(t)
                                     )}
-                            </>
+                                onAdd={addTemplate}
+                                onUpdate={updateTemplate}
+                                onDelete={deleteTemplate}
+                                onResetAll={resetAllTemplates}
+                            />
                         }
-                        detail={promptSubTab === "templates"
+                        detail={editingTemplate
                             ? (
-                                editingTemplate
-                                    ? (
-                                        <div>
-                                            <PromptTemplateForm
-                                                template={editingTemplate}
-                                                llmPresets={settings.llmPresets}
-                                                defaultPresetId={settings
-                                                    .selectedPresetId}
-                                                onChange={updateTemplate}
-                                            />
-                                        </div>
-                                    )
-                                    : (
-                                        <EmptyState
-                                            icon={FileText}
-                                            title="未选择模板"
-                                            description="选择一个模板进行编辑"
-                                        />
-                                    )
+                                <div>
+                                    <PromptTemplateForm
+                                        template={editingTemplate}
+                                        llmPresets={settings.llmPresets}
+                                        defaultPresetId={settings
+                                            .selectedPresetId}
+                                        onChange={updateTemplate}
+                                    />
+                                </div>
                             )
                             : (
-                                (() => {
-                                    const editingMacro =
-                                        (settings.customMacros || []).find(
-                                            (m) => m.id === editingMacroId,
-                                        );
-                                    return editingMacro
-                                        ? (
-                                            <div>
-                                                <CustomMacroForm
-                                                    macro={editingMacro}
-                                                    onChange={(updates) =>
-                                                        updateCustomMacro(
-                                                            editingMacro.id,
-                                                            updates,
-                                                        )}
-                                                />
-                                            </div>
-                                        )
-                                        : (
-                                            <EmptyState
-                                                icon={Braces}
-                                                title="未选择宏"
-                                                description="选择一个宏进行编辑"
-                                            />
-                                        );
-                                })()
+                                <EmptyState
+                                    icon={FileText}
+                                    title="未选择模板"
+                                    description="选择一个模板进行编辑"
+                                />
                             )}
                     />
                 )}

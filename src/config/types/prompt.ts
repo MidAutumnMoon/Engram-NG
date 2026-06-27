@@ -41,23 +41,6 @@ export const PROMPT_CATEGORIES: {
     },
 ];
 
-// ==================== Custom Macro ====================
-
-export const customMacroSchema = z.object({
-    /** 唯一标识 */
-    id: z.string(),
-    /** 宏名称（不含花括号，如 "用户画像"） */
-    name: z.string(),
-    /** 宏内容 */
-    content: z.string(),
-    /** 是否启用 */
-    enabled: z.boolean(),
-    /** 创建时间 */
-    createdAt: z.number(),
-});
-
-export type CustomMacro = z.infer<typeof customMacroSchema>;
-
 // ==================== Prompt Template ====================
 
 const injectionModeSchema = z.enum(["replace", "append", "prepend"]);

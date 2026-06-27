@@ -37,8 +37,6 @@ import {
     vectorConfigSchema,
 } from "@/config/types/rag.ts";
 import {
-    type CustomMacro,
-    customMacroSchema,
     DEFAULT_WORLDBOOK_CONFIG,
     type PromptCategory,
     type PromptTemplate,
@@ -80,8 +78,6 @@ const engramApiSettingsSchema = z.object({
      * 迁移期：getSettings() 在缺省时从旧字段回填。
      */
     ingestionConfig: ingestionConfigSchema.prefault({}),
-    /** V0.9.2: 自定义宏 */
-    customMacros: z.array(customMacroSchema).optional(),
     /** V1.1.0: 世界书配置方案 */
     worldbookProfiles: z.array(worldbookConfigProfileSchema).optional(),
 });
@@ -122,16 +118,6 @@ export type EngramSettings = z.infer<typeof engramSettingsSchema>;
 // Factory functions
 // ============================================================================
 
-const DEFAULT_CUSTOM_MACROS: CustomMacro[] = [
-    {
-        id: "custom_user_profile",
-        name: "用户画像",
-        content: "",
-        enabled: true,
-        createdAt: Date.now(),
-    },
-];
-
 export function createDefaultLLMPreset(name: string = "默认预设"): LLMPreset {
     return llmPresetSchema.parse({ name });
 }
@@ -162,7 +148,6 @@ export function getDefaultAPISettings(): EngramAPISettings {
         regexConfig: { ...DEFAULT_REGEX_CONFIG },
         recallConfig: { ...DEFAULT_RECALL_CONFIG },
         ingestionConfig: { ...DEFAULT_INGESTION_CONFIG },
-        customMacros: [...DEFAULT_CUSTOM_MACROS],
         worldbookProfiles: [],
     };
 }

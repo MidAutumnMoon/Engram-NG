@@ -1,5 +1,3 @@
-import { getSetting } from "@/config/settings.ts";
-import type { CustomMacro } from "@/config/types/prompt.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { getCurrentCharacterData, getSTContext } from "@/sillytavern/index.ts";
@@ -21,7 +19,6 @@ let cachedWorldbookContext = "";
 let cachedCharDescription = "";
 let cachedArchivedSummaries = "";
 let cachedUserPersona = "";
-const cachedCustomMacros = new Map<string, string>();
 let cachedEntityStates = "";
 let cachedAgenticIndex = "";
 let cachedPureActiveEvents = "";
@@ -111,7 +108,6 @@ export function clearCache(): void {
     cachedCharDescription = "";
     cachedArchivedSummaries = "";
     cachedUserPersona = "";
-    cachedCustomMacros.clear();
     cachedEntityStates = "";
     cachedAgenticIndex = "";
     cachedPureActiveEvents = "";
@@ -149,8 +145,6 @@ export async function refreshCache(
 
     // 刷新用户设定 (轻量)
     refreshUserPersona();
-    // 刷新自定义宏 (轻量)
-    refreshCustomMacros();
 }
 
 /**
@@ -267,52 +261,6 @@ function refreshUserPersona(): void {
     } catch (error) {
         Logger.debug(LogModule.MACROS, "刷新用户设定失败", error);
         cachedUserPersona = "";
-    }
-}
-
-/**
- * V0.9.2: 刷新并注册自定义宏
- * 从 apiSettings.customMacros 读取用户定义的宏
- */
-function refreshCustomMacros(): void {
-    try {
-        const context = getSTContext();
-        if (!context.registerMacro) {
-            Logger.debug(
-                LogModule.MACROS,
-                "酒馆 registerMacro 不可用，跳过自定义宏注册",
-            );
-            return;
-        }
-
-        // 从 apiSettings 读取自定义宏
-        const apiSettings = getSetting("apiSettings");
-        const customMacros: CustomMacro[] = apiSettings?.customMacros || [];
-
-        // 清空之前的缓存
-        cachedCustomMacros.clear();
-
-        // 注册每个启用的自定义宏
-        for (const macro of customMacros) {
-            if (!macro.enabled || !macro.name) continue;
-
-            // 缓存内容
-            cachedCustomMacros.set(macro.name, macro.content);
-
-            // 动态注册到酒馆（使用闭包捕获宏名）
-            const macroName = macro.name;
-            registerMacro(
-                macroName,
-                () => cachedCustomMacros.get(macroName) ?? "",
-            );
-        }
-
-        Logger.debug(LogModule.MACROS, "自定义宏已刷新", {
-            count: cachedCustomMacros.size,
-            names: [...cachedCustomMacros.keys()],
-        });
-    } catch (error) {
-        Logger.warn(LogModule.MACROS, "刷新自定义宏失败", error);
     }
 }
 

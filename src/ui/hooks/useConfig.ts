@@ -1,7 +1,7 @@
 /**
  * UseConfig - 通用配置管理 Hook (代理 useConfigStore)
  *
- * 管理 Vector, Rerank, Recall, Preprocessing, CustomMacro 等配置
+ * 管理 Vector, Rerank, Recall, Preprocessing 等配置
  * V1.0: 迁移至 Zustand 全局共享状态，彻底消除挂载时的数据孤岛与保存闭包陷阱。
  * 为了控制渲染粒度，建议新组件直接通过 useConfigStore 选择所需切片，此 hook 仅供向下兼容及简易聚合使用。
  */
@@ -17,7 +17,6 @@ import type {
     RerankConfig,
     VectorConfig,
 } from "@/config/types/rag.ts";
-import type { CustomMacro } from "@/config/types/prompt.ts";
 import { useConfigStore } from "@/state/configStore.ts";
 
 export interface UseConfigReturn {
@@ -28,7 +27,6 @@ export interface UseConfigReturn {
     entityExtractConfig: EntityExtractConfig;
     ingestionConfig: IngestionConfig;
     embeddingConfig: EmbeddingConfig;
-    customMacros: CustomMacro[];
 
     updateVectorConfig: (config: VectorConfig) => void;
     updateRerankConfig: (config: RerankConfig) => void;
@@ -47,15 +45,8 @@ export interface UseConfigReturn {
             regexConfig: GlobalRegexConfig;
             entityExtractConfig: EntityExtractConfig;
             embeddingConfig: EmbeddingConfig;
-            customMacros: CustomMacro[];
         }>,
     ) => void;
-
-    // 自定义宏
-    addCustomMacro: () => void;
-    updateCustomMacro: (id: string, updates: Partial<CustomMacro>) => void;
-    deleteCustomMacro: (id: string) => void;
-    toggleCustomMacro: (id: string) => void;
 
     saveConfig: () => void;
     hasChanges: boolean;
@@ -65,9 +56,6 @@ export function useConfig(): UseConfigReturn {
     const store = useConfigStore();
 
     return {
-        addCustomMacro: store.addCustomMacro,
-        customMacros: store.customMacros,
-        deleteCustomMacro: store.deleteCustomMacro,
         embeddingConfig: store.embeddingConfig,
         entityExtractConfig: store.entityExtractConfig,
         hasChanges: store.hasChanges,
@@ -77,8 +65,6 @@ export function useConfig(): UseConfigReturn {
 
         rerankConfig: store.rerankConfig,
         saveConfig: store.saveConfig,
-        toggleCustomMacro: store.toggleCustomMacro,
-        updateCustomMacro: store.updateCustomMacro,
         updateEmbeddingConfig: store.updateEmbeddingConfig,
         updateEntityExtractConfig: store.updateEntityExtractConfig,
         updateIngestionConfig: store.updateIngestionConfig,
