@@ -331,36 +331,23 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                 </p>
             </div>
 
-            {/* 统一 RAG 回顾弹窗 */}
+            {/* 统一 RAG 回顾弹窗 (预览结果供审阅，确认即关闭) */}
             <RecallDecisionModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 initialRecalls={currentRecalls}
                 recalledEntities={currentEntities}
-                onConfirm={async (newRecalls) => {
+                onConfirm={(newRecalls) => {
+                    // 预览结果已由 retriever.search() 计算并展示。
+                    // 此前曾调用 retriever.agenticSearch() 在确认后重新装配，
+                    // 该路径已随 Agentic RAG 一起退役 (见 dev-docs/AgenticSearch/)。
+                    // 模态框现在仅用于审阅；确认即采纳当前编辑。
                     setCurrentRecalls(newRecalls);
-                    try {
-                        setIsTesting(true);
-                        // 确认后，通过提供明确的 ID 数组强制触发最终的内容装配与记录，绕过额外的无谓检索
-                        const searchResult = await retriever.agenticSearch(
-                            newRecalls,
-                            {
-                                isManualTest: true,
-                                mode: isAgenticMode ? "agentic" : "hybrid", // 显式标记为手动测试，跳过日志和 Brain 状态变更
-                            },
-                        );
-                        notify(
-                            "success",
-                            `预览确认完成! 强一致性注入 ${
-                                searchResult.nodes?.length ?? 0
-                            } 条事件，请查看日志`,
-                            "RAG",
-                        );
-                    } catch {
-                        notify("error", "确认后重新执行内容装配失败", "RAG");
-                    } finally {
-                        setIsTesting(false);
-                    }
+                    notify(
+                        "success",
+                        `已采纳 ${newRecalls.length} 条召回结果`,
+                        "RAG",
+                    );
                 }}
             />
         </div>

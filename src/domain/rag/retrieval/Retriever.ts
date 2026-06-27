@@ -2,8 +2,10 @@
  * Retriever Service
  *
  * 召回路径：关键词扫描 + 向量检索 (+ 可选 Rerank)。两条召回轨道并行执行，
- * 按 ID 去重合并后在 Scorer 中融合排序。Agentic 路径 (LLM 钦定 ID)
- * 走 agenticSearch。
+ * 按 ID 去重合并后在 Scorer 中融合排序。
+ *
+ * (历史上有第三条 Agentic 路径 —— LLM 直接钦定事件 ID；其生产调用方在
+ * 早期重构中已移除，逻辑备份在 dev-docs/AgenticSearch/，需要时可复活。)
  */
 
 import { getSetting } from "@/config/settings.ts";
@@ -18,7 +20,6 @@ import type { RecallConfig } from "@/config/types/rag.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
 import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
-import type { AgenticRecall } from "@/config/types/rag.ts";
 import {
     keywordRetrieve,
     mergeAndRerank,
@@ -66,12 +67,12 @@ class Retriever {
      * 执行检索流程
      * @param userInput 用户原始输入
      * @param unifiedQueries 预处理生成的查询词（可选）
-     * @param options 额外配置 (skipContext, mode 等)
+     * @param options skipContext=true 时跳过历史回溯增强 (手动测试用)
      */
     async search(
         userInput: string,
         unifiedQueries?: string[],
-        options?: { skipContext?: boolean; mode?: string },
+        options?: { skipContext?: boolean },
     ): Promise<RetrievalResult> {
         Logger.debug(LogModule.RAG_INJECT, "Retriever.search 被调用", {
             input: userInput.substring(0, 20),
@@ -128,8 +129,9 @@ class Retriever {
             return this.rollingSearch(limit);
         }
 
-        // V1.4.4: 冷启动保护 —— 没有可召回对象时，不进入召回工作流
-        // 可召回对象定义：存在已向量化事件，或存在已归档条目（事件/实体）
+        // V1.4.4: 冷启动保护 —— 没有可召回对象时，不进入召回工作流。
+        // 可召回对象：已向量化事件 / 已归档事件 / 已归档实体。
+        // is_embedded 与 is_archived 自 schema v3 起即有索引，直接走索引查询。
         const chatId = getCurrentChatId();
         const db = chatId ? tryGetDbForChat(chatId) : null;
         if (db) {
@@ -139,11 +141,9 @@ class Retriever {
                     archivedEventCount,
                     archivedEntityCount,
                 ] = await Promise.all([
-                    db.events.filter((e) => Boolean(e.is_embedded)).limit(1)
-                        .count(),
-                    db.events.filter((e) => Boolean(e.is_archived)).limit(1)
-                        .count(),
-                    db.entities.filter((e) => Boolean(e.is_archived)).limit(1)
+                    db.events.where("is_embedded").equals(1).limit(1).count(),
+                    db.events.where("is_archived").equals(1).limit(1).count(),
+                    db.entities.where("is_archived").equals(1).limit(1)
                         .count(),
                 ]);
 
@@ -171,18 +171,14 @@ class Retriever {
             }
         }
 
-        // 向量检索或关键词检索
-        if (recallConfig.enabled || recallConfig.useKeywordRecall) {
-            return this.runRetrieval(
-                intentQuery,
-                unifiedQueries,
-                recallConfig,
-                scanQuery,
-            );
-        }
-
-        // 默认回退
-        return this.rollingSearch(recallConfig.embedding?.topK || 20);
+        // 到这里至少一个召回开关已开 (上面已 early-return 两开关皆关的情况)，
+        // 直接进入检索流水线。
+        return this.runRetrieval(
+            intentQuery,
+            unifiedQueries,
+            recallConfig,
+            scanQuery,
+        );
     }
 
     private async runRetrieval(
@@ -312,136 +308,6 @@ class Retriever {
             );
             return { entries: [], nodes: [] };
         }
-    }
-
-    /**
-     * Agentic RAG 直通检索
-     * 跳过 Embedding/Rerank，直接按 LLM 裁判给出的 ID 从数据库捣取事件
-     *
-     * @param recalls LLM 输出的召回决策列表
-     * @param options 额外配置 (mode, isManualTest 等)
-     * @returns 检索结果
-     */
-    async agenticSearch(
-        recalls: AgenticRecall[],
-        options?: { mode?: string; isManualTest?: boolean; scanQuery?: string },
-    ): Promise<RetrievalResult> {
-        const startTime = Date.now();
-        const chatId = getCurrentChatId();
-        if (!chatId) {
-            Logger.warn(LogModule.RAG_RETRIEVE, "Agentic Search: 无当前聊天");
-            return { entries: [], nodes: [] };
-        }
-
-        const db = tryGetDbForChat(chatId);
-        if (!db) {
-            Logger.warn(LogModule.RAG_RETRIEVE, "Agentic Search: 数据库不可用");
-            return { entries: [], nodes: [] };
-        }
-
-        const config = getSetting("apiSettings")?.recallConfig ||
-            DEFAULT_RECALL_CONFIG;
-
-        // 1. 按 ID 直接从数据库捣取事件
-        const ids = recalls.map((r) => r.id);
-        const events = await db.events.bulkGet(ids);
-        const validEvents = events.filter((e): e is EventNode => e != null);
-
-        if (validEvents.length === 0) {
-            Logger.warn(LogModule.RAG_RETRIEVE, "Agentic Search: 无有效事件", {
-                requestedIds: ids,
-            });
-            return { entries: [], nodes: [] };
-        }
-
-        Logger.info(LogModule.RAG_RETRIEVE, "Agentic Search: 数据库查询完成", {
-            found: validEvents.length,
-            requested: ids.length,
-        });
-
-        // 2. 构建 ScoredEvent（用 LLM 给的 score 填充双轨）
-        const validEventMap = new Map(validEvents.map((e) => [e.id, e]));
-        const candidates: ScoredEvent[] = recalls
-            .filter((r) => validEventMap.has(r.id))
-            .map((r) => ({
-                embeddingScore: r.score,
-                id: r.id,
-                rerankScore: r.score, // 双轨同分
-            }));
-
-        const finalNodes = validEvents;
-
-        // 3. 关键词扫描 (实体召回保底)
-        // Agentic 模式虽然跳过了事件的语义匹配，但不能丢掉实体的关键词扫描。
-        // 结果直接作为 recalledEntities 返回 (此前结果被 WorkflowEngine 丢弃)。
-        let recalledEntities: RecalledEntity[] = [];
-        if (config.useKeywordRecall) {
-            try {
-                const scanQuery = options?.scanQuery ||
-                    this.getRecentContext(5) || "";
-                const keyword = await keywordRetrieve(
-                    {
-                        scanQuery,
-                        // 用 LLM 给的召回理由作为额外意图信息
-                        unifiedQueries: recalls.map((r) => r.reason).filter(
-                            Boolean,
-                        ),
-                    },
-                    config,
-                );
-                recalledEntities = keyword.entities;
-            } catch (error) {
-                Logger.warn(
-                    LogModule.RAG_RETRIEVE,
-                    "Agentic 模式下的关键词扫描失败",
-                    error,
-                );
-            }
-        }
-
-        const totalTime = Date.now() - startTime;
-
-        // 4. 记录召回日志 (如果是手动测试确认，则跳过日志记录)
-        if (!options?.isManualTest) {
-            useRecallLogStore.getState().record({
-                mode: (options?.mode as any) || "agentic",
-                query: options?.mode === "hybrid"
-                    ? "[Hybrid Preview Mode]"
-                    : "[Agentic RAG]",
-                recalledEntities,
-                results: recalls
-                    .filter((r) => validEventMap.has(r.id))
-                    .map((r) => ({
-                        eventId: r.id,
-                        summary: validEventMap.get(r.id)!.summary,
-                        category:
-                            validEventMap.get(r.id)!.structured_kv?.event ||
-                            "unknown",
-                        embeddingScore: r.score, // 模型给出的分通常作为主分
-                        rerankScore: r.score, // 对于 Agentic，Rerank 分数默认等同于评估分
-                        hybridScore: r.score,
-                        isTopK: true,
-                        isReranked: true, // Agentic 模式下默认视为已重排 (LLM 钦定)
-                        reason: r.reason,
-                    })),
-                stats: {
-                    latencyMs: totalTime,
-                    rerankCount: 0,
-                    topKCount: validEvents.length,
-                    totalCandidates: recalls.length,
-                },
-            });
-        }
-
-        // 5. 返回结果
-        const entries = finalNodes.map((n) => n.summary);
-
-        Logger.info(LogModule.RAG_RETRIEVE, "Agentic Search 完成", {
-            resultCount: finalNodes.length,
-            totalTime,
-        });
-
-        return { candidates, entries, nodes: finalNodes, recalledEntities };
     }
 
     /**

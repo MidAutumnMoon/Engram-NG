@@ -1,14 +1,10 @@
 /**
- * Retrieval pipeline — the direct, typed successor to the old
- * `domain/workflow` step classes (`KeywordRetrieveStep` / `VectorRetrieveStep`
- * / `RerankMergeStep` / `RecordRecallLogStep`).
+ * Retrieval pipeline — typed stage functions for keyword + vector recall and
+ * rerank/merge. Each stage is a plain function with typed inputs and outputs;
+ * stages communicate via explicit return values instead of a stringly-typed
+ * context bag, so the contract between them is compile-checked.
  *
- * Each stage is a plain function with typed inputs and typed outputs. Stages
- * communicate via explicit return values instead of a stringly-typed
- * `context.data` bag, so the contract between them is compile-checked. This
- * mirrors the convention already established by `domain/memory/pipelines`.
- *
- * Behaviour preserved from the step classes:
+ * Behaviour:
  * - Keyword: composite scan text (history + intent + LLM queries), entity +
  *   archived-event guards, per-stream TopK, relation multi-hop (attenuation 0.8).
  * - Vector: embedding similarity, bounded TopK insert, char-safe truncation,
@@ -16,15 +12,18 @@
  * - Rerank/Merge: dedup-by-id, hard-limit, rerank-with-fallback.
  *
  * Entity recall is *resurrected* here: the keyword stage returns the multi-hop
- * entity results as shaped `RecalledEntity[]` (previously computed then
- * discarded as the dead `context.data.keywordEntityIds`), so the "已唤醒实体"
- * panel and recall log actually populate.
+ * entity results as shaped `RecalledEntity[]`, so the "已唤醒实体" panel and
+ * recall log actually populate.
  *
  * Fusion formula lives in `Scorer`: `max(embedding, keyword) + rerank`.
+ *
+ * Config source of truth: every stage takes a fully-resolved `RecallConfig` and
+ * trusts it — no stage re-reads global settings. The caller (`Retriever`) owns
+ * the single `getSetting("apiSettings").recallConfig` resolution.
  */
 
-import { getSetting } from "@/config/settings.ts";
 import type { RecallConfig } from "@/config/types/rag.ts";
+import { getSetting } from "@/config/settings.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { tryGetDbForChat } from "@/data/db.ts";
@@ -41,6 +40,7 @@ import {
     type RetryConfig,
     retryWithBackoff,
 } from "@/domain/memory/pipelines/shared.ts";
+import type { EntityNode, EventNode } from "@/data/types/graph.ts";
 
 // ============================================================================
 // Types
@@ -63,14 +63,14 @@ export interface RecalledEntity {
 export interface KeywordRetrieveInput {
     /** Intent track — the current user message. */
     query?: string;
-    /** Enhanced scan text (history-augmented). Falls back to chatHistory tail. */
+    /** Enhanced scan text (history-augmented, pre-merged by the caller). */
     scanQuery?: string;
     /** LLM-suggested expert terms (boost). */
     unifiedQueries?: string[];
 }
 
 export interface KeywordRetrieveResult {
-    /** Keyword-hit events as ScoredEvent (keywordScore 0.8). */
+    /** Keyword-hit events as ScoredEvent (keywordScore = KEYWORD_HIT_SCORE). */
     events: ScoredEvent[];
     /** Keyword + multi-hop entities, shaped for recall display/injection. */
     entities: RecalledEntity[];
@@ -105,6 +105,27 @@ export interface MergeAndRerankResult {
     reranked: boolean;
     rerankTime: number;
 }
+
+// ============================================================================
+// Tuning constants
+// ============================================================================
+
+/** Score assigned to keyword-hit events. High base so they survive rerank/trim. */
+const KEYWORD_HIT_SCORE = 0.8;
+/** Score assigned to directly-matched entities (first hop). */
+const DIRECT_ENTITY_SCORE = 0.9;
+/** Second-hop score attenuation: hopScore = seedScore × this. */
+const HOP_ATTENUATION = 0.8;
+/** Default entity TopK when config.keywordTopK.entities is unset. */
+const DEFAULT_ENTITY_TOPK = 30;
+/** Default vector TopK when config.embedding.topK is unset. */
+const DEFAULT_VECTOR_TOPK = 20;
+/** Default vector similarity threshold when config.embedding.minScoreThreshold is unset. */
+const DEFAULT_VECTOR_THRESHOLD = 0.3;
+/** Char cap for the vector query when falling back to raw user input. */
+const QUERY_MAX_CHARS_FALLBACK = 300;
+/** Char cap for the vector query when a preprocessed query is available. */
+const QUERY_MAX_CHARS_PREPROCESSED = 500;
 
 // ============================================================================
 // Shared helpers
@@ -148,22 +169,14 @@ function getRetryConfig(source: "vector" | "rerank"): RetryConfig {
 
 /**
  * Cheap existence check: is there at least one archived event? Used to skip
- * the event-scan pass entirely when there's nothing to match. Returns true on
- * error (fail-open) so a flaky index doesn't silently disable event recall.
+ * the event-scan pass entirely when there's nothing to match. The `is_archived`
+ * index has existed since DB schema v3, so this is a direct indexed lookup.
+ * Returns true on error (fail-open) so a flaky query doesn't disable event recall.
  */
-async function hasAnyArchivedEvents(db: any): Promise<boolean> {
+async function hasAnyArchivedEvents(db: NonNullable<ReturnType<typeof tryGetDbForChat>>): Promise<boolean> {
     try {
-        const indexed: any = (db.events as any).where?.("is_archived").equals(
-            1,
-        );
-        if (indexed) {
-            const count = await indexed.limit(1).count();
-            return count > 0;
-        }
-        // Fallback for environments without the boolean index (DataError).
-        const count = await db.events.toCollection().filter((e: any) =>
-            Boolean(e.is_archived)
-        ).limit(1).count();
+        const count = await db.events.where("is_archived").equals(1).limit(1)
+            .count();
         return count > 0;
     } catch (error) {
         Logger.warn(
@@ -175,8 +188,57 @@ async function hasAnyArchivedEvents(db: any): Promise<boolean> {
     }
 }
 
+/**
+ * Relation multi-hop expansion: from each seed entity, walk its declared
+ * relations (`profile.relations`, keyed by target entity name — see
+ * `entity_extraction.yaml`) one hop out, scoring each reached entity by the
+ * seed score attenuated by `HOP_ATTENUATION`. Higher scores win.
+ *
+ * @returns id -> accumulated score, including the seeds themselves.
+ */
+function expandMultiHop(
+    seeds: EntityNode[],
+    aliasIndex: Map<string, EntityNode>,
+): Map<string, number> {
+    const scores = new Map<string, number>();
+
+    // 第一跳：直接命中的种子实体。
+    for (const entity of seeds) {
+        scores.set(entity.id, DIRECT_ENTITY_SCORE);
+    }
+
+    // 第二跳：沿声明的关系外扩，分数衰减。
+    for (const seedEntity of seeds) {
+        const relations = seedEntity.profile?.relations as
+            | Record<string, unknown>
+            | undefined;
+        if (!relations) continue;
+
+        const seedScore = scores.get(seedEntity.id) || 0;
+        const hopScore = seedScore * HOP_ATTENUATION;
+
+        for (const targetName of Object.keys(relations)) {
+            const targetEntity = aliasIndex.get(targetName.toLowerCase());
+            if (!targetEntity) continue;
+
+            const currentScore = scores.get(targetEntity.id) || 0;
+            if (hopScore > currentScore) {
+                scores.set(targetEntity.id, hopScore);
+                Logger.debug(
+                    LogModule.RAG_INJECT,
+                    `[多跳联想] 由 ${seedEntity.name} 联想到了 ${targetEntity.name} (${
+                        hopScore.toFixed(2)
+                    })`,
+                );
+            }
+        }
+    }
+
+    return scores;
+}
+
 // ============================================================================
-// Stage 1: keyword retrieve (port of KeywordRetrieveStep)
+// Stage 1: keyword retrieve
 // ============================================================================
 
 export async function keywordRetrieve(
@@ -189,16 +251,8 @@ export async function keywordRetrieve(
 
     // V1.4.15: 综合扫描方案 - 始终包含基础上下文，叠加 LLM 查询词
     const scanParts: string[] = [];
-
-    // 1. 基础历史背景 (由调用方在 scanQuery 中预合并)
-    if (scanQuery) {
-        scanParts.push(scanQuery);
-    }
-
-    // 2. 当前意图和原文
+    if (scanQuery) scanParts.push(scanQuery);
     if (query) scanParts.push(query);
-
-    // 3. LLM 建议的专家词 (增益)
     if (unifiedQueries && unifiedQueries.length > 0) {
         scanParts.push(...unifiedQueries);
     }
@@ -226,23 +280,20 @@ export async function keywordRetrieve(
     const db = tryGetDbForChat(chatId);
     if (!db) return empty;
 
-    const apiSettings = getSetting("apiSettings");
-    const recallConfig = apiSettings?.recallConfig ?? config;
-
-    const eventTopK = effectiveEventTopK(recallConfig);
-    const entityTopK = recallConfig.keywordTopK?.entities ?? 30;
+    const eventTopK = effectiveEventTopK(config);
+    const entityTopK = config.keywordTopK?.entities ?? DEFAULT_ENTITY_TOPK;
 
     // 一次性拉取实体并构建查找索引：id -> 节点、(name|alias 小写) -> 节点。
     // 复用给命中过滤、多跳联想和最终的 RecalledEntity 整形。
     const allEntities = await db.entities.toArray();
-    const entityById = new Map<string, any>(allEntities.map((e) => [e.id, e]));
-    const entityByName = new Map<string, any>();
+    const entityById = new Map<string, EntityNode>(
+        allEntities.map((e) => [e.id, e]),
+    );
+    const entityByName = new Map<string, EntityNode>();
     for (const e of allEntities) {
         entityByName.set(e.name.toLowerCase(), e);
-        if (Array.isArray(e.aliases)) {
-            for (const alias of e.aliases) {
-                entityByName.set(alias.toLowerCase(), e);
-            }
+        for (const alias of e.aliases ?? []) {
+            entityByName.set(alias.toLowerCase(), e);
         }
     }
 
@@ -250,17 +301,16 @@ export async function keywordRetrieve(
         LogModule.RAG_INJECT,
         `准备扫描。实体索引总量: ${allEntities.length}`,
     );
-
     Logger.debug(
         LogModule.RAG_INJECT,
         `扫描文本预览: ${textToScan.slice(0, 50)}...`,
     );
 
     // --- 实体扫描 (P0 Fix: 即使无事件也执行) ---
-    let hitEntities: any[] = [];
-    const hitEvents: any[] = [];
+    let hitEntities: EntityNode[] = [];
+    const hitEvents: EventNode[] = [];
 
-    if (recallConfig.enableEntityKeyword !== false) {
+    if (config.enableEntityKeyword !== false) {
         const matchedIndex = scanEntities(textToScan, allEntities)
             .slice(0, entityTopK);
 
@@ -281,12 +331,12 @@ export async function keywordRetrieve(
 
     // --- 事件扫描：仅在配置开启且有归档事件时进行 (P0 Fix: 守卫下沉) ---
     if (
-        recallConfig.useKeywordRecall !== false &&
-        recallConfig.enableEventKeyword !== false
+        config.useKeywordRecall !== false &&
+        config.enableEventKeyword !== false
     ) {
         if (await hasAnyArchivedEvents(db)) {
             const scannedCount = { archived: 0, matched: 0, total: 0 };
-            await db.events.toCollection().each((event: any) => {
+            await db.events.toCollection().each((event) => {
                 scannedCount.total += 1;
 
                 if (!event.is_archived) {
@@ -331,48 +381,12 @@ export async function keywordRetrieve(
         id: event.id,
         summary: event.summary,
         // 关键词命中的基础分较高，确保在后续 Rerank 或截断时能占优
-        keywordScore: 0.8,
+        keywordScore: KEYWORD_HIT_SCORE,
         node: event,
     }));
 
     // --- 实体关系多跳 (Relation Multi-Hop)，输出为 RecalledEntity ---
-    const entityScoreMap = new Map<string, number>(); // id -> score
-
-    // 初始命中实体 (第一跳)
-    for (const entity of hitEntities) {
-        entityScoreMap.set(entity.id, 0.9); // 直接命中最高分
-    }
-
-    // 关系多跳 (第二跳)，衰减系数 0.8
-    const hopAttenuation = 0.8;
-
-    for (const seedEntity of hitEntities) {
-        const relations = seedEntity.profile?.relations as
-            | Record<string, any>
-            | undefined;
-        if (!relations) continue;
-
-        const seedScore = entityScoreMap.get(seedEntity.id) || 0;
-        const hopScore = seedScore * hopAttenuation;
-
-        // 遍历声明的所有关联网
-        for (const targetName of Object.keys(relations)) {
-            const targetEntity = entityByName.get(targetName.toLowerCase());
-
-            if (targetEntity) {
-                const currentScore = entityScoreMap.get(targetEntity.id) || 0;
-                if (hopScore > currentScore) {
-                    entityScoreMap.set(targetEntity.id, hopScore);
-                    Logger.debug(
-                        LogModule.RAG_INJECT,
-                        `[多跳联想] 由 ${seedEntity.name} 联想到了 ${targetEntity.name} (${
-                            hopScore.toFixed(2)
-                        })`,
-                    );
-                }
-            }
-        }
-    }
+    const entityScoreMap = expandMultiHop(hitEntities, entityByName);
 
     // 把 entity id + score 映射回实体节点，整形为 RecalledEntity。
     const entities: RecalledEntity[] = [...entityScoreMap.entries()]
@@ -400,7 +414,7 @@ export async function keywordRetrieve(
 }
 
 // ============================================================================
-// Stage 2: vector retrieve (port of VectorRetrieveStep)
+// Stage 2: vector retrieve
 // ============================================================================
 
 export async function vectorRetrieve(
@@ -424,10 +438,12 @@ export async function vectorRetrieve(
     const db = tryGetDbForChat(chatId);
     if (!db) return { candidates: [], retrieveTime: 0 };
 
-    const threshold = config.embedding?.minScoreThreshold ?? 0.3;
-    const topK = config.embedding?.topK || 20;
+    const threshold = config.embedding?.minScoreThreshold ??
+        DEFAULT_VECTOR_THRESHOLD;
+    const topK = config.embedding?.topK || DEFAULT_VECTOR_TOPK;
 
-    // V1.4.1 Fix: 在嵌入前配置 Embedding 服务，防止 "config not set" 错误
+    // V1.4.1 Fix: 在嵌入前配置 Embedding 服务，防止 "config not set" 错误。
+    // vectorConfig 不在 RecallConfig 内 (它在 apiSettings 顶层)，这里必须读全局。
     const vectorConfig = getSetting("apiSettings")?.vectorConfig;
     if (!vectorConfig) {
         Logger.warn(
@@ -445,12 +461,15 @@ export async function vectorRetrieve(
     const rawQuery = !isFallbackFromChat ? unifiedQueries![0] : (query || "");
 
     // P2 Fix: 使用字符级安全的截断方式，防止 Emoji/多字节字符截断损坏
-    const maxLength = isFallbackFromChat ? 300 : 500;
-    const searchQuery = [...rawQuery].length > maxLength
-        ? [...rawQuery].slice(0, maxLength).join("") + "..."
+    const maxLength = isFallbackFromChat
+        ? QUERY_MAX_CHARS_FALLBACK
+        : QUERY_MAX_CHARS_PREPROCESSED;
+    const rawChars = [...rawQuery];
+    const searchQuery = rawChars.length > maxLength
+        ? rawChars.slice(0, maxLength).join("") + "..."
         : rawQuery;
 
-    if ([...rawQuery].length > maxLength) {
+    if (rawChars.length > maxLength) {
         Logger.debug(
             LogModule.RAG_RETRIEVE,
             `vectorRetrieve: 查询过长，已裁剪至 ${maxLength} 字符`,
@@ -483,7 +502,7 @@ export async function vectorRetrieve(
     let embeddedEvents = 0;
     let matchedEvents = 0;
 
-    await db.events.toCollection().each((event: any) => {
+    await db.events.toCollection().each((event) => {
         scannedEvents += 1;
 
         if (!event.embedding || event.embedding.length === 0) {
@@ -540,7 +559,7 @@ export async function vectorRetrieve(
 }
 
 // ============================================================================
-// Stage 3: merge + rerank (port of RerankMergeStep)
+// Stage 3: merge + rerank
 // ============================================================================
 
 export async function mergeAndRerank(
@@ -561,9 +580,9 @@ export async function mergeAndRerank(
 
     // 合并向量候选，记录 embeddingScore
     for (const candidate of vectorCandidates) {
-        if (candidateMap.has(candidate.id)) {
+        const existing = candidateMap.get(candidate.id);
+        if (existing) {
             // 如果已存在（被关键词命中），补充 embeddingScore
-            const existing = candidateMap.get(candidate.id)!;
             existing.embeddingScore = candidate.embeddingScore;
         } else {
             candidateMap.set(candidate.id, candidate);
@@ -588,9 +607,11 @@ export async function mergeAndRerank(
     // P1 Fix: 二次 hard-limit，避免 KeywordRetrieve 的候选爆炸穿透到后续
     const hardLimit = effectiveEventTopK(config);
     const limitedCandidates = candidates.slice(0, Math.max(1, hardLimit));
+    const limitedById = new Map(limitedCandidates.map((c) => [c.id, c]));
 
-    // 在重试机制介入前，预先设置好降级候选列表，以防多次尝试彻底失败后继续使用空结果
-    let finalCandidates = scoreAndSort(limitedCandidates);
+    // 在重试机制介入前，预先设置好降级候选列表，以防多次尝试彻底失败后继续使用空结果。
+    // limitedById 被 scoreAndSort 与 mergeResults 共用——后者会就地写入 rerankScore。
+    let finalCandidates = scoreAndSort([...limitedById.values()]);
     let rerankTime = 0;
     let reranked = false;
 
@@ -609,7 +630,7 @@ export async function mergeAndRerank(
             rerankTime = Date.now() - rerankStart;
 
             finalCandidates = mergeResults(
-                new Map(limitedCandidates.map((c) => [c.id, c])),
+                limitedById,
                 rerankResults,
                 limitedCandidates,
             );
