@@ -401,7 +401,8 @@ export interface BuildPromptInput {
     userInput?: string;
     /**
      * Names of entities hit by keyword recall, joined for the {{hitEntities}} macro.
-     * Mirrors the `context.data?.keywordEntityIds` reach-through in BuildPrompt.
+     * Populated by the caller from `keywordRetrieve(...).entities` (see
+     * `domain/rag/retrieval/pipeline.ts`).
      */
     hitEntities?: string;
     /** Target-summaries text (trim pipeline: the events being trimmed). */

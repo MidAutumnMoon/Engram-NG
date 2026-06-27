@@ -24,17 +24,22 @@ import type { EventNode } from "@/data/types/graph.ts";
 import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
 import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
 import type { AgenticRecall } from "@/config/types/rag.ts";
-import { WorkflowEngine } from "@/domain/workflow/core/WorkflowEngine.ts";
-import { KeywordRetrieveStep } from "@/domain/workflow/steps/rag/KeywordRetrieveStep.ts";
-import { createRetrievalWorkflow } from "@/domain/workflow/definitions/RetrievalWorkflow.ts";
+import {
+    keywordRetrieve,
+    mergeAndRerank,
+    vectorRetrieve,
+    type RecalledEntity,
+} from "@/domain/rag/retrieval/pipeline.ts";
+import type { ScoredEvent } from "@/domain/rag/retrieval/HybridScorer.ts";
+import { WorldInfoService } from "@/domain/worldbook/index.ts";
 
 // ==================== 类型定义 ====================
 
 export interface RetrievalResult {
     entries: string[]; // Formatted entries ready for injection
     nodes: EventNode[]; // Raw nodes
-    candidates?: any[]; // V1.4: 曝露带分数的候选列表供前端装配
-    recalledEntities?: any[]; // V1.4: 曝露被召回的实体
+    candidates?: ScoredEvent[]; // V1.4: 曝露带分数的候选列表供前端装配
+    recalledEntities?: RecalledEntity[]; // V1.4: 曝露被召回的实体
     skippedReason?: string; // V1.4.4: 召回短路原因（如无可召回对象）
 }
 
@@ -226,41 +231,112 @@ class Retriever {
         const startTime = Date.now();
         Logger.debug(
             LogModule.RAG_INJECT,
-            "--- 进入 Hybrid Search 工作流 ---",
+            "--- 进入 Hybrid Search 检索流水线 ---",
             {
                 scanQueryLen: scanQuery?.length,
             },
         );
 
         try {
-            const context = await WorkflowEngine.run(
-                createRetrievalWorkflow(),
+            // Stage 1: keyword (entity + event). Entities are resurrected here —
+            // previously the multi-hop result was written to context.data and
+            // dropped. Now it flows straight into the returned RetrievalResult.
+            const keyword = await keywordRetrieve(
                 {
-                    data: {
-                        recallConfig: config,
-                        vectorRetrieveStartTime: startTime,
-                    },
-                    input: {
-                        query: userInput,
-                        scanQuery: scanQuery || userInput, // 供 KeywordRetrieveStep 使用
-                        unifiedQueries,
-                        mode: "hybrid",
-                    },
+                    query: userInput,
+                    scanQuery: scanQuery || userInput,
+                    unifiedQueries,
                 },
+                config,
             );
 
-            Logger.info(LogModule.RAG_INJECT, "Hybrid Search 工作流执行完毕", {
-                candidateCount: context.data?.candidates?.length || 0,
-                entityCount: context.data?.recalledEntities?.length || 0,
-                steps: context.metadata.stepsExecuted,
+            // Stage 2: vector.
+            let vector = { candidates: [] as ScoredEvent[], retrieveTime: 0 };
+            try {
+                vector = await vectorRetrieve(
+                    { query: userInput, unifiedQueries },
+                    config,
+                );
+            } catch (error: any) {
+                Logger.warn(
+                    LogModule.RAG_INJECT,
+                    "向量检索阶段失败，仅使用关键词结果",
+                    { error: error.message },
+                );
+            }
+
+            // Stage 3: merge + optional rerank.
+            const merged = await mergeAndRerank(
+                keyword.events,
+                vector.candidates,
+                config,
+                { query: userInput, unifiedQueries },
+            );
+
+            const candidates = merged.candidates;
+            const recalledEntities = keyword.entities;
+
+            // Assemble result.
+            const nodes = candidates
+                .filter((c) => c.node)
+                .map((c) => c.node!);
+            const entries = candidates.map((c) => c.summary);
+
+            const totalTime = Date.now() - startTime;
+
+            // Record recall log (replaces RecordRecallLogStep).
+            let worldbookEntriesCount = 0;
+            try {
+                const worldInfoText = await WorldInfoService
+                    .getActivatedWorldInfo();
+                worldbookEntriesCount = worldInfoText
+                    ? worldInfoText.split("\n\n").length
+                    : 0;
+            } catch {
+                Logger.debug(LogModule.RAG_INJECT, "获取世界书条目统计失败");
+            }
+
+            useRecallLogStore.getState().record({
+                mode: "hybrid",
+                preprocessedQuery: unifiedQueries?.[0],
+                query: userInput,
+                recalledEntities,
+                results: candidates.map((c) => ({
+                    eventId: c.id,
+                    summary: c.summary,
+                    category: c.node?.structured_kv?.event || "unknown",
+                    embeddingScore: c.embeddingScore || 0,
+                    keywordScore: c.keywordScore,
+                    rerankScore: c.rerankScore,
+                    hybridScore: c.hybridScore,
+                    isTopK: true,
+                    isReranked: c.rerankScore != null,
+                    sourceFloor: c.node?.source_range?.start_index,
+                })),
+                stats: {
+                    latencyMs: totalTime,
+                    rerankCount: candidates.length,
+                    topKCount: candidates.length,
+                    totalCandidates: merged.originalCandidateCount ||
+                        candidates.length,
+                },
             });
 
-            return context.output as RetrievalResult ||
-                { entries: [], nodes: [] };
+            Logger.info(LogModule.RAG_INJECT, "Hybrid Search 检索完成", {
+                candidateCount: candidates.length,
+                entityCount: recalledEntities.length,
+                isEmbedding: config.useEmbedding,
+                isRerank: config.useRerank,
+                reranked: merged.reranked,
+                totalTime: `${totalTime}ms`,
+                worldbook: worldbookEntriesCount,
+            });
+
+            return { candidates, entries, nodes, recalledEntities };
         } catch (error: any) {
             Logger.error(
                 LogModule.RAG_INJECT,
-                "Hybrid Search 工作流遭遇毁灭性失败",
+                "Hybrid Search 检索遭遇毁灭性失败",
                 {
                     error: error.message,
                     stack: error.stack,
@@ -295,6 +371,9 @@ class Retriever {
             return { entries: [], nodes: [] };
         }
 
+        const config = getSetting("apiSettings")?.recallConfig ||
+            DEFAULT_RECALL_CONFIG;
+
         // 1. 按 ID 直接从数据库捣取事件
         const ids = recalls.map((r) => r.id);
         const events = await db.events.bulkGet(ids);
@@ -312,41 +391,37 @@ class Retriever {
             requested: ids.length,
         });
 
-        // 2. 构建 RecallCandidate（用 LLM 给的 score 填充双轨）
+        // 2. 构建 ScoredEvent（用 LLM 给的 score 填充双轨）
         const validEventMap = new Map(validEvents.map((e) => [e.id, e]));
-        const candidates: RecallCandidate[] = recalls
+        const candidates: ScoredEvent[] = recalls
             .filter((r) => validEventMap.has(r.id))
             .map((r) => ({
                 embeddingScore: r.score,
                 id: r.id,
-                label: validEventMap.get(r.id)!.structured_kv?.event || r.id,
-                rerankScore: r.score, // 双轨同分，让 BrainRecallCache 的门控逻辑正常工作
+                rerankScore: r.score, // 双轨同分
             }));
 
-        // REFERENCE: BrainRecallCache step removed from hot path.
-        // The algorithm is kept in BrainRecallCache.ts for future review.
-        let finalNodes = validEvents;
+        const finalNodes = validEvents;
 
-        // 4. 并行执行关键词扫描 (实体召回保底)
-        // Agentic 模式虽然跳过了事件的语义匹配，但不能丢掉实体的关键词扫描
-        if (recallConfig.useKeywordRecall) {
+        // 3. 关键词扫描 (实体召回保底)
+        // Agentic 模式虽然跳过了事件的语义匹配，但不能丢掉实体的关键词扫描。
+        // 结果直接作为 recalledEntities 返回 (此前结果被 WorkflowEngine 丢弃)。
+        let recalledEntities: RecalledEntity[] = [];
+        if (config.useKeywordRecall) {
             try {
-                // 确保有扫描背景
                 const scanQuery = options?.scanQuery ||
                     this.getRecentContext(5) || "";
-
-                const _keywordContext = await WorkflowEngine.run({
-                    name: "AgenticKeywordScan",
-                    steps: [new KeywordRetrieveStep()],
-                }, {
-                    input: {
+                const keyword = await keywordRetrieve(
+                    {
                         scanQuery,
-                        // 为 KeywordRetrieveStep 提供额外的意图信息（如有）
+                        // 用 LLM 给的召回理由作为额外意图信息
                         unifiedQueries: recalls.map((r) => r.reason).filter(
                             Boolean,
-                        ) as string[],
+                        ),
                     },
-                });
+                    config,
+                );
+                recalledEntities = keyword.entities;
             } catch (error) {
                 Logger.warn(
                     LogModule.RAG_RETRIEVE,
@@ -365,6 +440,7 @@ class Retriever {
                 query: options?.mode === "hybrid"
                     ? "[Hybrid Preview Mode]"
                     : "[Agentic RAG]",
+                recalledEntities,
                 results: recalls
                     .filter((r) => validEventMap.has(r.id))
                     .map((r) => ({
@@ -397,7 +473,7 @@ class Retriever {
             totalTime,
         });
 
-        return { candidates, entries, nodes: finalNodes };
+        return { candidates, entries, nodes: finalNodes, recalledEntities };
     }
 
     /**

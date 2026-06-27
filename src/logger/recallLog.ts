@@ -2,7 +2,7 @@
  * RecallLog - RAG 召回日志的全局状态。
  *
  * 取代此前将 RecallLogEntry 塞入 Logger.LogEntry.data（: unknown）再过滤/转回的
- * 间接通信。Producer（Retriever、RecordRecallLogStep）通过 record 推入；
+ * 间接通信。Producer（Retriever）通过 record 推入；
  * Consumer（RecallLog.tsx）订阅 entries 渲染。
  */
 

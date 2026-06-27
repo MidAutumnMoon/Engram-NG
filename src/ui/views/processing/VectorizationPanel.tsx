@@ -8,7 +8,7 @@
  * - 进度显示
  */
 import type { EmbeddingConfig, VectorConfig } from "@/config/types/rag.ts";
-import { embeddingService } from "@/domain/rag/index.ts";
+import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
 import {
     NumberField,
     SelectField,

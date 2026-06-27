@@ -15,16 +15,16 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import { refreshCache } from "@/domain/macros/index.ts";
-import { embeddingService } from "@/domain/rag/index.ts";
+import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { notify } from "@/sillytavern/notify.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
 import {
     buildPrompt,
+    type CancelSignal,
     cleanRegex,
     runLlm,
     stopGeneration,
-    type CancelSignal,
 } from "./shared.ts";
 
 export interface TrimRunConfig {
@@ -169,9 +169,7 @@ Significance: ${e.significance_score}`;
                 ...eventsToMerge.map((e) => e.source_range?.end_index ?? 0),
             ),
             start_index: Math.min(
-                ...eventsToMerge.map((e) =>
-                    e.source_range?.start_index ?? 0
-                ),
+                ...eventsToMerge.map((e) => e.source_range?.start_index ?? 0),
             ),
         },
     });

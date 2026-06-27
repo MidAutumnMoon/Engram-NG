@@ -93,7 +93,7 @@ export const recallConfigSchema = z.object({
 
     /**
      * P1 Fix: 关键词召回硬上限 (Hard TopK)
-     * - 防止 KeywordRetrieveStep 候选爆炸
+     * - 防止关键词召回候选爆炸
      */
     keywordTopK: z.object({
         /** 关键词命中的事件上限 */

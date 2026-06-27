@@ -3,9 +3,9 @@
  *
  * 提供可配置的正则规则，用于清洗聊天内容和 LLM 输出。
  *
- * 注意：本模块刻意不依赖 workflow core（Step/JobContext/WorkflowEngine）——
- * 它是一个通用的文本清洗工具，被 macros / Adapter / regex UI / 各 pipeline 共用。
- * 放在 `domain/regex/` 而非 `domain/workflow/steps/` 下，正是为了和 workflow 解耦。
+ * 注意：本模块刻意保持无依赖、纯函数化——它是一个通用的文本清洗工具，
+ * 被 macros / Adapter / regex UI / 各 pipeline 共用。
+ * 放在 `domain/regex/` 下，与检索/摄取 pipeline 解耦。
  */
 
 import { Logger } from "@/logger/Logger.ts";
