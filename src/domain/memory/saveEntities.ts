@@ -20,6 +20,7 @@ import {
 } from "@/domain/memory/fieldHistory.ts";
 import { profileToYaml } from "@/domain/memory/entityFormat.ts";
 import { stringCandidates } from "@/domain/memory/entityResolve.ts";
+import { refreshEngramCache } from "@/domain/macros/index.ts";
 import * as jsonpatch from "fast-json-patch";
 import { z } from "zod";
 
@@ -192,6 +193,21 @@ export async function saveEntities(
         LogModule.WF_SAVE_ENTITY,
         `完成: 新增 ${newEntities.length}, 更新 ${updatedEntities.length} (DryRun: ${isDryRun})`,
     );
+
+    // 刷新宏缓存，让 {{engramEntityStates}} 反映刚写入的实体。
+    // 仅在真实保存（非 dryRun）后刷新——dryRun 不写库，刷新会与随后的 real-save 竞争。
+    // 与 saveSummaryEvents 末尾的 refreshEngramCache() 对称，避免实体状态注入滞后。
+    if (!isDryRun) {
+        try {
+            await refreshEngramCache();
+        } catch (e) {
+            Logger.warn(
+                LogModule.WF_SAVE_ENTITY,
+                "保存后刷新宏缓存失败（实体状态注入可能滞后）",
+                e,
+            );
+        }
+    }
 
     return { newEntities, updatedEntities };
 }
