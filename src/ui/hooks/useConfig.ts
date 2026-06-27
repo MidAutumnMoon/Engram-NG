@@ -9,6 +9,7 @@
 import type {
     EntityExtractConfig,
     GlobalRegexConfig,
+    TrimConfig,
 } from "@/config/types/memory.ts";
 import type { IngestionConfig } from "@/config/types/ingestion.ts";
 import type {
@@ -26,6 +27,7 @@ export interface UseConfigReturn {
     regexConfig: GlobalRegexConfig;
     entityExtractConfig: EntityExtractConfig;
     ingestionConfig: IngestionConfig;
+    trimConfig?: TrimConfig;
     embeddingConfig: EmbeddingConfig;
 
     updateVectorConfig: (config: VectorConfig) => void;
@@ -34,6 +36,7 @@ export interface UseConfigReturn {
     updateRegexConfig: (config: GlobalRegexConfig) => void;
     updateEntityExtractConfig: (config: EntityExtractConfig) => void;
     updateIngestionConfig: (config: IngestionConfig) => void;
+    updateTrimConfig: (config: TrimConfig) => void;
     updateEmbeddingConfig: (config: EmbeddingConfig) => void;
 
     // Batch update interface (New Feature)
@@ -60,6 +63,7 @@ export function useConfig(): UseConfigReturn {
         entityExtractConfig: store.entityExtractConfig,
         hasChanges: store.hasChanges,
         ingestionConfig: store.ingestionConfig,
+        trimConfig: store.trimConfig,
         recallConfig: store.recallConfig,
         regexConfig: store.regexConfig,
 
@@ -68,6 +72,7 @@ export function useConfig(): UseConfigReturn {
         updateEmbeddingConfig: store.updateEmbeddingConfig,
         updateEntityExtractConfig: store.updateEntityExtractConfig,
         updateIngestionConfig: store.updateIngestionConfig,
+        updateTrimConfig: store.updateTrimConfig,
 
         updateMultipleConfigs: store.updateMultipleConfigs,
 

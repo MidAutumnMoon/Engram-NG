@@ -7,6 +7,7 @@ import {
 import type {
     EntityExtractConfig,
     GlobalRegexConfig,
+    TrimConfig,
 } from "@/config/types/memory.ts";
 import {
     DEFAULT_INGESTION_CONFIG,
@@ -37,6 +38,7 @@ const debouncedSave = (state: ConfigState) => {
             recallConfig: state.recallConfig,
             regexConfig: state.regexConfig,
             rerankConfig: state.rerankConfig,
+            trimConfig: state.trimConfig,
             vectorConfig: state.vectorConfig,
         };
 
@@ -57,6 +59,8 @@ export interface ConfigState {
     entityExtractConfig: EntityExtractConfig;
     /** V2.1: 统一摄取配置（summary+entity 共享）。新代码读这个。 */
     ingestionConfig: IngestionConfig;
+    /** V2.3: 精简配置（事件压缩），独立于摄取但由摄取联动触发 */
+    trimConfig?: TrimConfig;
     embeddingConfig: EmbeddingConfig;
 
     // UI & Settings
@@ -81,6 +85,7 @@ export interface ConfigState {
     updateEntityExtractConfig: (config: EntityExtractConfig) => void;
     /** V2.1: unified ingestion config (summary + entity shared knobs) */
     updateIngestionConfig: (config: IngestionConfig) => void;
+    updateTrimConfig: (config: TrimConfig) => void;
     updateEmbeddingConfig: (config: EmbeddingConfig) => void;
 
     // Batch update to reduce re-renders
@@ -107,6 +112,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         },
     ingestionConfig: savedContext.ingestionConfig || defaults.ingestionConfig ||
         { ...DEFAULT_INGESTION_CONFIG },
+    trimConfig: savedContext.trimConfig,
     globalPreviewEnabled: globalSettings.globalPreviewEnabled ?? true,
 
     hasChanges: false,
@@ -144,6 +150,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         set({ entityExtractConfig: config, hasChanges: true }),
     updateIngestionConfig: (config) =>
         set({ ingestionConfig: config, hasChanges: true }),
+    updateTrimConfig: (config) => set({ trimConfig: config, hasChanges: true }),
 
     updateMultipleConfigs: (updates) => set({ ...updates, hasChanges: true }),
 

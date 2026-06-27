@@ -8,7 +8,6 @@ import React, { useState } from "react";
 import {
     BookOpen,
     Database,
-    FileText,
     Save,
     ScrollText,
     Search,
@@ -86,11 +85,13 @@ export const ProcessingView: React.FC<ProcessingViewProps> = (
         recallConfig,
         rerankConfig,
         ingestionConfig,
+        trimConfig,
         embeddingConfig,
         vectorConfig,
         updateRecallConfig,
         updateRerankConfig,
         updateIngestionConfig,
+        updateTrimConfig,
         updateEmbeddingConfig,
         saveConfig,
         hasChanges: configHasChanges,
@@ -140,6 +141,8 @@ export const ProcessingView: React.FC<ProcessingViewProps> = (
                     <IngestionPanel
                         config={ingestionConfig}
                         onChange={updateIngestionConfig}
+                        trimConfig={trimConfig}
+                        onTrimConfigChange={updateTrimConfig}
                     />
                 )}
 

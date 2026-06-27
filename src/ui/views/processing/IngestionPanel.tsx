@@ -2,26 +2,25 @@
  * IngestionPanel — 统一摄取配置面板。
  *
  * V2.1: 合并原 SummaryPanel + EntityConfigPanel 的配置部分。
- * summary 与 entity 共享触发/游标/预览/间隔，因此这些旋钮在此统一编辑；
- * 各阶段独有的设置（summary.autoHide, entity.autoArchive/archiveLimit）
- * 作为分段子项保留。
- *
- * V2.2: 新增「重新总结 / 补充提取」重跑按钮，用于 LLM 漏抓时重跑上一轮 pass。
- *
- * 精简 (trim) 配置不在本面板——它是总结后的二次压缩，独立配置。
+ * V2.2: 新增「重新总结 / 补充提取」重跑按钮。
+ * V2.3: 新增精简 (trim) 配置段——总结后的二次压缩，由摄取联动触发。
  */
 import type { IngestionConfig } from "@/config/types/ingestion.ts";
+import type { TrimConfig, TrimTriggerType } from "@/config/types/memory.ts";
 import { ingestionService } from "@/domain/memory/IngestionService.ts";
+import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
 import { chatManager } from "@/data/ChatManager.ts";
 import { SliderField } from "@/ui/components/form/SliderField.tsx";
 import { SwitchField } from "@/ui/components/form/FormComponents.tsx";
 import { Divider } from "@/ui/components/layout/Divider.tsx";
-import { Brain, RotateCcw, Sparkles, RefreshCw } from "lucide-react";
+import { Brain, RotateCcw, Scissors, Sparkles, RefreshCw } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 
 interface IngestionPanelProps {
     config: IngestionConfig;
     onChange: (config: IngestionConfig) => void;
+    trimConfig?: TrimConfig;
+    onTrimConfigChange?: (config: TrimConfig) => void;
 }
 
 interface LastPassStatus {
@@ -30,7 +29,7 @@ interface LastPassStatus {
 }
 
 export const IngestionPanel: React.FC<IngestionPanelProps> = (
-    { config, onChange },
+    { config, onChange, trimConfig, onTrimConfigChange },
 ) => {
     // --- 上一轮 pass 元信息（用于重跑按钮的启用态 + 范围显示） ---
     const [lastPass, setLastPass] = useState<LastPassStatus>({});
@@ -113,6 +112,26 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
             ...config,
             entity: { ...config.entity, archiveLimit: Math.max(10, v) },
         });
+    };
+
+    // --- 精简 (trim) ---
+    const trim = trimConfig;
+    const handleTrimToggle = (enabled: boolean) => {
+        onTrimConfigChange?.({ ...trim!, enabled });
+        eventTrimmer.updateConfig({ enabled });
+    };
+    const handleTrimTrigger = (trigger: TrimTriggerType) => {
+        onTrimConfigChange?.({ ...trim!, trigger });
+        eventTrimmer.updateConfig({ trigger });
+    };
+    const handleTrimThreshold = (v: number) => {
+        const key = trim!.trigger === "token" ? "tokenLimit" : "countLimit";
+        onTrimConfigChange?.({ ...trim!, [key]: v });
+        eventTrimmer.updateConfig({ [key]: v } as any);
+    };
+    const handleTrimKeepRecent = (v: number) => {
+        onTrimConfigChange?.({ ...trim!, keepRecentCount: v });
+        eventTrimmer.updateConfig({ keepRecentCount: v });
     };
 
     return (
@@ -231,6 +250,86 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                     }
                 />
             </section>
+
+            <Divider length={100} />
+
+            {/* ===== 精简 (Trim) ===== */}
+            {trim && onTrimConfigChange && (
+                <section className="space-y-5">
+                    <div className="flex items-center gap-2">
+                        <Scissors size={16} className="text-primary" />
+                        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                            精简
+                        </h3>
+                    </div>
+
+                    <SwitchField
+                        label="启用自动精简"
+                        description="事件 token/数量超过阈值时，自动合并旧事件为二层摘要"
+                        checked={trim.enabled}
+                        onChange={handleTrimToggle}
+                        disabled={!config.enabled || !config.summary.enabled}
+                    />
+
+                    {/* 触发类型 */}
+                    <div className="space-y-2">
+                        <span className="text-xs text-muted-foreground">
+                            触发条件
+                        </span>
+                        <div className="flex gap-2">
+                            {([
+                                { id: "token", label: "Token 数" },
+                                { id: "count", label: "活跃事件数" },
+                            ] as { id: TrimTriggerType; label: string }[]).map(
+                                (opt) => (
+                                    <button
+                                        type="button"
+                                        key={opt.id}
+                                        onClick={() => handleTrimTrigger(opt.id)}
+                                        className={`px-3 py-1.5 text-xs font-medium rounded border ${
+                                            trim.trigger === opt.id
+                                                ? "border-primary text-primary bg-primary/5"
+                                                : "border-border text-muted-foreground hover:text-foreground"
+                                        }`}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                ),
+                            )}
+                        </div>
+                    </div>
+
+                    <SliderField
+                        label={trim.trigger === "token" ? "Token 阈值" : "事件数阈值"}
+                        description={
+                            trim.trigger === "token"
+                                ? "总 token 超过此值时触发精简"
+                                : "活跃事件数超过此值时触发精简"
+                        }
+                        min={trim.trigger === "token" ? 1024 : 2}
+                        max={trim.trigger === "token" ? 100000 : 50}
+                        step={trim.trigger === "token" ? 1024 : 1}
+                        value={
+                            trim.trigger === "token"
+                                ? trim.tokenLimit
+                                : trim.countLimit
+                        }
+                        onChange={handleTrimThreshold}
+                        disabled={!trim.enabled}
+                    />
+
+                    <SliderField
+                        label="保留最近 N 条"
+                        description="精简时保留最近 N 条事件不合并"
+                        min={0}
+                        max={20}
+                        step={1}
+                        value={trim.keepRecentCount}
+                        onChange={handleTrimKeepRecent}
+                        disabled={!trim.enabled}
+                    />
+                </section>
+            )}
 
             <Divider length={100} />
 

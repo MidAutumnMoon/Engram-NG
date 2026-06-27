@@ -37,6 +37,8 @@ import { runSummary, saveSummaryEvents } from "@/domain/memory/pipelines/summary
 import { runEntityExtraction } from "@/domain/memory/pipelines/entity.ts";
 import { applyEntityChanges } from "@/domain/memory/saveEntities.ts";
 import { reviewService } from "@/domain/review/ReviewBridge.ts";
+import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
+import { EventBus } from "@/events/index.ts";
 
 class IngestionService {
     private isRunning = false;
@@ -244,7 +246,19 @@ class IngestionService {
                 await this.runSequentialPhases(config, range, episodeId, signal, previewEnabled);
             }
 
-            // 6. Advance the unified cursor + record last-pass metadata for reruns
+            // 6. Post-pass: auto-trim (if summary ran) + auto-archive (if entity ran)
+            if (!signal.cancelled) {
+                // Auto-trim: after summary, check if event count/tokens exceed threshold
+                if (config.summary.enabled) {
+                    await this.maybeAutoTrim();
+                }
+                // Auto-archive: after entity, archive oldest unlocked entities over limit
+                if (config.entity.enabled) {
+                    await this.maybeAutoArchive(config);
+                }
+            }
+
+            // 7. Advance the unified cursor + record last-pass metadata for reruns
             if (!signal.cancelled && range[1] > 0) {
                 await chatManager.updateState({
                     last_processed_floor: range[1],
@@ -470,6 +484,91 @@ class IngestionService {
     /** Whether an ingestion pass is currently running. */
     get isProcessing(): boolean {
         return this.isRunning;
+    }
+
+    /**
+     * 联动精简：总结完成后检查事件 token/数量是否超阈值，若是则自动压缩。
+     * 移植自 Summarizer.triggerSummary 的 V1.0.5 联动精简逻辑。
+     * 失败不影响摄取结果。
+     */
+    private async maybeAutoTrim(): Promise<void> {
+        try {
+            const trimStatus = await eventTrimmer.getStatus();
+            const trimConfig = eventTrimmer.getConfig();
+            const trimAvailability = await eventTrimmer.canTrim();
+
+            Logger.debug(LogModule.STBRIDGE, "自动精简触发检查", {
+                canTrim: trimAvailability.canTrim,
+                currentValue: trimStatus.currentValue,
+                enabled: trimConfig.enabled,
+                pendingEntryCount: trimStatus.pendingEntryCount,
+                threshold: trimStatus.threshold,
+                triggerType: trimStatus.triggerType,
+            });
+
+            if (
+                trimConfig.enabled && trimStatus.triggered &&
+                trimAvailability.canTrim
+            ) {
+                Logger.info(LogModule.STBRIDGE, "联动触发精简", {
+                    currentValue: trimStatus.currentValue,
+                    pendingEntryCount: trimStatus.pendingEntryCount,
+                    threshold: trimStatus.threshold,
+                    triggerType: trimStatus.triggerType,
+                });
+                await eventTrimmer.trim(false);
+            }
+        } catch (trimError) {
+            Logger.warn(LogModule.STBRIDGE, "联动精简失败", {
+                error: trimError,
+            });
+        }
+    }
+
+    /**
+     * 联动归档：实体提取完成后，若活跃实体超过 archiveLimit，
+     * 归档最旧的未锁定实体。移植自 EntityExtractor.checkAndArchiveEntities。
+     * 失败不影响摄取结果。
+     */
+    private async maybeAutoArchive(config: IngestionConfig): Promise<void> {
+        try {
+            const isEnabled = config.entity.autoArchive ?? true;
+            const limit = config.entity.archiveLimit ?? 50;
+            if (!isEnabled) return;
+
+            const store = useMemoryStore.getState();
+            const allEntities = await store.getAllEntities();
+            const activeEntities = allEntities.filter((e) => !e.is_archived);
+
+            if (activeEntities.length <= limit) return;
+
+            const candidates = activeEntities
+                .filter((e) => !e.is_locked)
+                .toSorted((a, b) =>
+                    (a.last_updated_at || 0) - (b.last_updated_at || 0)
+                );
+
+            const overLimit = activeEntities.length - limit;
+            const toArchive = candidates.slice(0, overLimit);
+
+            if (toArchive.length > 0) {
+                const ids = toArchive.map((e) => e.id);
+                Logger.info(
+                    LogModule.STBRIDGE,
+                    `由于超过上限(${limit})，自动归档 ${ids.length} 个旧实体`,
+                    { names: toArchive.map((e) => e.name) },
+                );
+                await store.archiveEntities(ids);
+                EventBus.emit({
+                    payload: { archivedIds: ids },
+                    type: "ENTITY_ARCHIVED",
+                });
+            }
+        } catch (error) {
+            Logger.error(LogModule.STBRIDGE, "执行实体自动归档失败", {
+                error,
+            });
+        }
     }
 
     /**
