@@ -270,6 +270,16 @@ export interface ScopeState {
      * 由 getProcessedFloor() 做兜底（新字段为 0 时回退到旧字段）。
      */
     last_processed_floor?: number;
+    /**
+     * 最近一次摄取 pass 的 episode_id（用于「重跑」定位该 pass 的产出）。
+     * 仅在成功完成的 pass 后写入；旧聊天为 undefined，重跑按钮据此禁用。
+     */
+    last_episode_id?: string;
+    /**
+     * 最近一次摄取 pass 的楼层范围 [start, end]（用于「重跑」复用同一窗口）。
+     * 仅在成功完成的 pass 后写入。
+     */
+    last_pass_range?: [number, number];
 }
 
 /**

@@ -244,17 +244,19 @@ class IngestionService {
                 await this.runSequentialPhases(config, range, episodeId, signal, previewEnabled);
             }
 
-            // 6. Advance the unified cursor
+            // 6. Advance the unified cursor + record last-pass metadata for reruns
             if (!signal.cancelled && range[1] > 0) {
                 await chatManager.updateState({
                     last_processed_floor: range[1],
+                    last_episode_id: episodeId,
+                    last_pass_range: range,
                 });
                 // Mirror into Zustand for chatHistory.ts smart-incremental slicing
                 useMemoryStore.getState().setLastProcessedFloor(range[1]);
                 Logger.info(
                     LogModule.STBRIDGE,
                     "Ingestion: 游标推进",
-                    { lastProcessedFloor: range[1] },
+                    { lastEpisodeId: episodeId, lastPassRange: range, lastProcessedFloor: range[1] },
                 );
             }
 
@@ -271,6 +273,194 @@ class IngestionService {
             if (manual) {
                 notify("error", `摄取异常: ${msg}`, "Engram 错误");
             }
+        } finally {
+            dismissNotify(runningToast);
+            this.isRunning = false;
+        }
+    }
+
+    /**
+     * 重新总结上一轮摄取 pass 的范围。
+     *
+     * 删除该 episode 的所有事件（summary + state-change timeline），然后用新的
+     * episode_id 重新生成摘要。安全：summary 事件是独立记录，删除+重生不破坏图拓扑。
+     *
+     * 实体贡献不动（实体跨 episode 共享，surgical undo 复杂且危险，本方法不碰）。
+     * 注意：这会一并删除该 episode 由实体阶段发射的 state-change timeline 事件，
+     * 这是接受的取舍（v1）；若需要保留，可按 structured_kv.causality === "state_change" 过滤。
+     *
+     * 游标不变（范围相同）。previewEnabled 决定是否弹审查窗口。
+     */
+    async rerunSummary(): Promise<void> {
+        const state = await chatManager.getState();
+        const lastEpisodeId = state.last_episode_id;
+        const range = state.last_pass_range;
+
+        if (!range || !lastEpisodeId) {
+            notify("info", "没有可重跑的总结（未记录上一轮 pass）", "Engram");
+            return;
+        }
+
+        const config = this.getConfig();
+        if (!config) {
+            notify("error", "无法读取摄取配置", "Engram 错误");
+            return;
+        }
+
+        if (
+            !confirm(
+                `确定重新总结楼层 ${range[0]}-${range[1]}？\n将删除该轮的摘要事件并重新生成。`,
+            )
+        ) {
+            return;
+        }
+
+        this.isRunning = true;
+        const signal = { cancelled: false };
+        const runningToast = notifyRunning(
+            "重新总结中...",
+            "Engram",
+            () => {
+                signal.cancelled = true;
+                notify("warning", "正在取消...", "Engram");
+            },
+        );
+
+        try {
+            // 1. 删除旧 episode 的事件
+            const store = useMemoryStore.getState();
+            const deleted = await store.deleteEventsByEpisode(lastEpisodeId);
+            Logger.info(
+                LogModule.STBRIDGE,
+                `rerunSummary: 删除旧事件 ${deleted} 条 (episode ${lastEpisodeId})`,
+            );
+
+            if (signal.cancelled) return;
+
+            // 2. 用新 episode_id 重新总结
+            const newEpisodeId = generateShortUUID("ep_");
+            const globalPreviewEnabled = getSetting("globalPreviewEnabled") ??
+                true;
+            const previewEnabled = globalPreviewEnabled &&
+                (config.previewEnabled ?? true);
+
+            await runSummary(
+                { range, episodeId: newEpisodeId },
+                {
+                    templateId: config.summary.promptTemplateId,
+                    previewEnabled,
+                    autoHide: config.summary.autoHide,
+                },
+                signal,
+            );
+
+            // 3. 更新 last_episode_id（旧 episode 已无产物）
+            await chatManager.updateState({ last_episode_id: newEpisodeId });
+
+            Logger.success(
+                LogModule.STBRIDGE,
+                "rerunSummary: 完成",
+                { newEpisodeId, range },
+            );
+            notify("success", "重新总结完成", "Engram");
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
+            if (msg === "UserCancelled") {
+                Logger.info(LogModule.STBRIDGE, "rerunSummary: 已取消");
+                return;
+            }
+            Logger.error(LogModule.STBRIDGE, "rerunSummary 异常", { error: msg });
+            notify("error", `重新总结失败: ${msg}`, "Engram 错误");
+        } finally {
+            dismissNotify(runningToast);
+            this.isRunning = false;
+        }
+    }
+
+    /**
+     * 补充提取（增量重跑）上一轮摄取 pass 范围的实体。
+     *
+     * 不删除任何东西——additive by design。LLM 重新看到该范围（带现有实体上下文），
+     * 漏掉的实体会被新建，已有实体的状态字段仅在实际变化时追加 interval（非覆盖）。
+     *
+     * v1 接受的成本：episode_refs 会累积新 id；若 LLM 产出略有不同，可能发射重复
+     * state-change 事件。这远比 surgical entity undo 安全（后者触及跨 episode 共享状态）。
+     *
+     * 游标不变（范围相同）。previewEnabled 决定是否弹审查窗口。
+     */
+    async rerunEntityExtraction(): Promise<void> {
+        const state = await chatManager.getState();
+        const range = state.last_pass_range;
+
+        if (!range) {
+            notify("info", "没有可重跑的提取（未记录上一轮 pass）", "Engram");
+            return;
+        }
+
+        const config = this.getConfig();
+        if (!config) {
+            notify("error", "无法读取摄取配置", "Engram 错误");
+            return;
+        }
+
+        if (
+            !confirm(
+                `确定重新提取楼层 ${range[0]}-${range[1]} 的实体？\n将保留现有实体，仅补充/更新。`,
+            )
+        ) {
+            return;
+        }
+
+        this.isRunning = true;
+        const signal = { cancelled: false };
+        const runningToast = notifyRunning(
+            "补充提取中...",
+            "Engram",
+            () => {
+                signal.cancelled = true;
+                notify("warning", "正在取消...", "Engram");
+            },
+        );
+
+        try {
+            const newEpisodeId = generateShortUUID("ep_");
+            const globalPreviewEnabled = getSetting("globalPreviewEnabled") ??
+                true;
+            const previewEnabled = globalPreviewEnabled &&
+                (config.previewEnabled ?? true);
+
+            const chatHistory = getMacroChatHistory(range);
+            await runEntityExtraction(
+                { range, episodeId: newEpisodeId, chatHistory },
+                {
+                    templateId: config.entity.promptTemplateId,
+                    previewEnabled,
+                    stateFields: config.entity.stateFields,
+                    stateChangeEmitThreshold:
+                        config.entity.stateChangeEmitThreshold,
+                },
+                signal,
+                { dryRun: false },
+            );
+
+            Logger.success(
+                LogModule.STBRIDGE,
+                "rerunEntityExtraction: 完成",
+                { newEpisodeId, range },
+            );
+            notify("success", "补充提取完成", "Engram");
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
+            if (msg === "UserCancelled") {
+                Logger.info(LogModule.STBRIDGE, "rerunEntityExtraction: 已取消");
+                return;
+            }
+            Logger.error(
+                LogModule.STBRIDGE,
+                "rerunEntityExtraction 异常",
+                { error: msg },
+            );
+            notify("error", `补充提取失败: ${msg}`, "Engram 错误");
         } finally {
             dismissNotify(runningToast);
             this.isRunning = false;

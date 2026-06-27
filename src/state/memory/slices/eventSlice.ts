@@ -23,6 +23,12 @@ export interface EventState {
 
     getEventsToMerge: (keepRecentCount?: number) => Promise<EventNode[]>;
     deleteEvents: (eventIds: string[]) => Promise<void>;
+    /**
+     * 删除指定 episode 的所有事件（summary 事件 + state-change timeline 事件）。
+     * episode_id 是非索引 JSON，故走 toArray().filter() 再 bulkDelete（与
+     * getEventSummaries 等查询同口径）。返回删除条数。供「重新总结」重跑前清理旧产物用。
+     */
+    deleteEventsByEpisode: (episodeId: string) => Promise<number>;
     updateEvent: (
         eventId: string,
         updates: Partial<EventNode>,
@@ -272,6 +278,30 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
         } catch (error) {
             console.error("[MemoryStore] Failed to delete events:", error);
             throw error;
+        }
+    },
+
+    deleteEventsByEpisode: async (episodeId: string) => {
+        if (!episodeId) return 0;
+        const db = getCurrentDb();
+        if (!db) return 0;
+        try {
+            const all = await db.events.toArray();
+            const ids = all
+                .filter((e) => e.episode_id === episodeId)
+                .map((e) => e.id);
+            if (ids.length === 0) return 0;
+            await db.events.bulkDelete(ids);
+            console.log(
+                `[MemoryStore] Deleted ${ids.length} events for episode ${episodeId}`,
+            );
+            return ids.length;
+        } catch (error) {
+            console.error(
+                "[MemoryStore] Failed to delete events by episode:",
+                error,
+            );
+            return 0;
         }
     },
 
