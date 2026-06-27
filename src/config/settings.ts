@@ -89,11 +89,7 @@ export type EngramAPISettings = z.infer<typeof engramApiSettingsSchema>;
 // ============================================================================
 
 const engramSettingsSchema = z.object({
-    theme: z.string().default("odysseia"),
-    presets: z.record(z.string(), z.unknown()).default({}),
-    templates: z.record(z.string(), z.unknown()).default({}),
     promptTemplates: z.array(promptTemplateSchema).default([]),
-    hasSeenWelcome: z.boolean().default(false),
     lastOpenedTab: z.string().default("dashboard"),
     summarizerConfig: summarizerConfigSchema.prefault({}),
     globalPreviewEnabled: z.boolean().default(true),
@@ -105,10 +101,6 @@ const engramSettingsSchema = z.object({
         deleteChatWorldbook: z.boolean().default(false),
         deleteIndexedDB: z.boolean().default(false),
         showConfirmation: z.boolean().default(true),
-    }).prefault({}),
-    syncConfig: z.object({
-        enabled: z.boolean().default(false),
-        autoSync: z.boolean().default(true),
     }).prefault({}),
 });
 

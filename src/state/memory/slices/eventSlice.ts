@@ -1,6 +1,5 @@
 import { generateShortUUID } from "@/utils/shortUUID.ts";
 import type { EventNode } from "@/data/types/graph.ts";
-import { WorldInfoService } from "@/domain/worldbook/index.ts";
 import type { StateCreator } from "zustand";
 import Dexie from "dexie";
 import { getCurrentDb, tryGetCurrentDb } from "./coreSlice.ts";
@@ -9,17 +8,10 @@ export interface EventState {
     saveEvent: (
         event: Omit<EventNode, "id" | "timestamp"> & { timestamp?: number },
     ) => Promise<EventNode>;
-    saveEvents: (
-        events:
-            (Omit<EventNode, "id" | "timestamp"> & { timestamp?: number })[],
-    ) => Promise<EventNode[]>;
     importDatabase: (
         sourceDbName: string,
     ) => Promise<{ events: number; entities: number }>;
     getEventSummaries: (recalledIds?: string[]) => Promise<string>;
-    countEventTokens: () => Promise<
-        { totalTokens: number; eventCount: number; activeEventCount: number }
-    >;
 
     getEventsToMerge: (keepRecentCount?: number) => Promise<EventNode[]>;
     deleteEvents: (eventIds: string[]) => Promise<void>;
@@ -70,28 +62,6 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
         }));
 
         return event;
-    },
-
-    saveEvents: async (eventsData) => {
-        const db = getCurrentDb();
-        if (!db) throw new Error("[MemoryStore] No current chat");
-        if (eventsData.length === 0) return [];
-
-        const events: EventNode[] = eventsData.map((data) => ({
-            ...data,
-            id: generateShortUUID("evt_"),
-            is_archived: data.is_archived ?? false,
-            is_embedded: data.is_embedded ?? false,
-            timestamp: data.timestamp ?? Date.now(),
-        }));
-
-        await db.events.bulkAdd(events);
-
-        set((state: any) => ({
-            recentEvents: [...state.recentEvents, ...events].slice(-10),
-        }));
-
-        return events;
     },
 
     importDatabase: async (sourceDbName: string) => {
@@ -174,38 +144,6 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
                 error,
             );
             return "";
-        }
-    },
-
-    countEventTokens: async () => {
-        const db = getCurrentDb();
-        if (!db) return { totalTokens: 0, eventCount: 0, activeEventCount: 0 };
-
-        try {
-            const events = await db.events.toArray();
-            if (events.length === 0) {
-                return { totalTokens: 0, eventCount: 0, activeEventCount: 0 };
-            }
-
-            // Trim 触发口径：仅统计新的、未归档的 lv0 细节事件
-            const activeEvents = events.filter((e) =>
-                e.level === 0 && !e.is_archived
-            );
-            const allSummaries = activeEvents.map((e) => e.summary).join(
-                "\n\n",
-            );
-            const totalTokens = await WorldInfoService.countTokens(
-                allSummaries,
-            );
-
-            return {
-                activeEventCount: activeEvents.length,
-                eventCount: events.length,
-                totalTokens,
-            };
-        } catch (error) {
-            console.error("[MemoryStore] Failed to count event tokens:", error);
-            return { activeEventCount: 0, eventCount: 0, totalTokens: 0 };
         }
     },
 

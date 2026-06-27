@@ -108,21 +108,3 @@ export const DEFAULT_REGEX_RULES: RegexRule[] = [
     },
 ];
 
-// ==================== Preprocessing Configuration ====================
-
-export const preprocessingConfigSchema = z.object({
-    /** 是否启用 */
-    enabled: z.boolean().default(false),
-    /** 当前使用的提示词模板 ID */
-    templateId: z.string().default("query_enhance"),
-    /** 是否自动触发 (每次发送消息) */
-    autoTrigger: z.boolean().default(true),
-    /** 是否开启预览修订 (V0.8.6+) */
-    preview: z.boolean().default(true),
-});
-
-export type PreprocessingConfig = z.infer<typeof preprocessingConfigSchema>;
-
-/** 默认预处理配置 */
-export const DEFAULT_PREPROCESSING_CONFIG: PreprocessingConfig =
-    preprocessingConfigSchema.parse({});

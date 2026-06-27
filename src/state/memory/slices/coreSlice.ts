@@ -17,23 +17,14 @@ export interface CoreState {
      * 由 getProcessedFloor() 解析，含旧字段兜底。
      */
     lastProcessedFloor: number;
-    isProcessing: boolean;
     recentEvents: EventNode[];
 
     // Actions
     initChat: () => Promise<ChatDatabase | null>;
     setLastProcessedFloor: (floor: number) => Promise<void>;
-    setProcessing: (isProcessing: boolean) => void;
     reset: () => void;
     clearChatDatabase: () => Promise<void>;
     deleteChatDatabase: () => Promise<void>;
-
-    // V0.6 Compat
-    resolveScope: (
-        chatId: string,
-        characterName?: string,
-    ) => Promise<{ id: number }>;
-    currentScope: { id: number } | null;
 }
 
 /**
@@ -120,7 +111,6 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (
             const state = await chatManager.getState();
             set({
                 currentChatId: chatId,
-                currentScope: { id: 1 },
                 lastProcessedFloor: getProcessedFloor(state),
                 recentEvents: [],
             });
@@ -129,8 +119,6 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (
         return getDbForChat(chatId);
     },
 
-    isProcessing: false,
-
     lastProcessedFloor: 0,
 
     recentEvents: [],
@@ -138,23 +126,12 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (
     reset: () =>
         set({
             currentChatId: null,
-            currentScope: null,
             lastProcessedFloor: 0,
-            isProcessing: false,
             recentEvents: [],
         }),
-
-    resolveScope: async (chatId, _characterName) => {
-        set({ currentChatId: chatId, currentScope: { id: 1 } });
-        const state = await chatManager.getState();
-        set({ lastProcessedFloor: getProcessedFloor(state) });
-        return { id: 1 };
-    },
 
     setLastProcessedFloor: async (floor) => {
         await chatManager.updateState({ last_processed_floor: floor });
         set({ lastProcessedFloor: floor });
     },
-
-    setProcessing: (isProcessing) => set({ isProcessing }),
 });

@@ -25,7 +25,6 @@ export interface EntityState {
     ) => Promise<void>;
     deleteEntity: (entityId: string) => Promise<void>;
     deleteEntities: (entityIds: string[]) => Promise<void>;
-    findEntityByName: (name: string) => Promise<EntityNode | null>;
     archiveEntities: (entityIds: string[]) => Promise<void>;
     toggleEntityLock: (entityId: string) => Promise<boolean>;
     getEntityStates: (ids?: string[], target_index?: number) => Promise<string>;
@@ -74,24 +73,6 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
         } catch (e) {
             console.error("[MemoryStore] Failed to delete entity:", e);
             throw e;
-        }
-    },
-
-    findEntityByName: async (name) => {
-        const db = getCurrentDb();
-        if (!db) return null;
-
-        try {
-            const exactMatch = await db.entities.where("name").equals(name)
-                .first();
-            if (exactMatch) return exactMatch;
-
-            const aliasMatch = await db.entities.where("aliases").equals(name)
-                .first();
-            return aliasMatch || null;
-        } catch (e) {
-            console.error("[MemoryStore] Failed to find entity by name:", e);
-            return null;
         }
     },
 

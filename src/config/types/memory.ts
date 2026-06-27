@@ -76,8 +76,6 @@ export type EntityTriggerType = EntityExtractConfig["trigger"];
 export const globalRegexConfigSchema = z.object({
     /** 是否启用酒馆原生 Regex (SillyTavern) */
     enableNativeRegex: z.boolean().default(true),
-    /** 是否启用 Engram 内部 Regex */
-    enableEngramRegex: z.boolean().default(true),
 });
 
 export type GlobalRegexConfig = z.infer<typeof globalRegexConfigSchema>;

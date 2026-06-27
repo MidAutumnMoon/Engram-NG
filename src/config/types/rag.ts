@@ -79,9 +79,6 @@ export const recallConfigSchema = z.object({
     /** 策略 2: 是否使用 Rerank 重排序 */
     useRerank: z.boolean().default(false),
 
-    /** 策略 3: 是否使用 LLM 预处理 (Query 增强/剧情编排) */
-    usePreprocessing: z.boolean().default(false),
-
     /** 策略 4: 是否使用 Agentic RAG (LLM 裁判式召回) */
     useAgenticRAG: z.boolean().default(false),
 

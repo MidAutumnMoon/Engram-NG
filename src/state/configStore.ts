@@ -45,7 +45,6 @@ const debouncedSave = (state: ConfigState) => {
         setSetting("summarizerConfig", state.summarizerConfig);
         setSetting("globalPreviewEnabled", state.globalPreviewEnabled);
         setSetting("linkedDeletion", state.linkedDeletion);
-        setSetting("syncConfig", state.syncConfig);
     }, 500);
 };
 
@@ -64,7 +63,6 @@ export interface ConfigState {
     summarizerConfig: EngramSettings["summarizerConfig"];
     globalPreviewEnabled: boolean;
     linkedDeletion: EngramSettings["linkedDeletion"];
-    syncConfig: EngramSettings["syncConfig"];
 
     // Legacy manual updates & status
     hasChanges: boolean;
@@ -132,7 +130,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
 
     summarizerConfig: globalSettings.summarizerConfig || {},
 
-    syncConfig: globalSettings.syncConfig || { enabled: false, autoSync: true },
     updateConfig: (key, value) => {
         set((state) => {
             const nextValue = typeof value === "function"

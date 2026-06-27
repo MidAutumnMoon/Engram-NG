@@ -92,9 +92,6 @@ export interface EventNode {
      */
     level: number;
 
-    /** Optional pointer to a parent node (if this node was compressed into a level+1 node) */
-    parent_id?: string;
-
     /** Source Message Range */
     source_range: {
         start_index: number;
@@ -223,11 +220,6 @@ export interface EntityNode {
     /** 最后更新时间 */
     last_updated_at: number;
 
-    // ========== 图谱可视化 ==========
-
-    /** 布局 X 坐标 (用户拖拽后持久化) */
-    layout_x?: number;
-
     /**
      * Semantic Vector
      * (New in V0.9.8)
@@ -243,9 +235,6 @@ export interface EntityNode {
      * 是否锁定 (阻止自动归档)
      */
     is_locked?: boolean;
-
-    /** 布局 Y 坐标 */
-    layout_y?: number;
 }
 
 /**
@@ -256,9 +245,6 @@ export interface ScopeState {
     /** 聊天 ID (用于同步校验) */
     chatId: string;
     last_summarized_floor: number;
-    token_usage_accumulated: number;
-    last_compressed_at: number;
-    active_summary_order: number;
     /** V0.9.1: 上次实体提取的楼层 */
     last_extracted_floor: number;
     /** V0.9.10: 最后修改时间戳 (用于同步) */
@@ -303,12 +289,9 @@ export function getProcessedFloor(state: ScopeState): number {
  * 默认 ScopeState
  */
 export const DEFAULT_SCOPE_STATE: ScopeState = {
-    active_summary_order: 9000,
     chatId: "",
     lastModified: 0,
-    last_compressed_at: 0,
     last_extracted_floor: 0,
     last_processed_floor: 0,
     last_summarized_floor: 0,
-    token_usage_accumulated: 0,
 };
