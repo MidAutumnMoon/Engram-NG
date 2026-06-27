@@ -1,4 +1,5 @@
 import type { EntityNode, EventNode } from "@/data/types/graph.ts";
+import { formatEntityDescription } from "@/domain/memory/entityFormat.ts";
 import type {
     EntityGroupMode,
     EntitySortMode,
@@ -126,7 +127,7 @@ export function filterEntities(
     return result.filter((e) =>
         e.name.toLowerCase().includes(q) ||
         e.aliases?.some((a: string) => a.toLowerCase().includes(q)) ||
-        e.description?.toLowerCase().includes(q)
+        formatEntityDescription(e).toLowerCase().includes(q)
     );
 }
 

@@ -176,7 +176,10 @@ systemPrompt: |
           - 整体性检查: 是否误提取了某个实体的部件？
 
         已有实体发生了什么状态变更？
-          - 检查 existingEntities 的状态
+          - 逐个检查每个已有实体的 tracked_fields（状态字段）
+          - 对照最新对话：该实体的状态在剧情中是否发生了变化？
+            例如：角色服用了回复药 → magic_reserve/status 应更新；地点被破坏 → integrity 应更新；物品被使用 → condition 应更新
+          - 如果剧情中状态确实变了，必须生成 replace 操作更新该字段
           - 仅对发生变化的属性生成 replace/add/remove 操作
           - 忽略无变化的字段
 

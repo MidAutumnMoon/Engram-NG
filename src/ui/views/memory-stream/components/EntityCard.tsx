@@ -6,6 +6,7 @@
  * 文本层级：heading(名称) → label(类型) → foreground(描述) → meta(别名)
  */
 import type { EntityNode } from "@/data/types/graph.ts";
+import { formatEntityDescription } from "@/domain/memory/entityFormat.ts";
 import {
     Archive,
     ArchiveRestore,
@@ -63,6 +64,11 @@ export const EntityCard: React.FC<EntityCardProps> = ({
 }) => {
     const isArchived = entity.is_archived;
     const isLocked = entity.is_locked;
+    // 描述从 field_history 解析的当前快照（状态字段不再存于 profile/description）
+    const description = React.useMemo(
+        () => formatEntityDescription(entity),
+        [entity],
+    );
     // 紧凑模式（移动端）
     if (isCompact) {
         return (
@@ -110,7 +116,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
                         </span>
                     </div>
                     <p className="text-xs text-meta truncate mt-1">
-                        {entity.description}
+                        {description}
                     </p>
                 </div>
 
@@ -243,7 +249,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
 
             {/* 描述文本 */}
             <p className="text-xs text-meta line-clamp-2 leading-relaxed">
-                {entity.description}
+                {description}
             </p>
 
             {/* 触发关键词 (原别名) */}

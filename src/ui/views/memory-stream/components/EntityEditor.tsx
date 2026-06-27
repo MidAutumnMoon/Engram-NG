@@ -7,12 +7,13 @@
  * 3. 自动同步/手动修改 Description (YAML from Profile)
  */
 import type { EntityNode, EntityType } from "@/data/types/graph.ts";
+import { currentValue } from "@/domain/memory/fieldHistory.ts";
 import { Divider } from "@/ui/components/layout/Divider.tsx";
 import { useResponsive } from "@/ui/hooks/useResponsive.ts";
 import { safeStringify } from "@/utils/safeStringify.ts";
 import yaml from "js-yaml"; // 需要确认项目是否已安装 js-yaml，如果没有则需要简单实现或引入
 import { debounce } from "lodash"; // Phase 3 Performance Add: 引入防抖
-import { AlertTriangle, ArrowLeft, RefreshCw, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, History, RefreshCw, Trash2 } from "lucide-react";
 import React, {
     useCallback,
     useEffect,
@@ -21,6 +22,23 @@ import React, {
     useRef,
     useState,
 } from "react";
+
+/**
+ * 格式化 tracked 字段的当前值用于只读展示。
+ */
+function formatTrackedValue(v: unknown): string {
+    if (v === undefined || v === null) return "∅";
+    if (typeof v === "string") return v;
+    if (Array.isArray(v)) return v.join(", ");
+    if (typeof v === "object") {
+        try {
+            return JSON.stringify(v);
+        } catch {
+            return String(v);
+        }
+    }
+    return String(v);
+}
 
 /**
  * 根据实体类型获取对应的文字颜色类名
@@ -115,7 +133,17 @@ export const EntityEditor = ({
             setType(entity.type);
             setAliases(entity.aliases ? entity.aliases.join(", ") : "");
             setDescription(entity.description || "");
-            setProfileJson(safeStringify(entity.profile || {}));
+            // 元数据 JSON 只展示非 tracked 字段——tracked 字段从 field_history 解析，
+            // 不在此编辑（编辑它们会绕过版本化）。回写时再把 tracked 字段从 field_history
+            // 合并回 profile，保持 profile 作为完整当前快照（向后兼容）。
+            const tracked = new Set(
+                Array.isArray(entity.tracked_fields) ? entity.tracked_fields : [],
+            );
+            const editableProfile: Record<string, unknown> = {};
+            for (const [k, v] of Object.entries(entity.profile || {})) {
+                if (!tracked.has(k)) editableProfile[k] = v;
+            }
+            setProfileJson(safeStringify(editableProfile));
             setJsonError(null);
             setIsDirty(false);
             setLastEntityId(entity.id);
@@ -126,13 +154,30 @@ export const EntityEditor = ({
     const syncToParent = useCallback(() => {
         if (!entity || jsonError) return;
 
-        let parsedProfile = {};
+        let parsedProfile: Record<string, unknown> = {};
         try {
             parsedProfile = JSON.parse(profileJson);
         } catch (error) {
             console.error("JSON Parse Error during sync", error);
             // 🐛 P0 Bugfix: 如果 JSON 有语法错误，直接阻断提交，绝不使用 `{}` 覆盖原数据
             return;
+        }
+
+        // 把 tracked 字段从 field_history 的当前值合并回 profile。
+        // 编辑器只编辑非 tracked 字段；tracked 字段是版本化的，不允许在此修改。
+        // 合并确保 profile 始终是完整当前快照（向后兼容：description 仍含状态字段值）。
+        const tracked = Array.isArray(entity.tracked_fields)
+            ? entity.tracked_fields
+            : [];
+        const mergedProfile: Record<string, unknown> = { ...parsedProfile };
+        for (const field of tracked) {
+            const cur = currentValue(entity.field_history?.[field]);
+            if (cur !== undefined) {
+                mergedProfile[field] = cur;
+            } else if (field in (entity.profile || {})) {
+                // field_history 无记录但旧 profile 有值（迁移期数据）——保留旧值
+                mergedProfile[field] = entity.profile![field];
+            }
         }
 
         const updates: Partial<EntityNode> = {
@@ -142,7 +187,7 @@ export const EntityEditor = ({
                 Boolean,
             ),
             description, // Allow manual override, or auto-generated
-            profile: parsedProfile,
+            profile: mergedProfile,
         };
 
         onSave?.(entity.id, updates);
@@ -208,6 +253,20 @@ export const EntityEditor = ({
         try {
             const profileObj = JSON.parse(profileJson);
 
+            // 合并 tracked 字段当前值，使生成的 description 含状态字段（完整快照）
+            const tracked = Array.isArray(entity.tracked_fields)
+                ? entity.tracked_fields
+                : [];
+            const fullProfile: Record<string, unknown> = { ...profileObj };
+            for (const field of tracked) {
+                const cur = currentValue(entity.field_history?.[field]);
+                if (cur !== undefined) {
+                    fullProfile[field] = cur;
+                } else if (field in (entity.profile || {})) {
+                    fullProfile[field] = entity.profile![field];
+                }
+            }
+
             // V1.2.9: Simple YAML structure
             // Format:
             // 实体名称
@@ -216,7 +275,7 @@ export const EntityEditor = ({
             // Note: type is already indicated by XML tag <character_state> etc.
 
             const entityObj = {
-                profile: profileObj,
+                profile: fullProfile,
             };
 
             const yamlContent = yaml.dump(entityObj, {
@@ -232,11 +291,25 @@ export const EntityEditor = ({
             setIsDirty(true);
 
             // V1.2.9 FIX: Only send incremental updates to avoid stale closure overwriting
-            onSave?.(entity.id, { description: newDesc, profile: profileObj });
+            onSave?.(entity.id, { description: newDesc, profile: fullProfile });
         } catch {
             alert("Profile JSON 格式错误，无法生成描述");
         }
     };
+
+    // 只读状态字段视图：从 field_history 解析当前值 + 历史区间数
+    const trackedFieldsView = useMemo(() => {
+        if (!entity) return [];
+        const tracked = Array.isArray(entity.tracked_fields)
+            ? entity.tracked_fields
+            : [];
+        return tracked.map((field) => {
+            const hist = entity.field_history?.[field];
+            const value = currentValue(hist);
+            const intervalCount = hist?.length ?? 0;
+            return { field, value, intervalCount };
+        });
+    }, [entity]);
 
     if (!entity) {
         return (
@@ -307,6 +380,46 @@ export const EntityEditor = ({
                     />
                 </div>
             </div>
+
+            <Divider spacing="lg" />
+
+            {/* 状态字段（只读，来自 field_history） */}
+            {trackedFieldsView.length > 0 && (
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-1.5">
+                        <History size={11} className="text-meta" />
+                        <label className="text-xs text-meta font-medium uppercase tracking-wider">
+                            状态字段（版本化 · 只读）
+                        </label>
+                    </div>
+                    <p className="text-[10px] text-meta/70 -mt-1">
+                        这些字段由剧情提取自动维护变更历史，不在此手动编辑。
+                    </p>
+                    <div className="flex flex-col gap-1.5 mt-1">
+                        {trackedFieldsView.map(({ field, value, intervalCount }) => (
+                            <div
+                                key={field}
+                                className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-md bg-muted/40 border border-border/60"
+                            >
+                                <span className="text-xs text-meta font-mono shrink-0">
+                                    {field}
+                                </span>
+                                <span className="text-xs text-foreground font-mono truncate text-right">
+                                    {formatTrackedValue(value)}
+                                </span>
+                                {intervalCount > 1 && (
+                                    <span
+                                        className="text-[9px] text-primary/70 shrink-0"
+                                        title={`${intervalCount} 段历史区间`}
+                                    >
+                                        ×{intervalCount}
+                                    </span>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <Divider spacing="lg" />
 

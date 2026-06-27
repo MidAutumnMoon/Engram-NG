@@ -111,6 +111,9 @@ export class SaveEntity implements IStep {
                 isDryRun,
                 newEntities,
                 updatedEntities,
+                context,
+                stateFields,
+                stateChangeEmitThreshold,
             );
         } else {
             // 尝试解析为统一 Patch 格式
@@ -172,16 +175,42 @@ export class SaveEntity implements IStep {
         isDryRun: boolean,
         outNewEntities: EntityNode[],
         outUpdatedEntities: EntityNode[],
+        context: JobContext,
+        stateFields: string[],
+        stateChangeEmitThreshold: number,
     ): Promise<void> {
+        const fromIndex = context.input.range?.[0] ?? 0;
+        const episodeId = context.input.episode_id ?? null;
+
         // 保存新实体
         if (data.newEntities) {
             for (const entity of data.newEntities) {
                 if (!isDryRun) {
-                    // 如果有 ID 且不是临时 ID，可能是误传，但通常 newEntities 在 dryRun 时会有 temp ID
-                    // SaveEntity 会生成新 ID 或者是覆盖？ store.saveEntity 通常负责创建
-                    // 为了安全，重新构建对象，去除临时 ID
                     const { id: _id, ...entityData } = entity;
-                    const saved = await store.saveEntity(entityData);
+                    // 为新实体 seed field_history（与 createNewEntity 一致）
+                    const declaredTracked = Array.isArray(
+                        (entityData as any).tracked_fields,
+                    )
+                        ? (entityData as any).tracked_fields as string[]
+                        : [];
+                    const profile = entityData.profile || {};
+                    const trackedFields = declaredTracked.filter((f) =>
+                        f in profile &&
+                        profile[f] !== undefined &&
+                        profile[f] !== null
+                    );
+                    const fieldHistory = backfillFromProfile(
+                        profile,
+                        trackedFields,
+                        fromIndex,
+                        episodeId,
+                    );
+                    const saved = await store.saveEntity({
+                        ...entityData,
+                        episode_refs: episodeId ? [episodeId] : undefined,
+                        field_history: fieldHistory,
+                        tracked_fields: trackedFields,
+                    } as any);
                     outNewEntities.push(saved);
                 } else {
                     outNewEntities.push(entity);
@@ -191,22 +220,97 @@ export class SaveEntity implements IStep {
 
         // 保存更新实体
         if (data.updatedEntities) {
+            // 需要 existing entities 来对比状态字段变更并保留 field_history
+            const existingEntities =
+                (context.input._rawExistingEntities as EntityNode[]) ||
+                await store.getAllEntities();
+            const existingMap = new Map(existingEntities.map((e) => [e.id, e]));
+
             for (const entity of data.updatedEntities) {
                 if (!isDryRun) {
                     if (entity.id && !entity.id.startsWith("temp-")) {
+                        const existing = existingMap.get(entity.id);
+                        // 优先用 entity 上携带的 tracked_fields（UserReview 可能修改），
+                        // 回退到 existing 的声明，再回退到全局 stateFields
+                        const trackedFields =
+                            (Array.isArray(entity.tracked_fields) &&
+                                entity.tracked_fields.length > 0)
+                                ? entity.tracked_fields
+                                : (Array.isArray(existing?.tracked_fields) &&
+                                        existing.tracked_fields.length > 0)
+                                ? existing!.tracked_fields!
+                                : stateFields;
+
+                        // 对比状态字段变更，追加 interval + 发射 state_change 事件
+                        let fieldHistory = existing?.field_history ?? {};
+                        const emittedChanges: {
+                            field: string;
+                            from: unknown;
+                            to: unknown;
+                        }[] = [];
+                        const newProfile = entity.profile || {};
+                        const oldProfile = existing?.profile ?? {};
+
+                        // 深拷贝 field_history 以免修改 existing
+                        fieldHistory = JSON.parse(JSON.stringify(fieldHistory));
+
+                        for (const field of trackedFields) {
+                            if (field in newProfile) {
+                                const oldVal = currentValue(
+                                    fieldHistory[field],
+                                );
+                                const newVal = newProfile[field];
+                                // 值变化才追加 interval（避免无变更时产生冗余区间）
+                                if (
+                                    JSON.stringify(oldVal) !==
+                                        JSON.stringify(newVal)
+                                ) {
+                                    fieldHistory[field] = appendInterval(
+                                        fieldHistory[field],
+                                        {
+                                            from_index: fromIndex,
+                                            value: newVal,
+                                            episode_id: episodeId,
+                                        },
+                                    );
+                                    emittedChanges.push({
+                                        field,
+                                        from: oldVal,
+                                        to: newVal,
+                                    });
+                                }
+                            }
+                        }
+
                         const description = this.profileToYaml(
                             entity.name,
                             entity.type || "unknown",
-                            entity.profile || {},
+                            newProfile,
                         );
                         await store.updateEntity(entity.id, {
                             aliases: entity.aliases,
                             description,
+                            episode_refs: appendEpisodeRef(
+                                existing?.episode_refs,
+                                episodeId,
+                            ),
+                            field_history: fieldHistory,
                             name: entity.name,
-                            profile: entity.profile,
+                            profile: newProfile,
+                            tracked_fields: trackedFields,
                             type: entity.type,
                         });
                         outUpdatedEntities.push(entity);
+
+                        // 发射 state_change 事件到 timeline
+                        if (emittedChanges.length > 0) {
+                            await this.emitStateChangeEvents(
+                                entity as EntityNode,
+                                emittedChanges,
+                                context,
+                                stateChangeEmitThreshold,
+                            );
+                        }
                     } else {
                         Logger.warn(
                             LogModule.WF_SAVE_ENTITY,
@@ -401,10 +505,23 @@ export class SaveEntity implements IStep {
     ) {
         if (value && typeof value === "object") {
             if (value.profile) {
+                // 分解为逐字段 replace，而非整体 profile add。
+                // 逐字段 op 让 partitionStateOps 能识别状态字段并路由到 appendInterval；
+                // 整体 add 会让路径变成 /profile，extractStateField 返回 "profile"（非 tracked），
+                // 状态字段变更会绕过 field_history——这是 field_history 始终只有 1 条记录的根因。
+                for (const [key, val] of Object.entries(value.profile)) {
+                    entityPatches.push({
+                        op: "replace",
+                        path: `/entities/${entityName}/profile/${key}`,
+                        value: val,
+                    });
+                }
+            }
+            if (value.tracked_fields) {
                 entityPatches.push({
-                    op: "add",
-                    path: `/entities/${entityName}/profile`,
-                    value: value.profile,
+                    op: "replace",
+                    path: `/entities/${entityName}/tracked_fields`,
+                    value: value.tracked_fields,
                 });
             }
             if (value.type) {
@@ -485,8 +602,14 @@ export class SaveEntity implements IStep {
                             episode_id: episodeId,
                         },
                     );
-                    // profile 同步写：旧读路径仍读 profile，保持当前快照正确（迁移期临时）
-                    if (targetDoc.profile) targetDoc.profile[field] = op.value;
+                    // 把新值同步写入 targetDoc.profile——这不是「并行写」持久化
+                    // （非 dryRun 路径不写 profile 状态字段），而是让 dryRun 产出的
+                    // targetDoc 快照携带最新状态值，供 UserReview 显示和后续
+                    // saveProcessedEntities 对比。saveProcessedEntities 会用这个
+                    // profile 值与 existing.field_history 对比来决定是否追加 interval。
+                    if (targetDoc.profile) {
+                        targetDoc.profile[field] = op.value;
+                    }
                     emittedChanges.push({
                         field,
                         from: oldValue,

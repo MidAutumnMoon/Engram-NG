@@ -325,8 +325,27 @@ class Injector {
                                     nodeCount: recallResult.nodes.length,
                                 },
                             );
+
+                            // Flashback heuristic：召回工作流已按相关性排序，
+                            // nodes[0] 是最相关的事件。若它指向过去某个叙事时刻，
+                            // 把实体状态渲染锚定到该事件的 end_index——
+                            // 「召回命中了过去事件，则用户很可能在问那个时刻」。
+                            // 命中最近事件时 end_index 接近当前，行为近似今日；仅在
+                            // 真正的 flashback 查询（召回旧事件）时才显著不同。
+                            // 缺省回退（无节点 / 无 source_range）= latest。
+                            const topNode = recallResult.nodes[0];
+                            const targetIndex = topNode?.source_range
+                                ?.end_index;
+                            if (targetIndex != null) {
+                                Logger.debug(
+                                    LogModule.RAG_INJECT,
+                                    `[flashback] 实体状态锚定到 msg ${targetIndex}`,
+                                    { topEvent: topNode.id },
+                                );
+                            }
                             await refreshCache(
                                 recallResult.nodes.map((n) => n.id),
+                                targetIndex,
                             );
                         } else {
                             Logger.debug(

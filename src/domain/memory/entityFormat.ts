@@ -27,6 +27,41 @@ const TYPE_TAG_MAP: Record<string, string> = {
 };
 
 /**
+ * 构造实体的「显示快照」——profile 形状的对象，状态字段从 field_history as-of 解析。
+ *
+ * 合并规则：
+ * - 非状态字段：直接取 profile
+ * - 状态字段（在 tracked_fields 中）：优先用 field_history 在 target_index 处的解析值；
+ *   解析为 undefined（gap 或早于首段）时回退 profile 当前快照
+ *
+ * UI 读路径（EntityCard 等）和 LLM 读路径（formatEntityYaml）共用此解析，
+ * 保证「展示给用户」和「注入给模型」看到同一份状态。
+ */
+export function getEntityDisplaySnapshot(
+    entity: EntityNode,
+    target_index: number = Number.MAX_SAFE_INTEGER,
+): Record<string, unknown> {
+    const tracked = Array.isArray(entity.tracked_fields)
+        ? entity.tracked_fields
+        : [];
+    const snapshot: Record<string, unknown> = { ...(entity.profile ?? {}) };
+
+    for (const field of tracked) {
+        const hist = entity.field_history?.[field];
+        if (hist && hist.length > 0) {
+            const resolved = resolveAt(hist, target_index);
+            // resolved === undefined 表示该字段在此时间点无记录（gap 或早于首段）
+            // 仅当解析出明确值时覆盖；否则保留 profile 当前快照作为兜底
+            if (resolved !== undefined) {
+                snapshot[field] = resolved;
+            }
+        }
+    }
+
+    return snapshot;
+}
+
+/**
  * 渲染单个实体的「详细」状态块（YAML）。
  * 状态字段优先从 field_history as-of 解析；缺失/未声明时回退 profile 当前快照。
  * 输出与旧 getEntityStates 的 description 形态兼容（name 行 + YAML）。
@@ -35,25 +70,17 @@ export function formatEntityYaml(
     entity: EntityNode,
     target_index: number,
 ): string {
-    const tracked = Array.isArray(entity.tracked_fields)
-        ? entity.tracked_fields
-        : [];
-    const profile = entity.profile ?? {};
+    const rendered = getEntityDisplaySnapshot(entity, target_index);
+    return entityToYaml(entity.name, rendered);
+}
 
-    // 构造渲染用的 profile：非状态字段沿用 profile；状态字段优先 as-of 解析
-    const rendered: Record<string, unknown> = { ...profile };
-    for (const field of tracked) {
-        const hist = entity.field_history?.[field];
-        if (hist && hist.length > 0) {
-            const resolved = resolveAt(hist, target_index);
-            // resolved === undefined 表示该字段在此时间点无记录（gap 或早于首段）
-            // 仅当解析出明确值时覆盖 profile；否则保留 profile 当前快照作为兜底
-            if (resolved !== undefined) {
-                rendered[field] = resolved;
-            }
-        }
-    }
-
+/**
+ * 渲染实体的「描述风格」字符串（name + YAML），供 UI 只读展示复用。
+ * 与 formatEntityYaml 相同，只是命名上更贴近 EntityCard 等读 description 的场景。
+ * as-of latest（当前快照）。
+ */
+export function formatEntityDescription(entity: EntityNode): string {
+    const rendered = getEntityDisplaySnapshot(entity);
     return entityToYaml(entity.name, rendered);
 }
 

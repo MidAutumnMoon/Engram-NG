@@ -134,10 +134,16 @@ export function getEntityStates(): string {
 /**
  * 刷新所有缓存 (包括耗时的世界书扫描)
  * @param recalledIds 可选，RAG 召回的事件 ID 列表
+ * @param target_index 可选，实体状态 as-of 解析的消息索引（用于 flashback 查询）。
+ *   缺省 = 最新（latest）。Injector 在召回命中过去事件时传入该事件的 end_index，
+ *   使 {{engramEntityStates}} 渲染为「那个叙事时刻」的状态快照。
  */
-export async function refreshCache(recalledIds?: string[]): Promise<void> {
+export async function refreshCache(
+    recalledIds?: string[],
+    target_index?: number,
+): Promise<void> {
     await Promise.all([
-        refreshEngramCache(recalledIds),
+        refreshEngramCache(recalledIds, target_index),
         refreshWorldbookCache(),
     ]);
 
@@ -153,6 +159,7 @@ export async function refreshCache(recalledIds?: string[]): Promise<void> {
  */
 export async function refreshEngramCache(
     recalledIds?: string[],
+    target_index?: number,
 ): Promise<void> {
     try {
         const store = useMemoryStore.getState();
@@ -163,8 +170,11 @@ export async function refreshEngramCache(
         // 2. 刷新归档摘要
         await refreshArchivedSummaries();
 
-        // 3. V1.0.0: 刷新实体状态
-        cachedEntityStates = await store.getEntityStates();
+        // 3. V1.0.0: 刷新实体状态（target_index 透传给 as-of 解析）
+        cachedEntityStates = await store.getEntityStates(
+            undefined,
+            target_index,
+        );
 
         // 4. Agentic RAG: 刷新目录索引和纯蓝灯事件
         cachedAgenticIndex = await store.getAgenticIndex();
