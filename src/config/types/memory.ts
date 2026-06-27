@@ -42,8 +42,6 @@ export const entityExtractConfigSchema = z.object({
     floorInterval: z.number().int().positive().default(15),
     /** 保留最近 N 条对话不处理 */
     keepRecentCount: z.number().int().nonnegative().default(5),
-    /** 使用的提示词模板 ID */
-    promptTemplateId: z.string().optional(),
     /** 是否启用自动归档 (当总数超过上限时) */
     autoArchive: z.boolean().default(true),
     /** 实体数量上限 (默认 50) */
@@ -99,8 +97,6 @@ export const summarizerConfigSchema = z.object({
     worldbookMode: worldbookBindModeSchema.default("chat"),
     /** 是否启用预览 */
     previewEnabled: z.boolean().default(true),
-    /** 使用的提示词模板 ID */
-    promptTemplateId: z.string().nullable().default(null),
     /** 使用的 LLM 预设 ID（null 表示使用默认） */
     llmPresetId: z.string().nullable().default(null),
     /** 保留末尾不处理的楼层数（缓冲） */

@@ -190,7 +190,6 @@ class EventTrimmer {
                 keepRecentCount: config.keepRecentCount,
                 previewEnabled: this.globalPreviewEnabled &&
                     (config.previewEnabled ?? true),
-                templateId: "builtin_trim",
                 trigger: manual ? "manual" : "auto",
             });
 

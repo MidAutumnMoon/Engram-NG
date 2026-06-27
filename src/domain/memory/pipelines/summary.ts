@@ -42,7 +42,6 @@ export interface SummaryInput {
 }
 
 export interface SummaryConfig {
-    templateId?: string | null;
     previewEnabled: boolean;
     autoHide: boolean;
 }
@@ -105,8 +104,7 @@ export async function runSummary(
 
     while (true) {
         const prompt = await buildPrompt({
-            category: "summary",
-            templateId: cfg.templateId ?? undefined,
+            templateId: "builtin_summary",
             ctx,
             feedback,
             previousOutput,

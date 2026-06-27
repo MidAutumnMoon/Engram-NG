@@ -18,10 +18,7 @@ import {
     getEntityStates,
     getSummaries,
 } from "@/domain/macros/Macros.ts";
-import {
-    BUILTIN_PROMPTS,
-    getBuiltinByCategory,
-} from "@/integrations/llm/builtinPrompts.ts";
+import { BUILTIN_PROMPTS } from "@/integrations/llm/builtinPrompts.ts";
 import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
 import { llmAdapter } from "@/integrations/llm/Adapter.ts";
 import { useModelLogStore } from "@/logger/modelLog.ts";
@@ -322,8 +319,8 @@ export async function fetchContext(
 // ============================================================================
 
 export interface BuildPromptInput {
-    templateId?: string;
-    category?: string;
+    /** Built-in template id (e.g. "builtin_summary"). Required — sole resolution key. */
+    templateId: string;
     /** Explicit chat history (overrides ctx.chatHistory). Usually ctx.chatHistory. */
     chatHistory?: string;
     /** Pre-resolved fetch context. */
@@ -360,26 +357,16 @@ export async function buildPrompt(
     input: BuildPromptInput,
 ): Promise<BuiltPrompt> {
     const templateId = input.templateId;
-    const category = input.category;
 
-    // Templates are built-in only (defined in source). Resolve by id, else by
-    // category (unique per category).
-    let template;
-    if (templateId) {
-        template = BUILTIN_PROMPTS.find((t) => t.id === templateId);
-    } else if (category) {
-        template = getBuiltinByCategory(category as any) ?? undefined;
-    }
-
+    // Templates are built-in only (defined in source), keyed by id.
+    const template = BUILTIN_PROMPTS.find((t) => t.id === templateId);
     if (!template) {
-        throw new Error(
-            `BuildPrompt: 未找到可用模板 (ID: ${templateId}, Category: ${category})`,
-        );
+        throw new Error(`BuildPrompt: 未找到模板 (ID: ${templateId})`);
     }
 
     Logger.debug(
         LogModule.WF_BUILD_PROMPT,
-        `Using template: ${template.name}`,
+        `Using template: ${template.id}`,
     );
 
     const ctx = input.ctx;
@@ -465,7 +452,7 @@ export async function buildPrompt(
 
     Logger.debug(
         LogModule.WF_BUILD_PROMPT,
-        `Prompt 构建完成 (Template: ${template.name})`,
+        `Prompt 构建完成 (Template: ${template.id})`,
         { systemLen: systemPrompt.length, userLen: userPrompt.length },
     );
 

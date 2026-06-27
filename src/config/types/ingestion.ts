@@ -18,8 +18,6 @@ export const ingestionSummarySchema = z.object({
     enabled: z.boolean().default(true),
     /** 是否自动隐藏已总结的楼层 */
     autoHide: z.boolean().default(false),
-    /** 使用的提示词模板 ID */
-    promptTemplateId: z.string().nullable().default(null),
 });
 export type IngestionSummaryConfig = z.infer<typeof ingestionSummarySchema>;
 
@@ -47,8 +45,6 @@ export const ingestionEntitySchema = z.object({
      * 只有达到此阈值的状态变更才发射事件。
      */
     stateChangeEmitThreshold: z.number().min(0).max(1).default(0.6),
-    /** 使用的提示词模板 ID */
-    promptTemplateId: z.string().nullable().default(null),
 });
 export type IngestionEntityConfig = z.infer<typeof ingestionEntitySchema>;
 
@@ -84,13 +80,11 @@ export const DEFAULT_INGESTION_CONFIG: IngestionConfig =
  * - summarizerConfig.previewEnabled     → base.previewEnabled
  * - summarizerConfig.bufferSize         → base.bufferSize
  * - summarizerConfig.autoHide           → summary.autoHide
- * - summarizerConfig.promptTemplateId   → summary.promptTemplateId
  * - entityExtractConfig.enabled         → entity.enabled
  * - entityExtractConfig.autoArchive     → entity.autoArchive
  * - entityExtractConfig.archiveLimit    → entity.archiveLimit
  * - entityExtractConfig.stateFields     → entity.stateFields
  * - entityExtractConfig.stateChangeEmitThreshold → entity.stateChangeEmitThreshold
- * - entityExtractConfig.promptTemplateId → entity.promptTemplateId
  *
  * 幂等：若 ingestionConfig 已有完整字段（已迁移），原样返回。
  */
@@ -123,7 +117,6 @@ export function migrateToIngestionConfig(
         merged.summary = {
             enabled: oldSummary.enabled !== false,
             autoHide: oldSummary.autoHide ?? false,
-            promptTemplateId: oldSummary.promptTemplateId ?? null,
         };
     }
 
@@ -136,7 +129,6 @@ export function migrateToIngestionConfig(
                 ["state", "status", "location", "mood"],
             stateChangeEmitThreshold: oldEntity.stateChangeEmitThreshold ??
                 0.6,
-            promptTemplateId: oldEntity.promptTemplateId ?? null,
         };
     }
 

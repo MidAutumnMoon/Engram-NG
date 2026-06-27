@@ -3,7 +3,6 @@
  *
  * 模板为内置（源码定义）；此组件仅展示模板内容，不提供编辑。
  */
-import { PROMPT_CATEGORIES } from "@/config/types/prompt.ts";
 import { FormSection } from "@/ui/components/form/FormComponents.tsx";
 import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
 import { Check, Copy } from "lucide-react";
@@ -143,29 +142,6 @@ export const PromptTemplateForm: React.FC<PromptTemplateFormProps> = ({
 
     return (
         <div className="flex flex-col gap-4">
-            {/* 基本信息 */}
-            <FormSection title="基本信息">
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs text-muted-foreground">
-                        模板名称
-                    </label>
-                    <span className="text-sm text-foreground">
-                        {template.name}
-                    </span>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs text-muted-foreground">
-                        模板分类
-                    </label>
-                    <span className="text-sm text-foreground">
-                        {PROMPT_CATEGORIES.find((c) =>
-                            c.value === template.category
-                        )?.label || template.category}
-                    </span>
-                </div>
-            </FormSection>
-
             {/* 提示词内容 */}
             <FormSection title="提示词内容">
                 <div className="flex flex-col gap-1">

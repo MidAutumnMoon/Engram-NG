@@ -392,7 +392,6 @@ class IngestionService {
             await runSummary(
                 { range, episodeId: newEpisodeId },
                 {
-                    templateId: config.summary.promptTemplateId,
                     previewEnabled,
                     autoHide: config.summary.autoHide,
                 },
@@ -482,7 +481,6 @@ class IngestionService {
             await runEntityExtraction(
                 { range, episodeId: newEpisodeId, chatHistory },
                 {
-                    templateId: config.entity.promptTemplateId,
                     previewEnabled,
                     stateFields: config.entity.stateFields,
                     stateChangeEmitThreshold:
@@ -627,7 +625,6 @@ class IngestionService {
                 await runSummary(
                     { range, episodeId },
                     {
-                        templateId: config.summary.promptTemplateId,
                         previewEnabled,
                         autoHide: config.summary.autoHide,
                     },
@@ -666,7 +663,6 @@ class IngestionService {
                 await runEntityExtraction(
                     { range, episodeId, chatHistory },
                     {
-                        templateId: config.entity.promptTemplateId,
                         previewEnabled,
                         stateFields: config.entity.stateFields,
                         stateChangeEmitThreshold:
@@ -725,7 +721,6 @@ class IngestionService {
             const summaryPreview = await runSummary(
                 { range, episodeId },
                 {
-                    templateId: config.summary.promptTemplateId,
                     previewEnabled: true, // ignored under previewOnly
                     autoHide: config.summary.autoHide,
                 },
@@ -759,7 +754,6 @@ class IngestionService {
             const ep = await runEntityExtraction(
                 { range, episodeId, chatHistory },
                 {
-                    templateId: config.entity.promptTemplateId,
                     previewEnabled: true,
                     stateFields: config.entity.stateFields,
                     stateChangeEmitThreshold:
@@ -819,7 +813,6 @@ class IngestionService {
                     const rp = await runSummary(
                         { range, episodeId },
                         {
-                            templateId: config.summary.promptTemplateId,
                             previewEnabled: true,
                             autoHide: config.summary.autoHide,
                         },

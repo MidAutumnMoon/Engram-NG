@@ -52,7 +52,6 @@ export interface EntityInput {
 }
 
 export interface EntityConfig {
-    templateId?: string | null;
     previewEnabled: boolean;
     stateFields?: string[];
     stateChangeEmitThreshold?: number;
@@ -118,8 +117,7 @@ export async function runEntityExtraction(
 
     // 2. BuildPrompt
     const prompt = await buildPrompt({
-        category: "entity_extraction",
-        templateId: cfg.templateId ?? undefined,
+        templateId: "builtin_entity_extraction",
         ctx,
         // Inject the existing-entities list into {{chatHistory}}? No — the
         // entity template uses its own macros; existingEntities is surfaced

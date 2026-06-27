@@ -30,8 +30,6 @@ import {
 export interface TrimRunConfig {
     keepRecentCount: number;
     previewEnabled: boolean;
-    /** Hardcoded "builtin_trim" today; kept as a param for symmetry. */
-    templateId: string;
     /** manual | auto — used by fetchEventsToMerge to decide throw-vs-skip. */
     trigger?: "auto" | "manual" | "batch";
 }
@@ -100,8 +98,7 @@ Significance: ${e.significance_score}`;
     // workflow today); pass a minimal ctx carrying the formatted events as
     // chatHistory so BuildPrompt's {{targetSummaries}} / {{chatHistory}} resolve.
     const prompt = await buildPrompt({
-        category: "trimming",
-        templateId: cfg.templateId,
+        templateId: "builtin_trim",
         ctx: {
             charName: undefined,
             charPersona: "",

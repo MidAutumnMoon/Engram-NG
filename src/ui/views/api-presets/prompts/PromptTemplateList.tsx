@@ -1,5 +1,4 @@
 import type { PromptTemplate } from "@/config/types/prompt.ts";
-import { PROMPT_CATEGORIES } from "@/config/types/prompt.ts";
 import { FileText } from "lucide-react";
 import React from "react";
 import { PromptTemplateCard } from "./PromptTemplateCard.tsx";
@@ -15,12 +14,6 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
     selectedId,
     onSelect,
 }) => {
-    // 按分类分组
-    const groupedTemplates = PROMPT_CATEGORIES.map((category) => ({
-        ...category,
-        templates: templates.filter((t) => t.category === category.value),
-    })).filter((group) => group.templates.length > 0);
-
     return (
         <div className="flex flex-col gap-4 h-full">
             {/* 头部 */}
@@ -31,25 +24,14 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
             </div>
 
             {/* 模板列表 */}
-            <div className="flex flex-col gap-6 overflow-y-auto flex-1 no-scrollbar">
-                {groupedTemplates.map((group) => (
-                    <div key={group.value} className="flex flex-col gap-2">
-                        <div className="text-[10px] items-center gap-2 text-muted-foreground font-medium px-1 uppercase tracking-wider flex">
-                            {group.label}
-                            <div className="h-px bg-border flex-1"></div>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            {group.templates.map((template) => (
-                                <div key={template.id}>
-                                    <PromptTemplateCard
-                                        template={template}
-                                        isSelected={selectedId === template.id}
-                                        onSelect={() => onSelect(template)}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+            <div className="flex flex-col gap-1 overflow-y-auto flex-1 no-scrollbar">
+                {templates.map((template) => (
+                    <PromptTemplateCard
+                        key={template.id}
+                        template={template}
+                        isSelected={selectedId === template.id}
+                        onSelect={() => onSelect(template)}
+                    />
                 ))}
 
                 {templates.length === 0 && (
