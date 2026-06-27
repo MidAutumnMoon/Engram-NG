@@ -50,10 +50,10 @@ export async function getEntries(
             }
 
             return {
-                uid: entry.uid as number || 0,
-                name: entry.name as string || "",
+                uid: entry.uid as number ?? 0,
+                name: entry.name as string ?? "",
                 world: worldbookName, // Inject worldbook name for filtering context
-                content: entry.content as string || "",
+                content: entry.content as string ?? "",
                 enabled: typeof entry.enabled === "boolean"
                     ? entry.enabled
                     : (entry.disable !== true),
@@ -62,15 +62,15 @@ export async function getEntries(
                 keys,
                 position: (position?.type as WorldInfoPosition) ||
                     "before_character_definition",
-                depth: position?.depth as number || 0,
-                order: position?.order as number || 100,
+                depth: position?.depth as number ?? 0,
+                order: position?.order as number ?? 100,
                 recursion: recursion
                     ? {
                         prevent_incoming: recursion.prevent_incoming,
                         prevent_outgoing: recursion.prevent_outgoing,
                     }
                     : undefined,
-                comment: entry.comment as string || "",
+                comment: entry.comment as string ?? "",
                 extra: entry.extra as Record<string, any> || undefined,
             };
         });

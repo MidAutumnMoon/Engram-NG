@@ -1,90 +1,21 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { getEntries } from "@/domain/worldbook/crud.ts";
-import type { WorldInfoEntry, WorldInfoTokenStats } from "./types.ts";
+import { getSTContext } from "@/sillytavern/context.ts";
 
 /**
- * 获取 SillyTavern 的 tokenizers 模块
+ * 计算文本的 Token 数量
+ *
+ * 通过 SillyTavern 宿主层获取 token 计数；失败时回退到字符估算 (≈4 字符/token)。
  */
-async function getTokenCountAsync(text: string): Promise<number> {
+export async function countTokens(text: string): Promise<number> {
     try {
-        const { SillyTavern } = window;
-        if (SillyTavern?.getContext) {
-            const context = SillyTavern.getContext() as any;
-            if (context?.getTokenCountAsync) {
-                return await context.getTokenCountAsync(text);
-            }
+        const ctx = getSTContext();
+        if (typeof ctx.getTokenCountAsync === "function") {
+            return await ctx.getTokenCountAsync(text);
         }
-
-        // Fallback: 字符估算 (约 4 字符 = 1 token)
-        return Math.ceil(text.length / 4);
     } catch {
-        Logger.warn(LogModule.WORLDBOOK, "无法使用酒馆 Token 计数，使用估算");
-        return Math.ceil(text.length / 4);
+        // fall through to estimate
     }
-}
-
-/**
- * WorldbookMetricsService - 负责 Token 计数相关逻辑
- */
-export class WorldbookMetricsService {
-    /**
-     * 计算文本的 Token 数量
-     * @param text 文本内容
-     */
-    static async countTokens(text: string): Promise<number> {
-        return getTokenCountAsync(text);
-    }
-
-    /**
-     * 批量计算多段文本的 Token 数量
-     * @param texts 文本数组
-     */
-    static async countTokensBatch(texts: string[]): Promise<number[]> {
-        return Promise.all(texts.map((t) => getTokenCountAsync(t)));
-    }
-
-    /**
-     * 获取世界书的 Token 统计
-     * @param worldbookName 世界书名称
-     */
-    static async getWorldbookTokenStats(
-        worldbookName: string,
-    ): Promise<WorldInfoTokenStats> {
-        const entries = await getEntries(worldbookName);
-
-        const entriesWithTokens = await Promise.all(
-            entries.map(async (e: WorldInfoEntry) => ({
-                name: e.name,
-                tokens: await this.countTokens(e.content),
-            })),
-        );
-
-        const totalTokens = entriesWithTokens.reduce(
-            (sum: number, e: { tokens: number }) => sum + e.tokens,
-            0,
-        );
-
-        return {
-            entries: entriesWithTokens,
-            entryCount: entries.length,
-            totalTokens,
-        };
-    }
-
-    /**
-     * 检查 Token 计数是否使用酒馆原生 API
-     */
-    static async isNativeTokenCountAvailable(): Promise<boolean> {
-        try {
-            const { SillyTavern } = window;
-            if (SillyTavern?.getContext) {
-                const context = SillyTavern.getContext();
-                return typeof context?.getTokenCountAsync === "function";
-            }
-            return false;
-        } catch {
-            return false;
-        }
-    }
+    Logger.warn(LogModule.WORLDBOOK, "无法使用酒馆 Token 计数，使用估算");
+    return Math.ceil(text.length / 4);
 }

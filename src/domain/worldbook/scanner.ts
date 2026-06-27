@@ -7,22 +7,18 @@ import { LogModule } from "@/logger/LogModule.ts";
 
 /**
  * 获取常驻激活的世界书条目（蓝灯）
- * fallback
+ * fallback：当 ST 原生扫描接口不可用时使用
  */
 async function getConstantWorldInfo(): Promise<string> {
     try {
-        const importPath = "/scripts/world-info.js";
-        const worldInfoModule = await import(/* @vite-ignore */ importPath);
+        const worldInfoModule = await import(
+            /* @vite-ignore */ "/scripts/world-info.js"
+        );
         const getSortedEntries = worldInfoModule?.getSortedEntries;
-
-        if (typeof getSortedEntries !== "function") {
-            return "";
-        }
+        if (typeof getSortedEntries !== "function") return "";
 
         const entries = await getSortedEntries();
-        if (!entries || !Array.isArray(entries)) {
-            return "";
-        }
+        if (!Array.isArray(entries)) return "";
 
         const constantEntries = entries.filter((e: {
             constant?: boolean;
@@ -30,17 +26,13 @@ async function getConstantWorldInfo(): Promise<string> {
             content?: string;
         }) => e.constant === true && e.disable !== true && e.content);
 
-        if (constantEntries.length === 0) {
-            return "";
-        }
+        if (constantEntries.length === 0) return "";
 
         Logger.debug(
             LogModule.WORLDBOOK,
             `回退获取 ${constantEntries.length} 个常驻条目`,
         );
-        return constantEntries.map((e: { content: string }) => e.content).join(
-            "\n\n",
-        );
+        return constantEntries.map((e) => e.content).join("\n\n");
     } catch {
         return "";
     }
@@ -58,7 +50,7 @@ function loadFilteringState() {
     const config = settings.apiSettings?.worldbookConfig;
     const disabledGlobalBooks = config?.disabledWorldbooks || [];
 
-    // 加载条目黑名单 (取代了老版本的角色独占状态存储)
+    // 条目级黑名单 (取代了老版本的角色独占状态存储)
     const disabledEntries: Record<string, number[]> = config?.disabledEntries ||
         {};
 
@@ -75,36 +67,26 @@ function loadFilteringState() {
  * @private
  */
 function shouldIncludeEntry(
-    entry: any,
-    globalWorldbooks: string[],
+    entry: WorldInfoEntry,
     disabledGlobalBooks: string[],
     disabledEntries: Record<string, number[]>,
-    config: any,
 ): boolean {
-    // (1) Engram 自身条目：如果是 [Engram] 创建的注入占位世界书，不应该拼补到 worldbookContext 中，防止与内置提示词里的相同宏撞车
-    if (entry.extra?.engram === true) return true;
-    if (entry.world?.startsWith("[Engram]")) return false;
+    // (1) Engram 自身的注入占位条目：不拼入 worldbookContext，
+    //     防止与内置提示词里的相同宏撞车。
+    if (entry.extra?.engram === true) return false;
 
-    // (1.5) 显式禁用检查：如果在 Engram 全局禁用列表中，直接排除
-    if (entry.world && disabledGlobalBooks.includes(entry.world)) {
+    const world = entry.world;
+    if (!world) return true;
+
+    // (2) 全局禁用列表：该书被整体禁用则排除其所有条目
+    if (disabledGlobalBooks.includes(world)) return false;
+
+    // (3) 条目级黑名单：uid 在禁用列表中则排除
+    const bookDisabledList = disabledEntries[world];
+    if (bookDisabledList && entry.uid != null && bookDisabledList.includes(entry.uid)) {
         return false;
     }
 
-    // (2) 全局世界书逻辑：根据 includeGlobal 过滤
-    if (entry.world && globalWorldbooks.includes(entry.world)) {
-        // 如果未启用全局世界书，直接排除
-        if (config?.includeGlobal === false) return false;
-    }
-
-    // (3) 条目级黑名单：如果 uid 在禁用列表中，排除
-    if (entry.world && entry.uid) {
-        const bookDisabledList = disabledEntries[entry.world];
-        if (bookDisabledList && bookDisabledList.includes(entry.uid)) {
-            return false;
-        }
-    }
-
-    // (5) 其他条目：保留
     return true;
 }
 
@@ -126,26 +108,18 @@ export class WorldbookScannerService {
         const entries = await getEntries(worldbookName);
         if (entries.length === 0) return "";
 
-        // V1.2.9: 加载过滤配置，确保遵循白名单/黑名单逻辑
-        const filterState = await loadFilteringState();
-        let { disabledGlobalBooks, disabledEntries, globalWorldbooks, config } =
-            filterState;
+        const filterState = loadFilteringState();
+        let { disabledGlobalBooks, disabledEntries } = filterState;
 
-        // Check if disabled globally and not forced
+        // 全局禁用检查：强制包含时临时豁免该书，但保留条目级黑名单效力
         const isDisabled = disabledGlobalBooks.includes(worldbookName);
         if (isDisabled && !options?.forceInclude) {
             Logger.debug(
                 LogModule.WORLDBOOK,
                 `世界书 [${worldbookName}] 全局已禁用`,
-                {
-                    forceInclude: false,
-                },
             );
             return "";
         }
-
-        // V1.2.10: 如果强制包含（例如模板绑定），则临时从禁用列表中移除该书
-        // 但仍然保留 disabledEntries (条目黑名单) 的效力
         if (options?.forceInclude) {
             disabledGlobalBooks = disabledGlobalBooks.filter((name) =>
                 name !== worldbookName
@@ -156,25 +130,15 @@ export class WorldbookScannerService {
         const lowerContext = contextText.toLowerCase();
 
         for (const entry of entries) {
-            // 0. 全局/黑名单过滤 (新增)
+            // 0. 黑名单/全局禁用过滤
             if (
-                !shouldIncludeEntry(
-                    entry,
-                    globalWorldbooks,
-                    disabledGlobalBooks,
-                    disabledEntries,
-                    config,
-                )
+                !shouldIncludeEntry(entry, disabledGlobalBooks, disabledEntries)
             ) {
-                // Logger.debug(LogModule.WORLDBOOK, `Entry excluded by filter`, { name: entry.name, world: entry.world });
                 continue;
             }
 
             // 1. 必须启用
-            if (!entry.enabled) {
-                // Logger.debug(LogModule.WORLDBOOK, `Entry not enabled`, { name: entry.name });
-                continue;
-            }
+            if (!entry.enabled) continue;
 
             // 2. 常驻条目直接激活
             if (entry.constant) {
@@ -182,29 +146,13 @@ export class WorldbookScannerService {
                 continue;
             }
 
-            // 3. 关键词匹配
+            // 3. 关键词匹配 (ST 逻辑: OR — 命中任一 key 即激活)
             if (entry.keys && entry.keys.length > 0) {
-                // ST 逻辑: OR 关系 (只要命中一个 key)
-                let matched = false;
-                const matchedKeys = [];
-                for (const key of entry.keys) {
-                    if (!key) continue;
-                    // 简单包含检查 (忽略大小写)
-                    if (lowerContext.includes(key.toLowerCase())) {
-                        matched = true;
-                        matchedKeys.push(key);
-                        // Break; // Don't break, capture all for debug? No, one is enough.
-                        break;
-                    }
-                }
-                if (matched) {
-                    activeEntries.push(entry);
-                } else {
-                    // Log failed match for specific bound books if needed, but might be spammy
-                    // Logger.warn(LogModule.WORLDBOOK, 'Entry key mismatch', { name: entry.name, keys: entry.keys });
-                }
-            } else {
-                // No keys and not constant -> Not activated
+                const matched = entry.keys.some((key) =>
+                    key &&
+                    lowerContext.includes(key.toLowerCase())
+                );
+                if (matched) activeEntries.push(entry);
             }
         }
 
@@ -222,7 +170,7 @@ export class WorldbookScannerService {
             activeEntries.sort((a, b) => a.order - b.order);
             return activeEntries.map((e) => e.content).join("\n\n");
         }
-        // Log output for bound books that yielded 0 result
+
         Logger.debug(
             LogModule.WORLDBOOK,
             `扫描白名单世界书 [${worldbookName}] - 无匹配条目`,
@@ -231,46 +179,34 @@ export class WorldbookScannerService {
                 reason: "No keys matched or no constant entries",
             },
         );
-
         return "";
     }
 
     /**
      * 获取所有激活的世界书条目内容（用于总结）
-     * 使用酒馆原生 getWorldInfoPrompt 进行扫描，获取所有激活的条目
+     * 使用酒馆原生 checkWorldInfo 进行扫描，获取所有激活的条目
      */
     static async getActivatedWorldInfo(
         chatMessages?: string[],
         options?: { floorRange?: [number, number] },
     ): Promise<string> {
         try {
-            // 使用运行时动态导入
-            const importPath = "/scripts/world-info.js";
-            const worldInfoModule = await import(/* @vite-ignore */ importPath);
-            const getWorldInfoPrompt = worldInfoModule?.getWorldInfoPrompt;
-            const getSortedEntries = worldInfoModule?.getSortedEntries;
+            const worldInfoModule = await import(
+                /* @vite-ignore */ "/scripts/world-info.js"
+            );
+            const checkWorldInfo = worldInfoModule?.checkWorldInfo;
 
-            // 诊断信息
-            if (typeof getSortedEntries === "function") {
-                const allEntries = await getSortedEntries();
-                // 简单log一下
-                if (allEntries && allEntries.length > 0) {
-                    //
-                }
-            }
-
-            if (typeof getWorldInfoPrompt !== "function") {
+            if (typeof checkWorldInfo !== "function") {
                 Logger.warn(
                     LogModule.WORLDBOOK,
-                    "getWorldInfoPrompt 不可用，回退到常驻条目",
+                    "checkWorldInfo 不可用，回退到常驻条目",
                 );
                 return getConstantWorldInfo();
             }
 
             const DEFAULT_SCAN_LIMIT = 4;
-            let messages = chatMessages;
-
             const context = getSTContext();
+            let messages = chatMessages;
 
             if (options?.floorRange) {
                 const [startFloor, endFloor] = options.floorRange;
@@ -282,12 +218,10 @@ export class WorldbookScannerService {
                     messages = rangeChat.map((m: { mes?: string }) =>
                         m.mes || ""
                     ).toReversed();
-                    if (messages) {
-                        Logger.debug(LogModule.WORLDBOOK, "使用楼层范围扫描", {
-                            floorRange: options.floorRange,
-                            messageCount: messages.length,
-                        });
-                    }
+                    Logger.debug(LogModule.WORLDBOOK, "使用楼层范围扫描", {
+                        floorRange: options.floorRange,
+                        messageCount: messages.length,
+                    });
                 }
             } else if (!messages || messages.length === 0) {
                 if (context?.chat && Array.isArray(context.chat)) {
@@ -295,16 +229,14 @@ export class WorldbookScannerService {
                     messages = recentChat.map((m: { mes?: string }) =>
                         m.mes || ""
                     ).toReversed();
-                    if (messages) {
-                        Logger.debug(
-                            LogModule.WORLDBOOK,
-                            "使用默认最近消息扫描",
-                            {
-                                messageCount: messages.length,
-                                scanLimit: DEFAULT_SCAN_LIMIT,
-                            },
-                        );
-                    }
+                    Logger.debug(
+                        LogModule.WORLDBOOK,
+                        "使用默认最近消息扫描",
+                        {
+                            messageCount: messages.length,
+                            scanLimit: DEFAULT_SCAN_LIMIT,
+                        },
+                    );
                 }
             }
 
@@ -319,20 +251,12 @@ export class WorldbookScannerService {
                 10_000,
                 messages.length * avgTokensPerMessage,
             );
-            const checkWorldInfo = worldInfoModule?.checkWorldInfo;
-
-            if (typeof checkWorldInfo !== "function") {
-                Logger.error(LogModule.WORLDBOOK, "checkWorldInfo 不可用");
-                return getConstantWorldInfo();
-            }
 
             const result = await checkWorldInfo(
                 messages,
                 maxContextScan,
                 true,
-                {
-                    trigger: "normal",
-                },
+                { trigger: "normal" },
             );
 
             // 获取结果并过滤
@@ -344,21 +268,12 @@ export class WorldbookScannerService {
                 `扫描完成，共激活 ${entries.length} 个条目`,
             );
 
-            const filterState = await loadFilteringState();
-            const {
-                disabledGlobalBooks,
-                disabledEntries,
-                globalWorldbooks,
-                config,
-            } = filterState;
-
+            const { disabledGlobalBooks, disabledEntries } = loadFilteringState();
             const filteredEntries = entries.filter((entry) =>
                 shouldIncludeEntry(
                     entry,
-                    globalWorldbooks,
                     disabledGlobalBooks,
                     disabledEntries,
-                    config,
                 )
             );
 

@@ -256,7 +256,11 @@ export async function fetchContext(
 
     // 3. World Info
     const scopes = WorldInfoService.getScopes();
-    const globalBooks = scopes.global || [];
+    const worldbookConfig = getSetting("apiSettings")?.worldbookConfig;
+    // includeGlobal=false 表示不引入全局世界书（全不选）。
+    const globalBooks = worldbookConfig?.includeGlobal === false
+        ? []
+        : (scopes.global || []);
     const charBooks = scopes.chat || [];
     let extraBooks = input.extraWorldbooks ?? [];
 

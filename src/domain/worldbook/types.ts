@@ -72,11 +72,3 @@ export interface WorldInfoEntry {
     };
 }
 
-/**
- * WorldInfoTokenStats - 世界书 Token 统计信息
- */
-export interface WorldInfoTokenStats {
-    totalTokens: number;
-    entryCount: number;
-    entries: { name: string; tokens: number }[];
-}
