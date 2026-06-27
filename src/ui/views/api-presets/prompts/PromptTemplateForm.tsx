@@ -1,7 +1,6 @@
 /**
  * 提示词模板编辑表单
  */
-import type { LLMPreset } from "@/config/types/llm.ts";
 import type { PromptCategory, PromptTemplate } from "@/config/types/prompt.ts";
 import { PROMPT_CATEGORIES } from "@/config/types/prompt.ts";
 import {
@@ -16,8 +15,6 @@ import React, { useEffect, useState } from "react";
 
 interface PromptTemplateFormProps {
     template: PromptTemplate;
-    llmPresets: LLMPreset[];
-    defaultPresetId: string | null;
     onChange: (template: PromptTemplate) => void;
 }
 
@@ -118,25 +115,8 @@ const MacroItem = ({ macro }: { macro: MacroDef }) => {
 
 export const PromptTemplateForm: React.FC<PromptTemplateFormProps> = ({
     template,
-    llmPresets,
-    defaultPresetId,
     onChange,
 }) => {
-    // 构建模型来源选项
-    const modelSourceOptions = [
-        {
-            label: "跟随全局选中预设" +
-                (defaultPresetId
-                    ? ` (${
-                        llmPresets.find((p) => p.id === defaultPresetId)
-                            ?.name || defaultPresetId
-                    })`
-                    : ""),
-            value: "",
-        },
-        ...llmPresets.map((p) => ({ label: p.name, value: p.id })),
-    ];
-
     // Token 计数
     const [sysTokens, setSysTokens] = useState(0);
     const [userTokens, setUserTokens] = useState(0);
@@ -198,15 +178,6 @@ export const PromptTemplateForm: React.FC<PromptTemplateFormProps> = ({
                     description={PROMPT_CATEGORIES.find((c) =>
                         c.value === template.category
                     )?.description}
-                />
-
-                <SelectField
-                    label="模型来源"
-                    value={template.boundPresetId || ""}
-                    onChange={(value) =>
-                        updateTemplate({ boundPresetId: value || null })}
-                    options={modelSourceOptions}
-                    description="选择用于此模板的 LLM 预设"
                 />
             </FormSection>
 

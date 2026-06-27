@@ -72,7 +72,6 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
     const handleExport = (e: React.MouseEvent) => {
         e.stopPropagation();
         const exportData = {
-            boundPresetId: template.boundPresetId,
             category: template.category,
             name: template.name,
             systemPrompt: template.systemPrompt,
@@ -120,7 +119,6 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                         {
                             enabled: template.enabled, // 保持当前启用状态
                             isBuiltIn: template.isBuiltIn, // 保持内置状态
-                        boundPresetId: templateData.boundPresetId,
                         systemPrompt: templateData.systemPrompt,
                         userPromptTemplate: templateData.userPromptTemplate,
                         },
@@ -222,14 +220,6 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                                 </span>
                             )}
                         </div>
-                    </div>
-
-                    <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground/70 font-mono">
-                        <span className="truncate max-w-[120px]">
-                            {template.boundPresetId
-                                ? `BOUND: ${template.boundPresetId}`
-                                : "DEFAULT PRESET"}
-                        </span>
                     </div>
                 </div>
             </div>

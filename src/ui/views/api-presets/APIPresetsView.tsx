@@ -276,8 +276,6 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                 >
                     <PromptTemplateForm
                         template={editingTemplate}
-                        llmPresets={settings.llmPresets}
-                        defaultPresetId={settings.selectedPresetId}
                         onChange={updateTemplate}
                     />
                 </MobileFullscreenForm>
@@ -466,9 +464,6 @@ export const APIPresets: React.FC<APIPresetsProps> = (
                                 <div>
                                     <PromptTemplateForm
                                         template={editingTemplate}
-                                        llmPresets={settings.llmPresets}
-                                        defaultPresetId={settings
-                                            .selectedPresetId}
                                         onChange={updateTemplate}
                                     />
                                 </div>

@@ -42,7 +42,6 @@ function makeTemplate(
         category,
         enabled: true,
         isBuiltIn: true,
-        boundPresetId: null,
         systemPrompt,
         userPromptTemplate,
         createdAt: 0,

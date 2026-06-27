@@ -418,7 +418,6 @@ export interface BuiltPrompt {
     system: string;
     user: string;
     templateId?: string;
-    presetId?: string;
 }
 
 /**
@@ -539,7 +538,6 @@ export async function buildPrompt(
     }
 
     const result: BuiltPrompt = {
-        presetId: template.boundPresetId ?? undefined,
         system: systemPrompt,
         templateId: template.id,
         user: userPrompt,
@@ -598,7 +596,6 @@ export async function runLlm(
         const response = await llmAdapter.generate({
             systemPrompt: prompt.system,
             userPrompt: prompt.user,
-            presetId: prompt.presetId ?? undefined,
             internal: true,
         });
 

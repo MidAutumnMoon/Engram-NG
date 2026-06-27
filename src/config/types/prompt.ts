@@ -52,7 +52,6 @@ export const promptTemplateSchema = z.object({
     category: promptCategorySchema,
     enabled: z.boolean().default(false),
     isBuiltIn: z.boolean().default(false),
-    boundPresetId: z.string().nullable().default(null),
     extraWorldbooks: z.array(z.string()).optional(),
     systemPrompt: z.string().default(""),
     userPromptTemplate: z.string().default(""),
@@ -68,7 +67,6 @@ export type PromptTemplate = z.infer<typeof promptTemplateSchema>;
 const promptTemplateExportShape = {
     name: z.string(),
     category: promptCategorySchema,
-    boundPresetId: z.string().nullable(),
     systemPrompt: z.string(),
     userPromptTemplate: z.string(),
 };

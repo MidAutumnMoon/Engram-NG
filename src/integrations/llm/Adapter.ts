@@ -23,8 +23,6 @@ interface LLMRequest {
     systemPrompt: string;
     /** 用户提示词 */
     userPrompt: string;
-    /** 预设 ID */
-    presetId?: string;
     /** 是否为内部请求 (不触发预处理/脚本) */
     internal?: boolean;
 }
@@ -113,16 +111,10 @@ class LLMAdapter {
 
         let preset: LLMPreset | undefined;
         try {
-            // 获取预设配置
+            // 获取预设配置：使用全局选中的预设
             const settings = getSettings();
 
-            if (request.presetId) {
-                preset = settings.apiSettings?.llmPresets?.find((p) =>
-                    p.id === request.presetId
-                );
-            }
-
-            if (!preset && settings.apiSettings?.selectedPresetId) {
+            if (settings.apiSettings?.selectedPresetId) {
                 preset = settings.apiSettings?.llmPresets?.find((p) =>
                     p.id === settings.apiSettings?.selectedPresetId
                 );
@@ -143,7 +135,7 @@ class LLMAdapter {
             const errorMsg = error instanceof Error
                 ? error.message
                 : String(error);
-            const presetLabel = preset?.name ?? request.presetId ?? "default";
+            const presetLabel = preset?.name ?? "default";
             Logger.error(
                 LogModule.LLM_ADAPTER,
                 `调用失败 (preset: '${presetLabel}')`,
@@ -224,13 +216,9 @@ class LLMAdapter {
         // V1.5 获取此请求所用的 Preset (由 executeRequest 传递进来，或者回退到默认)
         if (!currentPreset) {
             const settings = getSettings();
-            currentPreset = request.presetId
-                ? settings.apiSettings?.llmPresets?.find((p) =>
-                    p.id === request.presetId
-                )
-                : settings.apiSettings?.llmPresets?.find((p) =>
-                    p.id === settings.apiSettings?.selectedPresetId
-                );
+            currentPreset = settings.apiSettings?.llmPresets?.find((p) =>
+                p.id === settings.apiSettings?.selectedPresetId
+            );
         }
 
         const generationOptions = {

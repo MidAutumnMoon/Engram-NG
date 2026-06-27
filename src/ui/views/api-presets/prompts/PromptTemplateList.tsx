@@ -42,7 +42,6 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
             template.category,
             {
                 enabled: false, // 副本默认不启用
-                boundPresetId: template.boundPresetId,
                 systemPrompt: template.systemPrompt,
                 userPromptTemplate: template.userPromptTemplate,
             },
