@@ -18,6 +18,7 @@
   {{engramEntityStates}}
   ```
   (如果这里没有或者数据过时,请进行注册或者更新)
+  (每个实体名后的 `# ent_xxx` 为消歧提示，patch 路径仍用实体名；`tracked_fields` 显示当前被历史化的字段，若需增删请生成 replace 操作)
   ---
   请按JSON patch格式对实体和关系数据进行注册和更新。
 

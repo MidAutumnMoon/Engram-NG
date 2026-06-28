@@ -930,6 +930,16 @@ function buildRelativePatches(
                         value: val.aliases,
                     });
                 }
+                // tracked_fields：root-replace 携带时也要透传，否则会被静默丢弃
+                // （定向 replace /entities/{name}/tracked_fields 已走 regular op，
+                // 此处只补 root-replace 批量更新的缺口）。
+                if (val.tracked_fields) {
+                    relativeOps.push({
+                        op: p.op,
+                        path: "/tracked_fields",
+                        value: val.tracked_fields,
+                    });
+                }
             }
             continue;
         }

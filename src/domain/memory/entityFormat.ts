@@ -93,6 +93,32 @@ export function formatEntityDescription(entity: EntityNode): string {
 }
 
 /**
+ * 把一组实体按类型分组（character/scene/item/concept/unknown）。
+ * 供 formatEntityStateBlocks（注入）与 formatExtractionEntityBlock（提取）共用，
+ * 保证两条路径的分组口径一致。
+ */
+function groupEntitiesByType(
+    entities: EntityNode[],
+): Record<string, EntityNode[]> {
+    const groups: Record<string, EntityNode[]> = {
+        [EntityType.Character]: [],
+        [EntityType.Location]: [],
+        [EntityType.Item]: [],
+        [EntityType.Concept]: [],
+        [EntityType.Unknown]: [],
+    };
+    for (const entity of entities) {
+        const typeKey = entity.type || EntityType.Unknown;
+        if (groups[typeKey]) {
+            groups[typeKey].push(entity);
+        } else {
+            groups[EntityType.Unknown].push(entity);
+        }
+    }
+    return groups;
+}
+
+/**
  * 把一组实体按类型分组，渲染为 `<character_state>` 等 XML 块。
  * 返回多段用 "\n\n" 连接的字符串（无归档块）。
  *
@@ -105,22 +131,7 @@ export function formatEntityStateBlocks(
     target_index: number,
     asOfLabel?: string,
 ): string {
-    const groups: Record<string, EntityNode[]> = {
-        [EntityType.Character]: [],
-        [EntityType.Location]: [],
-        [EntityType.Item]: [],
-        [EntityType.Concept]: [],
-        [EntityType.Unknown]: [],
-    };
-
-    for (const entity of entities) {
-        const typeKey = entity.type || EntityType.Unknown;
-        if (groups[typeKey]) {
-            groups[typeKey].push(entity);
-        } else {
-            groups[EntityType.Unknown].push(entity);
-        }
-    }
+    const groups = groupEntitiesByType(entities);
 
     const sections: string[] = [];
     for (const [typeKey, entityList] of Object.entries(groups)) {
@@ -138,6 +149,69 @@ export function formatEntityStateBlocks(
         return `${asOfLabel.trim()}\n${body}`;
     }
     return body;
+}
+
+/**
+ * 渲染单个实体的「提取专用」YAML——比 narrator 的 formatEntityYaml 多两样：
+ * - name 行后附 `# ent_id` 注释：供 LLM 在别名歧义时消歧（patch 仍按 name 寻址）。
+ * - 顶层 `tracked_fields:` 键：让 LLM 看到当前声明，从而判断是否需要增删可变状态字段。
+ *
+ * profile 部分复用 getEntityDisplaySnapshot（与 narrator 同 as-of 语义）。
+ */
+function formatExtractionEntityYaml(
+    entity: EntityNode,
+    target_index: number,
+): string {
+    const snapshot = getEntityDisplaySnapshot(entity, target_index);
+    const tracked = Array.isArray(entity.tracked_fields)
+        ? entity.tracked_fields
+        : [];
+    try {
+        const yamlContent = yamlDump(
+            { profile: snapshot, tracked_fields: tracked },
+            {
+                indent: 2,
+                lineWidth: -1,
+                noRefs: true,
+                sortKeys: false,
+            },
+        );
+        return `${entity.name}  # ${entity.id}\n${yamlContent.trim()}`;
+    } catch {
+        return `${entity.name}  # ${entity.id}\n${
+            JSON.stringify(
+                { profile: snapshot, tracked_fields: tracked },
+                null,
+                2,
+            )
+        }`;
+    }
+}
+
+/**
+ * 提取专用实体块——与 formatEntityStateBlocks 同样的类型分组 + XML 标签包裹，
+ * 但每个实体用 formatExtractionEntityYaml（带 id 注释 + tracked_fields）。
+ *
+ * 仅活跃实体参与（提取只更新在场实体）；无 asOfLabel——提取任务不需要 narrator
+ * 的时间限定语，它是在「写入新窗口」而非「读取当前状态」。
+ */
+export function formatExtractionEntityBlock(
+    entities: EntityNode[],
+    target_index: number,
+): string {
+    const active = entities.filter((e) => !e.is_archived);
+    const groups = groupEntitiesByType(active);
+
+    const sections: string[] = [];
+    for (const [typeKey, entityList] of Object.entries(groups)) {
+        if (entityList.length === 0) continue;
+        const tag = TYPE_TAG_MAP[typeKey] ?? "entity_state";
+        const contents = entityList
+            .map((e) => formatExtractionEntityYaml(e, target_index))
+            .join("\n---\n");
+        sections.push(`<${tag}>\n${contents}\n</${tag}>`);
+    }
+    return sections.join("\n\n");
 }
 
 /**

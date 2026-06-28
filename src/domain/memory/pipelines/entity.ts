@@ -11,16 +11,12 @@
  */
 
 import {
-    embeddingCandidates,
     stringCandidates,
 } from "@/domain/memory/entityResolve.ts";
 import {
     applyEntityChanges,
     computeEntityPreview,
 } from "@/domain/memory/saveEntities.ts";
-import { llmAdapter } from "@/integrations/llm/Adapter.ts";
-import { getSetting } from "@/config/settings.ts";
-import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
@@ -28,6 +24,9 @@ import { useMemoryStore } from "@/state/memoryStore.ts";
 import { reviewService } from "@/domain/review/ReviewBridge.ts";
 import type { ReviewAction } from "@/domain/review/ReviewBridge.ts";
 import type { EntityNode } from "@/data/types/graph.ts";
+import { chatManager } from "@/data/ChatManager.ts";
+import { getProcessedFloor } from "@/data/types/graph.ts";
+import { formatExtractionEntityBlock } from "@/domain/memory/entityFormat.ts";
 import ENTITY_EXTRACTION_SYSTEM from "@/integrations/llm/prompts/ENTITY_EXTRACTION_SYSTEM.txt?raw";
 import ENTITY_EXTRACTION_USER from "@/integrations/llm/prompts/ENTITY_EXTRACTION_USER.txt?raw";
 import {
@@ -41,21 +40,20 @@ import {
 } from "./shared.ts";
 
 /**
- * Build the entity-extraction prompt from ctx. Replaces the old macro path;
- * the user-prompt template (ENTITY_EXTRACTION_USER.txt) is filled via an
- * explicit replace chain.
+ * Build the entity-extraction prompt. entityStatesOverride 取代 ctx.engramEntityStates
+ * ——提取专用渲染（带 id 注释 + tracked_fields），不复用 narrator 的缓存。
  */
-function buildEntityExtractionPrompt(ctx: FetchContextResult): LlmPrompt {
+function buildEntityExtractionPrompt(
+    ctx: FetchContextResult,
+    entityStatesOverride: string,
+): LlmPrompt {
     const userPrompt = ENTITY_EXTRACTION_USER
         .replaceAll("{{worldbookContext}}", ctx.worldbookContext)
         .replaceAll("{{engramSummaries}}", ctx.engramSummaries)
-        .replaceAll("{{engramEntityStates}}", ctx.engramEntityStates)
+        .replaceAll("{{engramEntityStates}}", entityStatesOverride)
         .replaceAll("{{chatHistory}}", ctx.chatHistory);
     return { system: ENTITY_EXTRACTION_SYSTEM, user: userPrompt };
 }
-
-/** LLM is_duplicate 判定的余弦候选 TopK */
-const RESOLVE_TOP_K = 5;
 
 export interface EntityInput {
     range: [number, number];
@@ -121,8 +119,16 @@ export async function runEntityExtraction(
     const store = useMemoryStore.getState();
     const existingEntities = await store.getAllEntities();
 
-    // 2. Build prompt
-    const prompt = buildEntityExtractionPrompt(ctx);
+    // 2. Build prompt. 实体状态用提取专用渲染（id 注释 + tracked_fields），
+    // 不复用 narrator 的 {{engramEntityStates}} 缓存——两条路径看到的实体形状不同。
+    // as-of 锚定提取前沿（本 pass 写入前的世界状态），与 narrator 的前沿语义一致。
+    const frontierState = await chatManager.getState();
+    const frontier = getProcessedFloor(frontierState);
+    const extractionEntityStates = formatExtractionEntityBlock(
+        existingEntities,
+        frontier,
+    );
+    const prompt = buildEntityExtractionPrompt(ctx, extractionEntityStates);
     if (isCancelled(signal)) throwUserCancelled();
 
     // 3-5. LLM → Clean → Parse
@@ -217,17 +223,22 @@ export async function runEntityExtraction(
 }
 
 // ============================================================================
-// ResolveEntitiesStep (embedding+LLM entity resolution; ignoreFailure upstream)
+// ResolveEntitiesStep (string-only entity resolution; ignoreFailure upstream)
 // ============================================================================
 
 /**
- * Rewrite patch paths so duplicates merge into canonical entities. Mirrors
- * `ResolveEntitiesStep.execute`. Mutates `parsed` in place.
+ * Rewrite patch paths so duplicates merge into canonical entities.
+ *
+ * String-only：精确名匹配 + 单一别名匹配。歧义（多别名命中）或无匹配时不重写——
+ * LLM 发出的名字原样保留，重复由审查环节捕获。历史上的 embedding+LLM 消歧路径
+ * 已移除（成本：每次歧义名一次 embedding+LLM 调用；收益边际，且审查已能兜底）。
+ *
+ * Mutates `parsed` in place.
  */
 async function resolveEntities(
     parsed: any,
     existing: EntityNode[],
-    chatHistory: string,
+    _chatHistory: string,
 ): Promise<void> {
     const patches = extractPatches(parsed);
     if (patches.length === 0) {
@@ -246,12 +257,6 @@ async function resolveEntities(
         if (m) extractedNames.add(decodeURIComponent(m[1]));
     }
     if (extractedNames.size === 0) return;
-
-    const vectorConfig = getSetting("apiSettings")?.vectorConfig;
-    const embedAvailable = Boolean(vectorConfig);
-    if (embedAvailable) {
-        embeddingService.setConfig(vectorConfig!);
-    }
 
     const rewriteMap = new Map<string, string>();
     let mergeCount = 0;
@@ -280,42 +285,8 @@ async function resolveEntities(
             continue;
         }
 
-        if (str.ambiguous.length > 1) {
-            const canonical = await resolveViaEmbedding(
-                name,
-                str.ambiguous,
-                existing,
-                chatHistory,
-                embedAvailable,
-            );
-            if (canonical) {
-                rewriteMap.set(name, canonical);
-                mergeCount++;
-                Logger.debug(
-                    LogModule.WF_SAVE_ENTITY,
-                    `[resolve] "${name}" -> ambiguous "${canonical}" (embedding+LLM)`,
-                );
-            }
-            continue;
-        }
-
-        if (embedAvailable) {
-            const canonical = await resolveViaEmbedding(
-                name,
-                existing,
-                existing,
-                chatHistory,
-                true,
-            );
-            if (canonical) {
-                rewriteMap.set(name, canonical);
-                mergeCount++;
-                Logger.debug(
-                    LogModule.WF_SAVE_ENTITY,
-                    `[resolve] "${name}" -> "${canonical}" (embedding+LLM, no string match)`,
-                );
-            }
-        }
+        // 歧义（>1 别名命中）或无匹配：不重写。LLM 发出的名字原样保留，
+        // 若造成重复，由 EntityReview 审查环节捕获。
     }
 
     if (rewriteMap.size > 0) {
@@ -330,85 +301,6 @@ async function resolveEntities(
             LogModule.WF_SAVE_ENTITY,
             "[resolve] 无重复实体需要合并",
         );
-    }
-}
-
-async function resolveViaEmbedding(
-    name: string,
-    candidates: EntityNode[],
-    allEntities: EntityNode[],
-    chatHistory: string,
-    embedAvailable: boolean,
-): Promise<string | undefined> {
-    if (!embedAvailable) return undefined;
-
-    let queryVec: number[];
-    try {
-        queryVec = await embeddingService.embed(name);
-    } catch (e) {
-        Logger.warn(
-            LogModule.WF_SAVE_ENTITY,
-            `[resolve] embed "${name}" 失败，降级为字符串解析`,
-            e,
-        );
-        return undefined;
-    }
-
-    const top = embeddingCandidates(queryVec, candidates, RESOLVE_TOP_K);
-    if (top.length === 0) return undefined;
-
-    return await llmPickDuplicate(name, top, chatHistory);
-}
-
-async function llmPickDuplicate(
-    name: string,
-    candidates: EntityNode[],
-    chatHistory: string,
-): Promise<string | undefined> {
-    const candidatesText = candidates.map((c) => ({
-        aliases: c.aliases,
-        name: c.name,
-        profile: c.profile,
-        type: c.type,
-    }));
-
-    const userPrompt =
-        `<PREVIOUS MESSAGES>\n${chatHistory.slice(-2000)}\n</PREVIOUS MESSAGES>\n\n` +
-        `<NEW ENTITY>\n${name}\n</NEW ENTITY>\n\n` +
-        `<CANDIDATE EXISTING ENTITIES>\n${
-            JSON.stringify(candidatesText, null, 2)
-        }\n</CANDIDATE ENTITIES>\n\n` +
-        `判断 NEW ENTITY 是否与 CANDIDATE 中的某一个指代同一实体。` +
-        `只输出 JSON：{"is_duplicate": true|false, "canonical_name": "..."}`;
-
-    try {
-        const response = await llmAdapter.generate({
-            systemPrompt:
-                '你是实体解析助手。判断新实体名是否与候选实体指代同一对象，依据名称/别名/身份。没把握时返回 not_duplicate。只输出 JSON：{"is_duplicate": true|false, "canonical_name": "..."}',
-            userPrompt,
-            internal: true,
-        });
-        if (!response.success) return undefined;
-
-        const parsed = RobustJsonParser.parse<{
-            is_duplicate?: boolean;
-            canonical_name?: string;
-        }>(response.content);
-        if (parsed?.is_duplicate && parsed.canonical_name) {
-            const hit = candidates.find((c) =>
-                c.name === parsed.canonical_name ||
-                c.aliases?.includes(parsed.canonical_name!)
-            );
-            return hit?.name;
-        }
-        return undefined;
-    } catch (e) {
-        Logger.warn(
-            LogModule.WF_SAVE_ENTITY,
-            `[resolve] LLM 判定 "${name}" 失败`,
-            e,
-        );
-        return undefined;
     }
 }
 

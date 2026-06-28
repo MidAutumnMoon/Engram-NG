@@ -83,8 +83,10 @@
         - 更新属性: { op: "replace", path: "/entities/{实体名}/profile/{属性}", value: 新值 }
         - 删除属性: { op: "remove", path: "/entities/{实体名}/profile/{属性}" }
         - 添加别名: { op: "add", path: "/entities/{实体名}/aliases/-", value: "新别名" }
+        - 更新 tracked_fields: { op: "replace", path: "/entities/{实体名}/tracked_fields", value: ["status", "magic_reserve"] }
 
       注意: 实体名中如有特殊字符，需进行 URL 编码 (如空格 -> %20)。
+      注: 已有实体数据中，实体名后会附 `# ent_xxx` 注释作为消歧提示（别名冲突时辅助判断），patch 路径仍使用实体名，不使用该 id。
 
       示例:
         场景: A 是新人物，B 已存在但受伤了。
@@ -152,6 +154,13 @@
           - 仅对发生变化的属性生成 replace/add/remove 操作
           - 忽略无变化的字段
 
+        已有实体的 tracked_fields 是否需要调整？
+          - 新增的可变状态字段：该实体是否出现了新的「会随剧情变化」的字段？
+            例如：角色获得魔法能力 → 新增 magic_reserve 并加入 tracked_fields；物品被诅咒 → 新增 curse_state
+          - 已无需追踪的字段：某个曾变化的状态是否已稳定为恒定设定？若是，可从 tracked_fields 移除
+          - 仅当 tracked_fields 确实需要变化时才生成 replace 操作（路径 /entities/{实体名}/tracked_fields，值为完整的新数组）；无变化则忽略
+          - 注意：tracked_fields 只能列出 profile 中实际存在的字段键名
+
         这些实体之间发生了什么样的交互与关系变化？
           - 分析对话中涉及的实体交互
           - 识别实体之间的持续性关系
@@ -191,9 +200,14 @@
     <example_demonstration>
   输入:
     chatHistory: "流浪者A原本在荒野森林重伤濒死。艾比利亚王国公主伊莎贝拉经过，使用高阶光魔法治愈了他。A深感震撼，当场宣誓效忠，两人确立了主仆契约。"
-    existingEntities: [
-      { "A": { "type": "char", "aliases": ["流浪者"], "tracked_fields": ["status"], "profile": { "status": "重伤濒死", "relations": {} } } }
-    ]
+    existingEntities (提取专用渲染，含 id 注释与 tracked_fields):
+      <character_state>
+      A  # ent_a1b2c3
+      profile:
+        status: 重伤濒死
+        relations: {}
+      tracked_fields: [status]
+      </character_state>
 
   输出:
     ```json

@@ -15,6 +15,7 @@ import {
     formatEntityDescription,
     formatEntityStateBlocks,
     formatEntityYaml,
+    formatExtractionEntityBlock,
     formatRecalledSection,
     getEntityDisplaySnapshot,
 } from "@/domain/memory/entityFormat.ts";
@@ -393,5 +394,109 @@ describe("formatRecalledSection", () => {
     it("returns empty string when both states and events are empty", () => {
         expect(formatRecalledSection("", [])).toBe("");
         expect(formatRecalledSection("   ", [])).toBe("");
+    });
+});
+
+describe("formatExtractionEntityBlock", () => {
+    it("renders id comment, tracked_fields, and groups by type tag", () => {
+        const char = mkEntity({
+            id: "ent_abc123",
+            name: "Seraphina",
+            type: EntityType.Character,
+            tracked_fields: ["status", "mood"],
+            field_history: {
+                status: [
+                    { value: "alert", from_index: 1, to_index: null, episode_id: "ep1" },
+                ],
+            },
+            profile: { identity: "守护者", status: "alert" },
+        });
+        const loc = mkEntity({
+            id: "ent_def456",
+            name: "木屋",
+            type: EntityType.Location,
+            tracked_fields: [],
+            profile: { features: ["温暖"] },
+        });
+        const out = formatExtractionEntityBlock([char, loc], 5);
+        // 类型分组 + XML 标签
+        expect(out).toContain("<character_state>");
+        expect(out).toContain("</character_state>");
+        expect(out).toContain("<scene_state>");
+        // id 注释附在实体名后
+        expect(out).toContain("Seraphina  # ent_abc123");
+        expect(out).toContain("木屋  # ent_def456");
+        // tracked_fields 作为顶层键渲染
+        expect(out).toContain("tracked_fields:");
+        expect(out).toContain("status");
+        expect(out).toContain("mood");
+        // profile 内容仍渲染（与 narrator 同 as-of 语义）
+        expect(out).toContain("identity: 守护者");
+    });
+
+    it("excludes archived entities (extraction only updates active entities)", () => {
+        const active = mkEntity({
+            id: "ent_active",
+            name: "Active",
+            type: EntityType.Character,
+            is_archived: false,
+            profile: { identity: "在场" },
+        });
+        const archived = mkEntity({
+            id: "ent_archived",
+            name: "Archived",
+            type: EntityType.Character,
+            is_archived: true,
+            profile: { identity: "离场" },
+        });
+        const out = formatExtractionEntityBlock([active, archived], 0);
+        expect(out).toContain("Active");
+        expect(out).not.toContain("Archived");
+    });
+
+    it("renders empty tracked_fields as [] when none declared", () => {
+        const e = mkEntity({
+            id: "ent_x",
+            name: "Thing",
+            type: EntityType.Item,
+            tracked_fields: [],
+            profile: { owner: "Shirako" },
+        });
+        const out = formatExtractionEntityBlock([e], 0);
+        expect(out).toContain("tracked_fields: []");
+    });
+
+    it("returns empty string for no active entities", () => {
+        const archived = mkEntity({
+            id: "ent_a",
+            name: "Gone",
+            type: EntityType.Character,
+            is_archived: true,
+            profile: {},
+        });
+        expect(formatExtractionEntityBlock([archived], 0)).toBe("");
+        expect(formatExtractionEntityBlock([], 0)).toBe("");
+    });
+
+    it("resolves tracked state fields as-of target_index (same as narrator path)", () => {
+        const e = mkEntity({
+            id: "ent_knight",
+            name: "knight",
+            type: EntityType.Character,
+            tracked_fields: ["status"],
+            field_history: {
+                status: [
+                    { value: "wounded", from_index: 0, to_index: 10, episode_id: "ep1" },
+                    { value: "healed", from_index: 10, to_index: null, episode_id: "ep2" },
+                ],
+            },
+            profile: { identity: "a knight" },
+        });
+        // as-of msg 5 → wounded
+        const out5 = formatExtractionEntityBlock([e], 5);
+        expect(out5).toContain("status: wounded");
+        // as-of msg 10 (half-open) → healed
+        const out10 = formatExtractionEntityBlock([e], 10);
+        expect(out10).toContain("status: healed");
     });
 });
