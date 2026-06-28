@@ -2,47 +2,28 @@ import { useEffect, useState } from "react";
 
 const DESKTOP_BREAKPOINT = 768;
 
-interface ResponsiveState {
-    isMobile: boolean;
-    isDesktop: boolean;
-    windowWidth: number;
-}
-
 /**
- * UseResponsive Hook
+ * useResponsive Hook
  *
- * 统一管理响应式断点状态
- * 使用 window.matchMedia 监听媒体查询变化
+ * 返回当前视口是否为移动端（< 768px）。监听 resize，150ms 防抖。
  */
-export function useResponsive(): ResponsiveState {
-    // 初始状态
-    const [state, setState] = useState<ResponsiveState>({
-        isDesktop: window.innerWidth >= DESKTOP_BREAKPOINT,
-        isMobile: window.innerWidth < DESKTOP_BREAKPOINT,
-        windowWidth: window.innerWidth,
-    });
+export function useResponsive(): boolean {
+    const [isMobile, setIsMobile] = useState(
+        () => window.innerWidth < DESKTOP_BREAKPOINT,
+    );
 
     useEffect(() => {
-        // 更新函数
         const handleResize = () => {
-            const width = window.innerWidth;
-            const mobile = width < DESKTOP_BREAKPOINT;
-
-            setState({
-                isDesktop: !mobile,
-                isMobile: mobile,
-                windowWidth: width,
-            });
+            setIsMobile(window.innerWidth < DESKTOP_BREAKPOINT);
         };
 
-        // 防抖包装，避免高频 resize 导致不必要的重绘
+        // 防抖，避免高频 resize 触发不必要的重绘
         let debounceTimer: ReturnType<typeof setTimeout>;
         const debouncedResize = () => {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(handleResize, 150);
         };
 
-        // 监听 resize
         window.addEventListener("resize", debouncedResize);
 
         // 初始检测（立即执行，不走防抖）
@@ -54,5 +35,5 @@ export function useResponsive(): ResponsiveState {
         };
     }, []);
 
-    return state;
+    return isMobile;
 }

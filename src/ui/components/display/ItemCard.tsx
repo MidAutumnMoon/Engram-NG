@@ -7,7 +7,7 @@
  * - 用空间和层级区分区域
  */
 import React from "react";
-import { Check, Power } from "lucide-react";
+import { Check } from "lucide-react";
 
 // 操作按钮配置
 interface ItemAction {
@@ -34,13 +34,6 @@ interface ItemCardProps {
 
     // 状态
     selected?: boolean;
-    disabled?: boolean;
-
-    // 开关（可选）
-    toggle?: {
-        checked: boolean;
-        onChange: (checked: boolean) => void;
-    };
 
     // 操作
     onClick?: () => void;
@@ -48,7 +41,6 @@ interface ItemCardProps {
 
     // 样式
     className?: string;
-    compact?: boolean;
 }
 
 // 标签颜色映射
@@ -68,70 +60,39 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     meta,
     badges = [],
     selected = false,
-    disabled = false,
-    toggle,
     onClick,
     actions = [],
     className = "",
-    compact = false,
 }) => {
     const visibleActions = actions.filter((a) => !a.hidden);
-    const hasToggle = Boolean(toggle);
 
     return (
         <div
             className={`
-                group relative flex items-center gap-3
-                ${compact ? "py-2 px-2" : "py-3 px-3"}
+                group relative flex items-center gap-3 py-3 px-3
                 rounded-lg cursor-pointer
-               
+
                 hover:translate-y-[-1px] hover:shadow-sm
                 ${selected ? "bg-accent/60" : "hover:bg-muted/40"}
-                ${disabled ? "opacity-50 pointer-events-none" : ""}
                 ${className}
             `}
             onClick={onClick}
         >
-            {/* 左侧：图标或开关 */}
-            {(icon || hasToggle) && (
+            {/* 左侧：图标 */}
+            {icon && (
                 <div className="flex-shrink-0">
-                    {hasToggle
-                        ? (() => {
-                            const t = toggle!;
-                            return (
-                            <button
-                                type="button"
-                                className={`
-                                w-7 h-7 flex items-center justify-center rounded-md
-                                ${
-                                    t.checked
-                                        ? "text-primary"
-                                        : "text-muted-foreground hover:text-foreground"
-                                }
-                            `}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    t.onChange(!t.checked);
-                                }}
-                            >
-                                <Power size={14} />
-                            </button>
-                            );
-                        })()
-                        : (
-                            <div
-                                className={`
+                    <div
+                        className={`
                             w-7 h-7 flex items-center justify-center rounded-md
                             ${
-                                    selected
-                                        ? "text-primary"
-                                        : "text-muted-foreground group-hover:text-foreground"
-                                }
+                            selected
+                                ? "text-primary"
+                                : "text-muted-foreground group-hover:text-foreground"
+                        }
                         `}
-                            >
-                                {icon}
-                            </div>
-                        )}
+                    >
+                        {icon}
+                    </div>
                 </div>
             )}
 
@@ -146,11 +107,6 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                             selected
                                 ? "text-foreground"
                                 : "text-muted-foreground group-hover:text-foreground"
-                        }
-                        ${
-                            toggle && !toggle.checked
-                                ? "line-through opacity-60"
-                                : ""
                         }
                     `}
                     >
@@ -199,7 +155,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                             ? "opacity-100"
                             : "opacity-0 group-hover:opacity-100"
                     }
-                   
+
                 `}
                 >
                     {visibleActions.map((action, i) => (

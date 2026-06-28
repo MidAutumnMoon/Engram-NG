@@ -181,7 +181,7 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                 />
             </section>
 
-            <Divider length={100} />
+            <Divider />
 
             {/* ===== Summary 阶段 ===== */}
             <section className="space-y-5">
@@ -209,7 +209,7 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                 />
             </section>
 
-            <Divider length={100} />
+            <Divider />
 
             {/* ===== Entity 阶段 ===== */}
             <section className="space-y-5">
@@ -253,7 +253,7 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                 />
             </section>
 
-            <Divider length={100} />
+            <Divider />
 
             {/* ===== 精简 (Trim) ===== */}
             {trim && onTrimConfigChange && (
@@ -335,7 +335,7 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                 </section>
             )}
 
-            <Divider length={100} />
+            <Divider />
 
             {/* ===== 重跑操作 ===== */}
             <section className="space-y-4">

@@ -41,7 +41,7 @@ export const MasterDetailLayout: React.FC<MasterDetailLayoutProps> = ({
     className = "",
     style,
 }) => {
-    const { isMobile } = useResponsive();
+    const isMobile = useResponsive();
 
     // 移动端全屏详情页
     if (isMobile && mobileDetailOpen) {

@@ -223,7 +223,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                             </div>
                         </div>
 
-                        <Divider length={100} spacing="md" />
+                        <Divider spacing="md" />
 
                         {/* 记忆统计 - 第二层级 */}
                         <div>
@@ -286,7 +286,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                             </div>
                         </div>
 
-                        <Divider length={100} />
+                        <Divider />
 
                         {/* 快速入口 - 使用 NAV_ITEMS */}
                         <div>
@@ -319,7 +319,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
                     {/* ========== 右栏：功能开关 + 日志 ========== */}
                     <section className="space-y-6 lg:pl-8 relative">
-                        <Divider responsive length={30} />
+                        {/* 桌面端两栏之间的装饰竖线 */}
+                        <div className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 h-[30%] border-l border-border" />
 
                         {/* 功能开关 */}
                         <div>
@@ -372,7 +373,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                             </div>
                         </div>
 
-                        <Divider length={100} spacing="md" />
+                        <Divider spacing="md" />
 
                         {/* 活动日志 */}
                         <div>

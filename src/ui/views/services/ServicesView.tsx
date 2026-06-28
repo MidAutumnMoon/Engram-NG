@@ -59,7 +59,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({ initialSubtab }) => 
     );
     const currentInfo = TAB_INFO[subtab];
 
-    const { isMobile } = useResponsive();
+    const isMobile = useResponsive();
     const [showMobileForm, setShowMobileForm] = useState(false);
 
     useEffect(() => {

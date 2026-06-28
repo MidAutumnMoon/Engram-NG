@@ -110,7 +110,7 @@ export const EntityEditor = ({
     onClose,
     ref,
 }: EntityEditorProps & { ref?: React.Ref<EntityEditorHandle> }) => {
-    const { isMobile } = useResponsive();
+    const isMobile = useResponsive();
     // Local State
     const [name, setName] = useState("");
     const [type, setType] = useState<EntityType | string>("unknown");

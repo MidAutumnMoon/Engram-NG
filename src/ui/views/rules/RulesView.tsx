@@ -73,7 +73,7 @@ export const RulesView: React.FC<RulesViewProps> = ({ initialTab }) => {
     );
     const currentInfo = TAB_INFO[tab];
 
-    const { isMobile } = useResponsive();
+    const isMobile = useResponsive();
     const [showMobileForm, setShowMobileForm] = useState(false);
 
     useEffect(() => {

@@ -120,7 +120,7 @@ export const EventEditor = ({
     onClose,
     ref,
 }: EventEditorProps & { ref?: React.Ref<EventEditorHandle> }) => {
-    const { isMobile } = useResponsive();
+    const isMobile = useResponsive();
     // 编辑状态
     const [summary, setSummary] = useState("");
     const [eventType, setEventType] = useState("");
