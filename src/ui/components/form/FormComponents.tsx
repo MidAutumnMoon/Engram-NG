@@ -110,10 +110,16 @@ export const TextField: React.FC<TextFieldProps> = ({
     multiline,
     rows = 3,
 }) => {
-    const common = {
+    // 用结构化类型而非 <input> 专属类型，使 common 同时满足 <input> 与 <textarea>。
+    const common: {
+        value: string;
+        onChange: (e: { target: { value: string } }) => void;
+        placeholder?: string;
+        disabled?: boolean;
+        readOnly?: boolean;
+    } = {
         value,
-        onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-            onChange(e.target.value),
+        onChange: (e) => onChange(e.target.value),
         placeholder,
         disabled,
         readOnly,
@@ -129,9 +135,7 @@ export const TextField: React.FC<TextFieldProps> = ({
             {multiline
                 ? (
                     <textarea
-                        {...common as React.TextareaHTMLAttributes<
-                            HTMLTextAreaElement
-                        >}
+                        {...common}
                         rows={rows}
                         className={`${fieldBox} font-mono resize-y min-h-[80px]`}
                     />

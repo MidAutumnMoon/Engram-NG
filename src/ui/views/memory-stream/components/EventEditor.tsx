@@ -31,7 +31,7 @@ interface EventEditorProps {
     /** 编辑回调（暂存修改，不立即保存） */
     onSave?: (id: string, updates: Partial<EventNode>) => void;
     onDelete?: (id: string) => void;
-    onClose?: () => void;
+    onClose: () => void;
 }
 
 /** 暴露给父组件的方法 */

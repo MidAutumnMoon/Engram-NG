@@ -127,7 +127,10 @@ export async function createEntry(
             disable: !(params.enabled ?? true), // TavernHelper 使用 disable 字段
             strategy: {
                 keys: params.keys || [],
-                type: params.constant ? "constant" : "selective",
+                type: (params.constant ? "constant" : "selective") as
+                    | "constant"
+                    | "selective"
+                    | "vectorized",
             },
             position: {
                 depth: params.depth ?? 4,

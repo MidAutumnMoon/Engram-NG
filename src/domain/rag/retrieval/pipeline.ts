@@ -361,19 +361,19 @@ export async function keywordRetrieve(
     const entityScoreMap = expandMultiHop(hitEntities, entityByName);
 
     // 把 entity id + score 映射回实体节点，整形为 RecalledEntity。
+    // .flatMap + 条件返回 比 .map().filter() 更直接，也省掉 null 收窄谓词。
     const entities: RecalledEntity[] = [...entityScoreMap.entries()]
-        .map(([id, score]) => {
+        .flatMap(([id, score]) => {
             const node = entityById.get(id);
-            if (!node) return null;
-            return {
+            if (!node) return [];
+            return [{
                 id: node.id,
                 name: node.name,
                 description: node.description,
                 type: node.type,
                 _recallWeight: score,
-            } satisfies RecalledEntity;
+            }];
         })
-        .filter((e): e is RecalledEntity => e !== null)
         .toSorted((a, b) => b._recallWeight - a._recallWeight);
 
     const retrieveTime = Date.now() - startTime;

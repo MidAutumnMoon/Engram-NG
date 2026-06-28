@@ -96,25 +96,28 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             {(icon || hasToggle) && (
                 <div className="flex-shrink-0">
                     {hasToggle
-                        ? (
+                        ? (() => {
+                            const t = toggle!;
+                            return (
                             <button
                                 type="button"
                                 className={`
                                 w-7 h-7 flex items-center justify-center rounded-md
                                 ${
-                                    toggle.checked
+                                    t.checked
                                         ? "text-primary"
                                         : "text-muted-foreground hover:text-foreground"
                                 }
                             `}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    toggle.onChange(!toggle.checked);
+                                    t.onChange(!t.checked);
                                 }}
                             >
                                 <Power size={14} />
                             </button>
-                        )
+                            );
+                        })()
                         : (
                             <div
                                 className={`

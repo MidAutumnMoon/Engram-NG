@@ -318,16 +318,20 @@ class Retriever {
         }
 
         // 1. Get recent Level 0 (Details)
+        // Dexie's Collection has no .toReversed() (that's an Array method).
+        // Iterate the timestamp index in reverse, filter by level in JS, cap at `limit`.
         const recentEvents = await db.events
+            .orderBy("timestamp")
+            .reverse()
             .filter((node) => node.level === 0)
-            .toReversed()
             .limit(limit)
             .toArray();
 
         // 2. Get latest Level 1 (Macro Context)
         const latestMacro = await db.events
+            .orderBy("timestamp")
+            .reverse()
             .filter((node) => node.level === 1)
-            .toReversed()
             .first();
 
         const nodes: EventNode[] = [...recentEvents];

@@ -32,6 +32,10 @@ const TYPE_LABELS: Record<
         color: "bg-cyan-500/20 text-cyan-400",
         label: "实体提取",
     },
+    generation: {
+        color: "bg-indigo-500/20 text-indigo-400",
+        label: "生成",
+    },
     other: { color: "bg-gray-500/20 text-gray-400", label: "其他" },
     query: { color: "bg-green-500/20 text-green-400", label: "查询" },
     summarize: { color: "bg-blue-500/20 text-blue-400", label: "总结" },

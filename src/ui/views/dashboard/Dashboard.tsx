@@ -99,7 +99,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
         // 日志节流逻辑：每 500ms 只更新一次 UI
         let pendingLogs: LogEntry[] = [];
-        let throttleTimer: NodeJS.Timeout | null = null;
+        let throttleTimer: ReturnType<typeof setTimeout> | null = null;
 
         const unsubscribe = Logger.subscribe((newLog) => {
             pendingLogs.unshift(newLog);

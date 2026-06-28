@@ -290,7 +290,7 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
         await refresh();
     }, [refresh]);
 
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const refreshRef = useRef(refresh);
 
     // 保持 ref 中的 refresh 永远是最新版本，避免定时器闭包拿到旧回调

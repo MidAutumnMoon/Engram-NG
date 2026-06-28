@@ -8,8 +8,8 @@ import { TextField } from "@/ui/components/form/FormComponents.tsx";
 import React from "react";
 
 export interface RetryConfig {
-    maxAttempts?: number;
-    retryDelay?: number;
+    maxAttempts: number;
+    retryDelay: number;
 }
 
 interface RetryConfigFieldsProps {

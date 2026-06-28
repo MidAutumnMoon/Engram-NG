@@ -22,7 +22,7 @@ import {
 import { create } from "zustand";
 
 // 采用 debounce，防止高频 UI 调整（如滑块）导致的存取风暴
-let saveTimeout: NodeJS.Timeout | null = null;
+let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 const debouncedSave = (state: ConfigState) => {
     if (saveTimeout) clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {

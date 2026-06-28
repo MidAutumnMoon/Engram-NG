@@ -79,7 +79,7 @@ interface EntityEditorProps {
     isFullScreen?: boolean;
     onSave?: (id: string, updates: Partial<EntityNode>) => void;
     onDelete?: (id: string) => void;
-    onClose?: () => void;
+    onClose: () => void;
 }
 
 const ENTITY_TYPES: { value: string; label: string }[] = [
