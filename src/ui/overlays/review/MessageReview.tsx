@@ -1,5 +1,4 @@
-import type { AgenticRecall } from "@/config/types/rag.ts";
-import { BrainCircuit, FileText, Search } from "lucide-react";
+import { FileText, Search } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
 interface MessageReviewProps {
@@ -9,12 +8,6 @@ interface MessageReviewProps {
     query?: string;
     /** Query 变更回调 (可选) */
     onQueryChange?: (newQuery: string) => void;
-    /** Agentic RAG 召回决策 (可选) */
-    agenticRecalls?: AgenticRecall[];
-    /** 召回决策变更回调 (可选) */
-    onAgenticRecallsChange?: (newRecalls: AgenticRecall[]) => void;
-    /** 组件内点击编辑时，触发召回 Modal 打开 */
-    onOpenRecallModal?: () => void;
 }
 
 export const MessageReview: React.FC<MessageReviewProps> = ({
@@ -22,9 +15,6 @@ export const MessageReview: React.FC<MessageReviewProps> = ({
     onChange,
     query,
     onQueryChange,
-    agenticRecalls,
-    onAgenticRecallsChange,
-    onOpenRecallModal,
 }) => {
     const [text, setText] = useState(content);
     const [queryText, setQueryText] = useState(query || "");
@@ -50,8 +40,6 @@ export const MessageReview: React.FC<MessageReviewProps> = ({
     };
 
     const showQuery = query !== undefined && onQueryChange !== undefined;
-    const showAgentic = agenticRecalls !== undefined &&
-        onAgenticRecallsChange !== undefined;
 
     return (
         <div className="flex flex-col h-full gap-4 min-h-0">
@@ -101,61 +89,6 @@ export const MessageReview: React.FC<MessageReviewProps> = ({
                             {queryText.length} 字符
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* Agentic RAG 召回决策区域 */}
-            {showAgentic && (
-                <div className="flex flex-col gap-2 shrink-0">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                            <BrainCircuit size={16} className="text-primary" />
-                            <span>Agentic 召回决策</span>
-                            <span className="text-xs text-muted-foreground font-normal">
-                                基于用户意图的智能检索
-                            </span>
-                        </div>
-                        {onOpenRecallModal && (
-                            <button
-                                type="button"
-                                onClick={onOpenRecallModal}
-                                className="px-3 py-1 text-xs rounded border border-border bg-card/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-                            >
-                                查看 / 编辑
-                            </button>
-                        )}
-                    </div>
-                    {agenticRecalls && agenticRecalls.length > 0
-                        ? (
-                            <div className="flex flex-col gap-1 p-2 bg-accent/10 border border-accent/20 rounded-md max-h-[150px] overflow-y-auto custom-scrollbar">
-                                {agenticRecalls.map((r, i) => (
-                                    <div
-                                        key={i}
-                                        className="flex flex-col gap-0.5 p-1.5 rounded hover:bg-muted/30"
-                                    >
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="font-mono text-muted-foreground text-xs">
-                                                {r.id}
-                                            </span>
-                                            <span className="text-value font-mono text-xs">
-                                                Score: {r.score}
-                                            </span>
-                                        </div>
-                                        <p
-                                            className="text-xs text-emphasis line-clamp-1"
-                                            title={r.reason}
-                                        >
-                                            {r.reason}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-                        )
-                        : (
-                            <div className="p-3 text-xs text-muted-foreground text-center bg-muted/20 border border-border/50 rounded-md">
-                                本次无召回决策
-                            </div>
-                        )}
                 </div>
             )}
         </div>

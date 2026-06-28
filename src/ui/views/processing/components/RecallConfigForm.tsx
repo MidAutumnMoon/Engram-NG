@@ -31,11 +31,11 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
 
     // Keyword 子开关全关、且无其它通道 → 警告
     const keywordNoTargets = useKeyword &&
-        !config.useEmbedding && !config.useAgenticRAG &&
+        !config.useEmbedding &&
         !enableEntityKeyword && !enableEventKeyword;
     // 纯 0 消耗模式
     const keywordZeroCost = useKeyword &&
-        !config.useEmbedding && !config.useAgenticRAG &&
+        !config.useEmbedding &&
         (enableEntityKeyword || enableEventKeyword);
 
     return (
@@ -83,8 +83,7 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
                             updateConfig({ useKeywordRecall: val })}
                         description={
                             <>
-                                基于 Trigger Keywords
-                                和元数据进行正则扫描，
+                                基于 Trigger Keywords 和元数据进行正则扫描，
                                 <span className="text-amber-500/80 font-medium">
                                     {" "}零 Token 消耗
                                 </span>。
@@ -132,33 +131,12 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
                         )}
                     </StrategyCard>
 
-                    {/* Agentic RAG */}
-                    <StrategyCard
-                        icon={Zap}
-                        title="Agentic RAG"
-                        enabled={config.useAgenticRAG}
-                        onToggle={(val) =>
-                            updateConfig({
-                                useAgenticRAG: val,
-                                useEmbedding: val
-                                    ? false
-                                    : config.useEmbedding,
-                            })}
-                        description="LLM 裁判式召回：精准选出档案 ID，跳过向量检索。产生 Token 消耗。"
-                    />
-
                     {/* 向量检索 */}
                     <StrategyCard
                         icon={Database}
                         title="向量检索 (Embedding)"
                         enabled={config.useEmbedding}
-                        onToggle={(val) =>
-                            updateConfig({
-                                useAgenticRAG: val
-                                    ? false
-                                    : config.useAgenticRAG,
-                                useEmbedding: val,
-                            })}
+                        onToggle={(val) => updateConfig({ useEmbedding: val })}
                         description="使用语义向量匹配历史事件，RAG 的核心能力。产生 Token 消耗。"
                     />
 

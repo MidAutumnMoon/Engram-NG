@@ -2,7 +2,6 @@
  * RAG Configuration Schemas
  *
  * Schemas with `.default()` replace the old interface + DEFAULT_* constant pair.
- * `AgenticRecall` is an LLM-output DTO.
  */
 
 import { z } from "zod";
@@ -77,9 +76,6 @@ export const recallConfigSchema = z.object({
     /** 策略 2: 是否使用 Rerank 重排序 */
     useRerank: z.boolean().default(false),
 
-    /** 策略 4: 是否使用 Agentic RAG (LLM 裁判式召回) */
-    useAgenticRAG: z.boolean().default(false),
-
     /** 策略 5: 是否使用关键词召回 (0 消耗模式) */
     useKeywordRecall: z.boolean().default(true),
 
@@ -109,17 +105,20 @@ export const recallConfigSchema = z.object({
 
 export type RecallConfig = z.infer<typeof recallConfigSchema>;
 
-/** Agentic RAG 召回条目 (LLM 输出 DTO) */
-export const agenticRecallSchema = z.object({
-    /** 事件短 UUID (如 evt_a1b2c3d4) */
-    id: z.string(),
-    /** LLM 赋予的重要性评分 (0.0 - 1.0) */
-    score: z.number().min(0).max(1),
-    /** 召回理由 */
-    reason: z.string(),
-});
-
-export type AgenticRecall = z.infer<typeof agenticRecallSchema>;
+/**
+ * 召回预览项——供 RecallDecisionModal 审阅检索结果。
+ * 历史上复用 AgenticRecall（LLM 钦定召回 DTO）；Agentic RAG 退役后，
+ * 混合/向量检索的预览结果仍需一个统一的「带分数+来源说明」的展示契约，故保留同形类型。
+ * 概念备份见 dev-docs/AgenticRAG-concept.md。
+ */
+export interface RecallPreviewItem {
+    /** 事件 ID */
+    id: string;
+    /** 命中来源说明（如 "Rerank 优化命中" / "向量检索 (TopK) 命中"） */
+    reason: string;
+    /** 相关性分数 (0-1) */
+    score: number;
+}
 
 // ==================== Embedding Config ====================
 

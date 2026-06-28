@@ -1,4 +1,4 @@
-import type { AgenticRecall } from "@/config/types/rag.ts";
+import type { RecallPreviewItem } from "@/config/types/rag.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { SimpleModal } from "@/ui/components/overlay/SimpleModal.tsx";
 import {
@@ -14,13 +14,15 @@ import { Virtuoso } from "react-virtuoso";
 interface RecallDecisionModalProps {
     isOpen: boolean;
     onClose: () => void;
-    initialRecalls: AgenticRecall[];
+    initialRecalls: RecallPreviewItem[];
     recalledEntities?: any[]; // V1.4: 传入被激活的实体
-    onConfirm: (newRecalls: AgenticRecall[]) => void;
+    onConfirm: (newRecalls: RecallPreviewItem[]) => void;
 }
 
 /**
- * RecallDecisionModal - Agentic RAG 召回决策审阅与编辑弹窗
+ * RecallDecisionModal - 召回结果审阅与编辑弹窗。
+ * 原为 Agentic RAG 设计；Agentic 退役后保留为通用检索预览审阅界面
+ * （混合/向量检索的候选在此展示分数与命中来源）。概念备份见 dev-docs/AgenticRAG-concept.md。
  */
 export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
     isOpen,
@@ -30,7 +32,7 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
     onConfirm,
 }) => {
     // 状态: 存储组件内编辑的 recalls (基于 initialRecalls 初始化)
-    const [editedRecalls, setEditedRecalls] = useState<AgenticRecall[]>([]);
+    const [editedRecalls, setEditedRecalls] = useState<RecallPreviewItem[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [allEvents, setAllEvents] = useState<any[]>([]); // 暂不显式 import MemoryEvent 避免循环依赖
 
@@ -79,7 +81,7 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
     // --- 交互处理 ---
 
     const handleConfirm = () => {
-        // 构建最终的 AgenticRecall 列表并抛出
+        // 构建最终的 RecallPreviewItem 列表并抛出
         onConfirm(editedRecalls);
         onClose();
     };
@@ -140,7 +142,7 @@ export const RecallDecisionModal: React.FC<RecallDecisionModalProps> = ({
         <SimpleModal
             isOpen={isOpen}
             onClose={onClose}
-            title="Agentic 召回审阅"
+            title="召回结果审阅"
             maxWidth="max-w-3xl"
             footer={renderFooter()}
         >

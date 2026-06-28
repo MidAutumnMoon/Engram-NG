@@ -8,20 +8,12 @@ interface RecallPanelProps {
 }
 
 import { scanEntities, scanEvents } from "@/domain/memory/EntityScanner.ts";
-import type { AgenticRecall } from "@/config/types/rag.ts";
+import type { RecallPreviewItem } from "@/config/types/rag.ts";
 import { retriever } from "@/domain/rag/retrieval/Retriever.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { notify } from "@/sillytavern/notify.ts";
 import { RecallDecisionModal } from "@/ui/overlays/review/RecallDecisionModal.tsx";
-import {
-    BrainCircuit,
-    Database,
-    History,
-    Loader2,
-    Play,
-    Search,
-    Zap,
-} from "lucide-react";
+import { Database, History, Loader2, Play, Search, Zap } from "lucide-react";
 
 export const RecallPanel: React.FC<RecallPanelProps> = ({
     recallConfig,
@@ -31,17 +23,15 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
     const [testQuery, setTestQuery] = React.useState("");
     const [isTesting, setIsTesting] = React.useState(false);
     const [isModalOpen, setIsModalOpen] = React.useState(false);
-    const [currentRecalls, setCurrentRecalls] = React.useState<AgenticRecall[]>(
-        [],
-    );
+    const [currentRecalls, setCurrentRecalls] = React.useState<
+        RecallPreviewItem[]
+    >([]);
     const [currentEntities, setCurrentEntities] = React.useState<any[]>([]); // V1.4: 被激活实体状态
 
     // Scan Dry Run 专属状态
     const [scanQuery, setScanQuery] = React.useState("");
     const [matchedEntities, setMatchedEntities] = React.useState<any[]>([]);
     const [matchedEvents, setMatchedEvents] = React.useState<any[]>([]);
-
-    const isAgenticMode = recallConfig.useAgenticRAG;
 
     // --- 逻辑处理 ---
 
@@ -85,7 +75,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
         // 向用户提供明确的 Token 扣费警告
         // V1.4: 如果仅启用了关键词召回 (0 消耗)，则跳过确认
         const isZeroCost = recallConfig.useKeywordRecall &&
-            !recallConfig.useEmbedding && !recallConfig.useAgenticRAG;
+            !recallConfig.useEmbedding;
 
         if (!isZeroCost) {
             const userAgreed = window.confirm(
@@ -96,15 +86,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
 
         setIsTesting(true);
         try {
-            if (isAgenticMode) {
-                notify(
-                    "warning",
-                    "Agentic RAG 预览需要预处理模块，该模块已移除",
-                    "Agentic RAG",
-                );
-                return;
-            }
-            // 普通（向量/混合）模式：先进行标准检索
+            // 向量/混合检索：执行标准检索流程
             const searchResult = await retriever.search(
                 testQuery,
                 undefined,
@@ -122,8 +104,8 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                 notify("warning", "检索未命中任何事件或实体", "RAG");
                 return;
             }
-            // 把检索返回的带分数的 candidate 元素组装为相同的结构格式供 Modal 消费
-            const pseudoRecalls: AgenticRecall[] = candidates.map((c) => ({
+            // 把检索返回的带分数的 candidate 组装为预览项供 Modal 消费
+            const previewItems: RecallPreviewItem[] = candidates.map((c) => ({
                 id: c.id,
                 reason: c.rerankScore != null
                     ? "Rerank 优化命中"
@@ -132,7 +114,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                     0,
             }));
 
-            setCurrentRecalls(pseudoRecalls);
+            setCurrentRecalls(previewItems);
             setCurrentEntities(recalledEntities);
             setIsModalOpen(true);
         } catch {
@@ -233,22 +215,8 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
             {/* 模型召回测试（有消耗） */}
             <div className="pt-6 border-t border-border mt-8">
                 <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                    {isAgenticMode
-                        ? (
-                            <>
-                                <BrainCircuit
-                                    size={16}
-                                    className="text-primary"
-                                />
-                                Agentic RAG Test
-                            </>
-                        )
-                        : (
-                            <>
-                                <Search size={16} className="text-primary" />
-                                Vector/Hybrid Retrieval Test
-                            </>
-                        )}
+                    <Search size={16} className="text-primary" />
+                    Vector/Hybrid Retrieval Test
                     <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded ml-1 font-normal italic">
                         注意: 产生 Token 消耗
                     </span>
@@ -258,9 +226,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                     <textarea
                         value={testQuery}
                         onChange={(e) => setTestQuery(e.target.value)}
-                        placeholder={isAgenticMode
-                            ? "模拟用户输入触发 Agentic 预处理..."
-                            : "模拟 User Input 触发向量召回预览..."}
+                        placeholder="模拟 User Input 触发向量召回预览..."
                         className="flex-1 min-h-[80px] p-3 rounded-md bg-secondary/30 border border-border/50 text-sm focus:outline-none focus:border-primary/50 resize-y"
                     />
                     <div className="flex flex-col gap-2">
@@ -298,30 +264,11 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                                     </>
                                 )}
                         </button>
-                        {isAgenticMode && currentRecalls.length > 0 && (
-                            <button
-                                type="button"
-                                onClick={() => setIsModalOpen(true)}
-                                disabled={isTesting}
-                                className={`
-                                    py-2 rounded-md font-medium text-[10px] flex items-center justify-center gap-1 border border-border bg-transparent text-muted-foreground hover:bg-muted/50
-                                `}
-                            >
-                                <BrainCircuit size={14} />
-                                <span>审阅结果</span>
-                            </button>
-                        )}
                     </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2 pl-1">
-                    * 将执行一次真实的召回流程并弹窗确认，用于校验 Rerank 与
-                    Agentic 评估效果。
-                    {isAgenticMode && <>
-                        <br />
-                        <span className="text-amber-500/80">
-                            * 注: Agentic 模式由专门提示词控制。
-                        </span>
-                    </>}
+                    * 将执行一次真实的召回流程并弹窗确认，用于校验 Rerank
+                    评估效果。
                 </p>
             </div>
 
@@ -333,9 +280,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                 recalledEntities={currentEntities}
                 onConfirm={(newRecalls) => {
                     // 预览结果已由 retriever.search() 计算并展示。
-                    // 此前曾调用 retriever.agenticSearch() 在确认后重新装配，
-                    // 该路径已随 Agentic RAG 一起退役 (见 dev-docs/AgenticSearch/)。
-                    // 模态框现在仅用于审阅；确认即采纳当前编辑。
+                    // 模态框用于审阅；确认即采纳当前编辑（无后续装配步骤）。
                     setCurrentRecalls(newRecalls);
                     notify(
                         "success",

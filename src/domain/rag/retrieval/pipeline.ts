@@ -52,7 +52,7 @@ import type { EntityNode, EventNode } from "@/data/types/graph.ts";
 
 /**
  * Entity surfaced by keyword recall. Shaped to match the fields the recall UI
- * already reads (RecallDecisionModal / RecallLog): `id` (key), `name` (label),
+ * already reads (RecallLog): `id` (key), `name` (label),
  * `description` (tooltip), `_recallWeight` (score badge), `type` (subtype).
  */
 export interface RecalledEntity {

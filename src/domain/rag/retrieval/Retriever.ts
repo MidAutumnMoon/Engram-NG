@@ -3,9 +3,6 @@
  *
  * 召回路径：关键词扫描 + 向量检索 (+ 可选 Rerank)。两条召回轨道并行执行，
  * 按 ID 去重合并后在 Scorer 中融合排序。
- *
- * (历史上有第三条 Agentic 路径 —— LLM 直接钦定事件 ID；其生产调用方在
- * 早期重构中已移除，逻辑备份在 dev-docs/AgenticSearch/，需要时可复活。)
  */
 
 import { getSetting } from "@/config/settings.ts";
@@ -151,8 +148,7 @@ class Retriever {
                     const fallback = await this.rollingSearch(limit);
                     return {
                         ...fallback,
-                        skippedReason:
-                            "当前没有任何事件或实体，已跳过召回流程",
+                        skippedReason: "当前没有任何事件或实体，已跳过召回流程",
                     };
                 }
             } catch (error) {

@@ -1,7 +1,7 @@
 /**
  * RecallConfigForm 的内部子组件。
  *
- * 把原本四张复制粘贴的策略卡（Keyword / Agentic / Embedding / Rerank）合并为
+ * 把原本三张复制粘贴的策略卡（Keyword / Embedding / Rerank）合并为
  * 一个数据驱动的 StrategyCard。
  */
 import { Switch } from "@/ui/components/form/Switch.tsx";

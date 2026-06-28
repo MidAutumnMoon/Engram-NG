@@ -44,7 +44,6 @@ const formatDuration = (ms?: number): string => {
 /** 召回模式 → 列表徽章颜色 + 标签（列表/详情两处共用） */
 type RecallMode = RecallLogEntry["mode"];
 const MODE_META: Record<RecallMode, { badge: string; label: string }> = {
-    agentic: { badge: "bg-amber-500/20 text-amber-400", label: "Agentic" },
     hybrid: { badge: "bg-purple-500/20 text-purple-400", label: "混合" },
     embedding: { badge: "bg-blue-500/20 text-blue-400", label: "向量" },
 };
@@ -231,11 +230,6 @@ const ResultItem: React.FC<{ item: RecallResultItem }> = ({ item }) => {
                             score={item.hybridScore}
                             color="bg-purple-500"
                         />
-                    )}
-                    {item.reason && (
-                        <div className="mt-2 text-xs text-muted-foreground italic">
-                            💬 {item.reason}
-                        </div>
                     )}
                 </div>
             )}

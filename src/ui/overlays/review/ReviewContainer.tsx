@@ -18,7 +18,6 @@ import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { EntityReview } from "./EntityReview.tsx";
 import { MessageReview } from "./MessageReview.tsx";
-import { RecallDecisionModal } from "./RecallDecisionModal.tsx";
 import { SummaryReview } from "./SummaryReview.tsx"; // V1.2
 import { CombinedReview } from "./CombinedReview.tsx"; // V2.1 unified ingestion
 
@@ -50,7 +49,6 @@ const ReviewSession: React.FC<ReviewSessionProps> = (
     const [feedback, setFeedback] = useState("");
     const [showFeedbackInput, setShowFeedbackInput] = useState(false);
     const [_isProcessing, setIsProcessing] = useState(false);
-    const [isRecallModalOpen, setIsRecallModalOpen] = useState(false);
 
     const handleAction = (action: ReviewAction) => {
         if (action === "reject" && !showFeedbackInput) {
@@ -155,14 +153,6 @@ const ReviewSession: React.FC<ReviewSessionProps> = (
                                     onQueryChange={query !== undefined
                                         ? setQuery
                                         : undefined}
-                                    agenticRecalls={data?.agenticRecalls}
-                                    onAgenticRecallsChange={(newRecalls) =>
-                                        setData({
-                                            ...data,
-                                            agenticRecalls: newRecalls,
-                                        })}
-                                    onOpenRecallModal={() =>
-                                        setIsRecallModalOpen(true)}
                                 />
                             )
                     )}
@@ -234,19 +224,6 @@ const ReviewSession: React.FC<ReviewSessionProps> = (
                     </div>
                 </div>,
                 footerEl,
-            )}
-
-            {/* Agentic RAG 决策编辑弹窗 (V1.4) */}
-            {data?.agenticRecalls && (
-                <RecallDecisionModal
-                    isOpen={isRecallModalOpen}
-                    onClose={() => setIsRecallModalOpen(false)}
-                    initialRecalls={data.agenticRecalls}
-                    onConfirm={(newRecalls) => {
-                        setData({ ...data, agenticRecalls: newRecalls });
-                        setIsRecallModalOpen(false);
-                    }}
-                />
             )}
         </div>
     );

@@ -20,7 +20,6 @@ export interface RecallResultItem {
     isTopK: boolean; // 是否进入 TopK
     isReranked: boolean; // 是否通过 Rerank
     sourceFloor?: number; // 来源楼层
-    reason?: string; // Agentic 召回理由
 }
 
 export interface RecallStats {
@@ -35,7 +34,7 @@ export interface RecallLogEntry {
     timestamp: number;
     query: string;
     preprocessedQuery?: string;
-    mode: "embedding" | "hybrid" | "agentic"; // (Disabled in V0.8.5)
+    mode: "embedding" | "hybrid"; // (Disabled in V0.8.5)
     results: RecallResultItem[];
     recalledEntities?: any[]; // V1.4: 被激活的实体列表
     stats: RecallStats;
