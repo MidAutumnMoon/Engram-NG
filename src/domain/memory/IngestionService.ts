@@ -31,7 +31,7 @@ import { onTavernEvent } from "@/sillytavern/context.ts";
 import { getCurrentMessageCount } from "@/domain/macros/Macros.ts";
 import { getChatHistory as getMacroChatHistory } from "@/domain/macros/Macros.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
-import { dismissNotify, notify, notifyRunning } from "@/sillytavern/notify.ts";
+import { dismissToast, toast, toastPersistent } from "@/sillytavern/toast.ts";
 import { generateShortUUID } from "@/utils/shortUUID.ts";
 import {
     runSummary,
@@ -192,13 +192,13 @@ class IngestionService {
         const signal = { cancelled: false };
         const manual = opts.manual ?? false;
 
-        const runningToast = notifyRunning(
+        const runningToast = toastPersistent(
             "摄取运行中...",
             "Engram",
             () => {
                 signal.cancelled = true;
                 Logger.info(LogModule.STBRIDGE, "用户请求取消摄取");
-                notify("warning", "正在取消摄取...", "Engram");
+                toast("warning", "正在取消摄取...", "Engram");
             },
         );
 
@@ -220,7 +220,7 @@ class IngestionService {
                 );
                 if (!computed) {
                     if (manual) {
-                        notify(
+                        toast(
                             "info",
                             "暂无足够的新内容需要摄取 (缓冲期内)",
                             "Engram",
@@ -302,7 +302,7 @@ class IngestionService {
             }
 
             if (manual) {
-                notify("success", "摄取完成", "Engram");
+                toast("success", "摄取完成", "Engram");
             }
         } catch (error) {
             const msg = error instanceof Error ? error.message : String(error);
@@ -314,10 +314,10 @@ class IngestionService {
                 error: msg,
             });
             if (manual) {
-                notify("error", `摄取异常: ${msg}`, "Engram 错误");
+                toast("error", `摄取异常: ${msg}`, "Engram 错误");
             }
         } finally {
-            dismissNotify(runningToast);
+            dismissToast(runningToast);
             this.isRunning = false;
         }
     }
@@ -340,13 +340,13 @@ class IngestionService {
         const range = state.last_pass_range;
 
         if (!range || !lastEpisodeId) {
-            notify("info", "没有可重跑的总结（未记录上一轮 pass）", "Engram");
+            toast("info", "没有可重跑的总结（未记录上一轮 pass）", "Engram");
             return;
         }
 
         const config = this.getConfig();
         if (!config) {
-            notify("error", "无法读取摄取配置", "Engram 错误");
+            toast("error", "无法读取摄取配置", "Engram 错误");
             return;
         }
 
@@ -362,12 +362,12 @@ class IngestionService {
 
         this.isRunning = true;
         const signal = { cancelled: false };
-        const runningToast = notifyRunning(
+        const runningToast = toastPersistent(
             "重新总结中...",
             "Engram",
             () => {
                 signal.cancelled = true;
-                notify("warning", "正在取消...", "Engram");
+                toast("warning", "正在取消...", "Engram");
             },
         );
 
@@ -406,7 +406,7 @@ class IngestionService {
                 "rerunSummary: 完成",
                 { newEpisodeId, range },
             );
-            notify("success", "重新总结完成", "Engram");
+            toast("success", "重新总结完成", "Engram");
         } catch (error) {
             const msg = error instanceof Error ? error.message : String(error);
             if (msg === "UserCancelled") {
@@ -416,9 +416,9 @@ class IngestionService {
             Logger.error(LogModule.STBRIDGE, "rerunSummary 异常", {
                 error: msg,
             });
-            notify("error", `重新总结失败: ${msg}`, "Engram 错误");
+            toast("error", `重新总结失败: ${msg}`, "Engram 错误");
         } finally {
-            dismissNotify(runningToast);
+            dismissToast(runningToast);
             this.isRunning = false;
         }
     }
@@ -439,13 +439,13 @@ class IngestionService {
         const range = state.last_pass_range;
 
         if (!range) {
-            notify("info", "没有可重跑的提取（未记录上一轮 pass）", "Engram");
+            toast("info", "没有可重跑的提取（未记录上一轮 pass）", "Engram");
             return;
         }
 
         const config = this.getConfig();
         if (!config) {
-            notify("error", "无法读取摄取配置", "Engram 错误");
+            toast("error", "无法读取摄取配置", "Engram 错误");
             return;
         }
 
@@ -461,12 +461,12 @@ class IngestionService {
 
         this.isRunning = true;
         const signal = { cancelled: false };
-        const runningToast = notifyRunning(
+        const runningToast = toastPersistent(
             "补充提取中...",
             "Engram",
             () => {
                 signal.cancelled = true;
-                notify("warning", "正在取消...", "Engram");
+                toast("warning", "正在取消...", "Engram");
             },
         );
 
@@ -495,7 +495,7 @@ class IngestionService {
                 "rerunEntityExtraction: 完成",
                 { newEpisodeId, range },
             );
-            notify("success", "补充提取完成", "Engram");
+            toast("success", "补充提取完成", "Engram");
         } catch (error) {
             const msg = error instanceof Error ? error.message : String(error);
             if (msg === "UserCancelled") {
@@ -510,9 +510,9 @@ class IngestionService {
                 "rerunEntityExtraction 异常",
                 { error: msg },
             );
-            notify("error", `补充提取失败: ${msg}`, "Engram 错误");
+            toast("error", `补充提取失败: ${msg}`, "Engram 错误");
         } finally {
-            dismissNotify(runningToast);
+            dismissToast(runningToast);
             this.isRunning = false;
         }
     }

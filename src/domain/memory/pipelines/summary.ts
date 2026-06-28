@@ -16,7 +16,7 @@ import type { EventNode } from "@/data/types/graph.ts";
 import { hideMessageRange } from "@/sillytavern/chat/hideMessageRange.ts";
 import { refreshEngramCache } from "@/domain/macros/Macros.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
-import { notify } from "@/sillytavern/notify.ts";
+import { toast } from "@/sillytavern/toast.ts";
 import { reviewService } from "@/domain/review/ReviewBridge.ts";
 import type { ReviewAction } from "@/domain/review/ReviewBridge.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
@@ -352,7 +352,7 @@ export async function saveSummaryEvents(
         LogModule.WF_SAVE_EVENT,
         `已保存 ${savedEvents.length} 个事件`,
     );
-    notify("success", `已保存 ${savedEvents.length} 个事件`, "Engram");
+    toast("success", `已保存 ${savedEvents.length} 个事件`, "Engram");
 
     return savedEvents;
 }

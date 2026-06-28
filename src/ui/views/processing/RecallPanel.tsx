@@ -11,7 +11,7 @@ import { scanEntities, scanEvents } from "@/domain/memory/EntityScanner.ts";
 import type { RecallPreviewItem } from "@/config/types/rag.ts";
 import { retriever } from "@/domain/rag/retrieval/Retriever.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
-import { notify } from "@/sillytavern/notify.ts";
+import { toast } from "@/sillytavern/toast.ts";
 import { RecallDecisionModal } from "@/ui/overlays/review/RecallDecisionModal.tsx";
 import { Database, History, Loader2, Play, Search, Zap } from "lucide-react";
 
@@ -58,9 +58,9 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
         setMatchedEvents(hitEvents);
 
         if (hitEntities.length === 0 && hitEvents.length === 0) {
-            notify("warning", "关键词扫描未命中任何实体或事件", "Scan Dry Run");
+            toast("warning", "关键词扫描未命中任何实体或事件", "Scan Dry Run");
         } else {
-            notify(
+            toast(
                 "success",
                 `扫描命中: ${hitEntities.length} 个实体, ${hitEvents.length} 条事件`,
                 "Scan Dry Run",
@@ -96,12 +96,12 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
             const recalledEntities = searchResult.recalledEntities || [];
 
             if (searchResult.skippedReason) {
-                notify("info", searchResult.skippedReason, "RAG 冷启动保护");
+                toast("info", searchResult.skippedReason, "RAG 冷启动保护");
                 return;
             }
 
             if (candidates.length === 0 && recalledEntities.length === 0) {
-                notify("warning", "检索未命中任何事件或实体", "RAG");
+                toast("warning", "检索未命中任何事件或实体", "RAG");
                 return;
             }
             // 把检索返回的带分数的 candidate 组装为预览项供 Modal 消费
@@ -118,7 +118,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
             setCurrentEntities(recalledEntities);
             setIsModalOpen(true);
         } catch {
-            notify("error", "召回预览执行失败，请查阅控制台报错", "RAG");
+            toast("error", "召回预览执行失败，请查阅控制台报错", "RAG");
         } finally {
             setIsTesting(false);
         }
@@ -282,7 +282,7 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
                     // 预览结果已由 retriever.search() 计算并展示。
                     // 模态框用于审阅；确认即采纳当前编辑（无后续装配步骤）。
                     setCurrentRecalls(newRecalls);
-                    notify(
+                    toast(
                         "success",
                         `已采纳 ${newRecalls.length} 条召回结果`,
                         "RAG",

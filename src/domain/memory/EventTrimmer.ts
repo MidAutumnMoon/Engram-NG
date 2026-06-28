@@ -11,7 +11,7 @@ import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import type { ChatDatabase } from "@/data/db.ts";
 import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
-import { notify } from "@/sillytavern/notify.ts";
+import { toast } from "@/sillytavern/toast.ts";
 import type { ChatContext } from "./types.ts";
 import { runTrim } from "./pipelines/trim.ts";
 
@@ -208,7 +208,7 @@ class EventTrimmer {
                 error: errorMsg,
             });
             if (manual) {
-                notify("error", `精简异常: ${errorMsg}`, "Engram 错误");
+                toast("error", `精简异常: ${errorMsg}`, "Engram 错误");
             }
             return null;
         } finally {

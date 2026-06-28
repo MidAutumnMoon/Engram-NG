@@ -3,7 +3,7 @@ import type { EntityNode, EventNode } from "@/data/types/graph.ts";
 import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
 import { refreshEngramCache } from "@/domain/macros/Macros.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
-import { notify } from "@/sillytavern/notify.ts";
+import { toast } from "@/sillytavern/toast.ts";
 import {
     filterEntities,
     filterEvents,
@@ -269,14 +269,14 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
 
                 await refreshEngramCache();
 
-                notify(
+                toast(
                     "success",
                     isArchived ? "实体已归档" : "实体已恢复活跃",
                     "MemoryStream",
                 );
             } catch (error) {
                 console.error("[MemoryStream] Archive toggle failed:", error);
-                notify("error", "调整归档状态失败", "MemoryStream");
+                toast("error", "调整归档状态失败", "MemoryStream");
             }
         },
         [store.updateEntity],
@@ -291,7 +291,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                         e.id === id ? { ...e, is_locked: isLocked } : e
                     )
                 );
-                notify(
+                toast(
                     "success",
                     isLocked ? "实体已锁定" : "实体已解锁",
                     "MemoryStream",
@@ -301,7 +301,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                     "[MemoryStream] Entity lock toggle failed:",
                     error,
                 );
-                notify("error", "调整锁定状态失败", "MemoryStream");
+                toast("error", "调整锁定状态失败", "MemoryStream");
             }
         },
         [store.toggleEntityLock],
@@ -316,7 +316,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                         e.id === id ? { ...e, is_locked: isLocked } : e
                     )
                 );
-                notify(
+                toast(
                     "success",
                     isLocked ? "事件已锁定" : "事件已解锁",
                     "MemoryStream",
@@ -326,7 +326,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                     "[MemoryStream] Event lock toggle failed:",
                     error,
                 );
-                notify("error", "调整锁定状态失败", "MemoryStream");
+                toast("error", "调整锁定状态失败", "MemoryStream");
             }
         },
         [store.toggleEventLock],
@@ -341,7 +341,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                         e.id === id ? { ...e, is_archived: isArchived } : e
                     )
                 );
-                notify(
+                toast(
                     "success",
                     isArchived ? "事件已归档" : "事件已从归档恢复",
                     "MemoryStream",
@@ -351,7 +351,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                     "[MemoryStream] Event archive toggle failed:",
                     error,
                 );
-                notify("error", "调整归档状态失败", "MemoryStream");
+                toast("error", "调整归档状态失败", "MemoryStream");
             }
         },
         [store.updateEvent],
@@ -380,7 +380,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                     : Promise.resolve(),
             ]);
 
-            notify("success", `成功保存变更`, "MemoryStream");
+            toast("success", `成功保存变更`, "MemoryStream");
 
             // 刷新数据
             await loadEvents();
@@ -391,7 +391,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             setPendingEntityChanges(new Map());
         } catch (error) {
             console.error("[MemoryStream] Batch save failed:", error);
-            notify("error", "保存过程中发生严重错误", "MemoryStream");
+            toast("error", "保存过程中发生严重错误", "MemoryStream");
         }
     }, [
         pendingChanges,
@@ -423,9 +423,9 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             }
             setSelectedId(null);
             setViewMode("browse");
-            notify("success", "删除成功", "MemoryStream");
+            toast("success", "删除成功", "MemoryStream");
         } catch (error: any) {
-            notify(
+            toast(
                 "error",
                 "删除失败: " + (error.message || "未知错误"),
                 "MemoryStream",
@@ -459,13 +459,13 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                 });
             }
             setCheckedIds(new Set());
-            notify(
+            toast(
                 "success",
                 `成功删除 ${checkedIds.size} 条记录`,
                 "MemoryStream",
             );
         } catch (error: any) {
-            notify(
+            toast(
                 "error",
                 "批量删除失败: " + (error.message || "未知错误"),
                 "MemoryStream",
@@ -478,7 +478,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
         const vectorConfig = apiSettings?.vectorConfig;
 
         if (!vectorConfig) {
-            notify("error", "请先在 API 配置中配置向量化服务", "MemoryStream");
+            toast("error", "请先在 API 配置中配置向量化服务", "MemoryStream");
             return;
         }
 
@@ -503,10 +503,10 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             );
 
             await loadEvents();
-            notify("success", "重嵌完工！", "MemoryStream");
+            toast("success", "重嵌完工！", "MemoryStream");
         } catch (error: any) {
             console.error("[MemoryStream] Reembed failed:", error);
-            notify(
+            toast(
                 "error",
                 "重嵌失败: " + (error.message || "未知错误"),
                 "MemoryStream",
@@ -541,9 +541,9 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             await loadEvents();
             setSelectedId(newEvent.id);
             setViewMode("edit");
-            notify("success", "已创建新事件，请编辑", "MemoryStream");
+            toast("success", "已创建新事件，请编辑", "MemoryStream");
         } catch (error: any) {
-            notify(
+            toast(
                 "error",
                 "创建事件失败: " + (error.message || "未知错误"),
                 "MemoryStream",
@@ -563,9 +563,9 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             await loadEntities();
             setSelectedId(newEntity.id);
             setViewMode("edit");
-            notify("success", "已创建新实体，请编辑", "MemoryStream");
+            toast("success", "已创建新实体，请编辑", "MemoryStream");
         } catch (error: any) {
-            notify(
+            toast(
                 "error",
                 "创建实体失败: " + (error.message || "未知错误"),
                 "MemoryStream",

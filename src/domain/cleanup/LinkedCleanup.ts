@@ -9,7 +9,7 @@
  *
  * 分层：
  *   - 事件处理 (onCharacterDeleted / onChatDeleted) 负责读取设置、
- *     汇总结果并触发 UI 反馈 (notify)。
+ *     汇总结果并触发 UI 反馈 (toast)。
  *   - 纯工作函数 (findRelatedDatabases) 不发通知、不读设置，可独立测试。
  */
 
@@ -19,7 +19,7 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { getSTContext } from "@/sillytavern/context.ts";
 import { callPopup } from "@/sillytavern/popups.ts";
-import { notify } from "@/sillytavern/notify.ts";
+import { toast } from "@/sillytavern/toast.ts";
 
 type CharacterDeletedPayload = Parameters<
     ListenerType[typeof tavern_events.CHARACTER_DELETED]
@@ -61,7 +61,7 @@ export function initLinkedCleanup(): void {
     Logger.debug(LogModule.DATA_CLEANUP, "cleanup listeners registered");
 }
 
-// ===== Event handlers (boundary: settings + notify live here) =====
+// ===== Event handlers (boundary: settings + toast live here) =====
 
 async function onCharacterDeleted(
     data: CharacterDeletedPayload,
@@ -109,7 +109,7 @@ async function onCharacterDeleted(
         }
     }
     if (deleted > 0) {
-        notify("success", `已清理 ${deleted} 个关联聊天数据`, "Engram");
+        toast("success", `已清理 ${deleted} 个关联聊天数据`, "Engram");
     }
 }
 
@@ -124,7 +124,7 @@ async function onChatDeleted(chatId: string): Promise<void> {
         try {
             await deleteDatabase(chatId);
             Logger.info(LogModule.DATA_CLEANUP, `deleted db: ${chatId}`);
-            notify("info", "已清理关联的 Engram 数据库", "Engram");
+            toast("info", "已清理关联的 Engram 数据库", "Engram");
         } catch (e) {
             Logger.error(
                 LogModule.DATA_CLEANUP,
@@ -135,7 +135,7 @@ async function onChatDeleted(chatId: string): Promise<void> {
     }
 }
 
-// ===== Pure workers (no settings reads, no notify) =====
+// ===== Pure workers (no settings reads, no toast) =====
 
 /** 启发式扫描：按 chat-id 前缀匹配该角色的数据库分片。 */
 async function findRelatedDatabases(

@@ -17,7 +17,7 @@ import type { EventNode } from "@/data/types/graph.ts";
 import { refreshEngramCache } from "@/domain/macros/Macros.ts";
 import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
-import { notify } from "@/sillytavern/notify.ts";
+import { toast } from "@/sillytavern/toast.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
 import TRIM_SYSTEM from "@/integrations/llm/prompts/TRIM_SYSTEM.txt?raw";
 import TRIM_USER from "@/integrations/llm/prompts/TRIM_USER.txt?raw";
@@ -193,7 +193,7 @@ Significance: ${e.significance_score}`;
             Logger.error(LogModule.WF_APPLY_TRIM, "联动嵌入失败", {
                 error: embedError,
             });
-            notify("warning", "联动嵌入失败，但精简已完成", "Engram");
+            toast("warning", "联动嵌入失败，但精简已完成", "Engram");
         }
     }
 

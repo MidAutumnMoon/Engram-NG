@@ -8,8 +8,8 @@ const DEFAULTS: ToastrOptions = {
     timeOut: 5000,
 };
 
-/** Fire-and-forget notification. Falls back to console if toastr is unavailable. */
-export function notify(
+/** Fire-and-forget toast. Falls back to console if toastr is unavailable. */
+export function toast(
     level: "success" | "info" | "warning" | "error",
     message: string,
     title = "Engram",
@@ -26,8 +26,8 @@ export function notify(
     );
 }
 
-/** Show a persistent notification with an optional cancel button. Returns a handle for later removal. */
-export function notifyRunning(
+/** Show a persistent toast with an optional cancel button. Returns a handle for later removal. */
+export function toastPersistent(
     message: string,
     title = "Engram",
     onCancel?: () => void,
@@ -41,7 +41,7 @@ export function notifyRunning(
         ? `${message} <small style="opacity:0.7">(点击取消)</small>`
         : message;
 
-    const toast: JQuery = t.info(display, title, {
+    const handle: JQuery = t.info(display, title, {
         timeOut: 20_000,
         extendedTimeOut: 0,
         closeButton: false,
@@ -51,15 +51,15 @@ export function notifyRunning(
         onclick: onCancel
             ? () => {
                 Logger.info(LogModule.NOTIFICATION, "用户取消操作");
-                t.remove(toast);
+                t.remove(handle);
                 onCancel();
             }
             : undefined,
     });
-    return toast;
+    return handle;
 }
 
-/** Remove a running notification by its handle. */
-export function dismissNotify(toast: JQuery | null): void {
-    if (window.toastr && toast) window.toastr.remove(toast);
+/** Remove a persistent toast by its handle. */
+export function dismissToast(handle: JQuery | null): void {
+    if (window.toastr && handle) window.toastr.remove(handle);
 }
