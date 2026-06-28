@@ -13,7 +13,7 @@ import { useResponsive } from "@/ui/hooks/useResponsive.ts";
 import { safeStringify } from "@/utils/safeStringify.ts";
 import yaml from "js-yaml"; // 需要确认项目是否已安装 js-yaml，如果没有则需要简单实现或引入
 import { debounce } from "lodash"; // Phase 3 Performance Add: 引入防抖
-import { AlertTriangle, ArrowLeft, History, RefreshCw, Trash2 } from "lucide-react";
+import { AlertTriangle, History, RefreshCw, Trash2 } from "lucide-react";
 import React, {
     useCallback,
     useEffect,
@@ -22,6 +22,7 @@ import React, {
     useRef,
     useState,
 } from "react";
+import { EditorHeader } from "./EditorHeader.tsx";
 
 /**
  * 格式化 tracked 字段的当前值用于只读展示。
@@ -496,23 +497,20 @@ export const EntityEditor = ({
     if (isFullScreen) {
         return (
             <div className="h-full flex flex-col bg-transparent">
-                <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50 shrink-0">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded"
-                    >
-                        <ArrowLeft size={18} />
-                    </button>
-                    <h2 className="text-sm font-medium flex-1">编辑实体</h2>
-                    <button
-                        type="button"
-                        onClick={() => isFullScreen && onDelete?.(entity.id)}
-                        className="p-1.5 text-destructive hover:bg-destructive/10 rounded"
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                </div>
+                <EditorHeader
+                    title="编辑实体"
+                    onClose={onClose}
+                    variant="fullscreen"
+                    actions={
+                        <button
+                            type="button"
+                            onClick={() => onDelete?.(entity.id)}
+                            className="p-1.5 text-destructive hover:bg-destructive/10 rounded"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    }
+                />
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {formContent}
                 </div>
@@ -524,26 +522,21 @@ export const EntityEditor = ({
         <div className="h-full flex flex-col min-h-0">
             {/* 桌面端内部 Header，移动端使用外部 MobileFullscreenForm Header */}
             {!isMobile && (
-                <div className="flex items-center gap-2 pb-4 border-b border-border shrink-0">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded"
-                        title="返回"
-                    >
-                        <ArrowLeft size={18} />
-                    </button>
-                    <h3 className="text-sm font-medium text-primary flex-1">
-                        编辑实体
-                    </h3>
-                    <button
-                        type="button"
-                        onClick={() => onDelete?.(entity.id)}
-                        className="p-1.5 text-destructive hover:bg-destructive/10 rounded"
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                </div>
+                <EditorHeader
+                    title="编辑实体"
+                    onClose={onClose}
+                    variant="sidebar"
+                    titleClassName="text-primary"
+                    actions={
+                        <button
+                            type="button"
+                            onClick={() => onDelete?.(entity.id)}
+                            className="p-1.5 text-destructive hover:bg-destructive/10 rounded"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    }
+                />
             )}
             <div className="flex-1 overflow-y-auto py-4 space-y-4 no-scrollbar">
                 {formContent}

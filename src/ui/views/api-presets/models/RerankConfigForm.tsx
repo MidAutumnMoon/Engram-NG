@@ -5,6 +5,7 @@ import {
     TextField,
 } from "@/ui/components/form/FormComponents.tsx";
 import { ModelNameField } from "@/ui/components/form/ModelNameField.tsx";
+import { RetryConfigFields } from "@/ui/views/api-presets/shared/RetryConfigFields.tsx";
 import type { RerankConfig } from "@/config/types/rag.ts";
 import type { ModelInfo } from "@/integrations/llm/ModelDiscovery.ts";
 import { ModelService } from "@/integrations/llm/ModelDiscovery.ts";
@@ -140,46 +141,10 @@ export const RerankConfigForm: React.FC<RerankConfigFormProps> = ({
                         collapsible
                         defaultCollapsed
                     >
-                        <TextField
-                            label="最大尝试次数"
-                            type="number"
-                            value={config.retryConfig?.maxAttempts
-                                ?.toString() ?? ""}
-                            onChange={(value) => {
-                                const num = Number.parseInt(value, 10);
-                                updateConfig({
-                                    retryConfig: {
-                                        ...config.retryConfig,
-                                        maxAttempts: isNaN(num) ? 3 : num,
-                                        retryDelay:
-                                            config.retryConfig?.retryDelay ??
-                                                2000,
-                                    },
-                                });
-                            }}
-                            placeholder="3"
-                            description="包含首次请求和后续重试的最大次数（1表示不重试）"
-                        />
-
-                        <TextField
-                            label="重试初始延迟 (ms)"
-                            type="number"
-                            value={config.retryConfig?.retryDelay?.toString() ??
-                                ""}
-                            onChange={(value) => {
-                                const num = Number.parseInt(value, 10);
-                                updateConfig({
-                                    retryConfig: {
-                                        ...config.retryConfig,
-                                        maxAttempts:
-                                            config.retryConfig?.maxAttempts ??
-                                                3,
-                                        retryDelay: isNaN(num) ? 2000 : num,
-                                    },
-                                });
-                            }}
-                            placeholder="2000"
-                            description="首次重试的等待时间，后续重试将进行指数退避"
+                        <RetryConfigFields
+                            value={config.retryConfig}
+                            onChange={(retryConfig) =>
+                                updateConfig({ retryConfig })}
                         />
                     </FormSection>
                 </>

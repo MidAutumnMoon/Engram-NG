@@ -11,6 +11,7 @@ import {
     Zap,
 } from "lucide-react";
 import React from "react";
+import { StrategyCard } from "./StrategyCard.tsx";
 
 interface RecallConfigFormProps {
     config: RecallConfig;
@@ -20,11 +21,22 @@ interface RecallConfigFormProps {
 export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
     { config, onChange },
 ) => {
-    // 更新配置的辅助函数
     const updateConfig = (updates: Partial<RecallConfig>) => {
-        const newConfig = { ...config, ...updates };
-        onChange(newConfig);
+        onChange({ ...config, ...updates });
     };
+
+    const useKeyword = config.useKeywordRecall ?? true;
+    const enableEntityKeyword = config.enableEntityKeyword ?? true;
+    const enableEventKeyword = config.enableEventKeyword ?? true;
+
+    // Keyword 子开关全关、且无其它通道 → 警告
+    const keywordNoTargets = useKeyword &&
+        !config.useEmbedding && !config.useAgenticRAG &&
+        !enableEntityKeyword && !enableEventKeyword;
+    // 纯 0 消耗模式
+    const keywordZeroCost = useKeyword &&
+        !config.useEmbedding && !config.useAgenticRAG &&
+        (enableEntityKeyword || enableEventKeyword);
 
     return (
         <div className="space-y-6">
@@ -63,44 +75,30 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* 关键词召回 (0 消耗) */}
-                    <div
-                        className={`p-4 rounded-lg border ${
-                            config.useKeywordRecall
-                                ? "bg-primary/5 border-primary/30"
-                                : "bg-card border-border/50 hover:border-border"
-                        }`}
+                    <StrategyCard
+                        icon={Search}
+                        title="关键词召回 (Keyword)"
+                        enabled={useKeyword}
+                        onToggle={(val) =>
+                            updateConfig({ useKeywordRecall: val })}
+                        description={
+                            <>
+                                基于 Trigger Keywords
+                                和元数据进行正则扫描，
+                                <span className="text-amber-500/80 font-medium">
+                                    {" "}零 Token 消耗
+                                </span>。
+                            </>
+                        }
                     >
-                        <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <Search
-                                    size={16}
-                                    className={config.useKeywordRecall
-                                        ? "text-primary"
-                                        : "text-muted-foreground"}
-                                />
-                                关键词召回 (Keyword)
-                            </div>
-                            <Switch
-                                checked={config.useKeywordRecall ?? true}
-                                onChange={(val) =>
-                                    updateConfig({ useKeywordRecall: val })}
-                            />
-                        </div>
-                        <p className="text-xs text-muted-foreground leading-relaxed italic">
-                            基于 Trigger Keywords
-                            和元数据进行正则扫描，<span className="text-amber-500/80 font-medium">
-                                零 Token 消耗
-                            </span>。
-                        </p>
-                        {config.useKeywordRecall && (
+                        {useKeyword && (
                             <div className="mt-3 pt-3 border-t border-primary/10 grid grid-cols-2 gap-4">
                                 <div className="flex items-center justify-between">
                                     <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">
                                         检索实体
                                     </span>
                                     <Switch
-                                        checked={config.enableEntityKeyword ??
-                                            true}
+                                        checked={enableEntityKeyword}
                                         onChange={(val) =>
                                             updateConfig({
                                                 enableEntityKeyword: val,
@@ -112,8 +110,7 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
                                         检索事件
                                     </span>
                                     <Switch
-                                        checked={config.enableEventKeyword ??
-                                            true}
+                                        checked={enableEventKeyword}
                                         onChange={(val) =>
                                             updateConfig({
                                                 enableEventKeyword: val,
@@ -122,130 +119,69 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
                                 </div>
                             </div>
                         )}
-                        {config.useKeywordRecall && !config.useEmbedding &&
-                            !config.useAgenticRAG &&
-                            !config.enableEntityKeyword &&
-                            !config.enableEventKeyword && (
-                                <p className="text-[10px] text-yellow-500 mt-2 flex items-center gap-1">
-                                    <AlertTriangle size={10} />{" "}
-                                    关键词已开启但无生效项目
-                                </p>
-                            )}
-                        {config.useKeywordRecall && !config.useEmbedding &&
-                            !config.useAgenticRAG &&
-                            (config.enableEntityKeyword ||
-                                config.enableEventKeyword) &&
-                            (
-                                <p className="text-[10px] text-primary mt-2 flex items-center gap-1">
-                                    <Zap size={10} /> 当前处于纯 0 消耗模式
-                                </p>
-                            )}
-                    </div>
+                        {keywordNoTargets && (
+                            <p className="text-[10px] text-yellow-500 mt-2 flex items-center gap-1">
+                                <AlertTriangle size={10} />{" "}
+                                关键词已开启但无生效项目
+                            </p>
+                        )}
+                        {keywordZeroCost && (
+                            <p className="text-[10px] text-primary mt-2 flex items-center gap-1">
+                                <Zap size={10} /> 当前处于纯 0 消耗模式
+                            </p>
+                        )}
+                    </StrategyCard>
 
                     {/* Agentic RAG */}
-                    <div
-                        className={`p-4 rounded-lg border overflow-hidden ${
-                            config.useAgenticRAG
-                                ? "bg-primary/5 border-primary/30"
-                                : "bg-card border-border/50 hover:border-border"
-                        }`}
-                    >
-                        <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <Zap
-                                    size={16}
-                                    className={config.useAgenticRAG
-                                        ? "text-primary"
-                                        : "text-muted-foreground"}
-                                />
-                                Agentic RAG
-                            </div>
-                            <Switch
-                                checked={config.useAgenticRAG}
-                                onChange={(val) =>
-                                    updateConfig({
-                                        useAgenticRAG: val,
-                                        useEmbedding: val
-                                            ? false
-                                            : config.useEmbedding,
-                                    })}
-                            />
-                        </div>
-                        <p className="text-xs text-muted-foreground leading-relaxed break-words">
-                            LLM 裁判式召回：精准选出档案 ID，跳过向量检索。产生
-                            Token 消耗。
-                        </p>
-                    </div>
+                    <StrategyCard
+                        icon={Zap}
+                        title="Agentic RAG"
+                        enabled={config.useAgenticRAG}
+                        onToggle={(val) =>
+                            updateConfig({
+                                useAgenticRAG: val,
+                                useEmbedding: val
+                                    ? false
+                                    : config.useEmbedding,
+                            })}
+                        description="LLM 裁判式召回：精准选出档案 ID，跳过向量检索。产生 Token 消耗。"
+                    />
 
                     {/* 向量检索 */}
-                    <div
-                        className={`p-4 rounded-lg border ${
-                            config.useEmbedding
-                                ? "bg-primary/5 border-primary/30"
-                                : "bg-card border-border/50 hover:border-border"
-                        }`}
-                    >
-                        <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <Database
-                                    size={16}
-                                    className={config.useEmbedding
-                                        ? "text-primary"
-                                        : "text-muted-foreground"}
-                                />
-                                向量检索 (Embedding)
-                            </div>
-                            <Switch
-                                checked={config.useEmbedding}
-                                onChange={(val) =>
-                                    updateConfig({
-                                        useAgenticRAG: val
-                                            ? false
-                                            : config.useAgenticRAG,
-                                        useEmbedding: val,
-                                    })}
-                            />
-                        </div>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                            使用语义向量匹配历史事件，RAG 的核心能力。产生 Token
-                            消耗。
-                        </p>
-                    </div>
+                    <StrategyCard
+                        icon={Database}
+                        title="向量检索 (Embedding)"
+                        enabled={config.useEmbedding}
+                        onToggle={(val) =>
+                            updateConfig({
+                                useAgenticRAG: val
+                                    ? false
+                                    : config.useAgenticRAG,
+                                useEmbedding: val,
+                            })}
+                        description="使用语义向量匹配历史事件，RAG 的核心能力。产生 Token 消耗。"
+                    />
 
                     {/* Rerank 重排序 */}
-                    <div
-                        className={`p-4 rounded-lg border ${
-                            config.useRerank
-                                ? "bg-primary/5 border-primary/30"
-                                : "bg-card border-border/50 hover:border-border"
-                        }`}
-                    >
-                        <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <Layers
-                                    size={16}
-                                    className={config.useRerank
-                                        ? "text-primary"
-                                        : "text-muted-foreground"}
-                                />
-                                Rerank 重排序
-                            </div>
-                            <Switch
-                                checked={config.useRerank}
-                                disabled={!config.useEmbedding} // 依赖 Embedding
-                                onChange={(val) =>
-                                    updateConfig({ useRerank: val })}
-                            />
-                        </div>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                            对初筛结果进行二次精排。产生 Token 消耗。
-                            {!config.useEmbedding &&
-                                <span className="text-yellow-500 mt-1 text-[10px] flex items-center gap-1">
-                                    <AlertTriangle size={10} />{" "}
-                                    需要先启用向量检索
-                                </span>}
-                        </p>
-                    </div>
+                    <StrategyCard
+                        icon={Layers}
+                        title="Rerank 重排序"
+                        enabled={config.useRerank}
+                        disabled={!config.useEmbedding}
+                        onToggle={(val) => updateConfig({ useRerank: val })}
+                        description={
+                            <>
+                                对初筛结果进行二次精排。产生 Token 消耗。
+                                {!config.useEmbedding &&
+                                    (
+                                        <span className="text-yellow-500 mt-1 text-[10px] flex items-center gap-1">
+                                            <AlertTriangle size={10} />{" "}
+                                            需要先启用向量检索
+                                        </span>
+                                    )}
+                            </>
+                        }
+                    />
                 </div>
             </div>
 

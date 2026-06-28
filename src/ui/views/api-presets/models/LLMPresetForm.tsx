@@ -12,6 +12,7 @@ import {
     TextField,
 } from "@/ui/components/form/FormComponents.tsx";
 import { ModelNameField } from "@/ui/components/form/ModelNameField.tsx";
+import { RetryConfigFields } from "@/ui/views/api-presets/shared/RetryConfigFields.tsx";
 import React, { useState } from "react";
 
 interface LLMPresetFormProps {
@@ -279,42 +280,9 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                 defaultCollapsed
             >
                 <div className="space-y-4">
-                    <TextField
-                        label="最大尝试次数"
-                        type="number"
-                        value={preset.retryConfig?.maxAttempts?.toString() ??
-                            ""}
-                        onChange={(value) => {
-                            const num = Number.parseInt(value, 10);
-                            updatePreset({
-                                retryConfig: {
-                                    ...preset.retryConfig,
-                                    maxAttempts: isNaN(num) ? 3 : num,
-                                    retryDelay:
-                                        preset.retryConfig?.retryDelay ?? 2000,
-                                },
-                            });
-                        }}
-                        placeholder="3"
-                        description="包含首次请求和后续重试的最大次数。报错 429/Timeout 会自动退避重试（1表示不重试）"
-                    />
-                    <TextField
-                        label="重试初始延迟 (ms)"
-                        type="number"
-                        value={preset.retryConfig?.retryDelay?.toString() ?? ""}
-                        onChange={(value) => {
-                            const num = Number.parseInt(value, 10);
-                            updatePreset({
-                                retryConfig: {
-                                    ...preset.retryConfig,
-                                    maxAttempts:
-                                        preset.retryConfig?.maxAttempts ?? 3,
-                                    retryDelay: isNaN(num) ? 2000 : num,
-                                },
-                            });
-                        }}
-                        placeholder="2000"
-                        description="首次重试的等待时间，后续重试将进行指数退避"
+                    <RetryConfigFields
+                        value={preset.retryConfig}
+                        onChange={(retryConfig) => updatePreset({ retryConfig })}
                     />
                 </div>
             </FormSection>

@@ -41,6 +41,14 @@ const formatDuration = (ms?: number): string => {
     return `${(ms / 1000).toFixed(1)}s`;
 };
 
+/** 召回模式 → 列表徽章颜色 + 标签（列表/详情两处共用） */
+type RecallMode = RecallLogEntry["mode"];
+const MODE_META: Record<RecallMode, { badge: string; label: string }> = {
+    agentic: { badge: "bg-amber-500/20 text-amber-400", label: "Agentic" },
+    hybrid: { badge: "bg-purple-500/20 text-purple-400", label: "混合" },
+    embedding: { badge: "bg-blue-500/20 text-blue-400", label: "向量" },
+};
+
 // ==================== 列表项组件 ====================
 
 interface LogListItemProps {
@@ -67,18 +75,10 @@ const LogListItem: React.FC<LogListItemProps> = (
         <div className="flex items-center gap-2 mb-1">
             <span
                 className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                    entry.mode === "agentic"
-                        ? "bg-amber-500/20 text-amber-400"
-                        : entry.mode === "hybrid"
-                        ? "bg-purple-500/20 text-purple-400"
-                        : "bg-blue-500/20 text-blue-400"
+                    MODE_META[entry.mode].badge
                 }`}
             >
-                {entry.mode === "agentic"
-                    ? "Agentic"
-                    : entry.mode === "hybrid"
-                    ? "混合"
-                    : "向量"}
+                {MODE_META[entry.mode].label}
             </span>
             <span className="text-[10px] text-muted-foreground">
                 {entry.stats.rerankCount}/{entry.stats.topKCount} 条
@@ -336,18 +336,10 @@ const DetailPanel: React.FC<DetailPanelProps> = (
                 <div className="flex items-center gap-2 mb-2">
                     <span
                         className={`px-2 py-0.5 rounded text-xs font-medium ${
-                            entry.mode === "agentic"
-                                ? "bg-amber-500/20 text-amber-400"
-                                : (entry.mode === "hybrid"
-                                    ? "bg-purple-500/20 text-purple-400"
-                                    : "bg-blue-500/20 text-blue-400")
+                            MODE_META[entry.mode].badge
                         }`}
                     >
-                        {entry.mode === "agentic"
-                            ? "Agentic 召回"
-                            : (entry.mode === "hybrid"
-                                ? "混合召回"
-                                : "向量召回")}
+                        {MODE_META[entry.mode].label} 召回
                     </span>
                     <span className="text-xs text-muted-foreground">
                         {formatTime(entry.timestamp)}

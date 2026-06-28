@@ -3,20 +3,18 @@ import {
     FormSection,
     SwitchField,
 } from "@/ui/components/form/FormComponents.tsx";
-import {
-    AlertCircle,
-    Book,
-    ChevronDown,
-    ChevronRight,
-    RefreshCw,
-    Search,
-} from "lucide-react";
+import { AlertCircle, RefreshCw, Search } from "lucide-react";
 import React, { useState } from "react";
+import {
+    WorldbookEntryRow,
+    WorldbookHeader,
+    type WorldbookEntry,
+} from "./WorldbookEntryParts.tsx";
 
 interface WorldbookConfigFormProps {
     config: WorldbookConfig;
     onChange: (config: WorldbookConfig) => void;
-    worldbookStructure?: Record<string, any[]>;
+    worldbookStructure?: Record<string, WorldbookEntry[]>;
     disabledEntries?: Record<string, number[]>;
     onToggleWorldbook?: (name: string, disabled: boolean) => void;
     onToggleEntry?: (worldbook: string, uid: number, disabled: boolean) => void;
@@ -43,13 +41,15 @@ export const WorldbookConfigForm: React.FC<WorldbookConfigFormProps> = ({
     };
 
     const toggleExpand = (book: string) => {
-        const newSet = new Set(expandedBooks);
-        if (newSet.has(book)) {
-            newSet.delete(book);
-        } else {
-            newSet.add(book);
-        }
-        setExpandedBooks(newSet);
+        setExpandedBooks((prev) => {
+            const next = new Set(prev);
+            if (next.has(book)) {
+                next.delete(book);
+            } else {
+                next.add(book);
+            }
+            return next;
+        });
     };
 
     const isWorldbookDisabled = (name: string) =>
@@ -62,13 +62,12 @@ export const WorldbookConfigForm: React.FC<WorldbookConfigFormProps> = ({
     const worldbooks = Object.keys(worldbookStructure)
         .filter((book) => !book.startsWith("[Engram]"))
         .toSorted();
+    const filterQuery = filterText.toLowerCase();
     const filteredWorldbooks = worldbooks.filter((book) =>
-        book.toLowerCase().includes(filterText.toLowerCase()) ||
-        worldbookStructure[book].some((e: any) =>
-            e.names?.join(" ").toLowerCase().includes(
-                filterText.toLowerCase(),
-            ) ||
-            e.comment?.toLowerCase().includes(filterText.toLowerCase())
+        book.toLowerCase().includes(filterQuery) ||
+        worldbookStructure[book].some((e) =>
+            e.names?.join(" ").toLowerCase().includes(filterQuery) ||
+            e.comment?.toLowerCase().includes(filterQuery)
         )
     );
 
@@ -144,7 +143,7 @@ export const WorldbookConfigForm: React.FC<WorldbookConfigFormProps> = ({
                                         [];
                                     const isExpanded = expandedBooks.has(book);
                                     const activeEntriesCount =
-                                        entries.filter((e: any) =>
+                                        entries.filter((e) =>
                                             !isEntryDisabled(book, e.uid)
                                         ).length;
 
@@ -157,61 +156,22 @@ export const WorldbookConfigForm: React.FC<WorldbookConfigFormProps> = ({
                                                     : ""
                                             }`}
                                         >
-                                            {/* 世界书头部 */}
-                                            <div className="flex items-center justify-between p-3">
-                                                <div className="flex items-center gap-3 flex-1 overflow-hidden">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            toggleExpand(book)}
-                                                        className="p-1 hover:bg-accent rounded-sm"
-                                                    >
-                                                        {isExpanded
-                                                            ? <ChevronDown
-                                                                size={16}
-                                                            />
-                                                            : <ChevronRight
-                                                                size={16}
-                                                            />}
-                                                    </button>
-                                                    <div className="flex items-center gap-2 min-w-0">
-                                                        <Book
-                                                            size={16}
-                                                            className={isDisabled
-                                                                ? "text-muted-foreground"
-                                                                : "text-primary"}
-                                                        />
-                                                        <span
-                                                            className={`font-medium truncate ${
-                                                                isDisabled
-                                                                    ? "text-muted-foreground line-through"
-                                                                    : ""
-                                                            }`}
-                                                        >
-                                                            {book}
-                                                        </span>
-                                                        <span className="text-xs text-muted-foreground px-2 py-0.5 bg-muted rounded-full whitespace-nowrap">
-                                                            {activeEntriesCount}
-                                                            {" "}
-                                                            / {entries.length}
-                                                            {" "}
-                                                            激活
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-4">
-                                                    <SwitchField
-                                                        label=""
-                                                        checked={!isDisabled}
-                                                        onChange={(checked) =>
-                                                            onToggleWorldbook?.(
-                                                                book,
-                                                                !checked,
-                                                            )}
-                                                        compact
-                                                    />
-                                                </div>
-                                            </div>
+                                            <WorldbookHeader
+                                                book={book}
+                                                isExpanded={isExpanded}
+                                                isDisabled={isDisabled}
+                                                activeEntriesCount={
+                                                    activeEntriesCount
+                                                }
+                                                totalEntries={entries.length}
+                                                onToggleExpand={() =>
+                                                    toggleExpand(book)}
+                                                onToggle={(disabled) =>
+                                                    onToggleWorldbook?.(
+                                                        book,
+                                                        disabled,
+                                                    )}
+                                            />
 
                                             {/* 条目列表 (展开时显示) */}
                                             {isExpanded && !isDisabled && (
@@ -224,142 +184,26 @@ export const WorldbookConfigForm: React.FC<WorldbookConfigFormProps> = ({
                                                         )
                                                         : (
                                                             entries.map(
-                                                                (
-                                                                    entry: any,
-                                                                ) => {
-                                                                    const isEntryItemDisabled =
-                                                                        isEntryDisabled(
+                                                                (entry) => (
+                                                                    <WorldbookEntryRow
+                                                                        key={entry
+                                                                            .uid}
+                                                                        entry={entry}
+                                                                        isDisabled={isEntryDisabled(
                                                                             book,
                                                                             entry
                                                                                 .uid,
-                                                                        );
-                                                                    return (
-                                                                        <div
-                                                                            key={entry
-                                                                                .uid}
-                                                                            className={`flex items-start justify-between py-2 -mx-2 px-2 rounded hover:bg-accent/40 group ${
-                                                                                isEntryItemDisabled
-                                                                                    ? "opacity-40"
-                                                                                    : ""
-                                                                            }`}
-                                                                        >
-                                                                            <div className="flex flex-col gap-1 min-w-0 flex-1 pr-4">
-                                                                                <div className="flex items-center gap-2 flex-wrap min-w-0">
-                                                                                    {
-                                                                                        /* 状态指示灯 V1.2.9:
-                                                                            - 蓝灯 (bg-primary): constant 常驻
-                                                                            - 绿灯 (bg-emerald-500): selective 条件触发
-                                                                            - 灰灯 (bg-muted-foreground/50): 世界书原本就禁用的条目
-                                                                        */
-                                                                                    }
-                                                                                    <div
-                                                                                        className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                                                                                            entry
-                                                                                                    .disabled
-                                                                                                ? "bg-muted-foreground/50"
-                                                                                                : (entry
-                                                                                                        .constant
-                                                                                                    ? "bg-primary"
-                                                                                                    : "bg-emerald-500")
-                                                                                        }`}
-                                                                                        title={entry
-                                                                                                .disabled
-                                                                                            ? "已禁用 (世界书原设定)"
-                                                                                            : (entry
-                                                                                                    .constant
-                                                                                                ? "常驻 (Constant) 🔵"
-                                                                                                : "条件触发 (Selective) 🟢")}
-                                                                                    />
-
-                                                                                    {/* 条目名称 - 添加 truncate 防止溢出 */}
-                                                                                    <span
-                                                                                        className={`text-sm font-medium truncate max-w-full ${
-                                                                                            isEntryItemDisabled
-                                                                                                ? "text-muted-foreground line-through"
-                                                                                                : (entry
-                                                                                                        .disabled
-                                                                                                    ? "text-muted-foreground"
-                                                                                                    : "text-foreground")
-                                                                                        }`}
-                                                                                    >
-                                                                                        {entry
-                                                                                            .name ||
-                                                                                            `条目 #${entry.uid}`}
-                                                                                    </span>
-
-                                                                                    {/* 关键词 Badge */}
-                                                                                    {(entry
-                                                                                                .keys ||
-                                                                                                []).length >
-                                                                                            0 &&
-                                                                                        (
-                                                                                            <div className="flex items-center gap-1 ml-auto md:ml-2 overflow-hidden max-w-full">
-                                                                                                {entry
-                                                                                                    .keys
-                                                                                                    .slice(
-                                                                                                        0,
-                                                                                                        3,
-                                                                                                    ).map(
-                                                                                                        (
-                                                                                                            key: string,
-                                                                                                            i: number,
-                                                                                                        ) => (
-                                                                                                            <span
-                                                                                                                key={i}
-                                                                                                                className="text-[10px] px-1 py-0.5 rounded border border-border bg-muted/20 text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis max-w-[80px]"
-                                                                                                            >
-                                                                                                                {key}
-                                                                                                            </span>
-                                                                                                        ),
-                                                                                                    )}
-                                                                                                {entry
-                                                                                                            .keys
-                                                                                                            .length >
-                                                                                                        3 &&
-                                                                                                    (
-                                                                                                        <span className="text-[10px] text-muted-foreground">
-                                                                                                            +{entry
-                                                                                                                .keys
-                                                                                                                .length -
-                                                                                                                3}
-                                                                                                        </span>
-                                                                                                    )}
-                                                                                            </div>
-                                                                                        )}
-                                                                                </div>
-
-                                                                                {/* 内容预览 - 添加 break-words 和 truncate */}
-                                                                                {(entry
-                                                                                    .comment ||
-                                                                                    entry
-                                                                                        .content) &&
-                                                                                    (
-                                                                                        <p className="text-xs text-muted-foreground/80 pl-3.5 break-words line-clamp-2">
-                                                                                            {entry
-                                                                                                .comment ||
-                                                                                                entry
-                                                                                                    .content}
-                                                                                        </p>
-                                                                                    )}
-                                                                            </div>
-                                                                            <div className="flex-shrink-0">
-                                                                                <SwitchField
-                                                                                    label=""
-                                                                                    checked={!isEntryItemDisabled}
-                                                                                    onChange={(
-                                                                                        checked,
-                                                                                    ) => onToggleEntry?.(
-                                                                                        book,
-                                                                                        entry
-                                                                                            .uid,
-                                                                                        !checked,
-                                                                                    )}
-                                                                                    compact
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                    );
-                                                                },
+                                                                        )}
+                                                                        onToggle={(
+                                                                            disabled,
+                                                                        ) => onToggleEntry?.(
+                                                                            book,
+                                                                            entry
+                                                                                .uid,
+                                                                            disabled,
+                                                                        )}
+                                                                    />
+                                                                ),
                                                             )
                                                         )}
                                                 </div>

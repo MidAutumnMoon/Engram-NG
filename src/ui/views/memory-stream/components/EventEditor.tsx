@@ -10,7 +10,7 @@ import { TextField } from "@/ui/components/form/FormComponents.tsx";
 import { Divider } from "@/ui/components/layout/Divider.tsx";
 import { useResponsive } from "@/ui/hooks/useResponsive.ts";
 import { debounce } from "lodash";
-import { Archive, ArrowLeft, Lock, LockOpen, Trash2 } from "lucide-react";
+import { Archive, Lock, LockOpen } from "lucide-react";
 import React, {
     useCallback,
     useEffect,
@@ -19,6 +19,9 @@ import React, {
     useRef,
     useState,
 } from "react";
+import { EditorHeader } from "./EditorHeader.tsx";
+import { EventEditorActions } from "./EventEditorActions.tsx";
+import { ToggleRow } from "./ToggleRow.tsx";
 
 // ==================== 类型定义 ====================
 
@@ -470,67 +473,37 @@ export const EventEditor = ({
             </div>
 
             {/* 锁定状态 */}
-            <div className="flex justify-between items-center py-2">
-                <div className="flex flex-col">
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-meta">锁定此事件</span>
-                        {isLocked
-                            ? <Lock size={12} className="text-emphasis" />
-                            : <LockOpen size={12} className="text-meta/60" />}
-                    </div>
-                    <span className="text-[10px] text-meta/60">
-                        锁定后将防止该记忆在自动精简或清理时被删除
-                    </span>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                        type="checkbox"
-                        className="sr-only peer"
-                        checked={isLocked}
-                        onChange={(e) => {
-                            const val = e.target.checked;
-                            setIsLocked(val);
-                            setIsDirty(true);
-                            syncToParent({ isLocked: val });
-                        }}
-                    />
-                    <div className="w-9 h-5 bg-border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 peer-checked:bg-emphasis">
-                    </div>
-                </label>
-            </div>
+            <ToggleRow
+                label="锁定此事件"
+                hint="锁定后将防止该记忆在自动精简或清理时被删除"
+                icon={isLocked
+                    ? <Lock size={12} className="text-emphasis" />
+                    : <LockOpen size={12} className="text-meta/60" />}
+                checked={isLocked}
+                activeColor="emphasis"
+                onChange={(val) => {
+                    setIsLocked(val);
+                    setIsDirty(true);
+                    syncToParent({ isLocked: val });
+                }}
+            />
 
             {/* 归档状态 */}
-            <div className="flex justify-between items-center py-2">
-                <div className="flex flex-col">
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-meta">归档此事件</span>
-                        <Archive
-                            size={12}
-                            className={isArchived
-                                ? "text-primary"
-                                : "text-meta/60"}
-                        />
-                    </div>
-                    <span className="text-[10px] text-meta/60">
-                        归档后将不再参与自动摘要生成和实时上下文
-                    </span>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                        type="checkbox"
-                        className="sr-only peer"
-                        checked={isArchived}
-                        onChange={(e) => {
-                            const val = e.target.checked;
-                            setIsArchived(val);
-                            setIsDirty(true);
-                            syncToParent({ isArchived: val });
-                        }}
-                    />
-                    <div className="w-9 h-5 bg-border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 peer-checked:bg-primary">
-                    </div>
-                </label>
-            </div>
+            <ToggleRow
+                label="归档此事件"
+                hint="归档后将不再参与自动摘要生成和实时上下文"
+                icon={<Archive
+                    size={12}
+                    className={isArchived ? "text-primary" : "text-meta/60"}
+                />}
+                checked={isArchived}
+                activeColor="primary"
+                onChange={(val) => {
+                    setIsArchived(val);
+                    setIsDirty(true);
+                    syncToParent({ isArchived: val });
+                }}
+            />
 
             <Divider spacing="md" />
 
@@ -571,68 +544,29 @@ export const EventEditor = ({
     if (isFullScreen) {
         return (
             <div className="h-full flex flex-col bg-transparent">
-                {/* 头部 */}
-                <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50 shrink-0">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded"
-                    >
-                        <ArrowLeft size={18} />
-                    </button>
-                    <h2 className="text-sm font-medium text-foreground flex-1">
-                        编辑事件
-                    </h2>
-                    <div className="flex items-center gap-1">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const val = !isArchived;
+                <EditorHeader
+                    title="编辑事件"
+                    onClose={onClose}
+                    variant="fullscreen"
+                    titleClassName="text-foreground"
+                    actions={
+                        <EventEditorActions
+                            isArchived={isArchived}
+                            isLocked={isLocked}
+                            onToggleArchive={(val) => {
                                 setIsArchived(val);
                                 setIsDirty(true);
                                 syncToParent({ isArchived: val }, true);
                             }}
-                            className={`p-1.5 rounded ${
-                                isArchived
-                                    ? "text-primary bg-primary/10"
-                                    : "text-meta hover:bg-muted/50"
-                            }`}
-                            title={isArchived ? "取消归档" : "归档"}
-                        >
-                            <Archive
-                                size={16}
-                                className={isArchived ? "fill-current" : ""}
-                            />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const val = !isLocked;
+                            onToggleLock={(val) => {
                                 setIsLocked(val);
                                 setIsDirty(true);
                                 syncToParent({ isLocked: val }, true);
                             }}
-                            className={`p-1.5 rounded ${
-                                isLocked
-                                    ? "text-emphasis bg-emphasis/10"
-                                    : "text-meta hover:bg-muted/50"
-                            }`}
-                            title={isLocked ? "解锁" : "锁定"}
-                        >
-                            {isLocked
-                                ? <Lock size={16} />
-                                : <LockOpen size={16} />}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleDelete}
-                            className="p-1.5 text-destructive hover:bg-destructive/10 rounded ml-1"
-                            title="删除"
-                        >
-                            <Trash2 size={16} />
-                        </button>
-                    </div>
-                </div>
+                            onDelete={handleDelete}
+                        />
+                    }
+                />
 
                 {/* 表单内容 */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -658,67 +592,29 @@ export const EventEditor = ({
         <div className="h-full flex flex-col min-h-0">
             {/* 头部 (桌面端显示，移动端由外部 Layout 处理) */}
             {!isMobile && (
-                <div className="flex items-center gap-2 pb-4 border-b border-border shrink-0">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="p-1.5 text-meta hover:text-foreground hover:bg-muted/50 rounded"
-                    >
-                        <ArrowLeft size={18} />
-                    </button>
-                    <h3 className="text-sm font-medium text-primary flex-1">
-                        编辑事件
-                    </h3>
-                    <div className="flex items-center gap-1">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const val = !isArchived;
+                <EditorHeader
+                    title="编辑事件"
+                    onClose={onClose}
+                    variant="sidebar"
+                    titleClassName="text-primary"
+                    actions={
+                        <EventEditorActions
+                            isArchived={isArchived}
+                            isLocked={isLocked}
+                            onToggleArchive={(val) => {
                                 setIsArchived(val);
                                 setIsDirty(true);
                                 syncToParent({ isArchived: val }, true);
                             }}
-                            className={`p-1.5 rounded ${
-                                isArchived
-                                    ? "text-primary bg-primary/10"
-                                    : "text-meta hover:bg-muted/50"
-                            }`}
-                            title={isArchived ? "取消归档" : "归档"}
-                        >
-                            <Archive
-                                size={16}
-                                className={isArchived ? "fill-current" : ""}
-                            />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const val = !isLocked;
+                            onToggleLock={(val) => {
                                 setIsLocked(val);
                                 setIsDirty(true);
                                 syncToParent({ isLocked: val }, true);
                             }}
-                            className={`p-1.5 rounded ${
-                                isLocked
-                                    ? "text-emphasis bg-emphasis/10"
-                                    : "text-meta hover:bg-muted/50"
-                            }`}
-                            title={isLocked ? "解锁" : "锁定"}
-                        >
-                            {isLocked
-                                ? <Lock size={16} />
-                                : <LockOpen size={16} />}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleDelete}
-                            className="p-1.5 text-destructive hover:bg-destructive/10 rounded ml-1"
-                            title="删除"
-                        >
-                            <Trash2 size={16} />
-                        </button>
-                    </div>
-                </div>
+                            onDelete={handleDelete}
+                        />
+                    }
+                />
             )}
 
             {/* 表单内容 - 独立滚动 */}

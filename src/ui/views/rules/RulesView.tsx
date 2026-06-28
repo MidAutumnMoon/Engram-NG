@@ -1,10 +1,3 @@
-/**
- * RulesView - 提示词与规则
- *
- * 原属 APIPresets 的非模型半边：内置提示词模板（只读）、正则规则、世界书配置。
- * 这些都是「文本处理规则」，与模型端点（模型与服务）解耦。
- */
-
 import { FileText, Regex, Save } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
@@ -29,8 +22,6 @@ import SUMMARY_SYSTEM from "@/integrations/llm/prompts/SUMMARY_SYSTEM.txt?raw";
 import SUMMARY_USER from "@/integrations/llm/prompts/SUMMARY_USER.txt?raw";
 import TRIM_SYSTEM from "@/integrations/llm/prompts/TRIM_SYSTEM.txt?raw";
 import TRIM_USER from "@/integrations/llm/prompts/TRIM_USER.txt?raw";
-
-// ==================== 内置提示词模板（只读展示） ====================
 
 const BUILTIN_PROMPTS: PromptTemplate[] = [
     {
@@ -75,8 +66,8 @@ interface RulesViewProps {
 export const RulesView: React.FC<RulesViewProps> = ({ initialTab }) => {
     const [tab, setTab] = useState<Tab>(
         (["prompt", "regex", "worldbook"] as const).includes(
-            initialTab as Tab,
-        )
+                initialTab as Tab,
+            )
             ? (initialTab as Tab)
             : "prompt",
     );
@@ -292,8 +283,8 @@ export const RulesView: React.FC<RulesViewProps> = ({ initialTab }) => {
                                         const scopes = worldbookScopes ||
                                             { chat: [], global: [] };
                                         return scopes.global.includes(
-                                                key,
-                                            ) || scopes.chat.includes(key);
+                                            key,
+                                        ) || scopes.chat.includes(key);
                                     }),
                             )}
                             disabledEntries={disabledEntries}
