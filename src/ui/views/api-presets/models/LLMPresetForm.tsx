@@ -1,7 +1,7 @@
 /**
  * LLM 预设编辑表单
  */
-import type { APISource, LLMPreset } from "@/config/types/llm.ts";
+import type { LLMPreset } from "@/config/types/llm.ts";
 import type { ModelInfo } from "@/integrations/llm/ModelDiscovery.ts";
 import { ModelService } from "@/integrations/llm/ModelDiscovery.ts";
 import {
@@ -21,16 +21,6 @@ interface LLMPresetFormProps {
     isNew?: boolean;
 }
 
-// API 源选项
-const API_SOURCE_OPTIONS: { value: APISource; label: string }[] = [
-    { label: "OpenAI", value: "openai" },
-    { label: "Anthropic", value: "anthropic" },
-    { label: "Ollama", value: "ollama" },
-    { label: "vLLM", value: "vllm" },
-    { label: "Azure OpenAI", value: "azure" },
-    { label: "自定义", value: "custom" },
-];
-
 // 配置源选项
 const SOURCE_OPTIONS = [
     { label: "使用酒馆当前配置", value: "tavern" },
@@ -47,9 +37,9 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
     const [isLoadingModels, setIsLoadingModels] = useState(false);
     const [modelError, setModelError] = useState<string | null>(null);
 
-    // 加载模型列表 (自定义 API)
+    // 加载模型列表 (自定义 API — OpenAI 兼容)
     const fetchModelList = async () => {
-        const { apiUrl, apiKey, apiSource } = preset.custom || {};
+        const { apiUrl, apiKey } = preset.custom || {};
         if (!apiUrl) {
             setModelError("请先填写 API URL");
             return;
@@ -59,17 +49,10 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
         setModelError(null);
 
         try {
-            // 根据 API 类型选择获取方式
-            let models: ModelInfo[] = [];
-            if (apiSource === "ollama") {
-                models = await ModelService.fetchOllamaModels({ apiUrl });
-            } else {
-                // OpenAI 兼容 API (openai, vllm, azure, custom)
-                models = await ModelService.fetchOpenAIModels({
-                    apiKey,
-                    apiUrl,
-                });
-            }
+            const models = await ModelService.fetchOpenAIModels({
+                apiKey,
+                apiUrl,
+            });
             setModelList(models);
             if (models.length === 0) {
                 setModelError("未找到可用模型");
@@ -104,7 +87,6 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                 apiUrl: preset.custom?.apiUrl || "",
                 apiKey: preset.custom?.apiKey || "",
                 model: preset.custom?.model || "",
-                apiSource: preset.custom?.apiSource || "openai",
                 [key]: value,
             },
         });
@@ -148,15 +130,8 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
             {preset.source === "custom" && (
                 <FormSection
                     title="API 配置"
-                    description="自定义 API 端点和密钥"
+                    description="自定义 OpenAI 兼容端点和密钥"
                 >
-                    <SelectField
-                        label="API 类型"
-                        value={preset.custom?.apiSource || "openai"}
-                        onChange={(value) => updateCustom("apiSource", value)}
-                        options={API_SOURCE_OPTIONS}
-                    />
-
                     <TextField
                         label="API URL"
                         type="url"

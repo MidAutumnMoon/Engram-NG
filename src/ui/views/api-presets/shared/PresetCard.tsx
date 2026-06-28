@@ -23,10 +23,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({
     onCopy,
     onDelete,
 }) => {
-    const SourceIcon =
-        preset.source === "tavern" || preset.source === "tavern_profile"
-            ? Server
-            : Cloud;
+    const SourceIcon = preset.source === "tavern" ? Server : Cloud;
     const modelName = preset.source === "custom"
         ? preset.custom?.model || "未设置"
         : "使用当前";

@@ -41,38 +41,6 @@ export class ModelService {
     private static readonly DEFAULT_TIMEOUT = 10_000; // 10秒
 
     /**
-     * 通用入口：根据 API 类型获取模型列表
-     */
-    static async fetchModels(
-        type: ModelAPIType,
-        config: FetchModelsConfig,
-    ): Promise<ModelInfo[]> {
-        switch (type) {
-            case "openai": {
-                return this.fetchOpenAIModels(config);
-            }
-            case "ollama": {
-                return this.fetchOllamaModels(config);
-            }
-            case "vllm": {
-                return this.fetchVLLMModels(config);
-            }
-            case "jina":
-            case "voyage": {
-                // 这些服务通常不提供模型列表 API，返回预设列表
-                return this.getPresetModels(type);
-            }
-            default: {
-                Logger.warn(
-                    LogModule.MODEL_SERVICE,
-                    `Unknown API type: ${type}`,
-                );
-                return [];
-            }
-        }
-    }
-
-    /**
      * 获取 OpenAI 兼容 API 的模型列表
      * 适用于: OpenAI, Azure, 自定义 OpenAI 兼容服务
      */

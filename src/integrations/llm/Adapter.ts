@@ -7,7 +7,6 @@
  *
  * V0.9.1 改进：
  * - 添加请求队列和执行锁，防止并发请求导致的配置冲突
- * - 支持 tavern_profile 临时切换模式
  */
 
 import { getSettings } from "@/config/settings.ts";

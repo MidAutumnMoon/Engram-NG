@@ -4,20 +4,14 @@
 
 import { z } from "zod";
 
-// ==================== API Source ====================
-
-export const apiSourceSchema = z.enum([
-    "openai",
-    "anthropic",
-    "ollama",
-    "vllm",
-    "azure",
-    "custom",
-]);
-export type APISource = z.infer<typeof apiSourceSchema>;
-
 // ==================== Custom API Config ====================
 
+/**
+ * Custom OpenAI-compatible endpoint config. Engram only speaks the OpenAI
+ * Chat Completions protocol — there is no longer a multi-vendor "API type"
+ * switch. Anything OpenAI-compatible (vLLM, Azure-compatible gateways, local
+ * servers) goes through this with source="custom".
+ */
 export const customApiConfigSchema = z.object({
     /** API 端点 URL */
     apiUrl: z.string(),
@@ -25,8 +19,6 @@ export const customApiConfigSchema = z.object({
     apiKey: z.string(),
     /** 模型名称 */
     model: z.string(),
-    /** API 类型/协议 */
-    apiSource: apiSourceSchema,
 });
 
 export type CustomAPIConfig = z.infer<typeof customApiConfigSchema>;
@@ -68,10 +60,12 @@ export const llmPresetSchema = z.object({
     id: z.string().default(() => `preset_${Date.now()}`),
     /** 预设名称 */
     name: z.string().default("默认预设"),
-    /** 配置源：使用酒馆当前配置、酒馆的 connection_profile 或自定义 */
-    source: z.enum(["tavern", "tavern_profile", "custom"]).default("tavern"),
-    /** 选择的酒馆 connection_profile ID（仅当 source === 'tavern_profile' 时有效） */
-    tavernProfileId: z.string().optional(),
+    /**
+     * 配置源：
+     * - `tavern`：复用酒馆当前连接的 API；可用 modelOverride 覆盖模型名。
+     * - `custom`：使用下方 `custom` 的 OpenAI 兼容端点。
+     */
+    source: z.enum(["tavern", "custom"]).default("tavern"),
     /** 自定义 API 配置（仅当 source === 'custom' 时有效） */
     custom: customApiConfigSchema.optional(),
     /** 在 source: 'tavern' 时用于临时覆盖大模型名称，若为空则不覆盖 */
