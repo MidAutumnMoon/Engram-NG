@@ -38,8 +38,7 @@ interface GenerationAfterCommandsParams {
     force_chid?: number;
     signal?: AbortSignal;
     quietImage?: string;
-    _engram_processed?: boolean; // 我们添加的标记，防止重复处理
-    _engram_internal?: boolean; // 内部请求标记
+            _engram_processed?: boolean; // 我们添加的标记，防止重复处理
 }
 
 class Injector {
@@ -152,16 +151,6 @@ class Injector {
             // 防止重入（同一次生成可能触发多次）
             if (this.isProcessing) {
                 Logger.debug(LogModule.RAG_INJECT, "正在处理中，跳过重复调用");
-                return;
-            }
-
-            // V1.5 取消不安全的全局内部锁，改为精准载荷匹配
-            // 如果事件带有 `_engram_internal` (理想状态)
-            if (params._engram_internal) {
-                Logger.debug(
-                    LogModule.RAG_INJECT,
-                    "检测到内部请求，跳过预处理",
-                );
                 return;
             }
 

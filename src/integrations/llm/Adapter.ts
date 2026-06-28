@@ -1,14 +1,3 @@
-/**
- * LLMAdapter - LLM 调用适配器
- *
- * 封装对 SillyTavern/TavernHelper LLM API 的调用
- *
- * 通用服务：可被 Summarizer、RAG、Graph 等模块复用
- *
- * V0.9.1 改进：
- * - 添加请求队列和执行锁，防止并发请求导致的配置冲突
- */
-
 import { getSettings } from "@/config/settings.ts";
 import type { LLMPreset } from "@/config/types/llm.ts";
 import { Logger } from "@/logger/Logger.ts";
@@ -22,8 +11,6 @@ interface LLMRequest {
     systemPrompt: string;
     /** 用户提示词 */
     userPrompt: string;
-    /** 是否为内部请求 (不触发预处理/脚本) */
-    internal?: boolean;
 }
 
 /** LLM 生成响应 */
@@ -100,7 +87,7 @@ class LLMAdapter {
     private async executeRequest(request: LLMRequest): Promise<LLMResponse> {
         const helper = getTavernHelper();
 
-        if (!helper?.generateRaw && !helper?.generate) {
+        if (!helper?.generateRaw) {
             return {
                 content: "",
                 error: "TavernHelper 不可用",
@@ -223,39 +210,31 @@ class LLMAdapter {
         const generationOptions = {
             should_stream: currentPreset?.stream ?? false, // 释放底层硬编码
             should_silence: true, // V0.9.1: 后台请求静默，不绑定停止按钮
-            _engram_internal: request.internal,
         };
 
         let content: string;
 
-        if (helper.generateRaw) {
-            const prompts: any[] = [];
+        const prompts: any[] = [];
 
-            // 严格遵循：System -> User 顺序
-            if (finalSystemPrompt) {
-                prompts.push({ content: finalSystemPrompt, role: "system" });
-            }
-
-            // 直接将用户内容作为 user 角色推入，不再使用 'user_input' 占位符
-            // 这样酒馆就不会在末尾自动追加多余的内容
-            prompts.push({ content: finalUserPrompt, role: "user" });
-
-            content = await helper.generateRaw({
-                custom_api: customApiConfig,
-                ordered_prompts: prompts,
-                ...generationOptions,
-            });
-        } else if (helper.generate) {
-            content = await helper.generate({
-                custom_api: customApiConfig,
-                max_chat_history: 0,
-                system_prompt: finalSystemPrompt,
-                user_input: finalUserPrompt,
-                ...generationOptions,
-            });
-        } else {
-            throw new Error("无可用的生成 API");
+        // 严格遵循：System -> User 顺序
+        if (finalSystemPrompt) {
+            prompts.push({ content: finalSystemPrompt, role: "system" });
         }
+
+        // 直接将用户内容作为 user 角色推入，不再使用 'user_input' 占位符
+        // 这样酒馆就不会在末尾自动追加多余的内容
+        prompts.push({ content: finalUserPrompt, role: "user" });
+
+        // generateRaw 不走酒馆当前预设，直接以 ordered_prompts 作为提示词，
+        // 这正是 Engram 自定义 prompt 所需的语义。
+        // 返回值在传入 tools 时会是 GenerateToolCallResult，Engram 从不传 tools，
+        // 故此处只可能是 string；做一次归一化以防万一。
+        const result = await helper.generateRaw({
+            custom_api: customApiConfig,
+            ordered_prompts: prompts,
+            ...generationOptions,
+        });
+        content = typeof result === "string" ? result : result.content;
 
         // V1.5.5: TavernHelper 不返回 token 用量，这里用本地估算兜底
         const estimatedPromptTokens = this.estimateTokens(

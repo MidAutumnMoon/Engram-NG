@@ -376,7 +376,6 @@ export async function runLlm(
         const response = await llmAdapter.generate({
             systemPrompt: prompt.system,
             userPrompt: prompt.user,
-            internal: true,
         });
 
         useModelLogStore.getState().logReceive(logId, {
