@@ -9,6 +9,7 @@
  */
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
+import { EngramRoot } from "@/ui/EngramRoot.tsx";
 import { createRoot } from "react-dom/client";
 
 const ROOT_ID = "engram-root";
@@ -33,7 +34,6 @@ export async function mountEngram(): Promise<void> {
         document.body.append(root);
     }
 
-    const { EngramRoot } = await import("@/ui/EngramRoot.tsx");
     createRoot(root).render(<EngramRoot />);
     mounted = true;
     Logger.info(LogModule.TAVERN_UI, "React 根已挂载 (#engram-root)");

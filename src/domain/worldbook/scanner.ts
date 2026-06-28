@@ -1,5 +1,10 @@
 import { getSettings } from "@/config/settings.ts";
 import { getSTContext, getTavernHelper } from "@/sillytavern/context.ts";
+import {
+    checkWorldInfo,
+    getSortedEntries,
+    type StWorldInfoEntry,
+} from "@/sillytavern/worldInfo.ts";
 import { getEntries } from "./crud.ts";
 import type { WorldInfoEntry } from "./types.ts";
 import { Logger } from "@/logger/Logger.ts";
@@ -10,32 +15,19 @@ import { LogModule } from "@/logger/LogModule.ts";
  * fallback：当 ST 原生扫描接口不可用时使用
  */
 async function getConstantWorldInfo(): Promise<string> {
-    try {
-        const worldInfoModule = await import(
-            /* @vite-ignore */ "/scripts/world-info.js"
-        );
-        const getSortedEntries = worldInfoModule?.getSortedEntries;
-        if (typeof getSortedEntries !== "function") return "";
+    const entries = await getSortedEntries();
+    if (!entries) return "";
 
-        const entries = await getSortedEntries();
-        if (!Array.isArray(entries)) return "";
+    const constantEntries = entries.filter((e) =>
+        e.constant === true && e.disable !== true && e.content
+    );
+    if (constantEntries.length === 0) return "";
 
-        const constantEntries = entries.filter((e: {
-            constant?: boolean;
-            disable?: boolean;
-            content?: string;
-        }) => e.constant === true && e.disable !== true && e.content);
-
-        if (constantEntries.length === 0) return "";
-
-        Logger.debug(
-            LogModule.WORLDBOOK,
-            `回退获取 ${constantEntries.length} 个常驻条目`,
-        );
-        return constantEntries.map((e) => e.content).join("\n\n");
-    } catch {
-        return "";
-    }
+    Logger.debug(
+        LogModule.WORLDBOOK,
+        `回退获取 ${constantEntries.length} 个常驻条目`,
+    );
+    return constantEntries.map((e) => e.content).join("\n\n");
 }
 
 /**
@@ -63,11 +55,21 @@ function loadFilteringState() {
 }
 
 /**
+ * 过滤器实际读取的条目字段子集。同时容纳 crud.ts 的 `WorldInfoEntry`（Engram 自建、
+ * 含 `enabled`）与 ST 原生 `StWorldInfoEntry`（含 `disable`）——两者都带 `world`/`uid`。
+ */
+interface FilterableEntry {
+    world?: string;
+    uid?: number;
+    extra?: { engram?: boolean } & Record<string, unknown>;
+}
+
+/**
  * 判断单个条目是否应该被包含
  * @private
  */
 function shouldIncludeEntry(
-    entry: WorldInfoEntry,
+    entry: FilterableEntry,
     disabledGlobalBooks: string[],
     disabledEntries: Record<string, number[]>,
 ): boolean {
@@ -191,19 +193,6 @@ export class WorldbookScannerService {
         options?: { floorRange?: [number, number] },
     ): Promise<string> {
         try {
-            const worldInfoModule = await import(
-                /* @vite-ignore */ "/scripts/world-info.js"
-            );
-            const checkWorldInfo = worldInfoModule?.checkWorldInfo;
-
-            if (typeof checkWorldInfo !== "function") {
-                Logger.warn(
-                    LogModule.WORLDBOOK,
-                    "checkWorldInfo 不可用，回退到常驻条目",
-                );
-                return getConstantWorldInfo();
-            }
-
             const DEFAULT_SCAN_LIMIT = 4;
             const context = getSTContext();
             let messages = chatMessages;
@@ -259,9 +248,15 @@ export class WorldbookScannerService {
                 { trigger: "normal" },
             );
 
-            // 获取结果并过滤
-            const allEntriesSet: Set<any> = result?.allActivatedEntries;
-            const entries = allEntriesSet ? [...allEntriesSet.values()] : [];
+            if (!result) {
+                Logger.warn(
+                    LogModule.WORLDBOOK,
+                    "checkWorldInfo 不可用，回退到常驻条目",
+                );
+                return getConstantWorldInfo();
+            }
+
+            const entries = [...result.allActivatedEntries.values()];
 
             Logger.info(
                 LogModule.WORLDBOOK,
@@ -283,7 +278,7 @@ export class WorldbookScannerService {
                 total: entries.length,
             });
 
-            filteredEntries.sort((a, b) => (a.order || 0) - (b.order || 0));
+            filteredEntries.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
             return filteredEntries
                 .map((e) => e.content)
