@@ -42,6 +42,7 @@
     "npm:knip@^6.22.0": "6.22.0",
     "npm:lodash@^4.18.1": "4.18.1",
     "npm:lucide-react@^1.21.0": "1.21.0_react@19.2.7",
+    "npm:oxlint@*": "1.71.0",
     "npm:oxlint@^1.71.0": "1.71.0",
     "npm:playwright-core@1.60.0": "1.60.0",
     "npm:playwright-core@1.61.0-alpha-1781023400000": "1.61.0-alpha-1781023400000",

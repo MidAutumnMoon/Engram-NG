@@ -15,7 +15,10 @@ import { getCurrentChatId } from "@/sillytavern/context.ts";
 import { DEFAULT_RECALL_CONFIG } from "@/config/types/rag.ts";
 import type { RecallConfig } from "@/config/types/rag.ts";
 import type { EventNode } from "@/data/types/graph.ts";
-import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
+import {
+    getChatHistory,
+    getCurrentMessageCount,
+} from "@/sillytavern/chat/chatHistory.ts";
 import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
 import {
     keywordRetrieve,
@@ -45,10 +48,10 @@ class Retriever {
      */
     private getRecentContext(count: number): string | null {
         try {
-            const currentCount = ChatHistoryHelper.getCurrentMessageCount();
+            const currentCount = getCurrentMessageCount();
             if (currentCount <= 0) return null;
 
-            return ChatHistoryHelper.getChatHistory(
+            return getChatHistory(
                 [
                     Math.max(1, currentCount - count),
                     currentCount,

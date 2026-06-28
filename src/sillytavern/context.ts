@@ -50,13 +50,15 @@ export function getRequestHeaders(): Record<string, string> {
 /**
  * TavernHelper (JS-Slash-Runner host global). Thin wrapper — the return type is
  * derived directly from the vendor Window declaration so it can't drift.
+ *
+ * N.B. In manifest.json we declare the dependency on JS-Slash-Runner,
+ * do drop the null check. However, whether this assertion holds depends on
+ * SillyTavern always loads JS-Slash-Runner before our script, and
+ * SillyTavern is infamous for having unexpected bugs...but most of the time
+ * this assertion holds ok.
  */
 export type TavernHelper = typeof window.TavernHelper;
 
-export function getTavernHelper(): TavernHelper | null {
-    try {
-        return window.TavernHelper || null;
-    } catch {
-        return null;
-    }
+export function getTavernHelper(): TavernHelper {
+    return window.TavernHelper;
 }

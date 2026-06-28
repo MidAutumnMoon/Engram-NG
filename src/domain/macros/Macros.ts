@@ -2,7 +2,10 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { getSTContext } from "@/sillytavern/context.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
-import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
+import {
+    getChatHistory as getChatHistoryHelper,
+    getCurrentMessageCount as getCurrentMessageCountHelper,
+} from "@/sillytavern/chat/chatHistory.ts";
 import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
 import { chatManager } from "@/data/ChatManager.ts";
 import { getProcessedFloor } from "@/data/types/graph.ts";
@@ -254,8 +257,8 @@ export async function refreshEngramCache(
 /**
  * 获取对话历史的代理
  */
-export function getChatHistory(floorRange?: [number, number]): string {
-    return ChatHistoryHelper.getChatHistory(
+export function getChatHistory(floorRange: [number, number]): string {
+    return getChatHistoryHelper(
         floorRange,
         (t) => regexProcessor.process(t, "both"),
     );
@@ -265,7 +268,7 @@ export function getChatHistory(floorRange?: [number, number]): string {
  * 获取当前对话消息总数
  */
 export function getCurrentMessageCount(): number {
-    return ChatHistoryHelper.getCurrentMessageCount();
+    return getCurrentMessageCountHelper();
 }
 
 /**
