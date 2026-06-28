@@ -14,20 +14,20 @@ const retryConfigSchema = z.object({
 
 // ==================== Vector Config ====================
 
+/**
+ * 向量源。Engram 仅实际使用 OpenAI 兼容嵌入协议：
+ * - `custom`：自定义 OpenAI 兼容端点（用户填写 URL/Key/Model）。
+ * - `openai`：OpenAI 官方端点（预设默认值，仅需 Key/Model）。
+ *
+ * 历史上还曾列出 transformers/ollama/vllm/jina/voyage 等源，但本地
+ * transformers 从无实现，其余源实际只走 OpenAI 兼容协议，故已统一移除。
+ * schema 用 .catch 把旧存的任意值收敛为 "custom"，避免 Zod 解析抛错。
+ */
 export const vectorConfigSchema = z.object({
-    /** 向量源 */
-    source: z.enum([
-        "transformers", // 本地 transformers
-        "openai", // OpenAI Embeddings API
-        "ollama", // Ollama
-        "vllm", // VLLM
-        "jina", // Jina AI
-        "voyage", // Voyage AI
-        "custom", // 自定义 (OpenAI 兼容)
-    ]).default("transformers"),
-    /** API 端点（部分源需要） */
+    source: z.enum(["custom", "openai"]).default("custom").catch("custom"),
+    /** API 端点（custom 必填；openai 留空走官方默认） */
     apiUrl: z.string().optional(),
-    /** API Key（部分源需要） */
+    /** API Key */
     apiKey: z.string().optional(),
     /** 模型名称 */
     model: z.string().optional(),

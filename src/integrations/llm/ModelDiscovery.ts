@@ -1,7 +1,9 @@
 /**
- * ModelService - 统一的模型列表获取服务
+ * ModelService - 模型列表获取服务
  *
- * 支持从各类 API 端点获取可用模型列表
+ * 仅保留 OpenAI 兼容协议的模型列表抓取：LLM 预设、向量源、Rerank 三处的
+ * 「获取模型列表」按钮都走它。非 OpenAI 兼容源（ollama/vllm/jina/voyage/
+ * transformers）已随多源设计一同退役。
  */
 
 import { Logger } from "@/logger/Logger.ts";
@@ -17,16 +19,6 @@ export interface ModelInfo {
     contextLength?: number;
     owned_by?: string;
 }
-
-/**
- * API 类型
- */
-export type ModelAPIType =
-    | "openai"
-    | "ollama"
-    | "vllm"
-    | "jina"
-    | "voyage";
 
 /**
  * 获取模型配置
@@ -108,109 +100,6 @@ export class ModelService {
             }
             throw error;
         }
-    }
-
-    /**
-     * 获取 Ollama 模型列表
-     */
-    static async fetchOllamaModels(
-        config: FetchModelsConfig,
-    ): Promise<ModelInfo[]> {
-        const { apiUrl, timeout = this.DEFAULT_TIMEOUT } = config;
-
-        // 智能提取 base URL：移除末尾斜杠和可能的 /api/... 路径
-        let baseUrl = apiUrl.replace(/\/+$/, "");
-        baseUrl = baseUrl.replace(/\/api\/(embeddings?|tags)$/, "");
-        const tagsUrl = `${baseUrl}/api/tags`;
-
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-            const response = await fetch(tagsUrl, {
-                method: "GET",
-                signal: controller.signal,
-            });
-
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-                throw new Error(
-                    `HTTP ${response.status}: ${response.statusText}`,
-                );
-            }
-
-            const data = await response.json();
-            const models: ModelInfo[] = (data.models || []).map((m: any) => ({
-                id: m.name || m.model,
-                name: m.name || m.model,
-            }));
-
-            Logger.info(
-                LogModule.MODEL_SERVICE,
-                `Fetched ${models.length} models from Ollama`,
-            );
-            return models;
-        } catch (error: any) {
-            Logger.error(
-                LogModule.MODEL_SERVICE,
-                `Ollama API error: ${error.message}`,
-            );
-            throw error;
-        }
-    }
-
-    /**
-     * 获取 vLLM 模型列表
-     * vLLM 使用 OpenAI 兼容 API
-     */
-    static async fetchVLLMModels(
-        config: FetchModelsConfig,
-    ): Promise<ModelInfo[]> {
-        return this.fetchOpenAIModels(config);
-    }
-
-    /**
-     * 获取预设模型列表（用于不支持动态获取的服务）
-     */
-    static getPresetModels(type: ModelAPIType): ModelInfo[] {
-        const presets: Record<string, ModelInfo[]> = {
-            jina: [
-                { id: "jina-embeddings-v3", name: "Jina Embeddings v3" },
-                {
-                    id: "jina-embeddings-v2-base-en",
-                    name: "Jina Embeddings v2 Base EN",
-                },
-                {
-                    id: "jina-embeddings-v2-base-zh",
-                    name: "Jina Embeddings v2 Base ZH",
-                },
-                { id: "jina-colbert-v2", name: "Jina ColBERT v2" },
-            ],
-            openai: [
-                {
-                    id: "text-embedding-3-large",
-                    name: "Text Embedding 3 Large",
-                },
-                {
-                    id: "text-embedding-3-small",
-                    name: "Text Embedding 3 Small",
-                },
-                {
-                    id: "text-embedding-ada-002",
-                    name: "Text Embedding Ada 002",
-                },
-            ],
-            voyage: [
-                { id: "voyage-3", name: "Voyage 3" },
-                { id: "voyage-3-lite", name: "Voyage 3 Lite" },
-                { id: "voyage-large-2", name: "Voyage Large 2" },
-                { id: "voyage-code-2", name: "Voyage Code 2" },
-                { id: "voyage-multilingual-2", name: "Voyage Multilingual 2" },
-            ],
-        };
-
-        return presets[type] || [];
     }
 
     /**

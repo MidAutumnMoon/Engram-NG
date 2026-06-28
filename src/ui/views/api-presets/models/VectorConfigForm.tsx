@@ -2,10 +2,7 @@
  * 向量化配置表单
  */
 import type { VectorConfig, VectorSource } from "@/config/types/rag.ts";
-import type {
-    ModelAPIType,
-    ModelInfo,
-} from "@/integrations/llm/ModelDiscovery.ts";
+import type { ModelInfo } from "@/integrations/llm/ModelDiscovery.ts";
 import { ModelService } from "@/integrations/llm/ModelDiscovery.ts";
 import {
     FormSection,
@@ -90,34 +87,17 @@ interface VectorConfigFormProps {
 // 向量源选项
 const VECTOR_SOURCE_OPTIONS: { value: VectorSource; label: string }[] = [
     { label: "自定义 (OpenAI 兼容)", value: "custom" },
-    { label: "Transformers (本地)", value: "transformers" },
     { label: "OpenAI Embeddings", value: "openai" },
-    { label: "Ollama", value: "ollama" },
-    { label: "vLLM", value: "vllm" },
-    { label: "Jina AI", value: "jina" },
-    { label: "Voyage AI", value: "voyage" },
 ];
 
 // 各向量源的默认/推荐模型
 const DEFAULT_MODELS: Record<VectorSource, string> = {
     custom: "text-embedding-3-small",
-    jina: "jina-embeddings-v3",
-    ollama: "nomic-embed-text",
     openai: "text-embedding-3-small",
-    transformers: "Xenova/all-MiniLM-L6-v2",
-    vllm: "BAAI/bge-m3",
-    voyage: "voyage-large-2",
 };
 
-// 需要 API URL 的源
-const NEEDS_API_URL = new Set<VectorSource>(["custom", "ollama", "vllm"]);
-// 需要 API Key 的源
-const NEEDS_API_KEY = [
-    "custom",
-    "openai",
-    "jina",
-    "voyage",
-] as VectorSource[];
+// 需要 API URL 的源（其余源走内置默认端点）
+const NEEDS_API_URL = new Set<VectorSource>(["custom"]);
 
 export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
     config,
@@ -132,69 +112,32 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
             source,
             model: DEFAULT_MODELS[source],
             apiUrl: NEEDS_API_URL.has(source) ? config.apiUrl : undefined,
-            apiKey: NEEDS_API_KEY.includes(source) ? config.apiKey : undefined,
+            apiKey: config.apiKey,
         });
     };
 
     const needsUrl = NEEDS_API_URL.has(config.source);
-    const needsKey = NEEDS_API_KEY.includes(config.source);
 
     // 模型列表状态
     const [modelList, setModelList] = useState<ModelInfo[]>([]);
     const [isLoadingModels, setIsLoadingModels] = useState(false);
     const [modelError, setModelError] = useState<string | null>(null);
 
-    // 获取模型列表
+    // 获取模型列表（统一走 OpenAI 兼容协议）
     const fetchModelList = async () => {
+        if (!config.apiUrl) {
+            setModelError("请先填写 API URL");
+            return;
+        }
+
         setIsLoadingModels(true);
         setModelError(null);
 
         try {
-            let models: ModelInfo[] = [];
-            const fetchConfig = {
+            const models = await ModelService.fetchOpenAIModels({
                 apiKey: config.apiKey,
-                apiUrl: config.apiUrl || "",
-            };
-
-            switch (config.source) {
-                case "custom": {
-                    // custom 使用 OpenAI 兼容 API
-                    if (!config.apiUrl) {
-                        setModelError("请先填写 API URL");
-                        return;
-                    }
-                    models = await ModelService.fetchOpenAIModels(fetchConfig);
-                    break;
-                }
-                case "ollama": {
-                    if (!config.apiUrl) {
-                        setModelError("请先填写 API URL");
-                        return;
-                    }
-                    models = await ModelService.fetchOllamaModels(fetchConfig);
-                    break;
-                }
-                case "vllm": {
-                    if (!config.apiUrl) {
-                        setModelError("请先填写 API URL");
-                        return;
-                    }
-                    models = await ModelService.fetchVLLMModels(fetchConfig);
-                    break;
-                }
-                case "openai":
-                case "jina":
-                case "voyage": {
-                    // 这些使用预设列表
-                    models = ModelService.getPresetModels(
-                        config.source as ModelAPIType,
-                    );
-                    break;
-                }
-                default: {
-                    models = [];
-                }
-            }
+                apiUrl: config.apiUrl,
+            });
 
             setModelList(models);
             if (models.length === 0) {
@@ -228,59 +171,48 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
                         {/* URL 标签行：包含标签和自动后缀复选框 */}
                         <div className="flex items-center justify-between">
                             <label className="text-xs font-medium text-muted-foreground">
-                                {config.source === "ollama"
-                                    ? "API Endpoint"
-                                    : "API Base URL"}
+                                API Base URL
                             </label>
-                            {config.source !== "ollama" && (
-                                <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground cursor-pointer select-none">
-                                    <input
-                                        type="checkbox"
-                                        checked={config.autoSuffix !== false}
-                                        onChange={(e) =>
-                                            updateConfig({
-                                                autoSuffix: e.target.checked,
-                                            })}
-                                        className="w-3 h-3 rounded border-border accent-primary cursor-pointer"
-                                    />
-                                    自动后缀
-                                </label>
-                            )}
+                            <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={config.autoSuffix !== false}
+                                    onChange={(e) =>
+                                        updateConfig({
+                                            autoSuffix: e.target.checked,
+                                        })}
+                                    className="w-3 h-3 rounded border-border accent-primary cursor-pointer"
+                                />
+                                自动后缀
+                            </label>
                         </div>
                         <input
                             type="url"
                             value={config.apiUrl || ""}
                             onChange={(e) =>
                                 updateConfig({ apiUrl: e.target.value })}
-                            placeholder={config.source === "ollama"
-                                ? "http://localhost:11434"
-                                : "http://localhost:8000"}
+                            placeholder="http://localhost:8000"
                             className="w-full bg-muted/20 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/40 focus:border-primary focus:bg-muted/30"
                         />
                         <p className="text-[11px] text-muted-foreground/70 break-all leading-relaxed">
-                            {config.source === "ollama"
-                                ? "填写 base URL 即可，会自动拼接 /api/embeddings"
-                                : ((config.autoSuffix !== false &&
-                                        config.apiUrl)
-                                    ? `完整 URL: ${
-                                        config.apiUrl.replace(/\/+$/, "")
-                                    }/embeddings`
-                                    : "输入 base URL (如 http://xxx/v1)，将自动添加 /embeddings 后缀")}
+                            {(config.autoSuffix !== false && config.apiUrl)
+                                ? `完整 URL: ${
+                                    config.apiUrl.replace(/\/+$/, "")
+                                }/embeddings`
+                                : "输入 base URL (如 http://xxx/v1)，将自动添加 /embeddings 后缀"}
                         </p>
                         {/* 部署诊断组件 (针对 Failed to fetch 错误) */}
                         <DeploymentDiagnostics url={config.apiUrl || ""} />
                     </div>
                 )}
 
-                {needsKey && (
-                    <TextField
-                        label="API Key"
-                        type="password"
-                        value={config.apiKey || ""}
-                        onChange={(value) => updateConfig({ apiKey: value })}
-                        placeholder="输入 API 密钥"
-                    />
-                )}
+                <TextField
+                    label="API Key"
+                    type="password"
+                    value={config.apiKey || ""}
+                    onChange={(value) => updateConfig({ apiKey: value })}
+                    placeholder="输入 API 密钥"
+                />
 
                 {/* 模型选择: 下拉 + 手动输入 + 获取按钮 */}
                 <ModelNameField
@@ -292,7 +224,7 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
                     }))}
                     onRefresh={fetchModelList}
                     isLoadingModels={isLoadingModels}
-                    refreshDisabled={!(needsUrl || needsKey)}
+                    refreshDisabled={!config.apiUrl}
                     placeholder={DEFAULT_MODELS[config.source]}
                     description="使用的向量化模型"
                     error={modelError}

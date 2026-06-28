@@ -191,10 +191,7 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
         : 0;
 
     // 检查向量配置是否有效
-    const isVectorConfigValid = vectorConfig && (
-        vectorConfig.source === "transformers" ||
-        vectorConfig.model
-    );
+    const isVectorConfigValid = vectorConfig && vectorConfig.model;
 
     if (loading) {
         return (

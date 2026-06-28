@@ -1,4 +1,4 @@
-import type { VectorConfig, VectorSource } from "@/config/types/rag.ts";
+import type { VectorConfig } from "@/config/types/rag.ts";
 
 /**
  * 嵌入 API 响应 (OpenAI 格式)
@@ -16,73 +16,44 @@ interface OpenAIEmbeddingResponse {
 }
 
 /**
- * 各 API 的默认端点
+ * OpenAI 官方端点（source === "openai" 且 apiUrl 为空时使用）。
  */
-const DEFAULT_ENDPOINTS: Partial<Record<VectorSource, string>> = {
-    jina: "https://api.jina.ai/v1/embeddings",
-    ollama: "http://localhost:11434/api/embeddings",
-    openai: "https://api.openai.com/v1/embeddings",
-    vllm: "http://localhost:8000/v1/embeddings",
-    voyage: "https://api.voyageai.com/v1/embeddings",
-};
+const DEFAULT_OPENAI_ENDPOINT = "https://api.openai.com/v1/embeddings";
 
 /**
  * 嵌入客户端
- * 负责与各家向量模型 API 的底层交互
+ *
+ * Engram 仅使用 OpenAI 兼容嵌入协议：`custom` 源走用户填写的端点，
+ * `openai` 源缺省走 OpenAI 官方端点。二者请求/响应格式完全一致。
  */
 export class EmbeddingClient {
     /**
-     * 根据配置调用相应的嵌入 API
+     * 根据配置调用 OpenAI 兼容嵌入 API。
      */
-    static callAPI(
+    static async callAPI(
         text: string,
         config: VectorConfig,
     ): Promise<number[]> {
-        switch (config.source) {
-            case "openai":
-            case "custom":
-            case "vllm":
-            case "jina":
-            case "voyage": {
-                return this.callOpenAICompatible(text, config);
-            }
-
-            case "ollama": {
-                return this.callOllama(text, config);
-            }
-
-            default: {
-                throw new Error(`Unsupported vector source: ${config.source}`);
+        let endpoint = config.apiUrl;
+        if (!endpoint) {
+            if (config.source === "openai") {
+                endpoint = DEFAULT_OPENAI_ENDPOINT;
+            } else {
+                throw new Error("API endpoint not configured");
             }
         }
-    }
-
-    /**
-     * OpenAI 兼容 API 调用
-     */
-    private static async callOpenAICompatible(
-        text: string,
-        config: VectorConfig,
-    ): Promise<number[]> {
-        let endpoint = config.apiUrl || DEFAULT_ENDPOINTS[config.source] || "";
 
         // 清理末尾斜杠
-        if (endpoint) {
-            endpoint = endpoint.replace(/\/+$/, "");
-        }
+        endpoint = endpoint.replace(/\/+$/, "");
 
         // V0.9.9: 根据 autoSuffix 配置决定是否自动添加后缀
         // 默认 autoSuffix = true，除非用户明确关闭
         // 只补 /embeddings，用户需填写带 /v1 的完整 base URL
-        if (config.autoSuffix !== false && config.source !== "ollama") {
+        if (config.autoSuffix !== false) {
             // 仅当 URL 不包含 /embeddings 时才添加
             if (!endpoint.includes("/embeddings")) {
                 endpoint = `${endpoint}/embeddings`;
             }
-        }
-
-        if (!endpoint) {
-            throw new Error("API endpoint not configured");
         }
 
         const headers: Record<string, string> = {
@@ -133,71 +104,5 @@ export class EmbeddingClient {
             }
             throw error;
         }
-    }
-
-    /**
-     * Ollama API 调用
-     */
-    private static async callOllama(
-        text: string,
-        config: VectorConfig,
-    ): Promise<number[]> {
-        let endpoint = config.apiUrl || DEFAULT_ENDPOINTS.ollama!;
-
-        // 智能 URL 处理：
-        // - 如果已包含 /api/embed 或 /api/embeddings 路径，直接使用
-        // - 否则当作 base URL，自动拼接 /api/embeddings
-        endpoint = endpoint.replace(/\/+$/, "");
-        if (!endpoint.includes("/api/embed")) {
-            endpoint = `${endpoint}/api/embeddings`;
-        }
-
-        // 智能判断是否为新版 API (/api/embed)
-        // 新版 API 使用 "input" 字段，旧版使用 "prompt" 字段
-        const isNewEndpoint = endpoint.includes("/api/embed") &&
-            !endpoint.includes("/api/embeddings");
-
-        const requestBody: Record<string, any> = {
-            model: config.model || "nomic-embed-text",
-        };
-
-        if (isNewEndpoint) {
-            requestBody.input = text;
-        } else {
-            requestBody.prompt = text;
-        }
-
-        const response = await fetch(endpoint, {
-            body: JSON.stringify(requestBody),
-            headers: { "Content-Type": "application/json" },
-            method: "POST",
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Ollama error ${response.status}: ${errorText}`);
-        }
-
-        const data = await response.json() as {
-            embedding?: number[];
-            embeddings?: number[][];
-        };
-
-        // 兼容处理：
-        // 1. 旧版返回 { embedding: [...] }
-        // 2. 新版返回 { embeddings: [[...]] }
-        if (data.embedding) {
-            return data.embedding;
-        }
-
-        if (data.embeddings && data.embeddings.length > 0) {
-            return data.embeddings[0];
-        }
-
-        throw new Error(
-            `No embedding data returned in Ollama response. Keys: ${
-                Object.keys(data).join(", ")
-            }`,
-        );
     }
 }
