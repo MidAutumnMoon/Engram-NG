@@ -4,7 +4,10 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
 import { getTavernHelper, TavernHelper } from "@/sillytavern/context.ts";
-import { RolePrompt, type CustomApiConfig } from "@/types/vendor/jsr-function.d.ts";
+import {
+    type CustomApiConfig,
+    RolePrompt,
+} from "@/types/vendor/jsr-function.d.ts";
 
 /** LLM 生成请求 */
 interface LLMRequest {

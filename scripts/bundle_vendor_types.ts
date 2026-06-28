@@ -17,6 +17,7 @@
 
 const projectRoot = import.meta.dirname! + "/..";
 const srcDir = projectRoot + "/vendor/JS-Slash-Runner/@types/function/";
+const iframeDir = projectRoot + "/vendor/JS-Slash-Runner/@types/iframe/";
 const outDir = projectRoot + "/src/types/vendor/";
 const outPath = outDir + "jsr-function.d.ts";
 
@@ -27,6 +28,16 @@ const files = Array.from(Deno.readDirSync(srcDir))
         f.name.endsWith(".d.ts") &&
         !["index.d.ts", "jsr-function.d.ts"].includes(f.name)
     )
+    .map((f) => f.name)
+    .sort();
+
+// iframe/*.d.ts are ambient scripts that cross-reference function/ types (e.g.
+// `VariableOption`). Bundling them into this module — wrapped in `declare global`
+// — lets those cross-refs resolve in-module, while keeping the globals Engram
+// consumes (`Mvu`, `EjsTemplate`, `SillyTavern`, `tavern_events`, `ListenerType`,
+// `eventOn`, …) ambient. Mirrors the index.d.ts Window-augmentation approach.
+const iframeFiles = Array.from(Deno.readDirSync(iframeDir))
+    .filter((f) => f.name.endsWith(".d.ts"))
     .map((f) => f.name)
     .sort();
 
@@ -57,8 +68,18 @@ const EXPORT_DECL_RE =
 const exportDecls = (body: string): string =>
     body
         .split("\n")
+        .map((line) => EXPORT_DECL_RE.test(line) ? `export ${line}` : line)
+        .join("\n");
+
+// Inside `declare global { ... }` the context is already ambient, so the
+// `declare` modifier on `const`/`function`/`namespace` is illegal (TS1038).
+// Strip it. `type`/`interface` carry no `declare` modifier and pass through.
+const STRIP_DECLARE_RE = /^declare (const|function|namespace) /;
+const stripDeclare = (body: string): string =>
+    body
+        .split("\n")
         .map((line) =>
-            EXPORT_DECL_RE.test(line) ? `export ${line}` : line
+            STRIP_DECLARE_RE.test(line) ? line.replace("declare ", "") : line
         )
         .join("\n");
 
@@ -69,6 +90,18 @@ for (const file of files) {
     const { refs, body } = splitRefs(Deno.readTextFileSync(srcDir + file));
     refsAll += refs;
     bodyAll += `\n// --- ${file} ---\n` + exportDecls(body) + "\n";
+}
+
+// iframe/*.d.ts — concatenate, strip `declare` modifiers, wrap in a single
+// `declare global` block so the cross-refs to function/ types (VariableOption)
+// resolve in-module while the globals Engram consumes stay ambient.
+let iframeBody = "";
+for (const file of iframeFiles) {
+    const { refs, body } = splitRefs(
+        Deno.readTextFileSync(iframeDir + file),
+    );
+    refsAll += refs;
+    iframeBody += `\n// --- iframe/${file} ---\n` + stripDeclare(body) + "\n";
 }
 
 // index.d.ts declares `interface Window { TavernHelper: {...} }`; wrap it in
@@ -87,9 +120,15 @@ finalContent += refsAll;
 // `export {}` turns the combined file into an isolated module, scoping every
 // ambient declaration inside it (only `declare global` leaks out).
 finalContent += "\nexport {};\n\n";
+// Vendor's `registerVariableSchema` references `z.ZodType` but never imports
+// Zod; supply the missing import so the type resolves. Zod is a real dep.
+finalContent += 'import type * as z from "zod";\n\n';
 finalContent += bodyAll;
 finalContent += "\n// --- index.d.ts ---\n";
 finalContent += "declare global {\n" + indexParts.body + "}\n";
+// iframe types as a second `declare global` block (TS allows multiple per module).
+finalContent += "\n// --- iframe types (wrapped in declare global) ---\n";
+finalContent += "declare global {\n" + iframeBody + "}\n";
 
 Deno.mkdirSync(outDir, { recursive: true });
 Deno.writeTextFileSync(outPath, finalContent);

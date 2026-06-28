@@ -5,6 +5,8 @@
 
 export {};
 
+import type * as z from "zod";
+
 
 // --- audio.d.ts ---
 export type Audio = {
@@ -3425,5 +3427,1730 @@ interface Window {
     readonly deleteWorldbookEntries: typeof deleteWorldbookEntries;
   };
 }
+
+}
+
+// --- iframe types (wrapped in declare global) ---
+declare global {
+
+// --- iframe/event.d.ts ---
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
+/**
+ * 事件可以是
+ * - `iframe_events` 中的 iframe 事件
+ * - `tavern_events` 中的酒馆事件
+ * - 自定义的字符串事件
+ */
+type EventType = IframeEventType | TavernEventType | string;
+
+type EventOnReturn = {
+  /** 取消监听 */
+  stop: () => void;
+};
+
+/**
+ * 让 `listener` 监听 `event_type`, 当事件发生时自动运行 `listener`;
+ * 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
+ *
+ * 当 `eventOn` 所在的前端界面/脚本关闭时, 监听将会自动卸载.
+ *
+ * @param event_type 要监听的事件
+ * @param listener 要注册的函数
+ *
+ * @example
+ * function hello() { alert("hello"); }
+ * eventOn(要监听的事件, hello);
+ *
+ * @example
+ * // 监听消息接收并弹出 `'hello'`
+ * eventOn(tavern_events.MESSAGE_RECEIVED, () => alert('hello'));
+ *
+ * @example
+ * // 消息被修改时监听是哪一条消息被修改
+ * // 酒馆事件 tavern_events.MESSAGE_UPDATED 会传递被更新的楼层 id
+ * eventOn(tavern_events.MESSAGE_UPDATED, message_id => {
+ *   alert(`你刚刚更新了第 ${message_id} 条聊天消息对吧😡`);
+ * });
+ *
+ * @returns 后续操作
+ *   - `stop`: 取消这个监听
+ */
+function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]): EventOnReturn;
+
+/** @deprecated 请使用 `eventOn(getButtonEvent('按钮名称'), 函数)` 代替 */
+function eventOnButton<T extends EventType>(event_type: T, listener: ListenerType[T]): void;
+
+/**
+ * 让 `listener` 监听 `event_type`, 当事件发生时自动在最后运行 `listener`;
+ * 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最后运行.
+ *
+ * 当 `eventMakeLast` 所在的前端界面/脚本关闭时, 监听将会自动卸载.
+ *
+ * @param event_type 要监听的事件
+ * @param listener 要注册/调整到最后运行的函数
+ *
+ * @example
+ * eventMakeLast(要监听的事件, 要注册的函数);
+ *
+ * @returns 后续操作
+ *   - `stop`: 取消这个监听
+ */
+function eventMakeLast<T extends EventType>(event_type: T, listener: ListenerType[T]): EventOnReturn;
+
+/**
+ * 让 `listener` 监听 `event_type`, 当事件发生时自动在最先运行 `listener`;
+ * 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最先运行.
+ *
+ * 当 `eventMakeFirst` 所在的前端界面/脚本关闭时, 监听将会自动卸载.
+ *
+ * @param event_type 要监听的事件
+ * @param listener 要注册/调整为最先运行的函数
+ *
+ * @example
+ * eventMakeFirst(要监听的事件, 要注册的函数);
+ *
+ * @returns 后续操作
+ *   - `stop`: 取消这个监听
+ */
+function eventMakeFirst<T extends EventType>(event_type: T, listener: ListenerType[T]): EventOnReturn;
+
+/**
+ * 让 `listener` 仅监听下一次 `event_type`, 当该次事件发生时运行 `listener`, 此后取消监听;
+ * 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
+ *
+ * 当 `eventOnce` 所在的前端界面/脚本关闭时, 监听将会自动卸载.
+ *
+ * @param event_type 要监听的事件
+ * @param listener 要注册的函数
+ *
+ * @example
+ * eventOnce(要监听的事件, 要注册的函数);
+ *
+ * @returns 后续操作
+ *   - `stop`: 取消这个监听
+ */
+function eventOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): EventOnReturn;
+
+/**
+ * 发送 `event_type` 事件, 同时可以发送一些数据 `data`.
+ *
+ * 所有正在监听 `event_type` 消息频道的都会收到该消息并接收到 `data`.
+ *
+ * @param event_type 要发送的事件
+ * @param data 要随着事件发送的数据
+ *
+ * @example
+ * // 发送 "角色阶段更新完成" 事件, 所有监听该事件的 `listener` 都会被运行
+ * eventEmit("角色阶段更新完成");
+ *
+ * @example
+ * // 发送 "存档" 事件, 并等待所有 `listener` (也许是负责存档的函数) 执行完毕后才继续
+ * await eventEmit("存档");
+ *
+ * @example
+ * // 发送时携带数据 ["你好", 0]
+ * eventEmit("事件", "你好", 0);
+ */
+function eventEmit<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): Promise<void>;
+
+/**
+ * 携带 `data` 而发送 `event_type` 事件并等待事件处理结束.
+ *
+ * @param event_type 要发送的事件
+ * @param data 要随着事件发送的数据
+ */
+function eventEmitAndWait<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): void;
+
+/**
+ * 让 `listener` 取消对 `event_type` 的监听; 如果 `listener` 没有监听 `event_type`, 则调用本函数不会有任何效果.
+ *
+ * 前端界面/脚本关闭时会自动卸载所有的事件监听, 你不必手动调用 `eventRemoveListener` 来移除.
+ *
+ * @param event_type 要监听的事件
+ * @param listener 要取消注册的函数
+ *
+ * @example
+ * eventRemoveListener(要监听的事件, 要取消注册的函数);
+ */
+function eventRemoveListener<T extends EventType>(event_type: T, listener: ListenerType[T]): void;
+
+/**
+ * 取消本 iframe 中对 `event_type` 的所有监听
+ *
+ * 前端界面/脚本关闭时会自动卸载所有的事件监听, 你不必手动调用 `eventClearEvent` 来移除.
+ *
+ * @param event_type 要取消监听的事件
+ */
+function eventClearEvent(event_type: EventType): void;
+
+/**
+ * 取消本 iframe 中 `listener` 的的所有监听
+ *
+ * 前端界面/脚本关闭时会自动卸载所有的事件监听, 你不必手动调用 `eventClearListener` 来移除.
+ *
+ * @param listener 要取消注册的函数
+ */
+function eventClearListener(listener: Function): void;
+
+/**
+ * 取消本 iframe 中对所有事件的所有监听
+ *
+ * 前端界面/脚本关闭时会自动卸载所有的事件监听, 你不必手动调用 `eventClearAll` 来移除.
+ */
+function eventClearAll(): void;
+
+//------------------------------------------------------------------------------------------------------------------------
+// 以下是可用的事件, 你可以发送和监听它们
+
+type IframeEventType = (typeof iframe_events)[keyof typeof iframe_events];
+
+// iframe 事件
+const iframe_events: {
+  MESSAGE_IFRAME_RENDER_STARTED: 'message_iframe_render_started';
+  MESSAGE_IFRAME_RENDER_ENDED: 'message_iframe_render_ended';
+  /** `generate` 函数开始生成 */
+  GENERATION_STARTED: 'js_generation_started';
+  /** 启用流式传输的 `generate` 函数传输当前完整文本: "这是", "这是一条", "这是一条流式传输" */
+  STREAM_TOKEN_RECEIVED_FULLY: 'js_stream_token_received_fully';
+  /** 启用流式传输的 `generate` 函数传输当前增量文本: "这是", "一条", "流式传输" */
+  STREAM_TOKEN_RECEIVED_INCREMENTALLY: 'js_stream_token_received_incrementally';
+  /** `generate` 函数完成生成 */
+  GENERATION_ENDED: 'js_generation_ended';
+};
+
+type TavernEventType = (typeof tavern_events)[keyof typeof tavern_events];
+
+// 酒馆事件. **不建议自己发送酒馆事件, 因为你并不清楚它需要发送什么数据**
+const tavern_events: {
+  APP_READY: 'app_ready';
+  EXTRAS_CONNECTED: 'extras_connected';
+  MESSAGE_SWIPED: 'message_swiped';
+  MESSAGE_SENT: 'message_sent';
+  MESSAGE_RECEIVED: 'message_received';
+  MESSAGE_EDITED: 'message_edited';
+  MESSAGE_DELETED: 'message_deleted';
+  MESSAGE_UPDATED: 'message_updated';
+  MESSAGE_FILE_EMBEDDED: 'message_file_embedded';
+  MESSAGE_REASONING_EDITED: 'message_reasoning_edited';
+  MESSAGE_REASONING_DELETED: 'message_reasoning_deleted';
+  /** since SillyTavern v1.13.5 */
+  MESSAGE_SWIPE_DELETED: 'message_swipe_deleted';
+  MORE_MESSAGES_LOADED: 'more_messages_loaded';
+  IMPERSONATE_READY: 'impersonate_ready';
+  CHAT_CHANGED: 'chat_id_changed';
+  GENERATION_AFTER_COMMANDS: 'GENERATION_AFTER_COMMANDS';
+  GENERATION_STARTED: 'generation_started';
+  GENERATION_STOPPED: 'generation_stopped';
+  GENERATION_ENDED: 'generation_ended';
+  SD_PROMPT_PROCESSING: 'sd_prompt_processing';
+  EXTENSIONS_FIRST_LOAD: 'extensions_first_load';
+  EXTENSION_SETTINGS_LOADED: 'extension_settings_loaded';
+  SETTINGS_LOADED: 'settings_loaded';
+  SETTINGS_UPDATED: 'settings_updated';
+  MOVABLE_PANELS_RESET: 'movable_panels_reset';
+  SETTINGS_LOADED_BEFORE: 'settings_loaded_before';
+  SETTINGS_LOADED_AFTER: 'settings_loaded_after';
+  CHATCOMPLETION_SOURCE_CHANGED: 'chatcompletion_source_changed';
+  CHATCOMPLETION_MODEL_CHANGED: 'chatcompletion_model_changed';
+  OAI_PRESET_CHANGED_BEFORE: 'oai_preset_changed_before';
+  OAI_PRESET_CHANGED_AFTER: 'oai_preset_changed_after';
+  OAI_PRESET_EXPORT_READY: 'oai_preset_export_ready';
+  OAI_PRESET_IMPORT_READY: 'oai_preset_import_ready';
+  WORLDINFO_SETTINGS_UPDATED: 'worldinfo_settings_updated';
+  WORLDINFO_UPDATED: 'worldinfo_updated';
+  /** since SillyTavern v1.13.5 */
+  CHARACTER_EDITOR_OPENED: 'character_editor_opened';
+  CHARACTER_EDITED: 'character_edited';
+  CHARACTER_PAGE_LOADED: 'character_page_loaded';
+  USER_MESSAGE_RENDERED: 'user_message_rendered';
+  CHARACTER_MESSAGE_RENDERED: 'character_message_rendered';
+  FORCE_SET_BACKGROUND: 'force_set_background';
+  CHAT_DELETED: 'chat_deleted';
+  CHAT_CREATED: 'chat_created';
+  GENERATE_BEFORE_COMBINE_PROMPTS: 'generate_before_combine_prompts';
+  GENERATE_AFTER_COMBINE_PROMPTS: 'generate_after_combine_prompts';
+  GENERATE_AFTER_DATA: 'generate_after_data';
+  WORLD_INFO_ACTIVATED: 'world_info_activated';
+  TEXT_COMPLETION_SETTINGS_READY: 'text_completion_settings_ready';
+  CHAT_COMPLETION_SETTINGS_READY: 'chat_completion_settings_ready';
+  CHAT_COMPLETION_PROMPT_READY: 'chat_completion_prompt_ready';
+  CHARACTER_FIRST_MESSAGE_SELECTED: 'character_first_message_selected';
+  CHARACTER_DELETED: 'characterDeleted';
+  CHARACTER_DUPLICATED: 'character_duplicated';
+  CHARACTER_RENAMED: 'character_renamed';
+  CHARACTER_RENAMED_IN_PAST_CHAT: 'character_renamed_in_past_chat';
+  SMOOTH_STREAM_TOKEN_RECEIVED: 'stream_token_received';
+  STREAM_TOKEN_RECEIVED: 'stream_token_received';
+  STREAM_REASONING_DONE: 'stream_reasoning_done';
+  FILE_ATTACHMENT_DELETED: 'file_attachment_deleted';
+  WORLDINFO_FORCE_ACTIVATE: 'worldinfo_force_activate';
+  OPEN_CHARACTER_LIBRARY: 'open_character_library';
+  ONLINE_STATUS_CHANGED: 'online_status_changed';
+  IMAGE_SWIPED: 'image_swiped';
+  CONNECTION_PROFILE_LOADED: 'connection_profile_loaded';
+  CONNECTION_PROFILE_CREATED: 'connection_profile_created';
+  CONNECTION_PROFILE_DELETED: 'connection_profile_deleted';
+  CONNECTION_PROFILE_UPDATED: 'connection_profile_updated';
+  TOOL_CALLS_PERFORMED: 'tool_calls_performed';
+  TOOL_CALLS_RENDERED: 'tool_calls_rendered';
+  CHARACTER_MANAGEMENT_DROPDOWN: 'charManagementDropdown';
+  SECRET_WRITTEN: 'secret_written';
+  SECRET_DELETED: 'secret_deleted';
+  SECRET_ROTATED: 'secret_rotated';
+  SECRET_EDITED: 'secret_edited';
+  PRESET_CHANGED: 'preset_changed';
+  PRESET_DELETED: 'preset_deleted';
+  /** since SillyTavern v1.13.5 */
+  PRESET_RENAMED: 'preset_renamed';
+  /** since SillyTavern v1.13.5 */
+  PRESET_RENAMED_BEFORE: 'preset_renamed_before';
+  MAIN_API_CHANGED: 'main_api_changed';
+  WORLDINFO_ENTRIES_LOADED: 'worldinfo_entries_loaded';
+  WORLDINFO_SCAN_DONE: 'worldinfo_scan_done';
+  /** since SillyTavern v1.14.0 */
+  MEDIA_ATTACHMENT_DELETED: 'media_attachment_deleted';
+};
+
+interface ListenerType {
+  [iframe_events.MESSAGE_IFRAME_RENDER_STARTED]: (iframe_name: string) => void;
+  [iframe_events.MESSAGE_IFRAME_RENDER_ENDED]: (iframe_name: string) => void;
+  [iframe_events.GENERATION_STARTED]: (generation_id: string) => void;
+  [iframe_events.STREAM_TOKEN_RECEIVED_FULLY]: (full_text: string, generation_id: string) => void;
+  [iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY]: (incremental_text: string, generation_id: string) => void;
+  [iframe_events.GENERATION_ENDED]: (text: string, generation_id: string) => void;
+
+  [tavern_events.APP_READY]: () => void;
+  [tavern_events.EXTRAS_CONNECTED]: (modules: any) => void;
+  [tavern_events.MESSAGE_SWIPED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_SENT]: (message_id: number) => void;
+  [tavern_events.MESSAGE_RECEIVED]: (
+    message_id: number,
+    type: TypeFest.LiteralUnion<
+      | 'normal'
+      | 'quiet'
+      | 'regenerate'
+      | 'impersonate'
+      | 'continue'
+      | 'swipe'
+      | 'append'
+      | 'appendFinal'
+      | 'first_message'
+      | 'command'
+      | 'extension',
+      string
+    >,
+  ) => void;
+  [tavern_events.MESSAGE_EDITED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_DELETED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_UPDATED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_FILE_EMBEDDED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_REASONING_EDITED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_REASONING_DELETED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_SWIPE_DELETED]: (event_data: {
+    messageId: number;
+    swipeId: number;
+    newSwipeId: number;
+  }) => void;
+  [tavern_events.MORE_MESSAGES_LOADED]: () => void;
+  [tavern_events.IMPERSONATE_READY]: (message: string) => void;
+  [tavern_events.CHAT_CHANGED]: (chat_file_name: string) => void;
+  [tavern_events.GENERATION_AFTER_COMMANDS]: (
+    type: string,
+    option: {
+      automatic_trigger?: boolean;
+      force_name2?: boolean;
+      quiet_prompt?: string;
+      quietToLoud?: boolean;
+      skipWIAN?: boolean;
+      force_chid?: number;
+      signal?: AbortSignal;
+      quietImage?: string;
+      quietName?: string;
+      depth?: number;
+    },
+    dry_run: boolean,
+  ) => void;
+  [tavern_events.GENERATION_STARTED]: (
+    type: string,
+    option: {
+      automatic_trigger?: boolean;
+      force_name2?: boolean;
+      quiet_prompt?: string;
+      quietToLoud?: boolean;
+      skipWIAN?: boolean;
+      force_chid?: number;
+      signal?: AbortSignal;
+      quietImage?: string;
+      quietName?: string;
+      depth?: number;
+    },
+    dry_run: boolean,
+  ) => void;
+  [tavern_events.GENERATION_STOPPED]: () => void;
+  [tavern_events.GENERATION_ENDED]: (message_id: number) => void;
+  [tavern_events.SD_PROMPT_PROCESSING]: (event_data: {
+    prompt: string;
+    generationType: number;
+    message: string;
+    trigger: string;
+  }) => void;
+  [tavern_events.EXTENSIONS_FIRST_LOAD]: () => void;
+  [tavern_events.EXTENSION_SETTINGS_LOADED]: () => void;
+  [tavern_events.SETTINGS_LOADED]: () => void;
+  [tavern_events.SETTINGS_UPDATED]: () => void;
+  [tavern_events.MOVABLE_PANELS_RESET]: () => void;
+  [tavern_events.SETTINGS_LOADED_BEFORE]: (settings: object) => void;
+  [tavern_events.SETTINGS_LOADED_AFTER]: (settings: object) => void;
+  [tavern_events.CHATCOMPLETION_SOURCE_CHANGED]: (source: string) => void;
+  [tavern_events.CHATCOMPLETION_MODEL_CHANGED]: (model: string) => void;
+  [tavern_events.OAI_PRESET_CHANGED_BEFORE]: (result: {
+    preset: object;
+    presetName: string;
+    settingsToUpdate: object;
+    settings: object;
+    savePreset: (name: string, settings: Record<string, any>, trigger_ui?: boolean) => Promise<void>;
+    presetNameBefore: string;
+  }) => void;
+  [tavern_events.OAI_PRESET_CHANGED_AFTER]: () => void;
+  [tavern_events.OAI_PRESET_EXPORT_READY]: (preset: object) => void;
+  [tavern_events.OAI_PRESET_IMPORT_READY]: (result: { data: object; presetName: string }) => void;
+  [tavern_events.WORLDINFO_SETTINGS_UPDATED]: () => void;
+  [tavern_events.WORLDINFO_UPDATED]: (
+    name: string,
+    data: { entries: { [uid: number]: SillyTavern.FlattenedWorldInfoEntry } },
+  ) => void;
+  [tavern_events.CHARACTER_EDITOR_OPENED]: (chid: string) => void;
+  [tavern_events.CHARACTER_EDITED]: (result: { detail: { id: string; character: SillyTavern.v1CharData } }) => void;
+  [tavern_events.CHARACTER_PAGE_LOADED]: () => void;
+  [tavern_events.USER_MESSAGE_RENDERED]: (message_id: number) => void;
+  [tavern_events.CHARACTER_MESSAGE_RENDERED]: (message_id: number, type: string) => void;
+  [tavern_events.FORCE_SET_BACKGROUND]: (background: { url: string; path: string }) => void;
+  [tavern_events.CHAT_DELETED]: (chat_file_name: string) => void;
+  [tavern_events.CHAT_CREATED]: () => void;
+  [tavern_events.GENERATE_BEFORE_COMBINE_PROMPTS]: () => void;
+  [tavern_events.GENERATE_AFTER_COMBINE_PROMPTS]: (result: { prompt: string; dryRun: boolean }) => void;
+  /** dry_run 只在 SillyTavern 1.13.15 及以后有 */
+  [tavern_events.GENERATE_AFTER_DATA]: (
+    generate_data: {
+      prompt: SillyTavern.SendingMessage[];
+    },
+    dry_run: boolean,
+  ) => void;
+  [tavern_events.WORLD_INFO_ACTIVATED]: (entries: ({ world: string } & SillyTavern.FlattenedWorldInfoEntry)[]) => void;
+  [tavern_events.TEXT_COMPLETION_SETTINGS_READY]: () => void;
+  [tavern_events.CHAT_COMPLETION_SETTINGS_READY]: (generate_data: {
+    messages: SillyTavern.SendingMessage[];
+    model: string;
+    temprature: number;
+    frequency_penalty: number;
+    presence_penalty: number;
+    top_p: number;
+    max_tokens: number;
+    stream: boolean;
+    logit_bias: object;
+    stop: string[];
+    chat_comletion_source: string;
+    n?: number;
+    user_name: string;
+    char_name: string;
+    group_names: string[];
+    include_reasoning: boolean;
+    reasoning_effort: string;
+    json_schema: {
+      name: string;
+      value: Record<string, any>;
+      description?: string;
+      strict?: boolean;
+    };
+    [others: string]: any;
+  }) => void;
+  [tavern_events.CHAT_COMPLETION_PROMPT_READY]: (event_data: {
+    chat: SillyTavern.SendingMessage[];
+    dryRun: boolean;
+  }) => void;
+  [tavern_events.CHARACTER_FIRST_MESSAGE_SELECTED]: (event_args: {
+    input: string;
+    output: string;
+    character: object;
+  }) => void;
+  [tavern_events.CHARACTER_DELETED]: (result: { id: string; character: SillyTavern.v1CharData }) => void;
+  [tavern_events.CHARACTER_DUPLICATED]: (result: { oldAvatar: string; newAvatar: string }) => void;
+  [tavern_events.CHARACTER_RENAMED]: (old_avatar: string, new_avatar: string) => void;
+  [tavern_events.CHARACTER_RENAMED_IN_PAST_CHAT]: (
+    current_chat: Record<string, any>,
+    old_avatar: string,
+    new_avatar: string,
+  ) => void;
+  [tavern_events.STREAM_TOKEN_RECEIVED]: (text: string) => void;
+  [tavern_events.STREAM_REASONING_DONE]: (
+    reasoning: string,
+    duration: number | null,
+    message_id: number,
+    state: 'none' | 'thinking' | 'done' | 'hidden',
+  ) => void;
+  [tavern_events.FILE_ATTACHMENT_DELETED]: (url: string) => void;
+  [tavern_events.WORLDINFO_FORCE_ACTIVATE]: (entries: object[]) => void;
+  [tavern_events.OPEN_CHARACTER_LIBRARY]: () => void;
+  [tavern_events.ONLINE_STATUS_CHANGED]: () => void;
+  [tavern_events.IMAGE_SWIPED]: (result: {
+    message: object;
+    element: JQuery<HTMLElement>;
+    direction: 'left' | 'right';
+  }) => void;
+  [tavern_events.CONNECTION_PROFILE_LOADED]: (profile_name: string) => void;
+  [tavern_events.CONNECTION_PROFILE_CREATED]: (profile: Record<string, any>) => void;
+  [tavern_events.CONNECTION_PROFILE_DELETED]: (profile: Record<string, any>) => void;
+  [tavern_events.CONNECTION_PROFILE_UPDATED]: (
+    old_profile: Record<string, any>,
+    new_profile: Record<string, any>,
+  ) => void;
+  [tavern_events.TOOL_CALLS_PERFORMED]: (tool_invocations: object[]) => void;
+  [tavern_events.TOOL_CALLS_RENDERED]: (tool_invocations: object[]) => void;
+  [tavern_events.WORLDINFO_ENTRIES_LOADED]: (lores: {
+    globalLore: ({ world: string } & SillyTavern.FlattenedWorldInfoEntry)[];
+    characterLore: ({ world: string } & SillyTavern.FlattenedWorldInfoEntry)[];
+    chatLore: ({ world: string } & SillyTavern.FlattenedWorldInfoEntry)[];
+    personaLore: ({ world: string } & SillyTavern.FlattenedWorldInfoEntry)[];
+  }) => void;
+  [tavern_events.CHARACTER_MANAGEMENT_DROPDOWN]: (target: JQuery) => void;
+  [tavern_events.SECRET_WRITTEN]: (secret: string) => void;
+  [tavern_events.SECRET_DELETED]: (secret: string) => void;
+  [tavern_events.SECRET_ROTATED]: (secret: string) => void;
+  [tavern_events.SECRET_EDITED]: (secret: string) => void;
+  [tavern_events.PRESET_CHANGED]: (data: { apiId: string; name: string }) => void;
+  [tavern_events.PRESET_DELETED]: (data: { apiId: string; name: string }) => void;
+  [tavern_events.PRESET_RENAMED]: (data: { apiId: string; oldName: string; newName: string }) => void;
+  [tavern_events.PRESET_RENAMED_BEFORE]: (data: { apiId: string; oldName: string; newName: string }) => void;
+  [tavern_events.MAIN_API_CHANGED]: (data: { apiId: string }) => void;
+  [tavern_events.WORLDINFO_ENTRIES_LOADED]: (lores: {
+    globalLore: ({ world: string } & SillyTavern.FlattenedWorldInfoEntry)[];
+    characterLore: ({ world: string } & SillyTavern.FlattenedWorldInfoEntry)[];
+    chatLore: ({ world: string } & SillyTavern.FlattenedWorldInfoEntry)[];
+    personaLore: ({ world: string } & SillyTavern.FlattenedWorldInfoEntry)[];
+  }) => void;
+  [tavern_events.WORLDINFO_SCAN_DONE]: (event_data: {
+    state: {
+      current: number;
+      next: number;
+      loopCount: number;
+    };
+    new: {
+      all: SillyTavern.FlattenedWorldInfoEntry[];
+      successful: SillyTavern.FlattenedWorldInfoEntry[];
+    };
+    activated: {
+      entries: Map<`${string}.${string}`, SillyTavern.FlattenedWorldInfoEntry>;
+      text: string;
+    };
+    sortedEntries: SillyTavern.FlattenedWorldInfoEntry[];
+    recursionDelay: {
+      availableLevels: number[];
+      currentLevel: number;
+    };
+    budget: {
+      current: number;
+      overflowed: boolean;
+    };
+    timedEffects: Record<string, any>;
+  }) => void;
+  [custom_event: string]: (...args: any) => any;
+}
+
+
+
+// --- iframe/exported.ejstemplate.d.ts ---
+namespace EjsTemplate {
+  type Features = {
+    /** 是否启用扩展 */
+    enabled: boolean;
+
+    /** 处理生成内容 */
+    generate_enabled: boolean;
+    /** 生成时注入 [GENERATE] 世界书条目 */
+    generate_loader_enabled: boolean;
+    /** 生成时注入 @INJECT 世界书条目 */
+    inject_loader_enabled: boolean;
+
+    /** 处理楼层消息 */
+    render_enabled: boolean;
+    /** 渲染楼层时注入 [RENDER] 世界书条目 */
+    render_loader_enabled: boolean;
+    /** 处理代码块 */
+    code_blocks_enabled: boolean;
+    /** 处理原始消息内容 */
+    raw_message_evaluation_enabled: boolean;
+    /** 生成时忽略楼层消息处理 */
+    filter_message_enabled: boolean;
+    /** 处理楼层深度限制 (-1=无限制) */
+    depth_limit: number;
+
+    /** 自动保存变量更新 */
+    autosave_enabled: boolean;
+    /** 立即加载世界书 */
+    preload_worldinfo_enabled: boolean;
+    /** 禁用 with 语句块 */
+    with_context_disabled: boolean;
+    /** 控制台显示详细信息 */
+    debug_enabled: boolean;
+    /** 旧设定兼容模式，世界书中的 GENERATE/RENDER/INJECT 条目禁用时视为启用 */
+    invert_enabled: boolean;
+    /** 是否启用后台编译 (用 Web Workers 编译) */
+    compile_workers: boolean;
+    /** 是否启用沙盒执行代码 (性能下降, 提升安全性) */
+    sandbox: boolean;
+
+    /** 缓存 (实验性) (0=禁用, 1=全部, 2=仅世界书) */
+    cache_enabled: number;
+    /** 缓存大小 */
+    cache_size: number;
+    /** 缓存 Hash 函数 */
+    cache_hasher: 'h32ToString' | 'h64ToString';
+  };
+}
+
+/**
+ * 提示词模板语法插件所提供的额外功能, 必须额外安装提示词模板语法插件, 具体内容见于 https://github.com/zonde306/ST-Prompt-Template
+ * 你也可以在酒馆页面按 f12, 在控制台中输入 `window.EjsTemplate` 来查看当前提示词模板语法所提供的接口
+ */
+const EjsTemplate: {
+  /**
+   * 对文本进行模板语法处理
+   * @note `context` 一般从 `prepareContext` 获取, 若要修改则应直接修改原始对象
+   *
+   * @param code 模板代码
+   * @param context 执行环境 (上下文)
+   * @param options ejs 参数
+   * @returns 对模板进行计算后的内容
+   *
+   * @example
+   * // 使用提示词模板语法插件提供的函数创建一个临时的酒馆正则, 对消息楼层进行一次处理
+   * await EjsTemplate.evalTemplate('<%_ await activateRegex(/<thinking>.*?<\/thinking>/gs, '') _%>')
+   *
+   * @example
+   * const env    = await EjsTemplate.prepareContext({ a: 1 });
+   * const result = await EjsTemplate.evalTemplate('a is <%= a _%>', env);
+   * => result === 'a is 1'
+   * // 但这种用法更推荐用 _.template 来做, 具体见于 https://lodash.com/docs/4.17.15#template
+   * const compiled = _.template('hello <%= user %>!');
+   * const result   = compiled({ 'user': 'fred' });;
+   * => result === 'hello user!'
+   */
+  evaltemplate: (code: string, context?: Record<string, any>, options?: Record<string, any>) => Promise<string>;
+
+  /**
+   * 创建模板语法处理使用的执行环境 (上下文)
+   *
+   * @param additional_context 附加的执行环境 (上下文)
+   * @param last_message_id 合并消息变量的最大 ID; 默认为所有
+   * @returns 执行环境 (上下文)
+   */
+  prepareContext: (additional_context?: Record<string, any>, last_message_id?: number) => Promise<Record<string, any>>;
+
+  /**
+   * 检查模板是否存在语法错误
+   * 并不会实际执行
+   *
+   * @param content 模板代码
+   * @param output_line_count 发生错误时输出的附近行数; 默认为 4
+   * @returns 语法错误信息, 无错误返回空字符串
+   */
+  getSyntaxErrorInfo: (code: string, output_line_count?: number) => Promise<string>;
+
+  /**
+   * 获取全局变量、聊天变量、消息楼层变量的并集
+   *
+   * @param end_message_id 要合并的消息楼层变量最大楼层数
+   * @returns 合并后的变量
+   */
+  allVariables: (end_message_id?: number) => Record<string, any>;
+
+  /**
+   * 获取提示词模板语法插件的设置
+   *
+   * @returns 设置情况
+   */
+  getFeatures: () => EjsTemplate.Features;
+
+  /**
+   * 设置提示词模板语法插件的设置
+   *
+   * @param features 设置
+   */
+  setFeatures: (features: Partial<EjsTemplate.Features>) => void;
+
+  /**
+   * 重置提示词模板语法插件的设置
+   */
+  resetFeatures: () => void;
+};
+
+
+
+// --- iframe/exported.mvu.d.ts ---
+namespace Mvu {
+  type MvuData = {
+    /** 已被 mvu 初始化 initvar 条目的世界书列表 */
+    initialized_lorebooks: Record<string, any[]>;
+
+    /** 实际的变量数据 */
+    stat_data: Record<string, any>;
+
+    [key: string]: any;
+  };
+
+  type CommandInfo = SetCommandInfo | InsertCommandInfo | DeleteCommandInfo | AddCommandInfo | MoveCommandInfo;
+  type SetCommandInfo = {
+    type: 'set';
+    full_match: string;
+    args:
+      | [path: string, new_value_literal: string]
+      | [path: string, expected_old_value_literal: string, new_value_literal: string];
+    reason: string;
+  };
+  type InsertCommandInfo = {
+    type: 'insert';
+    full_match: string;
+    args:
+      | [path: string, value_literal: string] // 在尾部追加值
+      | [path: string, index_or_key_literal: string, value_literal: string]; // 在指定索引/键处插入值
+    reason: string;
+  };
+  type DeleteCommandInfo = {
+    type: 'delete';
+    full_match: string;
+    args: [path: string] | [path: string, index_or_key_or_value_literal: string];
+    reason: string;
+  };
+  type AddCommandInfo = {
+    type: 'add';
+    full_match: string;
+    args: [path: string, delta_or_toggle_literal: string];
+    reason: string;
+  };
+  type MoveCommandInfo = {
+    type: 'move';
+    full_match: string;
+    args: [from: string, to: string];
+    reason: string;
+  };
+}
+
+/**
+ * mvu 变量框架脚本提供的额外功能, 必须额外安装 mvu 变量框架脚本, 具体内容见于 https://github.com/MagicalAstrogy/MagVarUpdate/blob/master/src/export_globals.ts
+ * **在使用它之前, 你应该先通过 `await waitGlobalInitialized('Mvu')` 来等待 Mvu 初始化完毕**
+ * 你也可以在酒馆页面按 f12, 在控制台中输入 `window.Mvu` 来查看当前 Mvu 变量框架所提供的接口
+ */
+const Mvu: {
+  events: {
+    /** 新开聊天对变量初始化时触发的事件  */
+    VARIABLE_INITIALIZED: 'mag_variable_initiailized';
+
+    /** 某轮变量更新开始时触发的事件 */
+    VARIABLE_UPDATE_STARTED: 'mag_variable_update_started';
+
+    /**
+     * 某轮变量更新过程中, 对文本成功解析了所有更新命令时触发的事件
+     *
+     * @example
+     * // 修复 gemini 在中文间加入的 '-'', 如将 '角色.络-络' 修复为 '角色.络络'
+     * eventOn(Mvu.events.COMMAND_PARSED, commands => {
+     *   commands.forEach(command => {
+     *     command.args[0] = command.args[0].replace(/-/g, '');
+     *   });
+     * });
+     *
+     * @example
+     * // 修复繁体字, 如将 '絡絡' 修复为 '络络'
+     * eventOn(Mvu.events.COMMAND_PARSED, commands => {
+     *   commands.forEach(command => {
+     *     command.args[0] = command.args[0].replaceAll('絡絡', '络络');
+     *   });
+     * });
+     *
+     * @example
+     * // 添加新的更新命令
+     * eventOn(Mvu.events.COMMAND_PARSED, commands => {
+     *   commands.push({
+     *     type: 'set',
+     *     full_match: `_.set('络络.好感度', 5)`,
+     *     args: ['络络.好感度', 5],
+     *     reason: '脚本强行更新',
+     *   });
+     * });
+     */
+    COMMAND_PARSED: 'mag_command_parsed';
+
+    /**
+     * 某轮变量更新结束时触发的事件
+     *
+     * @example
+     * // 保持好感度不低于 0
+     * eventOn(Mvu.events.VARIABLE_UPDATE_ENDED, variables => {
+     *   if (_.get(variables, 'stat_data.角色.络络.好感度') < 0) {
+     *     _.set(variables, 'stat_data.角色.络络.好感度', 0);
+     *   }
+     * })
+     *
+     * @example
+     * // 保持好感度增幅不超过 3
+     * eventOn(Mvu.events.VARIABLE_UPDATE_ENDED, (variables, variables_before_update) => {
+     *   const old_value = _.get(variables_before_update, 'stat_data.角色.络络.好感度');
+     *   const new_value = _.get(variables, 'stat_data.角色.络络.好感度');
+     *
+     *   // 新的好感度必须在 旧好感度-3 和 旧好感度+3 之间
+     *   _.set(variables, 'stat_data.角色.络络.好感度', _.clamp(new_value, old_value - 3, old_value + 3));
+     * });
+     */
+    VARIABLE_UPDATE_ENDED: 'mag_variable_update_ended';
+
+    /** 即将用更新后的变量更新楼层时触发的事件  */
+    BEFORE_MESSAGE_UPDATE: 'mag_before_message_update';
+  };
+
+  /**
+   * 获取变量表, 并将其视为包含 mvu 数据的 MvuData
+   *
+   * @param  可选选项
+   *   - `type?:'message'|'chat'|'character'|'global'`: 对某一楼层的聊天变量 (`message`)、聊天变量表 (`'chat'`)、角色卡变量 (`'character'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
+   *   - `message_id?:number|'latest'`: 当 `type` 为 `'message'` 时, 该参数指定要获取的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'`
+   *   - `script_id?:string`: 当 `type` 为 `'script'` 时, 该参数指定要获取的脚本 ID; 如果在脚本内调用, 则你可以用 `getScriptId()` 获取该脚本 ID
+   *
+   * @returns MvuData 数据表
+   *
+   * @example
+   * // 获取最新消息楼层的 mvu 数据
+   * const message_data = Mvu.getMvuData({ type: 'message', message_id: 'latest' });
+   *
+   * // 在消息楼层 iframe 内获取该 iframe 所在楼层的 mvu 数据
+   * const message_data = Mvu.getMvuData({ type: 'message', message_id: getCurrentMessageId() });
+   */
+  getMvuData: (options: VariableOption) => Mvu.MvuData;
+
+  /**
+   * 完全替换变量表为包含 mvu 数据的 `mvu_data` (但如果没用 `parseMessages` 自行处理变量, 则更建议监听 mvu 事件来修改 mvu 数据!)
+   *
+   * @param variables 要用于替换的变量表
+   * @param option 可选选项
+   *   - `type?:'message'|'chat'|'character'|'global'`: 对某一楼层的聊天变量 (`message`)、聊天变量表 (`'chat'`)、角色卡变量 (`'character'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
+   *   - `message_id?:number|'latest'`: 当 `type` 为 `'message'` 时, 该参数指定要获取的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'`
+   *   - `script_id?:string`: 当 `type` 为 `'script'` 时, 该参数指定要获取的脚本 ID; 如果在脚本内调用, 则你可以用 `getScriptId()` 获取该脚本 ID
+   *
+   * @example
+   * // 修改络络好感度为 30
+   * const mvu_data = Mvu.getMvuData({ type: 'message', message_id: 'latest' });
+   * _.set(mvu_data, 'stat_data.角色.络络.好感度', 30);
+   * await Mvu.replaceMvuData(mvu_data, { type: 'message', message_id: 'latest' });
+   */
+  replaceMvuData: (mvu_data: Mvu.MvuData, options: VariableOption) => Promise<void>;
+
+  /**
+   * 解析包含变量更新命令 (`_.set`) 的消息 `message`, 根据它更新 `old_data` 中的 mvu 变量数据
+   *
+   * @param message 包含 _.set() 命令的消息字符串
+   * @param old_data 当前的 MvuData 数据
+   *
+   * @returns 如果有变量被更新则返回新的 MvuData, 否则返回 `undefined`
+   *
+   * @example
+   * // 修改络络好感度为 30
+   * const old_data = Mvu.getMvuData({ type: 'message', message_id: 'latest' });
+   * const new_data = await Mvu.parseMessage("_.set('角色.络络.好感度', 30); // 强制修改", old_data);
+   * await Mvu.replaceMvuData(new_data, { type: 'message', message_id: 'latest' });
+   */
+  parseMessage: (message: string, old_data: Mvu.MvuData) => Promise<Mvu.MvuData>;
+
+  /**
+   * 酒馆是否正在进行额外模型解析
+   */
+  isDuringExtraAnalysis: () => boolean;
+};
+
+interface ListenerType {
+  [Mvu.events.VARIABLE_INITIALIZED]: (variables: Mvu.MvuData, swipe_id: number) => void;
+
+  [Mvu.events.VARIABLE_UPDATE_STARTED]: (variables: Mvu.MvuData) => void;
+
+  [Mvu.events.COMMAND_PARSED]: (variables: Mvu.MvuData, commands: Mvu.CommandInfo[], message_content: string) => void;
+
+  [Mvu.events.VARIABLE_UPDATE_ENDED]: (variables: Mvu.MvuData, variables_before_update: Mvu.MvuData) => void;
+
+  [Mvu.events.BEFORE_MESSAGE_UPDATE]: (context: { variables: Mvu.MvuData; message_content: string }) => void;
+}
+
+
+
+// --- iframe/exported.sillytavern.d.ts ---
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
+namespace SillyTavern {
+  type ChatMessage = {
+    name: string;
+    /**
+     * 实际的 role 为:
+     * - 'system': extra?.type === 'narrator' && !is_user
+     * - 'user': extra?.type !== 'narrator' && is_user
+     * - 'assistant': extra?.type !== 'narrator' && !is_user
+     */
+    is_user: boolean;
+    /**
+     * 实际是表示消息是否被隐藏不会发给 llm
+     */
+    is_system: boolean;
+
+    mes: string;
+
+    swipe_id?: number;
+    swipes?: string[];
+
+    swipe_info?: Record<string, any>[];
+    extra?: Record<string, any>;
+
+    variables?: Record<string, any>[] | { [swipe_id: number]: Record<string, any> };
+  };
+
+  type SendingMessage = {
+    role: 'user' | 'assistant' | 'system';
+    content:
+      | string
+      | Array<
+          | { type: 'text'; text: string }
+          | { type: 'image_url'; image_url: { url: string; detail: 'auto' | 'low' | 'high' } }
+          | { type: 'video_url'; video_url: { url: string } }
+        >;
+  };
+
+  type FlattenedWorldInfoEntry = {
+    uid: number;
+    displayIndex: number;
+    comment?: string;
+    disable: boolean;
+
+    constant: boolean;
+    selective: boolean;
+    key: string[];
+    /** 0: and_any, 1: not_all, 2: not_any, 3: and_all */
+    selectiveLogic: 0 | 1 | 2 | 3;
+    keysecondary: string[];
+    scanDepth: number | null;
+    vectorized: boolean;
+    position: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    /** 0: system, 1: user, 2: assistant */
+    role: 0 | 1 | 2 | null;
+    depth: number;
+    order: number;
+
+    content: string;
+
+    useProbability: boolean;
+    probability: number;
+    excludeRecursion: boolean;
+    preventRecursion: boolean;
+    delayUntilRecursion: boolean | number;
+    sticky: number | null;
+    cooldown: number | null;
+    delay: number | null;
+
+    extra?: Record<string, any>;
+  };
+
+  /**
+   * V1 character data structure.
+   */
+  type v1CharData = {
+    /** the name of the character */
+    name: string;
+    /** the description of the character */
+    description: string;
+    /** a short personality description of the character */
+    personality: string;
+    /** a scenario description of the character */
+    scenario: string;
+    /** the first message in the conversation */
+    first_mes: string;
+    /** the example message in the conversation */
+    mes_example: string;
+    /** creator's notes of the character */
+    creatorcomment: string;
+    /** the tags of the character */
+    tags: string[];
+    /** talkativeness */
+    talkativeness: number;
+    /** fav */
+    fav: boolean | string;
+    /** create_date */
+    create_date: string;
+    /** v2 data extension */
+    data: v2CharData;
+    // Non-standard extensions added by the ST server (not part of the original data)
+    /** name of the current chat file chat */
+    chat: string;
+    /** file name of the avatar image (acts as a unique identifier) */
+    avatar: string;
+    /** the full raw JSON data of the character */
+    json_data: string;
+    /** if the data is shallow (lazy-loaded) */
+    shallow?: boolean;
+  };
+
+  /**
+   * V2 character data structure.
+   */
+  type v2CharData = {
+    /** The character's name. */
+    name: string;
+    /** A brief description of the character. */
+    description: string;
+    /** The character's data version. */
+    character_version: string;
+    /** A short summary of the character's personality traits. */
+    personality: string;
+    /** A description of the character's background or setting. */
+    scenario: string;
+    /** The character's opening message in a conversation. */
+    first_mes: string;
+    /** An example message demonstrating the character's conversation style. */
+    mes_example: string;
+    /** Internal notes or comments left by the character's creator. */
+    creator_notes: string;
+    /** A list of keywords or labels associated with the character. */
+    tags: string[];
+    /** The system prompt used to interact with the character. */
+    system_prompt: string;
+    /** Instructions for handling the character's conversation history. */
+    post_history_instructions: string;
+    /** The name of the person who created the character. */
+    creator: string;
+    /** Additional greeting messages the character can use. */
+    alternate_greetings: string[];
+    /** Data about the character's world or story (if applicable). */
+    character_book: v2WorldInfoBook;
+    /** Additional details specific to the character. */
+    extensions: v2CharDataExtensionInfos;
+  };
+
+  /**
+   * A world info book containing entries.
+   */
+  type v2WorldInfoBook = {
+    /** the name of the book */
+    name: string;
+    /** the entries of the book */
+    entries: Record<number, v2DataWorldInfoEntry>;
+  };
+
+  /**
+   * A world info entry object.
+   */
+  type v2DataWorldInfoEntry = {
+    /** An array of primary keys associated with the entry. */
+    keys: string[];
+    /** An array of secondary keys associated with the entry (optional). */
+    secondary_keys: string[];
+    /** A human-readable description or explanation for the entry. */
+    comment: string;
+    /** The main content or data associated with the entry. */
+    content: string;
+    /** Indicates if the entry's content is fixed and unchangeable. */
+    constant: boolean;
+    /** Indicates if the entry's inclusion is controlled by specific conditions. */
+    selective: boolean;
+    /** Defines the order in which the entry is inserted during processing. */
+    insertion_order: number;
+    /** Controls whether the entry is currently active and used. */
+    enabled: boolean;
+    /** Specifies the location or context where the entry applies. */
+    position: string;
+    /** An object containing additional details for extensions associated with the entry. */
+    extensions: v2DataWorldInfoEntryExtensionInfos;
+    /** A unique identifier assigned to the entry. */
+    id: number;
+  };
+
+  /**
+   * An object containing additional details for extensions associated with the entry.
+   */
+  type v2DataWorldInfoEntryExtensionInfos = {
+    /** The order in which the extension is applied relative to other extensions. */
+    position: number;
+    /** Prevents the extension from being applied recursively. */
+    exclude_recursion: boolean;
+    /** The chance (between 0 and 1) of the extension being applied. */
+    probability: number;
+    /** Determines if the `probability` property is used. */
+    useProbability: boolean;
+    /** The maximum level of nesting allowed for recursive application of the extension. */
+    depth: number;
+    /** Defines the logic used to determine if the extension is applied selectively. */
+    selectiveLogic: number;
+    /** A category or grouping for the extension. */
+    group: string;
+    /** Overrides any existing group assignment for the extension. */
+    group_override: boolean;
+    /** A value used for prioritizing extensions within the same group. */
+    group_weight: number;
+    /** Completely disallows recursive application of the extension. */
+    prevent_recursion: boolean;
+    /** Will only be checked during recursion. */
+    delay_until_recursion: boolean;
+    /** The maximum depth to search for matches when applying the extension. */
+    scan_depth: number;
+    /** Specifies if only entire words should be matched during extension application. */
+    match_whole_words: boolean;
+    /** Indicates if group weight is considered when selecting extensions. */
+    use_group_scoring: boolean;
+    /** Controls whether case sensitivity is applied during matching for the extension. */
+    case_sensitive: boolean;
+    /** An identifier used for automation purposes related to the extension. */
+    automation_id: string;
+    /** The specific function or purpose of the extension. */
+    role: number;
+    /** Indicates if the extension is optimized for vectorized processing. */
+    vectorized: boolean;
+    /** The order in which the extension should be displayed for user interfaces. */
+    display_index: number;
+    /** Wether to match against the persona description. */
+    match_persona_description: boolean;
+    /** Wether to match against the persona description. */
+    match_character_description: boolean;
+    /** Wether to match against the character personality. */
+    match_character_personality: boolean;
+    /** Wether to match against the character depth prompt. */
+    match_character_depth_prompt: boolean;
+    /** Wether to match against the character scenario. */
+    match_scenario: boolean;
+    /** Wether to match against the character creator notes. */
+    match_creator_notes: boolean;
+  };
+
+  /**
+   * Additional details specific to the character.
+   */
+  type v2CharDataExtensionInfos = {
+    /** A numerical value indicating the character's propensity to talk. */
+    talkativeness: number;
+    /** A flag indicating whether the character is a favorite. */
+    fav: boolean;
+    /** The fictional world or setting where the character exists (if applicable). */
+    world: string;
+    /** Prompts used to explore the character's depth and complexity. */
+    depth_prompt: {
+      /** The level of detail or nuance targeted by the prompt. */
+      depth: number;
+      /** The actual prompt text used for deeper character interaction. */
+      prompt: string;
+      /** The role the character takes on during the prompted interaction (system, user, or assistant). */
+      role: 'system' | 'user' | 'assistant';
+    };
+    /** Custom regex scripts for the character. */
+    regex_scripts: RegexScriptData[];
+    // Non-standard extensions added by external tools
+    /** The unique identifier assigned to the character by the Pygmalion.chat. */
+    pygmalion_id?: string;
+    /** The gitHub repository associated with the character. */
+    github_repo?: string;
+    /** The source URL associated with the character. */
+    source_url?: string;
+    /** The Chub-specific data associated with the character. */
+    chub?: { full_path: string };
+    /** The RisuAI-specific data associated with the character. */
+    risuai?: { source: string[] };
+    /** SD-specific data associated with the character. */
+    sd_character_prompt?: { positive: string; negative: string };
+  };
+
+  /**
+   * Regex script data for character processing.
+   */
+  type RegexScriptData = {
+    /** UUID of the script */
+    id: string;
+    /** The name of the script */
+    scriptName: string;
+    /** The regex to find */
+    findRegex: string;
+    /** The string to replace */
+    replaceString: string;
+    /** The strings to trim */
+    trimStrings: string[];
+    /** The placement of the script */
+    placement: number[];
+    /** Whether the script is disabled */
+    disabled: boolean;
+    /** Whether the script only applies to Markdown */
+    markdownOnly: boolean;
+    /** Whether the script only applies to prompts */
+    promptOnly: boolean;
+    /** Whether the script runs on edit */
+    runOnEdit: boolean;
+    /** Whether the regex should be substituted */
+    substituteRegex: number;
+    /** The minimum depth */
+    minDepth: number;
+    /** The maximum depth */
+    maxDepth: number;
+  };
+
+  type PopupOptions = {
+    /** Custom text for the OK button, or `true` to use the default (If set, the button will always be displayed, no matter the type of popup) */
+    okButton?: string | boolean;
+    /** Custom text for the Cancel button, or `true` to use the default (If set, the button will always be displayed, no matter the type of popup) */
+    cancelButton?: string | boolean;
+    /** The number of rows for the input field */
+    rows?: number;
+    /** Whether to display the popup in wide mode (wide screen, 1/1 aspect ratio) */
+    wide?: boolean;
+    /** Whether to display the popup in wider mode (just wider, no height scaling) */
+    wider?: boolean;
+    /** Whether to display the popup in large mode (90% of screen) */
+    large?: boolean;
+    /** Whether to display the popup in transparent mode (no background, border, shadow or anything, only its content) */
+    transparent?: boolean;
+    /** Whether to allow horizontal scrolling in the popup */
+    allowHorizontalScrolling?: boolean;
+    /** Whether to allow vertical scrolling in the popup */
+    allowVerticalScrolling?: boolean;
+    /** Whether the popup content should be left-aligned by default */
+    leftAlign?: boolean;
+    /** Animation speed for the popup (opening, closing, ...) */
+    animation?: 'slow' | 'fast' | 'none';
+    /** The default result of this popup when Enter is pressed. Can be changed from `POPUP_RESULT.AFFIRMATIVE`. */
+    defaultResult?: number;
+    /** Custom buttons to add to the popup. If only strings are provided, the buttons will be added with default options, and their result will be in order from `2` onward. */
+    customButtons?: CustomPopupButton[] | string[];
+    /** Custom inputs to add to the popup. The display below the content and the input box, one by one. */
+    customInputs?: CustomPopupInput[];
+    /** Handler called before the popup closes, return `false` to cancel the close */
+    onClosing?: (popup: InstanceType<typeof SillyTavern.Popup>) => Promise<boolean | void>;
+    /** Handler called after the popup closes, but before the DOM is cleaned up */
+    onClose?: (popup: InstanceType<typeof SillyTavern.Popup>) => Promise<void>;
+    /** Handler called after the popup opens */
+    onOpen?: (popup: InstanceType<typeof SillyTavern.Popup>) => Promise<void>;
+    /** Aspect ratio for the crop popup */
+    cropAspect?: number;
+    /** Image URL to display in the crop popup */
+    cropImage?: string;
+  };
+
+  type CustomPopupButton = {
+    /** The text of the button */
+    text: string;
+    /** The result of the button - can also be a custom result value to make be able to find out that this button was clicked. If no result is specified, this button will **not** close the popup. */
+    result?: number;
+    /** Optional custom CSS classes applied to the button */
+    classes?: string[] | string;
+    /** Optional action to perform when the button is clicked */
+    action?: () => void;
+    /** Whether to append the button to the end of the popup - by default it will be prepended */
+    appendAtEnd?: boolean;
+  };
+
+  type CustomPopupInput = {
+    /** The id for the html element */
+    id: string;
+    /** The label text for the input */
+    label: string;
+    /** Optional tooltip icon displayed behind the label */
+    tooltip?: string;
+    /** The default state when opening the popup (false if not set) */
+    defaultState?: boolean;
+    /** The type of the input (default is checkbox) */
+    type?: string;
+  };
+}
+
+/**
+ * 酒馆提供给插件的稳定接口, 具体内容见于 SillyTavern/public/scripts/st-context.js 或 https://github.com/SillyTavern/SillyTavern/blob/release/public/scripts/st-context.js
+ * 你也可以在酒馆页面按 f12, 在控制台中输入 `window.SillyTavern.getContext()` 来查看当前酒馆所提供的接口
+ */
+const SillyTavern: {
+  readonly accountStorage: any;
+  readonly chat: Array<SillyTavern.ChatMessage>;
+  readonly characters: SillyTavern.v1CharData[];
+  readonly groups: any;
+  readonly name1: string;
+  readonly name2: string;
+  /* this_chid */
+  readonly characterId: string;
+  readonly groupId: string;
+  readonly chatId: string;
+  readonly getCurrentChatId: () => string;
+  readonly getRequestHeaders: () => {
+    'Content-Type': string;
+    'X-CSRF-TOKEN': string;
+  };
+  readonly reloadCurrentChat: () => Promise<void>;
+  readonly renameChat: (old_name: string, new_name: string) => Promise<void>;
+  readonly saveSettingsDebounced: () => Promise<void>;
+  readonly onlineStatus: string;
+  readonly maxContext: number;
+  /** chat_metadata */
+  readonly chatMetadata: Record<string, any>;
+  readonly streamingProcessor: any;
+  readonly eventSource: {
+    on: typeof eventOn;
+    makeLast: typeof eventMakeLast;
+    makeFirst: typeof eventMakeFirst;
+    removeListener: typeof eventRemoveListener;
+    emit: typeof eventEmit;
+    emitAndWait: typeof eventEmitAndWait;
+    once: typeof eventOnce;
+  };
+  readonly eventTypes: typeof tavern_events;
+  readonly addOneMessage: (
+    mes: SillyTavern.ChatMessage,
+    options?: {
+      type?: 'swipe';
+      insertAfter?: number;
+      scroll?: true;
+      insertBefore?: number;
+      forceId?: number;
+      showSwipes?: boolean;
+    },
+  ) => JQuery<HTMLElement>;
+  readonly deleteLastMessage: () => Promise<void>;
+  readonly generate: Function;
+  readonly sendStreamingRequest: (type: string, data: object) => Promise<void>;
+  readonly sendGenerationRequest: (type: string, data: object) => Promise<void>;
+  readonly stopGeneration: () => boolean;
+  readonly tokenizers: any;
+  readonly getTextTokens: (tokenizer_type: number, string: string) => Promise<number>;
+  readonly getTokenCountAsync: (string: string, padding?: number | undefined) => Promise<number>;
+  /**  `/inject`、`setExtensionPrompt` 等注入的所有额外提示词 */
+  readonly extensionPrompts: Record<
+    string,
+    {
+      value: string;
+      position: number;
+      depth: number;
+      scan: boolean;
+      role: number;
+      filter: () => Promise<boolean> | boolean;
+    }
+  >;
+  /**
+   * 注入一段额外的提示词
+   *
+   * @param prompt_id id, 重复则会替换原本的内容
+   * @param content 内容
+   * @param position 位置. -1 为不注入 (配合 scan=true 来仅用于激活绿灯), 1 为插入到聊天中
+   * @param depth 深度
+   * @param scan 是否作为欲扫描文本, 加入世界书绿灯条目扫描文本中
+   * @param role 消息角色. 0 为 system, 1 为 user, 2 为 assistant
+   * @param filter 提示词在什么情况下启用
+   */
+  readonly setExtensionPrompt: (
+    prompt_id: string,
+    content: string,
+    position: -1 | 1,
+    depth: number,
+    scan?: boolean,
+    role?: number,
+    filter?: () => Promise<boolean> | boolean,
+  ) => Promise<void>;
+  readonly updateChatMetadata: (new_values: any, reset: boolean) => void;
+  readonly saveChat: () => Promise<void>;
+  readonly openCharacterChat: (file_name: any) => Promise<void>;
+  readonly openGroupChat: (group_id: any, chat_id: any) => Promise<void>;
+  readonly saveMetadata: () => Promise<void>;
+  readonly sendSystemMessage: (type: any, text: any, extra?: any) => Promise<void>;
+  readonly activateSendButtons: () => void;
+  readonly deactivateSendButtons: () => void;
+  readonly saveReply: (options: any, ...args: any[]) => Promise<void>;
+  readonly substituteParams: (
+    content: string,
+    name1?: string,
+    name2?: string,
+    original?: string,
+    group?: string,
+    replace_character_card?: boolean,
+    additional_macro?: Record<string, any>,
+    post_process_function?: (text: string) => string,
+  ) => Promise<void>;
+  readonly substituteParamsExtended: (
+    content: string,
+    additional_macro?: Record<string, any>,
+    post_process_function?: (text: string) => string,
+  ) => Promise<void>;
+  readonly SlashCommandParser: any;
+  readonly SlashCommand: any;
+  readonly SlashCommandArgument: any;
+  readonly SlashCommandNamedArgument: any;
+  readonly ARGUMENT_TYPE: {
+    STRING: string;
+    NUMBER: string;
+    RANGE: string;
+    BOOLEAN: string;
+    VARIABLE_NAME: string;
+    CLOSURE: string;
+    SUBCOMMAND: string;
+    LIST: string;
+    DICTIONARY: string;
+  };
+  readonly executeSlashCommandsWithOptions: (
+    text: string,
+    options?: any,
+  ) => Promise<{
+    interrupt: boolean;
+    pipe: string;
+    isBreak: boolean;
+    isAborted: boolean;
+    isQuietlyAborted: boolean;
+    abortReason: string;
+    isError: boolean;
+    errorMessage: string;
+  }>;
+  readonly timestampToMoment: (timestamp: string | number) => any;
+  readonly registerMacro: (key: string, value: string | ((uid: string) => string), description?: string) => void;
+  readonly unregisterMacro: (key: string) => void;
+  readonly registerFunctionTool: (tool: {
+    /** 工具名称 */
+    name: string;
+    /** 工具显示名称 */
+    displayName: string;
+    /** 工具描述 */
+    description: string;
+    /** 对函数参数的 JSON schema 定义, 可以通过 zod 的 z.toJSONSchema 来得到 */
+    parameters: Record<string, any>;
+    /** 要注册的函数调用工具 */
+    action: ((args: any) => string) | ((args: any) => Promise<string>);
+
+    /** 要如何格式化函数调用结果消息; 默认不进行任何操作, 显示为 `'Invoking tool: 工具显示名称'` */
+    formatMessage?: (args: any) => string;
+    /** 在下次聊天补全请求时是否注册本工具; 默认为始终注册 */
+    shouldRegister?: (() => boolean) | (() => Promise<boolean>);
+    /** 是否不在楼层中用一层楼显示函数调用结果, `true` 则不显示且将不会触发生成; 默认为 false */
+    stealth?: boolean;
+  }) => void;
+  readonly unregisterFunctionTool: (name: string) => void;
+  readonly isToolCallingSupported: () => boolean;
+  readonly canPerformToolCalls: (type: string) => boolean;
+  readonly ToolManager: any;
+  readonly registerDebugFunction: (function_id: string, name: string, description: string, fn: Function) => void;
+  readonly renderExtensionTemplateAsync: (
+    extension_name: string,
+    template_id: string,
+    template_data?: object,
+    sanitize?: boolean,
+    localize?: boolean,
+  ) => Promise<string>;
+  readonly registerDataBankScraper: (scraper: any) => Promise<void>;
+  readonly showLoader: () => void;
+  readonly hideLoader: () => Promise<any>;
+  readonly mainApi: any;
+  /** extension_settings */
+  readonly extensionSettings: Record<string, any>;
+  readonly ModuleWorkerWrapper: any;
+  readonly getTokenizerModel: () => string;
+  readonly generateQuietPrompt: () => (
+    quiet_prompt: string,
+    quiet_to_loud: boolean,
+    skip_wian: boolean,
+    quiet_iamge?: string,
+    quiet_name?: string,
+    response_length?: number,
+    force_chid?: number,
+  ) => Promise<string>;
+  /** 严禁使用本方法修改角色卡的 `extensions` 字段, 它会合并原有值和新值而不是替换; 应该使用 `updateCharacterWith` */
+  readonly writeExtensionField: (character_id: number, key: string, value: any) => Promise<void>;
+  readonly getThumbnailUrl: (type: any, file: any) => string;
+  readonly selectCharacterById: (id: number, { switchMenu }?: { switchMenu?: boolean }) => Promise<void>;
+  readonly messageFormatting: (
+    message: string,
+    ch_name: string,
+    is_system: boolean,
+    is_user: boolean,
+    message_id: number,
+    sanitizerOverrides?: object,
+    isReasoning?: boolean,
+  ) => string;
+  readonly shouldSendOnEnter: () => boolean;
+  readonly isMobile: () => boolean;
+  readonly t: (strings: TemplateStringsArray, ...values: any[]) => string;
+  readonly translate: (text: string, key?: string | null) => string;
+  readonly getCurrentLocale: () => string;
+  readonly addLocaleData: (localeId: string, data: Record<string, string>) => void;
+  readonly tags: any[];
+  readonly tagMap: {
+    [identifier: string]: string[];
+  };
+  readonly menuType: any;
+  readonly createCharacterData: Record<string, any>;
+  readonly Popup: {
+    new (
+      content: JQuery<HTMLElement> | string | Element,
+      type: number,
+      inputValue?: string,
+      popupOptions?: SillyTavern.PopupOptions,
+    ): {
+      dlg: HTMLDialogElement;
+
+      show: () => Promise<void>;
+      complete: (result: number) => Promise<void>;
+      completeAffirmative: () => Promise<void>;
+      completeNegative: () => Promise<void>;
+      completeCancelled: () => Promise<void>;
+    };
+  };
+  readonly POPUP_TYPE: {
+    TEXT: number;
+    CONFIRM: number;
+    INPUT: number;
+    DISPLAY: number;
+    CROP: number;
+  };
+  readonly POPUP_RESULT: {
+    AFFIRMATIVE: number;
+    NEGATIVE: number;
+    CANCELLED: number;
+    CUSTOM1: number;
+    CUSTOM2: number;
+    CUSTOM3: number;
+    CUSTOM4: number;
+    CUSTOM5: number;
+    CUSTOM6: number;
+    CUSTOM7: number;
+    CUSTOM8: number;
+    CUSTOM9: number;
+  };
+  readonly callGenericPopup: (
+    content: JQuery<HTMLElement> | string | Element,
+    type: number,
+    inputValue?: string,
+    popupOptions?: SillyTavern.PopupOptions,
+  ) => Promise<number | string | boolean | undefined>;
+  /** oai_settings */
+  readonly chatCompletionSettings: any;
+  /** textgenerationwebui_settings */
+  readonly textCompletionSettings: any;
+  /** power_user */
+  readonly powerUserSettings: any;
+  readonly getCharacters: () => Promise<void>;
+  readonly getCharacterCardFields: ({ chid }?: { chid?: number }) => any;
+  readonly uuidv4: () => string;
+  readonly humanizedDateTime: () => string;
+  readonly updateMessageBlock: (
+    message_id: number,
+    message: object,
+    { rerenderMessage }?: { rerenderMessage?: boolean },
+  ) => void;
+  readonly appendMediaToMessage: (mes: object, messageElement: JQuery<HTMLElement>, adjust_scroll?: boolean) => void;
+
+  readonly loadWorldInfo: (name: string) => Promise<any | null>;
+  readonly saveWorldInfo: (name: string, data: any, immediately?: boolean) => Promise<void>;
+  /** reloadEditor */
+  readonly reloadWorldInfoEditor: (file: string, loadIfNotSelected?: boolean) => void;
+  readonly updateWorldInfoList: () => Promise<void>;
+  readonly convertCharacterBook: (character_book: any) => {
+    entries: Record<string, any>;
+    originalData: Record<string, any>;
+  };
+  readonly getWorldInfoPrompt: (
+    chat: string[],
+    max_context: number,
+    is_dry_run: boolean,
+  ) => Promise<{
+    worldInfoString: string;
+    worldInfoBefore: string;
+    worldInfoAfter: string;
+    worldInfoExamples: any[];
+    worldInfoDepth: any[];
+    anBefore: any[];
+    anAfter: any[];
+  }>;
+  readonly CONNECT_API_MAP: Record<string, any>;
+  readonly getTextGenServer: (type?: string) => string;
+  readonly extractMessageFromData: (data: object, activateApi?: string) => string;
+  readonly getPresetManager: (apiId?: string) => any;
+  readonly getChatCompletionModel: (source?: string) => string;
+  readonly printMessages: () => Promise<void>;
+  readonly clearChat: () => Promise<void>;
+  readonly ChatCompletionService: any;
+  readonly TextCompletionService: any;
+  readonly ConnectionManagerRequestService: any;
+  readonly updateReasoningUI: (
+    message_id_or_element: number | JQuery<HTMLElement> | HTMLElement,
+    { reset }?: { reset?: boolean },
+  ) => void;
+  readonly parseReasoningFromString: (string: string, { strict }?: { strict?: boolean }) => any | null;
+  readonly unshallowCharacter: (character_id?: string) => Promise<void>;
+  readonly unshallowGroupMembers: (group_id: string) => Promise<void>;
+  readonly symbols: {
+    ignore: any;
+  };
+};
+
+
+
+// --- iframe/exported.tavernhelper.d.ts ---
+/**
+ * 酒馆助手提供的额外功能, 具体内容见于 https://n0vi028.github.io/JS-Slash-Runner-Doc
+ * 你也可以在酒馆页面按 f12, 在控制台中输入 `window.TavernHelper` 来查看当前酒馆助手所提供的接口
+ */
+const TavernHelper: typeof window.TavernHelper;
+
+
+
+// --- iframe/script.d.ts ---
+/**
+ * 获取按钮对应的事件类型, **只能在脚本中使用**
+ *
+ * @param button_name 按钮名
+ * @returns 事件类型
+ *
+ * @example
+ * const event_type = getButtonEvent('按钮名');
+ * eventOn(event_type, () => {
+ *   console.log('按钮被点击了');
+ * });
+ */
+function getButtonEvent(button_name: string): string;
+
+/**
+ * 获取脚本的按钮列表, **只能在脚本中使用**
+ *
+ * @returns 按钮数组
+ *
+ * @example
+ * // 在脚本内获取当前脚本的按钮设置
+ * const buttons = getScriptButtons();
+ */
+function getScriptButtons(): ScriptButton[];
+
+/**
+ * 完全替换脚本的按钮列表, **只能在脚本中使用**
+ *
+ * @param buttons 按钮数组
+ *
+ * @example
+ * // 在脚本内设置脚本按钮为一个"开始游戏"按钮
+ * replaceScriptButtons([{name: '开始游戏', visible: true}])
+ *
+ * @example
+ * // 点击"前往地点"按钮后，切换为地点选项按钮
+ * eventOnButton("前往地点" () => {
+ *   replaceScriptButtons([{name: '学校', visible: true}, {name: '商店', visible: true}])
+ * })
+ */
+function replaceScriptButtons(buttons: ScriptButton[]): void;
+
+/**
+ * 用 `updater` 函数更新脚本按钮列表, **只能在脚本中使用**
+ *
+ * @param updater 用于更新脚本按钮列表的函数. 它应该接收脚本按钮列表作为参数, 并返回更新后的脚本按钮列表.
+ *
+ * @returns 更新后的脚本按钮列表
+ *
+ * @example
+ * // 新增一个按钮到末尾
+ * updateVariablesWith(buttons => [...buttons, { name: '新按钮', visible: true }]);
+ */
+function updateScriptButtonsWith(updater: (buttons: ScriptButton[]) => ScriptButton[]): ScriptButton[];
+
+/**
+ * 用 `updater` 函数更新脚本按钮列表, **只能在脚本中使用**
+ *
+ * @param updater 用于更新脚本按钮列表的函数. 它应该接收脚本按钮列表作为参数, 并返回更新后的脚本按钮列表.
+ *
+ * @returns 更新后的脚本按钮列表
+ */
+function updateScriptButtonsWith(
+  updater: (buttons: ScriptButton[]) => Promise<ScriptButton[]>,
+): Promise<ScriptButton[]>;
+
+/**
+ * 为脚本按钮列表末尾添加不存在的按钮, 不会重复添加同名按钮, **只能在脚本中使用**
+ *
+ * @param buttons
+ *
+ * @exmaple
+ * // 新增 "重新开始" 按钮
+ * appendInexistentScriptButtons([{name: '重新开始', visible: true}]);
+ */
+function appendInexistentScriptButtons(buttons: ScriptButton[]): void;
+
+/** 获取脚本名称 */
+function getScriptName(): string;
+
+/** 获取脚本作者注释 */
+function getScriptInfo(): string;
+
+/**
+ * 替换脚本作者注释
+ *
+ * @param info 新的作者注释
+ */
+function replaceScriptInfo(info: string): void;
+
+
+
+// --- iframe/util.d.ts ---
+/**
+ * 在前端界面或脚本内使用, 从而重新加载前端界面或脚本
+ *
+ * 这相当于调用 `window.location.reload()`, 会让分享到全局的接口失效;
+ *   如果有需要在重新加载前端界面后沿用的数据, 你应该自行编写重新加载方式而不是使用这个函数
+ *
+ * @example
+ * // 当聊天文件变更时, 重新加载前端界面或脚本
+ * let current_chat_id = SillyTavern.getCurrentChatId();
+ * eventOn(tavern_events.CHAT_CHANGED, chat_id => {
+ *   if (current_chat_id !== chat_id) {
+ *     current_chat_id = chat_id;
+ *     reloadIframe();
+ *   }
+ * })
+ *
+ * @example
+ * // 自行编写重新加载方式
+ * function initailzie() { ... }
+ * $(initialize);
+ *
+ * function destroy() { eventClearAll(); ... }
+ * $(window).on('pagehide', destroy);
+ *
+ * function reload() {
+ *   destory();
+ *   initialize();
+ * }
+ */
+function reloadIframe(): void;
+
+/**
+ * 获取前端界面或脚本的标识名称
+ *
+ * @returns 对于前端界面是 `TH-message--楼层号--前端界面是该楼层第几个界面`, 对于脚本库是 `TH-script--脚本名称--脚本id`
+ */
+function getIframeName(): string;
+
+/**
+ * 获取本消息楼层 iframe 所在楼层的楼层 id, **只能对楼层消息 iframe** 使用
+ *
+ * @returns 楼层 id
+ *
+ * @throws 如果不在楼层消息 iframe 内使用, 将会抛出错误
+ */
+function getCurrentMessageId(): number;
+
+/**
+ * 获取脚本的脚本库 id, **只能在脚本内使用**
+ *
+ * @returns 脚本库的 id
+ *
+ * @throws 如果不在脚本内使用, 将会抛出错误
+ */
+function getScriptId(): string;
+
+
+
+// --- iframe/variables.d.ts ---
+/**
+ * 获取合并后的变量表
+ * - 如果在消息楼层 iframe 中调用本函数, 则获取 全局→角色卡→聊天→0号消息楼层→中间所有消息楼层→当前消息楼层 的合并结果
+ * - 如果在全局变量 iframe 中调用本函数, 则获取 全局→角色卡→脚本→聊天→0号消息楼层→中间所有消息楼层→最新消息楼层 的合并结果
+ *
+ * @example
+ * const variables = getAllVariables();
+ */
+function getAllVariables(): Record<string, any>;
+
 
 }

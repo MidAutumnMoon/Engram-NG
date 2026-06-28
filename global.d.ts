@@ -2,11 +2,7 @@
 /// <reference types="npm:@types/jquery" />
 /// <reference types="npm:@types/toastr" />
 /// <reference types="@/types/type-fest-global.d.ts" />
-/// <reference types="./vendor/JS-Slash-Runner/@types/iframe/exported.sillytavern.d.ts" />
 /// <reference types="@/types/vendor/jsr-function.d.ts" />
-/// <reference types="./vendor/JS-Slash-Runner/@types/iframe/exported.mvu.d.ts" />
-/// <reference types="./vendor/JS-Slash-Runner/@types/iframe/exported.ejstemplate.d.ts" />
-/// <reference types="./vendor/JS-Slash-Runner/@types/iframe/event.d.ts" />
 
 interface Window {
     /**
