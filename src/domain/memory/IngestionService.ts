@@ -41,7 +41,6 @@ import { runEntityExtraction } from "@/domain/memory/pipelines/entity.ts";
 import { applyEntityChanges } from "@/domain/memory/saveEntities.ts";
 import { reviewService } from "@/domain/review/ReviewBridge.ts";
 import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
-import { EventBus } from "@/events/EventBus.ts";
 
 class IngestionService {
     private isRunning = false;
@@ -595,10 +594,6 @@ class IngestionService {
                     { names: toArchive.map((e) => e.name) },
                 );
                 await store.archiveEntities(ids);
-                EventBus.emit({
-                    payload: { archivedIds: ids },
-                    type: "ENTITY_ARCHIVED",
-                });
             }
         } catch (error) {
             Logger.error(LogModule.STBRIDGE, "执行实体自动归档失败", {

@@ -2,7 +2,7 @@
  * EngramRoot - 单一 React 根
  *
  * 始终挂载在 bootstrap 阶段创建的 `#engram-root` 上。三个子树按生命周期分组：
- *   - ReviewContainer / QuickPanel：始终存活。前者订阅 EventBus 的审查请求（后台
+ *   - ReviewContainer / QuickPanel：始终存活。前者订阅 reviewStore 的审查请求（后台
  *     工作流可能在主面板从未打开时触发），后者由发送栏按钮随时唤起。
  *   - PanelRoot：通过 React.lazy 懒求值——只有 panelOpen 翻 true 时才把视图模块
  *     （dashboard/devlog/...）拉入求值图。vite codeSplitting=false，所以 lazy

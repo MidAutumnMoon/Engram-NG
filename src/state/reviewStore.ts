@@ -3,7 +3,7 @@
  *
  * Producer（ReviewService，非 React 代码）通过 enqueue 推入请求；
  * Consumer（ReviewContainer，React 组件）订阅 requests 渲染。
- * 这取代了此前用 EventBus 做"邮箱"的间接通信——它本就是应用状态，而非广播。
+ * 审查请求本就是应用状态，故用全局 store 直接承载。
  */
 import { create } from "zustand";
 import type { ReviewRequest } from "@/domain/review/ReviewBridge.ts";
