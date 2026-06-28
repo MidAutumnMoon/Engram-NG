@@ -95,10 +95,15 @@ export function formatEntityDescription(entity: EntityNode): string {
 /**
  * 把一组实体按类型分组，渲染为 `<character_state>` 等 XML 块。
  * 返回多段用 "\n\n" 连接的字符串（无归档块）。
+ *
+ * @param asOfLabel 可选的 as-of 标注文本（一行 `# ...` 注释）。
+ *   由 Macros 层用剧情锚点（time_anchor）构造，在所有状态块前统一渲染一次——
+ *   它们都共享同一个前沿/召回锚点。空串/缺省时不渲染（保持旧行为）。
  */
 export function formatEntityStateBlocks(
     entities: EntityNode[],
     target_index: number,
+    asOfLabel?: string,
 ): string {
     const groups: Record<string, EntityNode[]> = {
         [EntityType.Character]: [],
@@ -126,7 +131,13 @@ export function formatEntityStateBlocks(
             .join("\n---\n");
         sections.push(`<${tag}>\n${contents}\n</${tag}>`);
     }
-    return sections.join("\n\n");
+
+    const body = sections.join("\n\n");
+    // asOfLabel 仅在非空且确有状态块时前置——无实体时整段为空，标签无意义。
+    if (asOfLabel && asOfLabel.trim() && body) {
+        return `${asOfLabel.trim()}\n${body}`;
+    }
+    return body;
 }
 
 /**

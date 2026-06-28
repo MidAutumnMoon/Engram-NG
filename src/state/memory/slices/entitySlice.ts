@@ -27,7 +27,11 @@ export interface EntityState {
     deleteEntities: (entityIds: string[]) => Promise<void>;
     archiveEntities: (entityIds: string[]) => Promise<void>;
     toggleEntityLock: (entityId: string) => Promise<boolean>;
-    getEntityStates: (ids?: string[], target_index?: number) => Promise<string>;
+    getEntityStates: (
+        ids?: string[],
+        target_index?: number,
+        asOfLabel?: string,
+    ) => Promise<string>;
 }
 
 export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
@@ -88,7 +92,11 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
         }
     },
 
-    getEntityStates: async (ids?: string[], target_index?: number) => {
+    getEntityStates: async (
+        ids?: string[],
+        target_index?: number,
+        asOfLabel?: string,
+    ) => {
         const db = tryGetCurrentDb();
         if (!db) return "";
 
@@ -125,8 +133,13 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
 
             // 状态字段从 field_history as-of 解析（field_history 为真相）；
             // 其余字段从 profile 读取。归档实体不解析（仅恒定标识）。
+            // asOfLabel 仅标注在状态块（共享一个前沿/召回锚点）；归档提醒块已有自描述。
             const sections: string[] = [];
-            const stateBlocks = formatEntityStateBlocks(fullEntities, at);
+            const stateBlocks = formatEntityStateBlocks(
+                fullEntities,
+                at,
+                asOfLabel,
+            );
             if (stateBlocks) sections.push(stateBlocks);
 
             const archivedBlock = formatArchivedEntityBlock(summaryEntities);

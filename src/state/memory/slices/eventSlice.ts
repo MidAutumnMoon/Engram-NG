@@ -3,11 +3,43 @@ import type { EventNode } from "@/data/types/graph.ts";
 import type { StateCreator } from "zustand";
 import { getCurrentDb, tryGetCurrentDb } from "./coreSlice.ts";
 
+/** 召回/注入路径共享的事件可见性过滤——与 getEventSummaries 的过滤口径一致。 */
+function filterVisibleEvents(
+    events: EventNode[],
+    recalledIds?: string[],
+): EventNode[] {
+    const recalledSet = recalledIds ? new Set(recalledIds) : null;
+    return events.filter((e) => {
+        if (e.level >= 1) return true;
+        if (!e.is_archived) return true;
+        if (e.is_archived && recalledSet?.has(e.id)) return true;
+        return false;
+    });
+}
+
+export interface SummaryAnchor {
+    time_anchor: string;
+    event: string;
+}
+
 export interface EventState {
     saveEvent: (
         event: Omit<EventNode, "id" | "timestamp"> & { timestamp?: number },
     ) => Promise<EventNode>;
     getEventSummaries: (recalledIds?: string[]) => Promise<string>;
+    /**
+     * 返回用于实体状态块 as-of 标注的「剧情锚点」。
+     *
+     * - 有 recalledIds（flashback 路径）：返回 recalledIds[0] 对应事件的结构化锚点
+     *   （top 召回命中——Injector 据此挑的 target_index）。
+     * - 无 recalledIds（前沿路径）：返回时间戳最大事件的锚点（=记忆覆盖到哪）。
+     * - 无事件或锚点缺失：返回 null（调用方不渲染标签）。
+     *
+     * 过滤口径与 getEventSummaries 完全一致（共享 filterVisibleEvents）。
+     */
+    getSummaryAnchor: (
+        recalledIds?: string[],
+    ) => Promise<SummaryAnchor | null>;
 
     getEventsToMerge: (keepRecentCount?: number) => Promise<EventNode[]>;
     deleteEvents: (eventIds: string[]) => Promise<void>;
@@ -63,14 +95,7 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
             const events = await db.events.toArray();
             if (events.length === 0) return "";
 
-            const recalledSet = recalledIds ? new Set(recalledIds) : null;
-            const targetEvents = events.filter((e) => {
-                if (e.level >= 1) return true;
-                if (!e.is_archived) return true;
-                if (e.is_archived && recalledSet?.has(e.id)) return true;
-                return false;
-            });
-
+            const targetEvents = filterVisibleEvents(events, recalledIds);
             targetEvents.sort((a, b) => a.timestamp - b.timestamp);
 
             const lines: string[] = [];
@@ -99,6 +124,38 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
                 error,
             );
             return "";
+        }
+    },
+
+    getSummaryAnchor: async (recalledIds?: string[]) => {
+        const db = tryGetCurrentDb();
+        if (!db) return null;
+
+        try {
+            const events = await db.events.toArray();
+            if (events.length === 0) return null;
+
+            const visible = filterVisibleEvents(events, recalledIds);
+            if (visible.length === 0) return null;
+
+            // flashback 路径：取 top 召回命中（Injector 用它挑 target_index）。
+            // 前沿路径：取时间戳最大事件（=记忆覆盖到的最新剧情时刻）。
+            const target = recalledIds && recalledIds.length > 0
+                ? visible.find((e) => e.id === recalledIds[0])
+                : visible.reduce((a, b) => a.timestamp > b.timestamp ? a : b);
+            if (!target) return null;
+
+            const time_anchor = target.structured_kv?.time_anchor ?? "";
+            const event = target.structured_kv?.event ?? "";
+            // 两者皆空 → 无锚点信息，不渲染标签
+            if (!time_anchor && !event) return null;
+            return { time_anchor, event };
+        } catch (error) {
+            console.error(
+                "[MemoryStore] Failed to get summary anchor:",
+                error,
+            );
+            return null;
         }
     },
 

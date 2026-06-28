@@ -272,6 +272,48 @@ describe("formatEntityStateBlocks", () => {
         });
         expect(formatEntityStateBlocks([e], 0)).toContain("<entity_state>");
     });
+
+    it("prepends the as-of label before the first state block when provided", () => {
+        const char = mkEntity({
+            name: "Seraphina",
+            type: EntityType.Character,
+            profile: { identity: "守护者" },
+        });
+        const label = "# 截至 Day 2 Morning 06:25。之后的对话可能已推进局面。";
+        const out = formatEntityStateBlocks([char], 0, label);
+        // 标签在最前
+        expect(out.startsWith(`${label}\n`)).toBe(true);
+        // 状态块紧随其后
+        expect(out).toContain("<character_state>");
+    });
+
+    it("omits the label entirely when asOfLabel is empty or whitespace", () => {
+        const char = mkEntity({
+            name: "Seraphina",
+            type: EntityType.Character,
+            profile: { identity: "守护者" },
+        });
+        expect(formatEntityStateBlocks([char], 0, "")).not.toContain("# ");
+        expect(formatEntityStateBlocks([char], 0, "   ")).not.toContain("# ");
+    });
+
+    it("omits the label when there are no entities (empty body)", () => {
+        // 无实体 → 整段为空；即便给了标签也不应渲染（标签无附着对象）
+        expect(formatEntityStateBlocks([], 0, "# 不该出现")).toBe("");
+    });
+
+    it("renders unchanged when asOfLabel is omitted (backward compat)", () => {
+        const char = mkEntity({
+            name: "Seraphina",
+            type: EntityType.Character,
+            profile: { identity: "守护者" },
+        });
+        // 旧调用方式（两参）必须保持原输出
+        expect(formatEntityStateBlocks([char], 0)).toBe(
+            formatEntityStateBlocks([char], 0, undefined),
+        );
+        expect(formatEntityStateBlocks([char], 0)).not.toContain("# ");
+    });
 });
 
 describe("formatArchivedEntityBlock", () => {

@@ -103,6 +103,29 @@ export function getEntityStates(): string {
 }
 
 /**
+ * 构造实体状态块的 as-of 标签文本（narrative-time，模型可读词汇）。
+ *
+ * 用剧情锚点（time_anchor / event title）而非内部词汇（floor / episode id）——
+ * 这些字段已烧录在 summary 行里，模型本来就在读它们。
+ *
+ * - flashback（target_index 非空）：标注「这是记忆召回的过去时刻的状态快照」
+ * - 前沿（target_index 缺省）：标注「截至最近一次记忆摄取」，并提示之后的对话可能已推进
+ * - 无锚点信息（anchor == null）：返回空串，不渲染标签
+ */
+function buildAsOfLabel(
+    anchor: { time_anchor: string; event: string } | null,
+    isFlashback: boolean,
+): string {
+    if (!anchor) return "";
+    const moment = anchor.time_anchor || "未知时刻";
+    if (isFlashback) {
+        const title = anchor.event || "过去事件";
+        return `# 以下为记忆召回「${title}」（剧情时刻：${moment}）时的状态快照。这是对过去时刻的回溯，而非当前局面。`;
+    }
+    return `# 角色/场景状态截至最近一次记忆摄取（剧情时刻：${moment}）。之后的故事可能已推进局面，以最新对话为准。`;
+}
+
+/**
  * 刷新 Engram DB 缓存 (事件摘要 + 实体状态)。
  * @param recalledIds 可选，RAG 召回的事件 ID 列表
  * @param target_index 可选，实体状态 as-of 解析的消息索引。
@@ -120,7 +143,13 @@ export async function refreshEngramCache(
         // 1. 刷新事件摘要（带召回 ID）
         cachedSummaries = await store.getEventSummaries(recalledIds);
 
-        // 2. 刷新实体状态。
+        // 2. 解析 as-of 标签锚点（与 summary 共享剧情时钟）。
+        // target_index 是否显式传入 = 是否 flashback 路径（Injector 的信号）。
+        const isFlashback = target_index !== undefined;
+        const anchor = await store.getSummaryAnchor(recalledIds);
+        const asOfLabel = buildAsOfLabel(anchor, isFlashback);
+
+        // 3. 刷新实体状态。
         // target_index 缺省时显式读取提取前沿，而不是依赖 getEntityStates 内部
         // 的 MAX_SAFE_INTEGER 兜底——把「current = last_processed_floor」
         // 这个不变量从隐式约定变成显式读取。
@@ -128,12 +157,15 @@ export async function refreshEngramCache(
         cachedEntityStates = await store.getEntityStates(
             undefined,
             resolvedTarget,
+            asOfLabel,
         );
 
         Logger.debug(LogModule.MACROS, "Engram DB 缓存已刷新", {
             recalledCount: recalledIds?.length ?? 0,
             summariesLength: cachedSummaries.length,
             targetIndex: resolvedTarget,
+            isFlashback,
+            hasAsOfLabel: asOfLabel.length > 0,
         });
     } catch (error) {
         Logger.warn(LogModule.MACROS, "刷新 Engram DB 缓存失败", error);
