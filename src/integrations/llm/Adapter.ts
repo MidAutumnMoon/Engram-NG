@@ -4,6 +4,7 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
 import { getTavernHelper, TavernHelper } from "@/sillytavern/context.ts";
+import { RolePrompt } from "@/types/vendor/jsr-function.d.ts";
 
 /** LLM 生成请求 */
 interface LLMRequest {
@@ -214,7 +215,7 @@ class LLMAdapter {
 
         let content: string;
 
-        const prompts: any[] = [];
+        const prompts: RolePrompt[] = [];
 
         // 严格遵循：System -> User 顺序
         if (finalSystemPrompt) {

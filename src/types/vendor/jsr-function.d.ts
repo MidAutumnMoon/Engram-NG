@@ -7,14 +7,14 @@ export {};
 
 
 // --- audio.d.ts ---
-type Audio = {
+export type Audio = {
   /** 标题 */
   title: string;
   /** 音频的网络链接 */
   url: string;
 };
 
-type AudioWithOptionalTitle = {
+export type AudioWithOptionalTitle = {
   /** 标题 */
   title?: string;
   /** 音频的网络链接 */
@@ -35,14 +35,14 @@ type AudioWithOptionalTitle = {
  * // 为给定链接设置标题, 并作为背景音乐播放
  * playAudio('bgm', { title: 'Kangaroo Music', url: 'http://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3' });
  */
-declare function playAudio(type: 'bgm' | 'ambient', audio: AudioWithOptionalTitle): void;
+export declare function playAudio(type: 'bgm' | 'ambient', audio: AudioWithOptionalTitle): void;
 
 /**
  * 暂停音乐
  *
  * @param type 背景音乐 ('bgm') 或音效 ('ambient')
  */
-declare function pauseAudio(type: 'bgm' | 'ambient'): void;
+export declare function pauseAudio(type: 'bgm' | 'ambient'): void;
 
 /**
  * 获取播放列表
@@ -50,7 +50,7 @@ declare function pauseAudio(type: 'bgm' | 'ambient'): void;
  * @param type 背景音乐 ('bgm') 或音效 ('ambient')
  * @returns 播放列表
  */
-declare function getAudioList(type: 'bgm' | 'ambient'): Audio[];
+export declare function getAudioList(type: 'bgm' | 'ambient'): Audio[];
 
 /**
  * 完全替换播放列表为 `audio_list`
@@ -58,7 +58,7 @@ declare function getAudioList(type: 'bgm' | 'ambient'): Audio[];
  * @param type 背景音乐 ('bgm') 或音效 ('ambient')
  * @param audio_list 新的播放列表; 如果其中音频没有设置标题 (`title`), 则会从链接 (`url`) 提取文件名作为标题
  */
-declare function replaceAudioList(type: 'bgm' | 'ambient', audio_list: AudioWithOptionalTitle[]): void;
+export declare function replaceAudioList(type: 'bgm' | 'ambient', audio_list: AudioWithOptionalTitle[]): void;
 
 /**
  * 向播放列表末尾添加不存在的音频, 不会重复添加同 `title` 或 `url` 的音频
@@ -66,9 +66,9 @@ declare function replaceAudioList(type: 'bgm' | 'ambient', audio_list: AudioWith
  * @param type 背景音乐 ('bgm') 或音效 ('ambient')
  * @param audio_list 要插入的音频列表; 如果其中音频没有设置标题 (`title`), 则会从链接 (`url`) 提取文件名作为标题
  */
-declare function appendAudioList(type: 'bgm' | 'ambient', audio_list: AudioWithOptionalTitle[]): void;
+export declare function appendAudioList(type: 'bgm' | 'ambient', audio_list: AudioWithOptionalTitle[]): void;
 
-type AudioSettings = {
+export type AudioSettings = {
   /** 是否启用 */
   enabled: boolean;
   /**
@@ -91,7 +91,7 @@ type AudioSettings = {
  * @param type 背景音乐 ('bgm') 或音效 ('ambient')
  * @returns 音频设置
  */
-declare function getAudioSettings(type: 'bgm' | 'ambient'): AudioSettings;
+export declare function getAudioSettings(type: 'bgm' | 'ambient'): AudioSettings;
 
 /**
  * 修改音频设置, 如果某字段不存在, 则使用原本的设置.
@@ -111,9 +111,9 @@ declare function getAudioSettings(type: 'bgm' | 'ambient'): AudioSettings;
  * // 将背景音乐音量设置为 50%
  * setAudioSettings('bgm', { volume: 50 });
  */
-declare function setAudioSettings(type: 'bgm' | 'ambient', settings: Partial<AudioSettings>): void;
+export declare function setAudioSettings(type: 'bgm' | 'ambient', settings: Partial<AudioSettings>): void;
 
-type CurrentAudio = {
+export type CurrentAudio = {
   /** 当前选中/正在播放的音频链接, 未选中曲目时为空字符串 */
   src: string;
   /** 当前选中音频的标题, 未匹配到时为空字符串 */
@@ -134,12 +134,12 @@ type CurrentAudio = {
  * // 获取当前正在播放的背景音乐
  * const { title, src, playing, progress } = getCurrentAudio('bgm');
  */
-declare function getCurrentAudio(type: 'bgm' | 'ambient'): CurrentAudio;
+export declare function getCurrentAudio(type: 'bgm' | 'ambient'): CurrentAudio;
 
 
 
 // --- builtin.d.ts ---
-declare const builtin: {
+export declare const builtin: {
   /**
    * 向网页添加一条楼层渲染
    *
@@ -228,7 +228,7 @@ declare const builtin: {
 
 
 // --- character.d.ts ---
-type Character = {
+export type Character = {
   avatar: `${string}.png` | Blob;
   version: string;
   creator: string;
@@ -253,28 +253,28 @@ type Character = {
  *
  * @returns 角色卡名称列表
  */
-declare function getCharacterNames(): string[];
+export declare function getCharacterNames(): string[];
 
 /**
  * 获取角色卡头像 id 列表
  *
  * @returns 角色卡头像 id 列表
  */
-declare function getCharacterIds(): string[];
+export declare function getCharacterIds(): string[];
 
 /**
  * 获取当前角色卡名称
  *
  * @returns 当前角色卡名称, 如果当前没有角色卡, 则返回 `null`
  */
-declare function getCurrentCharacterName(): string | null;
+export declare function getCurrentCharacterName(): string | null;
 
 /**
  * 获取当前角色卡头像 id
  *
  * @returns 当前角色卡头像 id, 如果当前没有角色卡, 则返回 `null`
  */
-declare function getCurrentCharacterId(): string | null;
+export declare function getCurrentCharacterId(): string | null;
 
 /**
  * 新建 `character_name` 角色卡, 内容为 `character`
@@ -286,7 +286,7 @@ declare function getCurrentCharacterId(): string | null;
  *
  * @throws 如果访问后端失败, 将会抛出异常
  */
-declare function createCharacter(
+export declare function createCharacter(
   character_name: Exclude<string, 'current'>,
   character?: TypeFest.PartialDeep<Character>,
 ): Promise<boolean>;
@@ -303,7 +303,7 @@ declare function createCharacter(
  *
  * @throws 如果访问后端失败, 将会抛出异常
  */
-declare function createOrReplaceCharacter(
+export declare function createOrReplaceCharacter(
   character_name: Exclude<string, 'current'>,
   character?: TypeFest.PartialDeep<Character>,
   options?: ReplaceCharacterOptions,
@@ -318,7 +318,7 @@ declare function createOrReplaceCharacter(
  *
  * @returns 是否成功删除, 可能因角色卡不存在等原因而失败
  */
-declare function deleteCharacter(
+export declare function deleteCharacter(
   character_name: TypeFest.LiteralUnion<'current', string>,
   options?: { delete_chats?: boolean },
 ): Promise<boolean>;
@@ -332,9 +332,9 @@ declare function deleteCharacter(
  *
  * @throws 如果角色卡不存在, 将会抛出异常
  */
-declare function getCharacter(character_name: TypeFest.LiteralUnion<'current', string>): Promise<Character>;
+export declare function getCharacter(character_name: TypeFest.LiteralUnion<'current', string>): Promise<Character>;
 
-type ReplaceCharacterOptions = {
+export type ReplaceCharacterOptions = {
   /** 酒馆网页应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染 */
   render?: 'debounced' | 'immediate' | 'none';
 };
@@ -368,13 +368,13 @@ type ReplaceCharacterOptions = {
  * character.avatar = await fetch('https://example.com/avatar.png').then(response => response.blob());
  * await replaceCharacter('角色卡名称', character);
  */
-declare function replaceCharacter(
+export declare function replaceCharacter(
   character_name: Exclude<string, 'current'>,
   character: TypeFest.PartialDeep<Character>,
   options?: ReplaceCharacterOptions,
 ): Promise<void>;
 
-type CharacterUpdater = ((character: Character) => Character) | ((character: Character) => Promise<Character>);
+export type CharacterUpdater = ((character: Character) => Character) | ((character: Character) => Promise<Character>);
 
 /**
  * 用 `updater` 函数更新 `character_name` 角色卡
@@ -410,7 +410,7 @@ type CharacterUpdater = ((character: Character) => Character) | ((character: Cha
  *   return character;
  * });
  */
-declare function updateCharacterWith(
+export declare function updateCharacterWith(
   character_name: TypeFest.LiteralUnion<'current', string>,
   updater: CharacterUpdater,
 ): Promise<Character>;
@@ -418,7 +418,7 @@ declare function updateCharacterWith(
 
 
 // --- chat_message.d.ts ---
-type ChatMessage = {
+export type ChatMessage = {
   message_id: number;
   name: string;
   role: 'system' | 'assistant' | 'user';
@@ -428,7 +428,7 @@ type ChatMessage = {
   extra: Record<string, any>;
 };
 
-type ChatMessageSwiped = {
+export type ChatMessageSwiped = {
   message_id: number;
   name: string;
   role: 'system' | 'assistant' | 'user';
@@ -439,7 +439,7 @@ type ChatMessageSwiped = {
   swipes_info: Record<string, any>[];
 };
 
-type GetChatMessagesOption = {
+export type GetChatMessagesOption = {
   /** 按 role 筛选消息; 默认为 `'all'` */
   role?: 'all' | 'system' | 'assistant' | 'user';
   /** 按是否被隐藏筛选消息; 默认为 `'all'` */
@@ -473,7 +473,7 @@ type GetChatMessagesOption = {
  * // 获取所有楼层被 AI 使用的消息页
  * const chat_messages = getChatMessages('0-{{lastMessageId}}');
  */
-declare function getChatMessages(
+export declare function getChatMessages(
   range: string | number,
   { role, hide_state, include_swipes }?: Omit<GetChatMessagesOption, 'include_swipes'> & { include_swipes?: false },
 ): ChatMessage[];
@@ -502,7 +502,7 @@ declare function getChatMessages(
  * // 获取所有楼层所有的消息页
  * const chat_messages = getChatMessages('0-{{lastMessageId}}', { include_swipes: true });
  */
-declare function getChatMessages(
+export declare function getChatMessages(
   range: string | number,
   { role, hide_state, include_swipes }?: Omit<GetChatMessagesOption, 'include_swipes'> & { include_swipes?: true },
 ): ChatMessageSwiped[];
@@ -518,12 +518,12 @@ declare function getChatMessages(
  *
  * @returns 一个数组, 数组的元素是每楼的消息, 依据 message_id 从低到高排序, 类型为 `ChatMessage` 或 `ChatMessageSwiped` (取决于 `include_swipes` 的值, 默认为 `ChatMessage`).
  */
-declare function getChatMessages(
+export declare function getChatMessages(
   range: string | number,
   { role, hide_state, include_swipes }?: GetChatMessagesOption,
 ): (ChatMessage | ChatMessageSwiped)[];
 
-type SetChatMessagesOption = {
+export type SetChatMessagesOption = {
   /**
    * 是否更新楼层在页面上的显示; 默认为 `'affected'`
    * - `'none'`: 不更新页面的显示
@@ -567,12 +567,12 @@ type SetChatMessagesOption = {
  * const last_message_id = getLastMessageId();
  * await setChatMessages(_.range(last_message_id + 1).map(message_id => ({message_id, is_hidden: true})));
  */
-declare function setChatMessages(
+export declare function setChatMessages(
   chat_messages: Array<{ message_id: number } & (Partial<ChatMessage> | Partial<ChatMessageSwiped>)>,
   { refresh }?: SetChatMessagesOption,
 ): Promise<void>;
 
-type ChatMessageCreating = {
+export type ChatMessageCreating = {
   name?: string;
   role: 'system' | 'assistant' | 'user';
   is_hidden?: boolean;
@@ -581,7 +581,7 @@ type ChatMessageCreating = {
   extra?: Record<string, any>;
 };
 
-type CreateChatMessagesOption = SetChatMessagesOption & {
+export type CreateChatMessagesOption = SetChatMessagesOption & {
   /** @deprecated 请使用 `insert_before` */
   insert_at?: number | 'end';
 
@@ -605,7 +605,7 @@ type CreateChatMessagesOption = SetChatMessagesOption & {
  * // 在末尾插入一条消息
  * await createChatMessages([{role: 'user', message: '你好'}]);
  */
-declare function createChatMessages(
+export declare function createChatMessages(
   chat_messages: ChatMessageCreating[],
   { insert_before, refresh }?: CreateChatMessagesOption,
 ): Promise<void>;
@@ -625,7 +625,7 @@ declare function createChatMessages(
  * // 删除所有楼层
  * await deleteChatMessages(_.range(getLastMessageId() + 1));
  */
-declare function deleteChatMessages(message_ids: number[], { refresh }?: SetChatMessagesOption): Promise<void>;
+export declare function deleteChatMessages(message_ids: number[], { refresh }?: SetChatMessagesOption): Promise<void>;
 
 /**
  * 将原本顺序是 `[begin, middle) [middle, end)` 的楼层旋转为 `[middle, end) [begin, middle)`
@@ -646,7 +646,7 @@ declare function deleteChatMessages(message_ids: number[], { refresh }?: SetChat
  * // 将前 3 楼放到最后
  * await rotateChatMessages(0, 3, getLastMessageId() + 1);
  */
-declare function rotateChatMessages(
+export declare function rotateChatMessages(
   begin: number,
   middle: number,
   end: number,
@@ -676,9 +676,9 @@ declare function rotateChatMessages(
  * retrieveDisplayedMessage(0).append("<pre>new text</pre>");
  * retrieveDisplayedMessage(0).append(formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}"));
  */
-declare function retrieveDisplayedMessage(message_id: number): JQuery<HTMLDivElement>;
+export declare function retrieveDisplayedMessage(message_id: number): JQuery<HTMLDivElement>;
 
-type FormatAsDisplayedMessageOption = {
+export type FormatAsDisplayedMessageOption = {
   /** 消息所在的楼层, 要求该楼层已经存在, 即在 `[0, getLastMessageId()]` 范围内; 默认为 'last' */
   message_id?: 'last' | 'last_user' | 'last_char' | number;
 };
@@ -701,7 +701,7 @@ type FormatAsDisplayedMessageOption = {
  * const text = formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}");
  * => "<p>少女歌剧 speaks in 5</p>";
  */
-declare function formatAsDisplayedMessage(text: string, { message_id }?: FormatAsDisplayedMessageOption): string;
+export declare function formatAsDisplayedMessage(text: string, { message_id }?: FormatAsDisplayedMessageOption): string;
 
 /**
  * 刷新或替换单个楼层的显示, 如果该楼层并没有显示在网页上则什么也不做
@@ -725,16 +725,16 @@ declare function formatAsDisplayedMessage(text: string, { message_id }?: FormatA
  * // 强行让最后一楼显示第 0 楼的消息, 这只会影响网页显示, 不会影响实际聊天记录
  * await refreshOneMessage(0, $('#chat > .mes.last_mes'));
  */
-declare function refreshOneMessage(message_id: number, $mes?: JQuery): Promise<void>;
+export declare function refreshOneMessage(message_id: number, $mes?: JQuery): Promise<void>;
 
 
 
 // --- extension.d.ts ---
 /** 检查当前用户是否为管理员, 只有管理员能更新全局扩展 */
-declare function isAdmin(): boolean;
+export declare function isAdmin(): boolean;
 
 /** 获取酒馆助手扩展 id */
-declare function getTavernHelperExtensionId(): string;
+export declare function getTavernHelperExtensionId(): string;
 
 /**
  * 获取已安装扩展的类型
@@ -744,9 +744,9 @@ declare function getTavernHelperExtensionId(): string;
  *
  * @param extension_id 扩展 id, 一般是扩展文件夹名
  */
-declare function getExtensionType(extension_id: string): 'local' | 'global' | 'system' | null;
+export declare function getExtensionType(extension_id: string): 'local' | 'global' | 'system' | null;
 
-type ExtensionInstallationInfo = {
+export type ExtensionInstallationInfo = {
   current_branch_name: string;
   current_commit_hash: string;
   is_up_to_date: boolean;
@@ -758,7 +758,7 @@ type ExtensionInstallationInfo = {
  *
  * @param extension_id 扩展 id, 一般是扩展文件夹名
  */
-declare function getExtensionInstallationInfo(extension_id: string): Promise<ExtensionInstallationInfo | null>;
+export declare function getExtensionInstallationInfo(extension_id: string): Promise<ExtensionInstallationInfo | null>;
 
 /**
  * 检查是否已安装某一扩展
@@ -769,7 +769,7 @@ declare function getExtensionInstallationInfo(extension_id: string): Promise<Ext
  * // 检查是否已安装酒馆助手
  * const is_installed = isInstalledExtension(getTavernHelperExtensionId());
  */
-declare function isInstalledExtension(extension_id: string): boolean;
+export declare function isInstalledExtension(extension_id: string): boolean;
 
 /**
  * 安装扩展; 新安装的扩展需要刷新页面 (`triggerSlash('/reload-page')`) 才生效
@@ -788,7 +788,7 @@ declare function isInstalledExtension(extension_id: string): boolean;
  *   _.delay(() => triggerSlash('/reload-page'), 3000);
  * }
  */
-declare function installExtension(url: string, type: 'local' | 'global'): Promise<Response>;
+export declare function installExtension(url: string, type: 'local' | 'global'): Promise<Response>;
 
 /**
  * 卸载扩展; 卸载后需要刷新页面 (`triggerSlash('/reload-page')`) 才生效
@@ -803,7 +803,7 @@ declare function installExtension(url: string, type: 'local' | 'global'): Promis
  *   _.delay(() => triggerSlash('/reload-page'), 3000);
  * }
  */
-declare function uninstallExtension(extension_id: string): Promise<Response>;
+export declare function uninstallExtension(extension_id: string): Promise<Response>;
 
 /**
  * 重新安装扩展; 重新安装后需要刷新页面 (`triggerSlash('/reload-page')`) 才生效
@@ -818,7 +818,7 @@ declare function uninstallExtension(extension_id: string): Promise<Response>;
  *   _.delay(() => triggerSlash('/reload-page'), 3000);
  * }
  */
-declare function reinstallExtension(extension_id: string): Promise<Response>;
+export declare function reinstallExtension(extension_id: string): Promise<Response>;
 
 /**
  * 更新扩展; 更新后需要刷新页面 (`triggerSlash('/reload-page')`) 才生效
@@ -833,7 +833,7 @@ declare function reinstallExtension(extension_id: string): Promise<Response>;
  *   _.delay(() => triggerSlash('/reload-page'), 3000);
  * }
  */
-declare function updateExtension(extension_id: string): Promise<Response>;
+export declare function updateExtension(extension_id: string): Promise<Response>;
 
 
 
@@ -843,7 +843,7 @@ declare function updateExtension(extension_id: string): Promise<Response>;
  *
  * @returns 代理预设名称列表
  */
-declare function getProxyPresetNames(): string[];
+export declare function getProxyPresetNames(): string[];
 
 /**
  * 使用酒馆当前启用的预设, 让 AI 生成一段文本.
@@ -983,7 +983,7 @@ declare function getProxyPresetNames(): string[];
  * const parsed = JSON.parse(result as string);
  * console.info(parsed.narrative, parsed.mood);
  */
-declare function generate(config: GenerateConfig): Promise<string | GenerateToolCallResult>;
+export declare function generate(config: GenerateConfig): Promise<string | GenerateToolCallResult>;
 
 /**
  * 不使用酒馆当前启用的预设, 让 AI 生成一段文本.
@@ -1036,7 +1036,7 @@ declare function generate(config: GenerateConfig): Promise<string | GenerateTool
  * })
  * console.info('收到回复: ', result);
  */
-declare function generateRaw(config: GenerateRawConfig): Promise<string | GenerateToolCallResult>;
+export declare function generateRaw(config: GenerateRawConfig): Promise<string | GenerateToolCallResult>;
 
 /**
  * 获取模型列表
@@ -1045,7 +1045,7 @@ declare function generateRaw(config: GenerateRawConfig): Promise<string | Genera
  * @returns Promise<string[]> 模型列表
  * @throws 获取模型列表失败
  */
-declare function getModelList(custom_api: { apiurl: string; key?: string }): Promise<string[]>;
+export declare function getModelList(custom_api: { apiurl: string; key?: string }): Promise<string[]>;
 
 /**
  * 根据生成请求唯一标识符停止特定的生成请求
@@ -1053,16 +1053,16 @@ declare function getModelList(custom_api: { apiurl: string; key?: string }): Pro
  * @param generation_id 生成请求唯一标识符, 用于标识要停止的生成请求
  * @returns boolean 是否成功停止生成
  */
-declare function stopGenerationById(generation_id: string): boolean;
+export declare function stopGenerationById(generation_id: string): boolean;
 
 /**
  * 停止所有正在进行的生成请求
  *
  * @returns boolean 是否成功停止所有生成
  */
-declare function stopAllGeneration(): boolean;
+export declare function stopAllGeneration(): boolean;
 
-type GenerateConfig = {
+export type GenerateConfig = {
   /** 要使用的预设名称, 默认为当前加载的预设 `'in_use'`; 若设置, 则会用所选预设的提示词及参数, 但不会使用所选预设的正则、酒馆助手脚本 */
   preset_name?: 'in_use' | string;
 
@@ -1150,7 +1150,7 @@ type GenerateConfig = {
   json_schema?: JsonSchema;
 };
 
-type GenerateRawConfig = GenerateConfig & {
+export type GenerateRawConfig = GenerateConfig & {
   /**
    * 一个提示词数组, 数组元素将会按顺序发给 AI, 因而相当于自定义预设. 该数组允许存放两种类型:
    * - `PlaceholderPrompt`: 内置提示词. 由于不使用预设, 如果需要 "角色描述" 等提示词, 你需要自己指定要用哪些并给出顺序
@@ -1163,9 +1163,9 @@ type GenerateRawConfig = GenerateConfig & {
 /**
  * 预设为内置提示词设置的默认顺序
  */
-declare const placeholder_prompt_default_order: PlaceholderPrompt[];
+export declare const placeholder_prompt_default_order: PlaceholderPrompt[];
 
-type PlaceholderPrompt =
+export type PlaceholderPrompt =
   | 'world_info_before'
   | 'persona_description'
   | 'char_description'
@@ -1176,13 +1176,13 @@ type PlaceholderPrompt =
   | 'chat_history'
   | 'user_input';
 
-type RolePrompt = {
+export type RolePrompt = {
   role: 'system' | 'assistant' | 'user';
   content: string;
   image?: File | string | (File | string)[];
 };
 
-type Overrides = {
+export type Overrides = {
   world_info_before?: string;
   persona_description?: string;
   char_description?: string;
@@ -1212,7 +1212,7 @@ type Overrides = {
  * - 指定 apiurl：使用自定义 API 地址
  * - 都不指定：使用当前 ST 源，但可覆盖 model 等参数
  */
-type CustomApiConfig = {
+export type CustomApiConfig = {
   /**
    * 酒馆代理预设名称。
    * - 预设匹配成功：完全使用预设的 URL 和密码（即使为空也不回退到 custom_api 的字段）
@@ -1269,7 +1269,7 @@ type CustomApiConfig = {
  * });
  * const parsed = JSON.parse(result as string);
  */
-type JsonSchema = {
+export type JsonSchema = {
   /** Schema 名称 */
   name: string;
   /** Schema 描述 */
@@ -1283,7 +1283,7 @@ type JsonSchema = {
 /**
  * Tool function 定义
  */
-type ToolFunction = {
+export type ToolFunction = {
   /** 工具函数名称 */
   name: string;
   /** 工具函数描述 */
@@ -1295,7 +1295,7 @@ type ToolFunction = {
 /**
  * Tool 定义（OpenAI 格式）
  */
-type ToolDefinition = {
+export type ToolDefinition = {
   type: 'function';
   function: ToolFunction;
 };
@@ -1303,7 +1303,7 @@ type ToolDefinition = {
 /**
  * Tool choice 选项
  */
-type ToolChoice = 'auto' | 'required' | 'none' | 'any' | { type: 'function'; function: { name: string } };
+export type ToolChoice = 'auto' | 'required' | 'none' | 'any' | { type: 'function'; function: { name: string } };
 
 /**
  * 当模型返回 tool_calls 时的结构化结果。
@@ -1311,7 +1311,7 @@ type ToolChoice = 'auto' | 'required' | 'none' | 'any' | { type: 'function'; fun
  * 仅在 `generate` / `generateRaw` 配置中传入了 `tools` 且模型决定调用工具时返回；
  * 否则函数仍返回普通的 `string`。
  */
-type GenerateToolCallResult = {
+export type GenerateToolCallResult = {
   /** 模型返回的文本内容（可能为空字符串） */
   content: string;
   /** 模型请求调用的工具列表 */
@@ -1362,10 +1362,10 @@ type GenerateToolCallResult = {
  * 预设为内置提示词设置的默认顺序
  * @deprecated 请使用 `placeholder_prompt_default_order`
  */
-declare const builtin_prompt_default_order: PlaceholderPrompt[];
+export declare const builtin_prompt_default_order: PlaceholderPrompt[];
 
 /** @deprecated 请使用 `PlaceholderPrompt` */
-type BuiltinPrompt =
+export type BuiltinPrompt =
   | 'world_info_before'
   | 'persona_description'
   | 'char_description'
@@ -1392,7 +1392,7 @@ type BuiltinPrompt =
  * initializeGlobal('Mvu', Mvu);
  * // 此后其他前端界面或脚本中可以通过 `await waitGlobalInitialized('Mvu')` 来等待初始化完毕, 从而用 `Mvu` 为变量名访问该接口
  */
-declare function initializeGlobal(global: TypeFest.LiteralUnion<'Mvu', string>, value: any): void;
+export declare function initializeGlobal(global: TypeFest.LiteralUnion<'Mvu', string>, value: any): void;
 
 /**
  * 等待其他前端界面或脚本中共享出来的全局接口初始化完毕, 并使之在当前前端界面或脚本中可用.
@@ -1405,7 +1405,7 @@ declare function initializeGlobal(global: TypeFest.LiteralUnion<'Mvu', string>, 
  * await waitGlobalInitialized('Mvu');
  * ...此后可以直接使用 Mvu 接口
  */
-declare function waitGlobalInitialized<T>(global: TypeFest.LiteralUnion<'Mvu', string>): Promise<T>;
+export declare function waitGlobalInitialized<T>(global: TypeFest.LiteralUnion<'Mvu', string>): Promise<T>;
 
 
 
@@ -1421,7 +1421,7 @@ declare function waitGlobalInitialized<T>(global: TypeFest.LiteralUnion<'Mvu', s
  * const response = await fetch(角色卡网络链接);
  * await importRawCharacter(角色卡名, await response.blob());
  */
-declare function importRawCharacter(filename: string, content: Blob): Promise<Response>;
+export declare function importRawCharacter(filename: string, content: Blob): Promise<Response>;
 
 /**
  * 像酒馆界面里那样导入聊天文件, 目前仅能导入到当前选择的角色卡
@@ -1436,7 +1436,7 @@ declare function importRawCharacter(filename: string, content: Blob): Promise<Re
  * const response = await fetch(聊天文件网络链接);
  * await importRawChat(聊天文件名, await response.text());
  */
-declare function importRawChat(filename: string, content: string): Promise<Response>;
+export declare function importRawChat(filename: string, content: string): Promise<Response>;
 
 /**
  * 像酒馆界面里那样导入新预设/更新现有预设
@@ -1449,7 +1449,7 @@ declare function importRawChat(filename: string, content: string): Promise<Respo
  * const response = await fetch(预设网络链接);
  * await importRawChat(预设名, await response.text());
  */
-declare function importRawPreset(filename: string, content: string): Promise<boolean>;
+export declare function importRawPreset(filename: string, content: string): Promise<boolean>;
 
 /**
  * 像酒馆界面里那样导入新世界书/更新现有世界书
@@ -1462,7 +1462,7 @@ declare function importRawPreset(filename: string, content: string): Promise<boo
  * const response = await fetch(世界书网络链接);
  * await importRawChat(世界书名, await response.text());
  */
-declare function importRawWorldbook(filename: string, content: string): Promise<Response>;
+export declare function importRawWorldbook(filename: string, content: string): Promise<Response>;
 
 /**
  * 像酒馆界面里那样导入酒馆正则
@@ -1475,12 +1475,12 @@ declare function importRawWorldbook(filename: string, content: string): Promise<
  * const response = await fetch(酒馆正则网络链接);
  * await importRawChat(酒馆正则名, await response.text());
  */
-declare function importRawTavernRegex(filename: string, content: string): boolean;
+export declare function importRawTavernRegex(filename: string, content: string): boolean;
 
 
 
 // --- inject.d.ts ---
-type InjectionPrompt = {
+export type InjectionPrompt = {
   id: string;
   /**
    * 要注入的位置
@@ -1499,7 +1499,7 @@ type InjectionPrompt = {
   should_scan?: boolean;
 };
 
-type injectPromptsOptions = {
+export type injectPromptsOptions = {
   /** 是否只在下一次请求生成中有效; 默认为 false */
   once?: boolean;
 };
@@ -1518,20 +1518,20 @@ type injectPromptsOptions = {
  * @returns 后续操作
  *   - `uninject`: 取消这个提示词的注入
  */
-declare function injectPrompts(prompts: InjectionPrompt[], options?: injectPromptsOptions): { uninject: () => void };
+export declare function injectPrompts(prompts: InjectionPrompt[], options?: injectPromptsOptions): { uninject: () => void };
 
 /**
  * 移除注入的提示词
  *
  * @param ids 要移除的提示词的 id 列表
  */
-declare function uninjectPrompts(ids: string[]): void;
+export declare function uninjectPrompts(ids: string[]): void;
 
 
 
 // --- lorebook.d.ts ---
 /** @deprecated 请使用内置库 "世界书强制用推荐的全局设置" */
-type LorebookSettings = {
+export type LorebookSettings = {
   selected_global_lorebooks: string[];
   scan_depth: number;
   context_percentage: number;
@@ -1549,54 +1549,54 @@ type LorebookSettings = {
 }
 
 /** @deprecated 请使用内置库 "世界书强制用推荐的全局设置" */
-declare function getLorebookSettings(): LorebookSettings;
+export declare function getLorebookSettings(): LorebookSettings;
 /** @deprecated 请使用内置库 "世界书强制用推荐的全局设置" */
-declare function setLorebookSettings(settings: Partial<LorebookSettings>): void;
+export declare function setLorebookSettings(settings: Partial<LorebookSettings>): void;
 
 /** @deprecated 请使用 `getWorldbookNames` */
-declare function getLorebooks(): string[];
+export declare function getLorebooks(): string[];
 
 /** @deprecated 请使用 `deleteWorldbook` */
-declare function deleteLorebook(lorebook: string): Promise<boolean>;
+export declare function deleteLorebook(lorebook: string): Promise<boolean>;
 
 /** @deprecated 请使用 `createWorldbook` */
-declare function createLorebook(lorebook: string): Promise<boolean>;
+export declare function createLorebook(lorebook: string): Promise<boolean>;
 
 /** @deprecated 请使用 `getCharWorldbookNames` */
-type CharLorebooks = {
+export type CharLorebooks = {
   primary: string | null;
   additional: string[];
 }
 
 /** @deprecated 请使用 `getCharWorldbookNames` */
-type GetCharLorebooksOption = {
+export type GetCharLorebooksOption = {
   name?: string;
   type?: 'all' | 'primary' | 'additional';
 }
 
 /** @deprecated 请使用 `getCharWorldbookNames` */
-declare function getCharLorebooks({ name, type }?: GetCharLorebooksOption): CharLorebooks;
+export declare function getCharLorebooks({ name, type }?: GetCharLorebooksOption): CharLorebooks;
 
 /** @deprecated 请使用 `getCharWorldbookNames` */
-declare function getCurrentCharPrimaryLorebook(): string | null;
+export declare function getCurrentCharPrimaryLorebook(): string | null;
 
 /** @deprecated 请使用 `rebindCharWorldbook` */
-declare function setCurrentCharLorebooks(lorebooks: Partial<CharLorebooks>): Promise<void>;
+export declare function setCurrentCharLorebooks(lorebooks: Partial<CharLorebooks>): Promise<void>;
 
 /** @deprecated 请使用 `getChatWorldbook` */
-declare function getChatLorebook(): string | null;
+export declare function getChatLorebook(): string | null;
 
 /** @deprecated 请使用 `rebindChatWorldbook` */
-declare function setChatLorebook(lorebook: string | null): Promise<void>;
+export declare function setChatLorebook(lorebook: string | null): Promise<void>;
 
 /** @deprecated 请使用 `getOrCreateChatWorldbook` */
-declare function getOrCreateChatLorebook(lorebook?: string): Promise<string>;
+export declare function getOrCreateChatLorebook(lorebook?: string): Promise<string>;
 
 
 
 // --- lorebook_entry.d.ts ---
 /** @deprecated 请使用 `WolrdbookEntry` */
-type LorebookEntry = {
+export type LorebookEntry = {
   uid: number;
   display_index: number;
   comment: string;
@@ -1636,38 +1636,38 @@ type LorebookEntry = {
 };
 
 /** @deprecated 请使用 `getWorldbook` */
-type GetLorebookEntriesOption = {
+export type GetLorebookEntriesOption = {
   filter?: 'none' | Partial<LorebookEntry>;
 };
 
 /** @deprecated 请使用 `getWorldbook` */
-declare function getLorebookEntries(lorebook: string): Promise<LorebookEntry[]>;
+export declare function getLorebookEntries(lorebook: string): Promise<LorebookEntry[]>;
 
 /** @deprecated 请使用 `replaceWorldbook` */
-declare function replaceLorebookEntries(lorebook: string, entries: Partial<LorebookEntry>[]): Promise<void>;
+export declare function replaceLorebookEntries(lorebook: string, entries: Partial<LorebookEntry>[]): Promise<void>;
 
 /** @deprecated 请使用 `updateWorldbookWith` */
-type LorebookEntriesUpdater =
+export type LorebookEntriesUpdater =
   | ((entries: LorebookEntry[]) => Partial<LorebookEntry>[])
   | ((entries: LorebookEntry[]) => Promise<Partial<LorebookEntry>[]>);
 
 /** @deprecated 请使用 `updateWorldbookWith` */
-declare function updateLorebookEntriesWith(lorebook: string, updater: LorebookEntriesUpdater): Promise<LorebookEntry[]>;
+export declare function updateLorebookEntriesWith(lorebook: string, updater: LorebookEntriesUpdater): Promise<LorebookEntry[]>;
 
 /** @deprecated 请使用 `replaceWorldbook` */
-declare function setLorebookEntries(
+export declare function setLorebookEntries(
   lorebook: string,
   entries: Array<Pick<LorebookEntry, 'uid'> & Partial<LorebookEntry>>,
 ): Promise<LorebookEntry[]>;
 
 /** @deprecated 请使用 `createWorldbookEntries` */
-declare function createLorebookEntries(
+export declare function createLorebookEntries(
   lorebook: string,
   entries: Partial<LorebookEntry>[],
 ): Promise<{ entries: LorebookEntry[]; new_uids: number[] }>;
 
 /** @deprecated 请使用 `deleteWorldbookEntries` */
-declare function deleteLorebookEntries(
+export declare function deleteLorebookEntries(
   lorebook: string,
   uids: number[],
 ): Promise<{ entries: LorebookEntry[]; delete_occurred: boolean }>;
@@ -1675,12 +1675,12 @@ declare function deleteLorebookEntries(
 
 
 // --- macro_like.d.ts ---
-type MacroLikeContext = {
+export type MacroLikeContext = {
   message_id?: number;
   role?: 'user' | 'assistant' | 'system';
 };
 
-type RegisterMacroLikeReturn = {
+export type RegisterMacroLikeReturn = {
   /** 取消注册 */
   unregister: () => void;
 };
@@ -1701,7 +1701,7 @@ type RegisterMacroLikeReturn = {
  * @returns 后续操作
  *   - `unregister`: 取消注册
  */
-declare function registerMacroLike(
+export declare function registerMacroLike(
   regex: RegExp,
   replace: (context: MacroLikeContext, substring: string, ...args: any[]) => string,
 ): RegisterMacroLikeReturn;
@@ -1711,17 +1711,17 @@ declare function registerMacroLike(
  *
  * @param regex 助手宏的正则表达式
  */
-declare function unregisterMacroLike(regex: RegExp): void;
+export declare function unregisterMacroLike(regex: RegExp): void;
 
 
 
 // --- persona.d.ts ---
-type PersonaConnection = {
+export type PersonaConnection = {
   type: 'character' | 'group';
   id: string;
 };
 
-type Persona = {
+export type Persona = {
   avatar_id: string;
   avatar: `${string}.png` | Blob;
   name: string;
@@ -1735,7 +1735,7 @@ type Persona = {
   is_default: boolean;
 };
 
-type ReplacePersonaOptions = {
+export type ReplacePersonaOptions = {
   /** 酒馆网页应该防抖渲染 persona 管理列表 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为防抖渲染 */
   render?: 'debounced' | 'immediate' | 'none';
 };
@@ -1745,28 +1745,28 @@ type ReplacePersonaOptions = {
  *
  * @returns persona 名称列表
  */
-declare function getPersonaNames(): string[];
+export declare function getPersonaNames(): string[];
 
 /**
  * 获取 persona 头像 id 列表
  *
  * @returns persona 头像 id 列表
  */
-declare function getPersonaIds(): string[];
+export declare function getPersonaIds(): string[];
 
 /**
  * 获取当前 persona 名称
  *
  * @returns 当前 persona 名称, 如果当前没有 persona, 则返回 `null`
  */
-declare function getCurrentPersonaName(): string | null;
+export declare function getCurrentPersonaName(): string | null;
 
 /**
  * 获取当前 persona 头像 id
  *
  * @returns 当前 persona 头像 id, 如果当前没有 persona, 则返回 `null`
  */
-declare function getCurrentPersonaId(): string | null;
+export declare function getCurrentPersonaId(): string | null;
 
 /**
  * 获取 persona 的头像路径
@@ -1775,7 +1775,7 @@ declare function getCurrentPersonaId(): string | null;
  *
  * @returns persona 头像路径, 如果 persona 不存在或名称不唯一, 则返回 `null`
  */
-declare function getPersonaAvatarPath(persona_id?: TypeFest.LiteralUnion<'current', string>): string | null;
+export declare function getPersonaAvatarPath(persona_id?: TypeFest.LiteralUnion<'current', string>): string | null;
 
 /**
  * 获取 persona 的内容
@@ -1786,7 +1786,7 @@ declare function getPersonaAvatarPath(persona_id?: TypeFest.LiteralUnion<'curren
  *
  * @throws 如果 persona 不存在或名称不唯一, 将会抛出异常
  */
-declare function getPersona(persona_id: TypeFest.LiteralUnion<'current', string>): Persona;
+export declare function getPersona(persona_id: TypeFest.LiteralUnion<'current', string>): Persona;
 
 /**
  * 新建 persona
@@ -1800,7 +1800,7 @@ declare function getPersona(persona_id: TypeFest.LiteralUnion<'current', string>
  *
  * @throws 如果访问后端失败, 将会抛出异常
  */
-declare function createPersona(
+export declare function createPersona(
   persona_name: Exclude<string, 'current'>,
   persona?: TypeFest.PartialDeep<Persona>,
   options?: ReplacePersonaOptions,
@@ -1819,7 +1819,7 @@ declare function createPersona(
  * @throws 如果 persona 名称不唯一, 将会抛出异常
  * @throws 如果访问后端失败, 将会抛出异常
  */
-declare function createOrReplacePersona(
+export declare function createOrReplacePersona(
   persona_name: Exclude<string, 'current'>,
   persona?: TypeFest.PartialDeep<Persona>,
   options?: ReplacePersonaOptions,
@@ -1834,7 +1834,7 @@ declare function createOrReplacePersona(
  *
  * @throws 如果访问后端失败, 将会抛出异常
  */
-declare function deletePersona(persona_id: TypeFest.LiteralUnion<'current', string>): Promise<boolean>;
+export declare function deletePersona(persona_id: TypeFest.LiteralUnion<'current', string>): Promise<boolean>;
 
 /**
  * 完全替换 persona 的内容
@@ -1852,13 +1852,13 @@ declare function deletePersona(persona_id: TypeFest.LiteralUnion<'current', stri
  * persona.description = '新的玩家描述';
  * await replacePersona('玩家', persona);
  */
-declare function replacePersona(
+export declare function replacePersona(
   persona_id: TypeFest.LiteralUnion<'current', string>,
   persona: TypeFest.PartialDeep<Persona>,
   options?: ReplacePersonaOptions,
 ): Promise<void>;
 
-type PersonaUpdater = ((persona: Persona) => Persona) | ((persona: Persona) => Promise<Persona>);
+export type PersonaUpdater = ((persona: Persona) => Persona) | ((persona: Persona) => Promise<Persona>);
 
 /**
  * 用 `updater` 函数更新 persona
@@ -1879,7 +1879,7 @@ type PersonaUpdater = ((persona: Persona) => Persona) | ((persona: Persona) => P
  *   return persona;
  * });
  */
-declare function updatePersonaWith(
+export declare function updatePersonaWith(
   persona_id: TypeFest.LiteralUnion<'current', string>,
   updater: PersonaUpdater,
   options?: ReplacePersonaOptions,
@@ -1888,7 +1888,7 @@ declare function updatePersonaWith(
 
 
 // --- preset.d.ts ---
-type Preset = {
+export type Preset = {
   settings: {
     /** 最大上下文 token 数 */
     max_context: number;
@@ -1963,7 +1963,7 @@ type Preset = {
   };
 };
 
-type PresetPrompt = {
+export type PresetPrompt = {
   /**
    * 根据 id, 预设提示词分为以下三类:
    * - 普通提示词 (`isPresetNormalPrompt`): 预设界面上可以手动添加的提示词
@@ -2007,12 +2007,12 @@ type PresetPrompt = {
   /** 额外字段, 用于为预设提示词绑定额外数据 */
   extra?: Record<string, any>;
 };
-type PresetNormalPrompt = TypeFest.SetRequired<{ id: string } & Omit<PresetPrompt, 'id'>, 'position' | 'content'>;
-type PresetSystemPrompt = TypeFest.SetRequired<
+export type PresetNormalPrompt = TypeFest.SetRequired<{ id: string } & Omit<PresetPrompt, 'id'>, 'position' | 'content'>;
+export type PresetSystemPrompt = TypeFest.SetRequired<
   { id: 'main' | 'nsfw' | 'jailbreak' | 'enhanceDefinitions' } & Omit<PresetPrompt, 'id' | 'position'>,
   'content'
 >;
-type PresetPlaceholderPrompt = TypeFest.SetRequired<
+export type PresetPlaceholderPrompt = TypeFest.SetRequired<
   {
     id:
       | 'worldInfoBefore'
@@ -2026,18 +2026,18 @@ type PresetPlaceholderPrompt = TypeFest.SetRequired<
   } & Omit<PresetPrompt, 'id' | 'content'>,
   'position'
 >;
-declare function isPresetNormalPrompt(prompt: PresetPrompt): prompt is PresetNormalPrompt;
-declare function isPresetSystemPrompt(prompt: PresetPrompt): prompt is PresetSystemPrompt;
-declare function isPresetPlaceholderPrompt(prompt: PresetPrompt): prompt is PresetPlaceholderPrompt;
+export declare function isPresetNormalPrompt(prompt: PresetPrompt): prompt is PresetNormalPrompt;
+export declare function isPresetSystemPrompt(prompt: PresetPrompt): prompt is PresetSystemPrompt;
+export declare function isPresetPlaceholderPrompt(prompt: PresetPrompt): prompt is PresetPlaceholderPrompt;
 
-declare const default_preset: Preset;
+export declare const default_preset: Preset;
 
 /**
  * 获取预设名称列表
  *
  * @returns 预设名称列表
  */
-declare function getPresetNames(): string[];
+export declare function getPresetNames(): string[];
 
 /**
  * 获取酒馆正在使用的预设 (`'in_use'`) 是从哪个预设加载来的.
@@ -2048,7 +2048,7 @@ declare function getPresetNames(): string[];
  *
  * @returns 预设名称
  */
-declare function getLoadedPresetName(): string;
+export declare function getLoadedPresetName(): string;
 
 /**
  * 加载 `preset_name` 预设作为酒馆正在使用的预设 (`'in_use'`)
@@ -2056,7 +2056,7 @@ declare function getLoadedPresetName(): string;
  * @param preset_name 预设名称
  * @returns 是否成功切换, 可能因预设不存在等原因而失败
  */
-declare function loadPreset(preset_name: Exclude<string, 'in_use'>): boolean;
+export declare function loadPreset(preset_name: Exclude<string, 'in_use'>): boolean;
 
 /**
  * 获取 `preset_name` 预设的内容
@@ -2067,7 +2067,7 @@ declare function loadPreset(preset_name: Exclude<string, 'in_use'>): boolean;
  *
  * @throws 如果预设不存在, 将会抛出异常
  */
-declare function getPreset(preset_name: TypeFest.LiteralUnion<'in_use', string>): Preset;
+export declare function getPreset(preset_name: TypeFest.LiteralUnion<'in_use', string>): Preset;
 
 /**
  * 新建 `preset_name` 预设, 内容为 `preset`
@@ -2079,7 +2079,7 @@ declare function getPreset(preset_name: TypeFest.LiteralUnion<'in_use', string>)
  *
  * @throws 如果创建的预设内容中存在重复的系统/占位提示词, 将会抛出异常
  */
-declare function createPreset(preset_name: Exclude<string, 'in_use'>, preset?: Preset): Promise<boolean>;
+export declare function createPreset(preset_name: Exclude<string, 'in_use'>, preset?: Preset): Promise<boolean>;
 
 /**
  * 创建或替换名为 `preset_name` 的预设, 内容为 `preset`
@@ -2091,7 +2091,7 @@ declare function createPreset(preset_name: Exclude<string, 'in_use'>, preset?: P
  *
  * @returns 如果发生创建, 则返回 `true`; 如果发生替换, 则返回 `false`
  */
-declare function createOrReplacePreset(
+export declare function createOrReplacePreset(
   preset_name: TypeFest.LiteralUnion<'in_use', string>,
   preset?: Preset,
   { render }?: ReplacePresetOptions,
@@ -2104,7 +2104,7 @@ declare function createOrReplacePreset(
  *
  * @returns 是否成功删除, 可能因预设不存在等原因而失败
  */
-declare function deletePreset(preset_name: Exclude<string, 'in_use'>): Promise<boolean>;
+export declare function deletePreset(preset_name: Exclude<string, 'in_use'>): Promise<boolean>;
 
 /**
  * 重命名 `preset_name` 预设为 `new_name`
@@ -2114,9 +2114,9 @@ declare function deletePreset(preset_name: Exclude<string, 'in_use'>): Promise<b
  *
  * @returns 是否成功重命名, 可能因预设不存在等原因而失败
  */
-declare function renamePreset(preset_name: Exclude<string, 'in_use'>, new_name: string): Promise<boolean>;
+export declare function renamePreset(preset_name: Exclude<string, 'in_use'>, new_name: string): Promise<boolean>;
 
-type ReplacePresetOptions = {
+export type ReplacePresetOptions = {
   /** 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染 */
   render?: 'debounced' | 'immediate' | 'none';
 };
@@ -2163,13 +2163,13 @@ type ReplacePresetOptions = {
  * preset_b.prompts = [...preset_a.prompts, ...preset_b.prompts];
  * await replacePreset('预设B', preset_b);
  */
-declare function replacePreset(
+export declare function replacePreset(
   preset_name: TypeFest.LiteralUnion<'in_use', string>,
   preset: Preset,
   { render }?: ReplacePresetOptions,
 ): Promise<void>;
 
-type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise<Preset>);
+export type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise<Preset>);
 /**
  * 用 `updater` 函数更新 `preset_name` 预设
  *
@@ -2219,7 +2219,7 @@ type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise
  *   return preset;
  * });
  */
-declare function updatePresetWith(
+export declare function updatePresetWith(
   preset_name: TypeFest.LiteralUnion<'in_use', string>,
   updater: PresetUpdater,
   { render }?: ReplacePresetOptions,
@@ -2248,7 +2248,7 @@ declare function updatePresetWith(
  *   prompts: [...getPreset('预设A').prompts, ...getPreset('预设B').prompts],
  * });
  */
-declare function setPreset(
+export declare function setPreset(
   preset_name: TypeFest.LiteralUnion<'in_use', string>,
   preset: TypeFest.PartialDeep<Preset>,
   { render }?: ReplacePresetOptions,
@@ -2261,7 +2261,7 @@ declare function setPreset(
  * 角色卡管理类
  * 用于封装角色卡数据操作和提供便捷的访问方法
  */
-declare class RawCharacter {
+export declare class RawCharacter {
   constructor(characterData: SillyTavern.v1CharData);
 
   /**
@@ -2361,7 +2361,7 @@ declare class RawCharacter {
  * @param allowAvatar 是否允许通过头像ID查找
  * @returns 角色卡数据
  */
-declare function getCharData(name: TypeFest.LiteralUnion<'current', string>): SillyTavern.v1CharData | null;
+export declare function getCharData(name: TypeFest.LiteralUnion<'current', string>): SillyTavern.v1CharData | null;
 
 /**
  * 获取角色头像路径
@@ -2369,7 +2369,7 @@ declare function getCharData(name: TypeFest.LiteralUnion<'current', string>): Si
  * @param allowAvatar 是否允许通过头像ID查找
  * @returns 角色头像路径
  */
-declare function getCharAvatarPath(name: TypeFest.LiteralUnion<'current', string>): string | null;
+export declare function getCharAvatarPath(name: TypeFest.LiteralUnion<'current', string>): string | null;
 
 /**
  * 获取角色聊天历史摘要
@@ -2377,7 +2377,7 @@ declare function getCharAvatarPath(name: TypeFest.LiteralUnion<'current', string
  * @param allowAvatar 是否允许通过头像ID查找
  * @returns 聊天历史摘要数组
  */
-declare function getChatHistoryBrief(
+export declare function getChatHistoryBrief(
   name: TypeFest.LiteralUnion<'current', string>,
   allowAvatar?: boolean,
 ): Promise<any[] | null>;
@@ -2388,7 +2388,7 @@ declare function getChatHistoryBrief(
  * @param isGroupChat 是否为群组聊天
  * @returns 聊天历史详情
  */
-declare function getChatHistoryDetail(data: any[], isGroupChat?: boolean): Promise<Record<string, any> | null>;
+export declare function getChatHistoryDetail(data: any[], isGroupChat?: boolean): Promise<Record<string, any> | null>;
 
 
 
@@ -2396,14 +2396,14 @@ declare function getChatHistoryDetail(data: any[], isGroupChat?: boolean): Promi
 /**
  * 获取所有处于启用状态的酒馆助手脚本按钮, 主要是方便 QR 助手等兼容脚本按钮
  */
-declare function getAllEnabledScriptButtons(): { [script_id: string]: { button_id: string; button_name: string }[] };
+export declare function getAllEnabledScriptButtons(): { [script_id: string]: { button_id: string; button_name: string }[] };
 
-type ScriptButton = {
+export type ScriptButton = {
   name: string;
   visible: boolean;
 };
 
-type Script = {
+export type Script = {
   type: 'script';
   enabled: boolean;
   name: string;
@@ -2420,7 +2420,7 @@ type Script = {
     button: boolean;
   };
 };
-type ScriptFolder = {
+export type ScriptFolder = {
   type: 'folder';
   enabled: boolean;
   name: string;
@@ -2429,9 +2429,9 @@ type ScriptFolder = {
   color: string;
   scripts: Script[];
 };
-type ScriptTree = Script | ScriptFolder;
+export type ScriptTree = Script | ScriptFolder;
 
-type ScriptTreesOptions = {
+export type ScriptTreesOptions = {
   /** 对全局脚本 (`'chat'`)、当前预设脚本 (`'preset'`) 或当前角色卡脚本 (`'global'`) 进行操作 */
   type: 'global' | 'preset' | 'character';
 };
@@ -2443,7 +2443,7 @@ type ScriptTreesOptions = {
  *
  * @returns 酒馆助手脚本列表
  */
-declare function getScriptTrees(option: ScriptTreesOptions): ScriptTree[];
+export declare function getScriptTrees(option: ScriptTreesOptions): ScriptTree[];
 
 /**
  * 完全替换酒馆助手列表为 `script_trees`
@@ -2451,7 +2451,7 @@ declare function getScriptTrees(option: ScriptTreesOptions): ScriptTree[];
  * @param script_trees 要用于替换的酒馆助手列表
  * @param option 要操作的酒馆助手脚本类型
  */
-declare function replaceScriptTrees(script_trees: TypeFest.PartialDeep<ScriptTree>[], option: ScriptTreesOptions): void;
+export declare function replaceScriptTrees(script_trees: TypeFest.PartialDeep<ScriptTree>[], option: ScriptTreesOptions): void;
 
 /**
  * 用 `updater` 函数更新酒馆助手列表
@@ -2461,7 +2461,7 @@ declare function replaceScriptTrees(script_trees: TypeFest.PartialDeep<ScriptTre
  *
  * @returns 更新后的酒馆助手列表
  */
-declare function updateScriptTreesWith(
+export declare function updateScriptTreesWith(
   updater: (script_trees: ScriptTree[]) => TypeFest.PartialDeep<ScriptTree>[],
   option: ScriptTreesOptions,
 ): ScriptTree[];
@@ -2474,7 +2474,7 @@ declare function updateScriptTreesWith(
  *
  * @returns 更新后的酒馆助手列表
  */
-declare function updateScriptTreesWith(
+export declare function updateScriptTreesWith(
   updater: (script_trees: ScriptTree[]) => Promise<TypeFest.PartialDeep<ScriptTree>[]>,
   option: ScriptTreesOptions,
 ): Promise<ScriptTree[]>;
@@ -2510,12 +2510,12 @@ declare function updateScriptTreesWith(
  * // 触发 AI 回复
  * await triggerSlash('/trigger');
  */
-declare function triggerSlash(command: string): Promise<string>;
+export declare function triggerSlash(command: string): Promise<string>;
 
 
 
 // --- tavern_regex.d.ts ---
-type FormatAsTavernRegexedStringOption = {
+export type FormatAsTavernRegexedStringOption = {
   /** 文本所在的深度; 不填则不考虑酒馆正则的`深度`选项: 无论该深度是否在酒馆正则的`最小深度`和`最大深度`范围内都生效 */
   depth?: number;
   /** 角色卡名称; 不填则使用当前角色卡名称 */
@@ -2537,14 +2537,14 @@ type FormatAsTavernRegexedStringOption = {
  * const message = getChatMessages(-1)[0];
  * const result = formatAsTavernRegexedString(message.message, 'ai_output', 'display', { depth: 0 });
  */
-declare function formatAsTavernRegexedString(
+export declare function formatAsTavernRegexedString(
   text: string,
   source: 'user_input' | 'ai_output' | 'slash_command' | 'world_info' | 'reasoning',
   destination: 'display' | 'prompt',
   { depth, character_name }?: FormatAsTavernRegexedStringOption,
 ): string;
 
-type TavernRegex = {
+export type TavernRegex = {
   id: string;
   script_name: string;
   enabled: boolean;
@@ -2575,23 +2575,23 @@ type TavernRegex = {
 /**
  * 判断局部正则是否启用
  */
-declare function isCharacterTavernRegexesEnabled(): boolean;
+export declare function isCharacterTavernRegexesEnabled(): boolean;
 
-type TavernRegexOptionGlobal = {
+export type TavernRegexOptionGlobal = {
   /** 对全局正则 (`'global'`) 进行操作 */
   type: 'global';
 };
-type TavernRegexOptionCharacter = {
+export type TavernRegexOptionCharacter = {
   /** 对角色卡局部 (`'character'`) 进行操作 */
   type: 'character';
   name?: string | 'current';
 };
-type TavernRegexOptionPreset = {
+export type TavernRegexOptionPreset = {
   /** 对预设正则 (`'preset'`) 进行操作 */
   type: 'preset';
   name?: string | 'in_use';
 };
-type TavernRegexOption = TavernRegexOptionGlobal | TavernRegexOptionCharacter | TavernRegexOptionPreset;
+export type TavernRegexOption = TavernRegexOptionGlobal | TavernRegexOptionCharacter | TavernRegexOptionPreset;
 
 /**
  * 获取酒馆正则
@@ -2600,9 +2600,9 @@ type TavernRegexOption = TavernRegexOptionGlobal | TavernRegexOptionCharacter | 
  *
  * @returns 一个数组, 数组的元素是酒馆正则 `TavernRegex`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
  */
-declare function getTavernRegexes(option: TavernRegexOption): TavernRegex[];
+export declare function getTavernRegexes(option: TavernRegexOption): TavernRegex[];
 
-type ReplaceTavernRegexesOption = {
+export type ReplaceTavernRegexesOption = {
   scope?: 'all' | 'global' | 'character';
 };
 
@@ -2616,9 +2616,9 @@ type ReplaceTavernRegexesOption = {
  * @param regexes 要用于替换的酒馆正则
  * @param option 要操作的酒馆正则类型
  */
-declare function replaceTavernRegexes(regexes: TavernRegex[], option: TavernRegexOption): Promise<void>;
+export declare function replaceTavernRegexes(regexes: TavernRegex[], option: TavernRegexOption): Promise<void>;
 
-type TavernRegexUpdater =
+export type TavernRegexUpdater =
   | ((regexes: TavernRegex[]) => TavernRegex[])
   | ((regexes: TavernRegex[]) => Promise<TavernRegex[]>);
 
@@ -2644,7 +2644,7 @@ type TavernRegexUpdater =
  *   { type: 'global' },
  * );
  */
-declare function updateTavernRegexesWith(
+export declare function updateTavernRegexesWith(
   updater: TavernRegexUpdater,
   option: TavernRegexOption,
 ): Promise<TavernRegex[]>;
@@ -2662,14 +2662,14 @@ declare function updateTavernRegexesWith(
  * const text = substitudeMacros("{{char}} speaks in {{lastMessageId}}");
  * text == "少女歌剧 speaks in 5";
  */
-declare function substitudeMacros(text: string): string;
+export declare function substitudeMacros(text: string): string;
 
 /**
  * 获取最新楼层 id
  *
  * @returns 最新楼层id
  */
-declare function getLastMessageId(): number;
+export declare function getLastMessageId(): number;
 
 /**
  * 包装任意函数，返回一个会将报错消息通过酒馆通知显示出来的同功能函数
@@ -2684,7 +2684,7 @@ declare function getLastMessageId(): number;
  * }
  * errorCatched(test)();
  */
-declare function errorCatched<T extends any[], U>(fn: (...args: T) => U): (...args: T) => U;
+export declare function errorCatched<T extends any[], U>(fn: (...args: T) => U): (...args: T) => U;
 
 /**
  * 从前端界面的 iframe 标识名称 `iframe_name` 获取它所在楼层的楼层号, **只能对前端界面 iframe 标识名称使用**
@@ -2694,16 +2694,16 @@ declare function errorCatched<T extends any[], U>(fn: (...args: T) => U): (...ar
  *
  * @throws 如果提供的 `iframe_name` 不是前端界面 iframe 标识名称, 将会抛出错误
  */
-declare function getMessageId(iframe_name: string): number;
+export declare function getMessageId(iframe_name: string): number;
 
 
 
 // --- variables.d.ts ---
-type VariableOptionNormal = {
+export type VariableOptionNormal = {
   /** 对聊天变量 (`'chat'`)、当前预设 (`'preset'`) 或全局变量 (`'global'`) 进行操作 */
   type: 'chat' | 'preset' | 'global';
 };
-type VariableOptionCharacter = {
+export type VariableOptionCharacter = {
   /**
    * 对当前角色卡 (`'character'`) 进行操作
    *
@@ -2711,7 +2711,7 @@ type VariableOptionCharacter = {
    */
   type: 'character';
 };
-type VariableOptionMessage = {
+export type VariableOptionMessage = {
   /** 对消息楼层变量 (`message`) 进行操作 */
   type: 'message';
   /**
@@ -2721,19 +2721,19 @@ type VariableOptionMessage = {
    */
   message_id?: number | 'latest';
 };
-type VariableOptionScript = {
+export type VariableOptionScript = {
   /** 对脚本变量 (`'script'`) 进行操作 */
   type: 'script';
   /** 指定要操作变量的脚本 ID; 如果在脚本内调用, 则无须指定, 当然你也可以用 `getScriptId()` 获取该脚本 ID */
   script_id?: string;
 };
-type VariableOptionExtension = {
+export type VariableOptionExtension = {
   /** 对扩展变量 (`'extension'`) 进行操作 */
   type: 'extension';
   /** 指定要操作变量的扩展 ID */
   extension_id: string;
 };
-type VariableOption = VariableOptionNormal | VariableOptionCharacter | VariableOptionMessage | VariableOptionScript | VariableOptionExtension;
+export type VariableOption = VariableOptionNormal | VariableOptionCharacter | VariableOptionMessage | VariableOptionScript | VariableOptionExtension;
 
 /**
  * 获取变量表
@@ -2763,7 +2763,7 @@ type VariableOption = VariableOptionNormal | VariableOptionCharacter | VariableO
  * // 在脚本内获取该脚本绑定的变量
  * const variables = getVariables({type: 'script'});
  */
-declare function getVariables(option: VariableOption): Record<string, any>;
+export declare function getVariables(option: VariableOption): Record<string, any>;
 
 /**
  * 完全替换变量表为 `variables`
@@ -2789,7 +2789,7 @@ declare function getVariables(option: VariableOption): Record<string, any>;
  * // 在脚本内替换该脚本绑定的变量
  * replaceVariables({神乐光: {好感度: 5, 认知度: 0}}, {type: 'script'});
  */
-declare function replaceVariables(variables: Record<string, any>, option: VariableOption): void;
+export declare function replaceVariables(variables: Record<string, any>, option: VariableOption): void;
 
 /**
  * 用 `updater` 函数更新变量表
@@ -2810,7 +2810,7 @@ declare function replaceVariables(variables: Record<string, any>, option: Variab
  * // 更新 "爱城华恋.好感度" 为原来的 2 倍, 如果该变量不存在则设置为 0
  * updateVariablesWith(variables => _.update(variables, "爱城华恋.好感度", value => value ? value * 2 : 0), {type: 'chat'});
  */
-declare function updateVariablesWith(
+export declare function updateVariablesWith(
   updater: (variables: Record<string, any>) => Record<string, any>,
   option: VariableOption,
 ): Record<string, any>;
@@ -2826,7 +2826,7 @@ declare function updateVariablesWith(
  * @example
  * await updateVariablesWith(async variables => {await update(variables); return variables;}, {type: 'chat'});
  */
-declare function updateVariablesWith(
+export declare function updateVariablesWith(
   updater: (variables: Record<string, any>) => Promise<Record<string, any>>,
   option: VariableOption,
 ): Promise<Record<string, any>>;
@@ -2846,7 +2846,7 @@ declare function updateVariablesWith(
  * await insertOrAssignVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}}, {type: 'chat'});
  * // 执行后变量: `{爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}}`
  */
-declare function insertOrAssignVariables(variables: Record<string, any>, option: VariableOption): Record<string, any>;
+export declare function insertOrAssignVariables(variables: Record<string, any>, option: VariableOption): Record<string, any>;
 
 /**
  * 插入新变量, 如果变量已经存在则什么也不做
@@ -2863,7 +2863,7 @@ declare function insertOrAssignVariables(variables: Record<string, any>, option:
  * await insertVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}}, {type: 'chat'});
  * // 执行后变量: `{爱城华恋: {好感度: 5}, 神乐光: {好感度: 5, 认知度: 0}}`
  */
-declare function insertVariables(variables: Record<string, any>, option: VariableOption): Record<string, any>;
+export declare function insertVariables(variables: Record<string, any>, option: VariableOption): Record<string, any>;
 
 /**
  * 删除变量, 如果变量不存在则什么也不做
@@ -2880,7 +2880,7 @@ declare function insertVariables(variables: Record<string, any>, option: Variabl
  * await deleteVariable("爱城华恋.好感度", {type: 'chat'});
  * // 执行后变量: `{爱城华恋: {}}`
  */
-declare function deleteVariable(
+export declare function deleteVariable(
   variable_path: string,
   option: VariableOption,
 ): { variables: Record<string, any>; delete_occurred: boolean };
@@ -2901,7 +2901,7 @@ declare function deleteVariable(
  *   }),
  * }), {type: 'message'});
  */
-declare function registerVariableSchema(
+export declare function registerVariableSchema(
   schema: z.ZodType<any>,
   option: { type: 'global' | 'preset' | 'character' | 'chat' | 'message' },
 ): void;
@@ -2912,12 +2912,12 @@ declare function registerVariableSchema(
 /**
  * 获取酒馆助手版本号
  */
-declare function getTavernHelperVersion(): string;
+export declare function getTavernHelperVersion(): string;
 
 /**
  * 获取酒馆版本号
  */
-declare function getTavernVersion(): string;
+export declare function getTavernVersion(): string;
 
 
 
@@ -2927,22 +2927,22 @@ declare function getTavernVersion(): string;
  *
  * @returns 世界书名称列表
  */
-declare function getWorldbookNames(): string[];
+export declare function getWorldbookNames(): string[];
 
 /**
  * 获取当前全局开启的世界书名称列表
  *
  * @returns 全局世界书名称列表
  */
-declare function getGlobalWorldbookNames(): string[];
+export declare function getGlobalWorldbookNames(): string[];
 /**
  * 重新绑定全局世界书
  *
  * @param worldbook_names 要全局开启的世界书
  */
-declare function rebindGlobalWorldbooks(worldbook_names: string[]): Promise<void>;
+export declare function rebindGlobalWorldbooks(worldbook_names: string[]): Promise<void>;
 
-type CharWorldbooks = {
+export type CharWorldbooks = {
   primary: string | null;
   additional: string[];
 };
@@ -2953,14 +2953,14 @@ type CharWorldbooks = {
  *
  * @returns 角色卡绑定的世界书
  */
-declare function getCharWorldbookNames(character_name: TypeFest.LiteralUnion<'current' | string>): CharWorldbooks;
+export declare function getCharWorldbookNames(character_name: TypeFest.LiteralUnion<'current' | string>): CharWorldbooks;
 /**
  * 重新绑定角色卡世界书
  *
  * @param character_name 角色卡名称, 'current' 表示当前打开的角色卡
  * @param char_worldbooks 要对该角色卡绑定的世界书
  */
-declare function rebindCharWorldbooks(character_name: 'current', char_worldbooks: CharWorldbooks): Promise<void>;
+export declare function rebindCharWorldbooks(character_name: 'current', char_worldbooks: CharWorldbooks): Promise<void>;
 
 /**
  * 获取聊天文件绑定的世界书
@@ -2969,23 +2969,23 @@ declare function rebindCharWorldbooks(character_name: 'current', char_worldbooks
  *
  * @returns 聊天文件绑定的世界书, 如果没有则为 `null`
  */
-declare function getChatWorldbookName(chat_name: 'current'): string | null;
+export declare function getChatWorldbookName(chat_name: 'current'): string | null;
 /**
  * 重新绑定聊天文件世界书
  *
  * @param character_name 聊天文件名称, 'current' 表示当前打开的聊天
  * @param char_worldbooks 要对该聊天文件绑定的世界书
  */
-declare function rebindChatWorldbook(chat_name: 'current', worldbook_name: string): Promise<void>;
+export declare function rebindChatWorldbook(chat_name: 'current', worldbook_name: string): Promise<void>;
 /**
  * 获取或新建聊天文件世界书
  *
  * @param chat_name 聊天文件名称, 'current' 表示当前打开的聊天
  * @param worldbook_name 世界书名称; 不填则根据当前时间创建
  */
-declare function getOrCreateChatWorldbook(chat_name: 'current', worldbook_name?: string): Promise<string>;
+export declare function getOrCreateChatWorldbook(chat_name: 'current', worldbook_name?: string): Promise<string>;
 
-type WorldbookEntry = {
+export type WorldbookEntry = {
   /** uid 是相对于世界书内部的, 不要跨世界书使用 */
   uid: number;
   name: string;
@@ -3076,7 +3076,7 @@ type WorldbookEntry = {
  *
  * @throws 如果世界书不存在, 将会抛出错误
  */
-declare function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]>;
+export declare function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]>;
 
 /**
  * 创建新的世界书
@@ -3086,7 +3086,7 @@ declare function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]>
  *
  * @returns 如果发生创建, 则返回 `true`; 如果发生替换, 则返回 `false`
  */
-declare function createWorldbook(worldbook_name: string, worldbook?: WorldbookEntry[]): Promise<boolean>;
+export declare function createWorldbook(worldbook_name: string, worldbook?: WorldbookEntry[]): Promise<boolean>;
 
 /**
  * 创建或替换名为 `worldbook_name` 的世界书, 内容为 `worldbook`
@@ -3098,7 +3098,7 @@ declare function createWorldbook(worldbook_name: string, worldbook?: WorldbookEn
  *
  * @returns 如果发生创建, 则返回 `true`; 如果发生替换, 则返回 `false`
  */
-declare function createOrReplaceWorldbook(
+export declare function createOrReplaceWorldbook(
   worldbook_name: string,
   worldbook?: TypeFest.PartialDeep<WorldbookEntry>[],
   { render }?: ReplaceWorldbookOptions,
@@ -3111,12 +3111,12 @@ declare function createOrReplaceWorldbook(
  *
  * @returns 是否成功删除, 可能因世界书不存在等原因而失败
  */
-declare function deleteWorldbook(worldbook_name: string): Promise<boolean>;
+export declare function deleteWorldbook(worldbook_name: string): Promise<boolean>;
 
 // TODO: rename 需要处理世界书绑定
 // export function renameWorldbook(old_name: string, new_name: string): boolean;
 
-interface ReplaceWorldbookOptions {
+export interface ReplaceWorldbookOptions {
   /** 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染 */
   render?: 'debounced' | 'immediate';
 }
@@ -3147,13 +3147,13 @@ interface ReplaceWorldbookOptions {
  * _.remove(worldbook, entry => entry.name.includes('神乐光'));
  * await replaceWorldbook("eramgt少女歌剧", worldbook);
  */
-declare function replaceWorldbook(
+export declare function replaceWorldbook(
   worldbook_name: string,
   worldbook: TypeFest.PartialDeep<WorldbookEntry>[],
   { render }?: ReplaceWorldbookOptions,
 ): Promise<void>;
 
-type WorldbookUpdater =
+export type WorldbookUpdater =
   | ((worldbook: WorldbookEntry[]) => TypeFest.PartialDeep<WorldbookEntry>[])
   | ((worldbook: WorldbookEntry[]) => Promise<TypeFest.PartialDeep<WorldbookEntry>[]>);
 /**
@@ -3184,7 +3184,7 @@ type WorldbookUpdater =
  *   return worldbook;
  * });
  */
-declare function updateWorldbookWith(
+export declare function updateWorldbookWith(
   worldbook_name: string,
   updater: WorldbookUpdater,
   { render }?: ReplaceWorldbookOptions,
@@ -3206,7 +3206,7 @@ declare function updateWorldbookWith(
  * // 创建两个条目, 一个标题叫 `'神乐光'`, 一个留白
  * const { worldbook, new_entries } = await createWorldbookEntries('eramgt少女歌剧', [{ name: '神乐光' }, {}]);
  */
-declare function createWorldbookEntries(
+export declare function createWorldbookEntries(
   worldbook_name: string,
   new_entries: TypeFest.PartialDeep<WorldbookEntry>[],
   { render }?: ReplaceWorldbookOptions,
@@ -3228,7 +3228,7 @@ declare function createWorldbookEntries(
  * // 删除所有名字中包含 `'神乐光'` 的条目
  * const { worldbook, deleted_entries } = await deleteWorldbookEntries('eramgt少女歌剧', entry => entry.name.includes('神乐光'));
  */
-declare function deleteWorldbookEntries(
+export declare function deleteWorldbookEntries(
   worldbook_name: string,
   predicate: (entry: WorldbookEntry) => boolean,
   { render }?: ReplaceWorldbookOptions,

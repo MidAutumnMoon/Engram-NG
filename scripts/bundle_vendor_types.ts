@@ -5,8 +5,11 @@
 // siblings are reachable only through bare `typeof` references. A single
 // triple-slash reference can't pull those siblings in, and without scoping every
 // declared function would leak as a bare global. This script concatenates the
-// siblings into a module body and wraps index.d.ts's Window augmentation in
-// `declare global`, so only `window.TavernHelper` escapes.
+// siblings into a module body, `export`s every top-level declaration so consumers
+// can `import type { RolePrompt, GenerateRawConfig, ... }` from it, and wraps
+// index.d.ts's Window augmentation in `declare global`, so only
+// `window.TavernHelper` escapes as a true global — the named types stay
+// module-scoped and importable on demand.
 //
 // Run via `deno task gen:types`. The vendor dir is treated as read-only; output
 // is committed to the source tree. Regenerate after bumping the JS-Slash-Runner
@@ -42,13 +45,30 @@ const splitRefs = (content: string): { refs: string; body: string } => {
     return { refs, body };
 };
 
+// Prefix `export` onto every top-level declaration so the bundled types are
+// importable (`import type { RolePrompt } from "@/types/vendor/jsr-function"`).
+// Vendor source declares everything ambient (`type X`, `declare function f`,
+// etc.) with no `export`; as a module those would be unreachable. Function
+// overloads (multiple `declare function f` lines) merge fine when each is
+// `export declare function f`. Only top-level lines are touched — anything
+// indented or inside a block body is left alone.
+const EXPORT_DECL_RE =
+    /^(type |interface |declare function |declare const |declare class )/;
+const exportDecls = (body: string): string =>
+    body
+        .split("\n")
+        .map((line) =>
+            EXPORT_DECL_RE.test(line) ? `export ${line}` : line
+        )
+        .join("\n");
+
 let refsAll = "";
 let bodyAll = "";
 
 for (const file of files) {
     const { refs, body } = splitRefs(Deno.readTextFileSync(srcDir + file));
     refsAll += refs;
-    bodyAll += `\n// --- ${file} ---\n` + body + "\n";
+    bodyAll += `\n// --- ${file} ---\n` + exportDecls(body) + "\n";
 }
 
 // index.d.ts declares `interface Window { TavernHelper: {...} }`; wrap it in
