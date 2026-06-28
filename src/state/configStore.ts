@@ -4,10 +4,7 @@ import {
     getSettings,
     setSetting,
 } from "@/config/settings.ts";
-import type {
-    GlobalRegexConfig,
-    TrimConfig,
-} from "@/config/types/memory.ts";
+import type { GlobalRegexConfig, TrimConfig } from "@/config/types/memory.ts";
 import {
     DEFAULT_INGESTION_CONFIG,
     type IngestionConfig,

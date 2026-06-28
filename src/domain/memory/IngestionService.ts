@@ -288,8 +288,6 @@ class IngestionService {
                     last_episode_id: episodeId,
                     last_pass_range: range,
                 });
-                // Mirror into Zustand for chatHistory.ts smart-incremental slicing
-                useMemoryStore.getState().setLastProcessedFloor(range[1]);
                 Logger.info(
                     LogModule.STBRIDGE,
                     "Ingestion: 游标推进",
@@ -782,8 +780,9 @@ class IngestionService {
         while (true) {
             const result = await requestReview({
                 title: "摄取确认",
-                description:
-                    `范围: ${range[0]} - ${range[1]} 楼 | 请确认摘要与实体提取结果`,
+                description: `范围: ${range[0]} - ${
+                    range[1]
+                } 楼 | 请确认摘要与实体提取结果`,
                 content: summaryContent,
                 actions: ["confirm", "fill", "reroll", "cancel"],
                 type: "combined",

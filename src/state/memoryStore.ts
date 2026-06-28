@@ -1,4 +1,3 @@
-import { chatManager } from "@/data/ChatManager.ts";
 import {
     type ChatDatabase,
     deleteDatabase,
@@ -6,7 +5,6 @@ import {
     tryGetDbForChat,
 } from "@/data/db.ts";
 import type { EntityNode, EventNode } from "@/data/types/graph.ts";
-import { getProcessedFloor } from "@/data/types/graph.ts";
 import { getCurrentChatId } from "@/sillytavern/context.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
@@ -55,17 +53,8 @@ export interface SummaryAnchor {
 }
 
 export interface CoreState {
-    currentChatId: string | null;
-    /**
-     * 统一摄取游标（summary + entity 共享）。
-     * 由 getProcessedFloor() 解析，含旧字段兜底。
-     */
-    lastProcessedFloor: number;
-
     // Actions
     initChat: () => Promise<ChatDatabase | null>;
-    setLastProcessedFloor: (floor: number) => Promise<void>;
-    reset: () => void;
     clearChatDatabase: () => Promise<void>;
     deleteChatDatabase: () => Promise<void>;
 }
@@ -147,13 +136,16 @@ export interface EventState {
 export type MemoryState = CoreState & EntityState & EventState;
 
 /**
+ * initChat 的 chat-switch 检测用的上次 chatId。
+ * 仅 initChat 内部使用——外部消费者都从 getCurrentChatId() 取实时值。
+ */
+let lastChatId: string | null = null;
+
+/**
  * Memory Store
  */
-export const useMemoryStore = create<MemoryState>()((set, get) => ({
-    // --- core state ---
-    currentChatId: null,
-    lastProcessedFloor: 0,
-
+export const useMemoryStore = create<MemoryState>()((_set, get) => ({
+    // --- core actions ---
     initChat: async () => {
         const chatId = getCurrentChatId();
         if (!chatId) {
@@ -161,31 +153,16 @@ export const useMemoryStore = create<MemoryState>()((set, get) => ({
             return null;
         }
 
-        if (chatId !== get().currentChatId) {
+        if (chatId !== lastChatId) {
             Logger.debug(
                 LogModule.MEMORY_STORE,
                 `Switching to chat: ${chatId}`,
             );
-            const state = await chatManager.getState();
-            set({
-                currentChatId: chatId,
-                lastProcessedFloor: getProcessedFloor(state),
-            });
+            lastChatId = chatId;
         }
 
         return getDbForChat(chatId);
     },
-
-    setLastProcessedFloor: async (floor) => {
-        await chatManager.updateState({ last_processed_floor: floor });
-        set({ lastProcessedFloor: floor });
-    },
-
-    reset: () =>
-        set({
-            currentChatId: null,
-            lastProcessedFloor: 0,
-        }),
 
     clearChatDatabase: async () => {
         let db = getCurrentDb();
@@ -213,9 +190,6 @@ export const useMemoryStore = create<MemoryState>()((set, get) => ({
                     await db.meta.clear();
                 },
             );
-            set({
-                lastProcessedFloor: 0,
-            });
             Logger.success(LogModule.MEMORY_STORE, "Database cleared");
         } catch (e) {
             Logger.error(LogModule.MEMORY_STORE, "Failed to clear database", e);
@@ -224,14 +198,14 @@ export const useMemoryStore = create<MemoryState>()((set, get) => ({
     },
 
     deleteChatDatabase: async () => {
-        const chatId = get().currentChatId || getCurrentChatId();
+        const chatId = lastChatId || getCurrentChatId();
         if (!chatId) {
             throw new Error("未连接到聊天，无法删除");
         }
 
         try {
             await deleteDatabase(chatId);
-            get().reset();
+            lastChatId = null;
             Logger.success(LogModule.MEMORY_STORE, "Database deleted");
         } catch (e) {
             Logger.error(

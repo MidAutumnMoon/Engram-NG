@@ -16,6 +16,7 @@ import type { EventNode } from "@/data/types/graph.ts";
 import { hideMessageRange } from "@/sillytavern/chat/hideMessageRange.ts";
 import { refreshEngramCache } from "@/domain/macros/Macros.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
+import { chatManager } from "@/data/ChatManager.ts";
 import { toast } from "@/sillytavern/toast.ts";
 import { requestReview } from "@/domain/review/ReviewBridge.ts";
 import type { ReviewAction } from "@/domain/review/ReviewBridge.ts";
@@ -23,14 +24,14 @@ import { RobustJsonParser } from "@/utils/JsonParser.ts";
 import SUMMARY_SYSTEM from "@/integrations/llm/prompts/SUMMARY_SYSTEM.txt?raw";
 import SUMMARY_USER from "@/integrations/llm/prompts/SUMMARY_USER.txt?raw";
 import {
+    type CancelSignal,
     cleanRegex,
     fetchContext,
+    type FetchContextResult,
     isCancelled,
+    type LlmPrompt,
     runLlm,
     stopGeneration,
-    type CancelSignal,
-    type FetchContextResult,
-    type LlmPrompt,
 } from "./shared.ts";
 
 /**
@@ -171,7 +172,10 @@ export async function runSummary(
         });
 
         if (result.action === "cancel") {
-            Logger.info(LogModule.WF_USER_REVIEW, "User explicitly cancelled via Review UI");
+            Logger.info(
+                LogModule.WF_USER_REVIEW,
+                "User explicitly cancelled via Review UI",
+            );
             throwUserCancelled();
         }
 
@@ -327,7 +331,7 @@ export async function saveSummaryEvents(
 
     // Advance unified ingestion cursor (skip for imports — cursor stays on main chat)
     if (range[1] > 0 && !isImport) {
-        await store.setLastProcessedFloor(range[1]);
+        await chatManager.updateState({ last_processed_floor: range[1] });
     }
 
     await refreshEngramCache();
