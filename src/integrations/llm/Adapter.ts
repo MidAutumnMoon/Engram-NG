@@ -4,7 +4,7 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
 import { getTavernHelper, TavernHelper } from "@/sillytavern/context.ts";
-import { RolePrompt } from "@/types/vendor/jsr-function.d.ts";
+import { RolePrompt, type CustomApiConfig } from "@/types/vendor/jsr-function.d.ts";
 
 /** LLM 生成请求 */
 interface LLMRequest {
@@ -145,11 +145,13 @@ class LLMAdapter {
     // 助手方法：提取预设参数
     // =========================================================================
 
-    private extractPresetParameters(preset: LLMPreset): Record<string, any> {
-        const config: Record<string, any> = {
-            // 采样参数
+    private extractPresetParameters(preset: LLMPreset): CustomApiConfig {
+        // 采样参数。这些字段 CustomApiConfig 接受 'same_as_preset' | 'unset' | number，
+        // 而 preset.parameters 里都是 number，直接赋值即可。
+        // max_context 故意不放进来：JS-Slash-Runner 运行时从不读 custom_api.max_context，
+        // 它自行用 getMaxContextSize() 计算，放进来是死写字段。
+        const config: CustomApiConfig = {
             frequency_penalty: preset.parameters?.frequencyPenalty,
-            max_context: preset.parameters?.maxContext,
             max_tokens: preset.parameters?.maxTokens,
             presence_penalty: preset.parameters?.presencePenalty,
             temperature: preset.parameters?.temperature,
@@ -158,9 +160,11 @@ class LLMAdapter {
         };
 
         // 移除 undefined 项，避免覆盖酒馆默认值
-        Object.keys(config).forEach((key) =>
-            config[key] === undefined && delete config[key]
-        );
+        for (const key of Object.keys(config) as (keyof CustomApiConfig)[]) {
+            if (config[key] === undefined) {
+                delete config[key];
+            }
+        }
 
         // 如果是 custom，额外添加连接信息
         if (preset.source === "custom" && preset.custom) {
@@ -168,7 +172,8 @@ class LLMAdapter {
             config.key = preset.custom.apiKey;
             config.model = preset.custom.model;
             config.source = "openai";
-            config.stream = preset.stream ?? false;
+            // stream 不放进来：流式由顶层 GenerateConfig.should_stream 控制
+            // （已在 callTavernHelper 的 generationOptions 里传），运行时不读 custom_api.stream。
         } else if (preset.modelOverride) {
             // 如果是非 custom 预设但指定了模型名，也强制覆盖
             config.model = preset.modelOverride;
@@ -184,7 +189,7 @@ class LLMAdapter {
     private async callTavernHelper(
         request: LLMRequest,
         helper: NonNullable<TavernHelper>,
-        customApiConfig?: Record<string, any>,
+        customApiConfig?: CustomApiConfig,
         currentPreset?: LLMPreset,
     ): Promise<LLMResponse> {
         // =========================================================================
