@@ -1,7 +1,7 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { getSTContext } from "@/sillytavern/context.ts";
-import { useMemoryStore } from "@/state/memoryStore.ts";
+import { type SummaryAnchor, useMemoryStore } from "@/state/memoryStore.ts";
 import {
     getChatHistory as getChatHistoryHelper,
     getCurrentMessageCount as getCurrentMessageCountHelper,
@@ -10,7 +10,6 @@ import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
 import { chatManager } from "@/data/ChatManager.ts";
 import { getProcessedFloor } from "@/data/types/graph.ts";
 import { formatRecalledSection } from "@/domain/memory/entityFormat.ts";
-import type { SummaryAnchor } from "@/state/memory/slices/eventSlice.ts";
 
 /**
  * 读取提取游标（last_processed_floor）作为记忆前沿。
@@ -180,8 +179,12 @@ export interface RefreshEngramCacheOptions {
 export async function refreshEngramCache(
     opts: RefreshEngramCacheOptions = {},
 ): Promise<void> {
-    const { recalledIds, recalledEntityIds, frontierOverride, flashbackAnchor } =
-        opts;
+    const {
+        recalledIds,
+        recalledEntityIds,
+        frontierOverride,
+        flashbackAnchor,
+    } = opts;
     try {
         const store = useMemoryStore.getState();
 

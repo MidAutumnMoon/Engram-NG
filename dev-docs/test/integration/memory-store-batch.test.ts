@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useMemoryStore } from "@/state/memoryStore.ts";
-import { getCurrentDb } from "@/state/memory/slices/coreSlice.ts";
+import { useMemoryStore, getCurrentDb } from "@/state/memoryStore.ts";
 
 // Mock tavern integration to return our test chat id
 vi.mock("@/sillytavern", async () => {
