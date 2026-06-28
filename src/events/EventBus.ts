@@ -45,6 +45,8 @@ export const EventBus = {
             try {
                 cb(stamped);
             } catch (err) {
+                // console, not Logger: EventBus may fire from inside a Logger
+                // subscriber's callback chain — using Logger here risks re-entry.
                 console.error("[EventBus] subscriber threw:", err);
             }
         }

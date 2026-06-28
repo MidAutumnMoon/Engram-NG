@@ -8,6 +8,8 @@ import {
 import type { EventNode } from "@/data/types/graph.ts";
 import { getProcessedFloor } from "@/data/types/graph.ts";
 import { getCurrentChatId } from "@/sillytavern/context.ts";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import type { StateCreator } from "zustand";
 
 export interface CoreState {
@@ -55,7 +57,10 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (
             // Try to initialize it if missing
             db = await get().initChat();
             if (!db) {
-                console.warn("[MemoryStore] No database available to clear");
+                Logger.warn(
+                    LogModule.MEMORY_STORE,
+                    "No database available to clear",
+                );
                 return;
             }
         }
@@ -76,9 +81,9 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (
                 lastProcessedFloor: 0,
                 recentEvents: [],
             });
-            console.info("[MemoryStore] Database cleared successfully");
+            Logger.success(LogModule.MEMORY_STORE, "Database cleared");
         } catch (e) {
-            console.error("[MemoryStore] Failed to clear database:", e);
+            Logger.error(LogModule.MEMORY_STORE, "Failed to clear database", e);
             throw e;
         }
     },
@@ -93,21 +98,21 @@ export const createCoreSlice: StateCreator<any, [], [], CoreState> = (
         try {
             await deleteDatabase(chatId);
             get().reset();
-            console.info("[MemoryStore] Database deleted successfully");
+            Logger.success(LogModule.MEMORY_STORE, "Database deleted");
         } catch (e) {
-            console.error("[MemoryStore] Failed to delete database:", e);
+            Logger.error(LogModule.MEMORY_STORE, "Failed to delete database", e);
             throw e;
         }
     },
     initChat: async () => {
         const chatId = getCurrentChatId();
         if (!chatId) {
-            console.warn("[MemoryStore] No chat_id available");
+            Logger.warn(LogModule.MEMORY_STORE, "No chat_id available");
             return null;
         }
 
         if (chatId !== get().currentChatId) {
-            console.debug(`[MemoryStore] Switching to chat: ${chatId}`);
+            Logger.debug(LogModule.MEMORY_STORE, `Switching to chat: ${chatId}`);
             const state = await chatManager.getState();
             set({
                 currentChatId: chatId,

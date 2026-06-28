@@ -5,6 +5,8 @@
  */
 import type { ModelLogEntry } from "@/logger/modelLog.ts";
 import { useModelLogStore } from "@/logger/modelLog.ts";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
 import {
     AlertCircle,
@@ -109,7 +111,7 @@ const LogCard: React.FC<{
                     setCalcRecvTokens(t);
                 }
             } catch (error) {
-                console.warn("Failed to count tokens", error);
+                Logger.warn(LogModule.LLM, "Failed to count tokens", error);
             }
         };
         countTokens();

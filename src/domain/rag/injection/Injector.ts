@@ -54,21 +54,16 @@ class Injector {
         if (this.isInitialized) return;
 
         Logger.info(LogModule.RAG_INJECT, "开始初始化 V0.8 预处理注入器...");
-        console.log("[Injector] Starting initialization...");
 
         // V0.8: 使用 GENERATION_AFTER_COMMANDS 事件
         // 这个事件在命令处理后、生成开始前触发，酒馆会 await 处理器
         onTavernEvent(
             "GENERATION_AFTER_COMMANDS",
             async (type: any, params: any, dryRun: any) => {
-                console.log(
-                    "[Injector] 🎯 GENERATION_AFTER_COMMANDS triggered",
-                    { dryRun, type },
-                );
                 Logger.debug(
                     LogModule.RAG_INJECT,
                     "捕获 GENERATION_AFTER_COMMANDS",
-                    { type },
+                    { dryRun, type },
                 );
 
                 // 重要！必须 await 处理，才能阻塞酒馆的生成流程
@@ -107,9 +102,6 @@ class Injector {
 
         this.isInitialized = true;
         Logger.success(LogModule.RAG_INJECT, "V0.8 Injector 初始化完成");
-        console.log(
-            "[Injector] ✅ V0.8 Initialized - Listening for GENERATION_AFTER_COMMANDS",
-        );
     }
 
     /**
@@ -415,7 +407,6 @@ class Injector {
                     stack: error?.stack,
                 },
             );
-            console.error("[Injector] Error:", error);
         }
     }
 }

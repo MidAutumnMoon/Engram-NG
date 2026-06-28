@@ -3,6 +3,8 @@ import { Database, RefreshCw, Trash2 } from "lucide-react";
 import type { DatabaseStats } from "@/data/db.ts";
 import { deleteDatabase, getDatabaseStats, listAllChatIds } from "@/data/db.ts";
 import { getCurrentChatId } from "@/sillytavern/context.ts";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 
 export const GlobalDatabaseList: React.FC = () => {
     const [dbs, setDbs] = useState<DatabaseStats[]>([]);
@@ -20,7 +22,7 @@ export const GlobalDatabaseList: React.FC = () => {
             stats.sort((a, b) => b.lastUpdateTime - a.lastUpdateTime);
             setDbs(stats);
         } catch (error) {
-            console.error("Failed to fetch databases", error);
+            Logger.error(LogModule.DATABASE, "Failed to fetch databases", error);
         } finally {
             setLoading(false);
         }

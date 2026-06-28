@@ -18,6 +18,9 @@ export function toast(
     if (window.toastr) {
         window.toastr[level](message, title, { ...DEFAULTS, ...opts });
     } else {
+        // console fallback: toastr (the UI surface) is unavailable, so we still
+        // need a user-visible signal. Logger below captures the event, but it
+        // doesn't render anything to the user.
         console.log(`[Engram] ${level}: ${title} - ${message}`);
     }
     Logger[level === "warning" ? "warn" : level](
@@ -34,6 +37,9 @@ export function toastPersistent(
 ): JQuery | null {
     const t = window.toastr;
     if (!t) {
+        Logger.info(LogModule.NOTIFICATION, `running: ${title} - ${message}`);
+        // console fallback: toastr (the UI surface) is unavailable; give the
+        // user a visible signal that Logger alone can't provide.
         console.log(`[Engram] running: ${title} - ${message}`);
         return null;
     }

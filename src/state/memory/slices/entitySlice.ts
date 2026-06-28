@@ -1,5 +1,7 @@
 import { generateShortUUID } from "@/utils/shortUUID.ts";
 import type { EntityNode } from "@/data/types/graph.ts";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import type { StateCreator } from "zustand";
 import {
     formatArchivedEntityBlock,
@@ -46,9 +48,12 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
             await db.entities.where("id").anyOf(entityIds).modify({
                 is_archived: true,
             });
-            console.log(`[MemoryStore] Archived ${entityIds.length} entities`);
+            Logger.info(
+                LogModule.MEMORY_STORE,
+                `Archived ${entityIds.length} entities`,
+            );
         } catch (e) {
-            console.error("[MemoryStore] Failed to archive entities:", e);
+            Logger.error(LogModule.MEMORY_STORE, "Failed to archive entities", e);
         }
     },
 
@@ -59,9 +64,12 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
 
         try {
             await db.entities.bulkDelete(entityIds);
-            console.log(`[MemoryStore] Deleted ${entityIds.length} entities`);
+            Logger.info(
+                LogModule.MEMORY_STORE,
+                `Deleted ${entityIds.length} entities`,
+            );
         } catch (e) {
-            console.error("[MemoryStore] Failed to delete entities:", e);
+            Logger.error(LogModule.MEMORY_STORE, "Failed to delete entities", e);
             throw e;
         }
     },
@@ -73,9 +81,9 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
 
         try {
             await db.entities.bulkDelete([entityId]);
-            console.log(`[MemoryStore] Deleted entity: ${entityId}`);
+            Logger.info(LogModule.MEMORY_STORE, `Deleted entity: ${entityId}`);
         } catch (e) {
-            console.error("[MemoryStore] Failed to delete entity:", e);
+            Logger.error(LogModule.MEMORY_STORE, "Failed to delete entity", e);
             throw e;
         }
     },
@@ -87,7 +95,7 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
         try {
             return await db.entities.toArray();
         } catch (e) {
-            console.error("[MemoryStore] Failed to get all entities:", e);
+            Logger.error(LogModule.MEMORY_STORE, "Failed to get all entities", e);
             return [];
         }
     },
@@ -147,7 +155,11 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
 
             return sections.join("\n\n");
         } catch (e) {
-            console.error("[MemoryStore] Failed to get entity states:", e);
+            Logger.error(
+                LogModule.MEMORY_STORE,
+                "Failed to get entity states",
+                e,
+            );
             return "";
         }
     },
@@ -166,7 +178,10 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
         }));
 
         await db.entities.bulkAdd(entities);
-        console.log(`[MemoryStore] Bulk saved ${entities.length} entities`);
+        Logger.info(
+            LogModule.MEMORY_STORE,
+            `Bulk saved ${entities.length} entities`,
+        );
         return entities;
     },
 
@@ -183,7 +198,7 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
         };
 
         await db.entities.add(entity);
-        console.log(`[MemoryStore] Saved entity: ${entity.name}`);
+        Logger.info(LogModule.MEMORY_STORE, `Saved entity: ${entity.name}`);
         return entity;
     },
 
@@ -198,12 +213,17 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
 
             const newLockState = !existing.is_locked;
             await db.entities.update(entityId, { is_locked: newLockState });
-            console.log(
-                `[MemoryStore] Toggled entity lock: ${entityId} -> ${newLockState}`,
+            Logger.info(
+                LogModule.MEMORY_STORE,
+                `Toggled entity lock: ${entityId} -> ${newLockState}`,
             );
             return newLockState;
         } catch (e) {
-            console.error("[MemoryStore] Failed to toggle entity lock:", e);
+            Logger.error(
+                LogModule.MEMORY_STORE,
+                "Failed to toggle entity lock",
+                e,
+            );
             return false;
         }
     },
@@ -228,11 +248,16 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
                     }
                 }
             });
-            console.log(
-                `[MemoryStore] Batch updated ${updatesList.length} entities`,
+            Logger.info(
+                LogModule.MEMORY_STORE,
+                `Batch updated ${updatesList.length} entities`,
             );
         } catch (e) {
-            console.error("[MemoryStore] Failed to batch update entities:", e);
+            Logger.error(
+                LogModule.MEMORY_STORE,
+                "Failed to batch update entities",
+                e,
+            );
             throw e;
         }
     },
@@ -247,8 +272,9 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
 
             const existing = await db.entities.get(entityId);
             if (!existing) {
-                console.warn(
-                    `[MemoryStore] Entity not found for update: ${entityId}`,
+                Logger.warn(
+                    LogModule.MEMORY_STORE,
+                    `Entity not found for update: ${entityId}`,
                 );
                 return;
             }
@@ -260,9 +286,12 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
             };
 
             await db.entities.put(merged);
-            console.log(`[MemoryStore] Put completed for entity: ${entityId}`);
+            Logger.info(
+                LogModule.MEMORY_STORE,
+                `Put completed for entity: ${entityId}`,
+            );
         } catch (e) {
-            console.error("[MemoryStore] Failed to update entity:", e);
+            Logger.error(LogModule.MEMORY_STORE, "Failed to update entity", e);
             throw e;
         }
     },

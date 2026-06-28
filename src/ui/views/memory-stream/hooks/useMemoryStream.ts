@@ -2,6 +2,8 @@ import { getSetting } from "@/config/settings.ts";
 import type { EntityNode, EventNode } from "@/data/types/graph.ts";
 import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
 import { refreshEngramCache } from "@/domain/macros/Macros.ts";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { toast } from "@/sillytavern/toast.ts";
 import {
@@ -104,7 +106,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
 
             setActiveIds(new Set());
         } catch (error) {
-            console.error("[MemoryStream] Failed to load events:", error);
+            Logger.error(LogModule.MEMORY_STREAM, "Failed to load events", error);
         } finally {
             setIsLoading(false);
         }
@@ -116,7 +118,11 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             const allEntities = await store.getAllEntities();
             setEntities(allEntities);
         } catch (error) {
-            console.error("[MemoryStream] Failed to load entities:", error);
+            Logger.error(
+                LogModule.MEMORY_STREAM,
+                "Failed to load entities",
+                error,
+            );
         }
     }, [store.getAllEntities]);
 
@@ -275,7 +281,11 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                     "MemoryStream",
                 );
             } catch (error) {
-                console.error("[MemoryStream] Archive toggle failed:", error);
+                Logger.error(
+                    LogModule.MEMORY_STREAM,
+                    "Archive toggle failed",
+                    error,
+                );
                 toast("error", "调整归档状态失败", "MemoryStream");
             }
         },
@@ -297,8 +307,9 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                     "MemoryStream",
                 );
             } catch (error) {
-                console.error(
-                    "[MemoryStream] Entity lock toggle failed:",
+                Logger.error(
+                    LogModule.MEMORY_STREAM,
+                    "Entity lock toggle failed",
                     error,
                 );
                 toast("error", "调整锁定状态失败", "MemoryStream");
@@ -322,8 +333,9 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                     "MemoryStream",
                 );
             } catch (error) {
-                console.error(
-                    "[MemoryStream] Event lock toggle failed:",
+                Logger.error(
+                    LogModule.MEMORY_STREAM,
+                    "Event lock toggle failed",
                     error,
                 );
                 toast("error", "调整锁定状态失败", "MemoryStream");
@@ -347,8 +359,9 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
                     "MemoryStream",
                 );
             } catch (error) {
-                console.error(
-                    "[MemoryStream] Event archive toggle failed:",
+                Logger.error(
+                    LogModule.MEMORY_STREAM,
+                    "Event archive toggle failed",
                     error,
                 );
                 toast("error", "调整归档状态失败", "MemoryStream");
@@ -390,7 +403,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             setPendingChanges(new Map());
             setPendingEntityChanges(new Map());
         } catch (error) {
-            console.error("[MemoryStream] Batch save failed:", error);
+            Logger.error(LogModule.MEMORY_STREAM, "Batch save failed", error);
             toast("error", "保存过程中发生严重错误", "MemoryStream");
         }
     }, [
@@ -496,8 +509,9 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
 
             await embeddingService.reembedAllEvents(
                 (current, total, errors) => {
-                    console.log(
-                        `[MemoryStream] Reembedding: ${current}/${total}, errors: ${errors}`,
+                    Logger.debug(
+                        LogModule.MEMORY_STREAM,
+                        `Reembedding: ${current}/${total}, errors: ${errors}`,
                     );
                 },
             );
@@ -505,7 +519,7 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
             await loadEvents();
             toast("success", "重嵌完工！", "MemoryStream");
         } catch (error: any) {
-            console.error("[MemoryStream] Reembed failed:", error);
+            Logger.error(LogModule.MEMORY_STREAM, "Reembed failed", error);
             toast(
                 "error",
                 "重嵌失败: " + (error.message || "未知错误"),

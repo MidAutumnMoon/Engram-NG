@@ -59,6 +59,7 @@ export const MODULE_META: Record<LogModule, ModuleMeta> = {
     // ===== 记忆管理 =====
     [LogModule.MEMORY_ENTITY]: { icon: Search },
     [LogModule.MEMORY_TRIM]: { icon: Search },
+    [LogModule.MEMORY_STORE]: { icon: Database },
     [LogModule.ENTITY_SCANNER]: { icon: Search },
 
     // ===== RAG =====
@@ -83,6 +84,7 @@ export const MODULE_META: Record<LogModule, ModuleMeta> = {
 
     // ===== UI =====
     [LogModule.DASHBOARD]: { icon: PanelTop },
+    [LogModule.MEMORY_STREAM]: { icon: MessageSquare },
     [LogModule.NOTIFICATION]: { icon: MessageSquare },
 
     // ===== 数据层 =====

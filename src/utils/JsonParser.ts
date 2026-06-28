@@ -10,6 +10,9 @@
  * 推荐在 workflow 中使用 CleanRegex 步骤进行预处理。
  */
 
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
+
 export class RobustJsonParser {
     /**
      * 清洗并解析字符串中的 JSON
@@ -21,15 +24,16 @@ export class RobustJsonParser {
         let jsonString = this.extractJsonBlock(input);
 
         if (!jsonString) {
-            console.warn("[RobustJsonParser] 未找到 JSON 数据块");
+            Logger.warn(LogModule.WF_PARSE_JSON, "未找到 JSON 数据块");
             return null;
         }
 
         // V1.0.1: 智能封装 (Array -> Object)
         // 如果提取到的是数组 [...]，自动封装为 { events: [...] } 以适配下游消费
         if (jsonString.trim().startsWith("[")) {
-            console.log(
-                "[RobustJsonParser] 检测到数组格式，尝试自动封装为 { events: [] }",
+            Logger.debug(
+                LogModule.WF_PARSE_JSON,
+                "检测到数组格式，自动封装为 { events: [] }",
             );
             jsonString = `{ "events": ${jsonString} }`;
         }
@@ -43,7 +47,7 @@ export class RobustJsonParser {
             try {
                 return JSON.parse(repaired);
             } catch (error) {
-                console.error("[RobustJsonParser] 解析失败:", error);
+                Logger.error(LogModule.WF_PARSE_JSON, "解析失败", error);
                 return null;
             }
         }

@@ -23,6 +23,8 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     public override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+        // console, not Logger: this is render-phase, the component tree (and
+        // possibly Logger's own dependencies) may be in a broken state.
         console.error("[ErrorBoundary] Uncaught error:", error, errorInfo);
         if (this.props.onError) {
             this.props.onError(error, errorInfo);

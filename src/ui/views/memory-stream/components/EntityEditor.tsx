@@ -8,6 +8,8 @@
  */
 import type { EntityNode, EntityType } from "@/data/types/graph.ts";
 import { currentValue } from "@/domain/memory/fieldHistory.ts";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import { Divider } from "@/ui/components/layout/Divider.tsx";
 import { useResponsive } from "@/ui/hooks/useResponsive.ts";
 import { safeStringify } from "@/utils/safeStringify.ts";
@@ -159,7 +161,7 @@ export const EntityEditor = ({
         try {
             parsedProfile = JSON.parse(profileJson);
         } catch (error) {
-            console.error("JSON Parse Error during sync", error);
+            Logger.error(LogModule.MEMORY_STREAM, "JSON Parse Error during sync", error);
             // 🐛 P0 Bugfix: 如果 JSON 有语法错误，直接阻断提交，绝不使用 `{}` 覆盖原数据
             return;
         }

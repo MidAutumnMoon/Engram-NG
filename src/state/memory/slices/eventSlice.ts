@@ -1,5 +1,7 @@
 import { generateShortUUID } from "@/utils/shortUUID.ts";
 import type { EventNode } from "@/data/types/graph.ts";
+import { Logger } from "@/logger/Logger.ts";
+import { LogModule } from "@/logger/LogModule.ts";
 import type { StateCreator } from "zustand";
 import { getCurrentDb, tryGetCurrentDb } from "./coreSlice.ts";
 
@@ -127,8 +129,9 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
             if (lines.length === 0) return "";
             return `<summary>\n${lines.join("\n\n")}\n</summary>`;
         } catch (error) {
-            console.error(
-                "[MemoryStore] Failed to get event summaries:",
+            Logger.error(
+                LogModule.MEMORY_STORE,
+                "Failed to get event summaries",
                 error,
             );
             return "";
@@ -156,8 +159,9 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
             if (!time_anchor && !event) return null;
             return { time_anchor, event };
         } catch (error) {
-            console.error(
-                "[MemoryStore] Failed to get summary anchor:",
+            Logger.error(
+                LogModule.MEMORY_STORE,
+                "Failed to get summary anchor",
                 error,
             );
             return null;
@@ -171,8 +175,9 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
         try {
             return await db.events.where("id").anyOf(recalledIds).toArray();
         } catch (error) {
-            console.error(
-                "[MemoryStore] Failed to get recalled events:",
+            Logger.error(
+                LogModule.MEMORY_STORE,
+                "Failed to get recalled events",
                 error,
             );
             return [];
@@ -188,8 +193,9 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
                 filterTimelineEvents(events).map((e) => e.id),
             );
         } catch (error) {
-            console.error(
-                "[MemoryStore] Failed to get timeline event ids:",
+            Logger.error(
+                LogModule.MEMORY_STORE,
+                "Failed to get timeline event ids",
                 error,
             );
             return new Set<string>();
@@ -204,9 +210,12 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
             await db.events.where("id").anyOf(eventIds).modify({
                 is_archived: true,
             });
-            console.log(`[MemoryStore] Archived ${eventIds.length} events`);
+            Logger.info(
+                LogModule.MEMORY_STORE,
+                `Archived ${eventIds.length} events`,
+            );
         } catch (error) {
-            console.error("[MemoryStore] Failed to archive events:", error);
+            Logger.error(LogModule.MEMORY_STORE, "Failed to archive events", error);
         }
     },
 
@@ -218,12 +227,14 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
             await db.events.where("id").anyOf(eventIds).modify({
                 is_embedded: true,
             });
-            console.log(
-                `[MemoryStore] Marked ${eventIds.length} events as embedded`,
+            Logger.info(
+                LogModule.MEMORY_STORE,
+                `Marked ${eventIds.length} events as embedded`,
             );
         } catch (error) {
-            console.error(
-                "[MemoryStore] Failed to mark events as embedded:",
+            Logger.error(
+                LogModule.MEMORY_STORE,
+                "Failed to mark events as embedded",
                 error,
             );
         }
@@ -246,8 +257,9 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
                 eligibleEvents.length - keepRecentCount,
             );
         } catch (error) {
-            console.error(
-                "[MemoryStore] Failed to get events to merge:",
+            Logger.error(
+                LogModule.MEMORY_STORE,
+                "Failed to get events to merge",
                 error,
             );
             return [];
@@ -261,9 +273,12 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
 
         try {
             await db.events.bulkDelete(eventIds);
-            console.log(`[MemoryStore] Deleted ${eventIds.length} events`);
+            Logger.info(
+                LogModule.MEMORY_STORE,
+                `Deleted ${eventIds.length} events`,
+            );
         } catch (error) {
-            console.error("[MemoryStore] Failed to delete events:", error);
+            Logger.error(LogModule.MEMORY_STORE, "Failed to delete events", error);
             throw error;
         }
     },
@@ -279,13 +294,15 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
                 .map((e) => e.id);
             if (ids.length === 0) return 0;
             await db.events.bulkDelete(ids);
-            console.log(
-                `[MemoryStore] Deleted ${ids.length} events for episode ${episodeId}`,
+            Logger.info(
+                LogModule.MEMORY_STORE,
+                `Deleted ${ids.length} events for episode ${episodeId}`,
             );
             return ids.length;
         } catch (error) {
-            console.error(
-                "[MemoryStore] Failed to delete events by episode:",
+            Logger.error(
+                LogModule.MEMORY_STORE,
+                "Failed to delete events by episode",
                 error,
             );
             return 0;
@@ -300,9 +317,13 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
         try {
             const { id: _id, timestamp: _ts, ...safeUpdates } = updates as any;
             await db.events.update(eventId, safeUpdates);
-            console.log(`[MemoryStore] Updated event: ${eventId}`, safeUpdates);
+            Logger.info(
+                LogModule.MEMORY_STORE,
+                `Updated event: ${eventId}`,
+                safeUpdates,
+            );
         } catch (error) {
-            console.error("[MemoryStore] Failed to update event:", error);
+            Logger.error(LogModule.MEMORY_STORE, "Failed to update event", error);
             throw error;
         }
     },
@@ -320,12 +341,14 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
                     await db.events.update(id, safeUpdates);
                 }
             });
-            console.log(
-                `[MemoryStore] Batch updated ${updatesList.length} events`,
+            Logger.info(
+                LogModule.MEMORY_STORE,
+                `Batch updated ${updatesList.length} events`,
             );
         } catch (error) {
-            console.error(
-                "[MemoryStore] Failed to batch update events:",
+            Logger.error(
+                LogModule.MEMORY_STORE,
+                "Failed to batch update events",
                 error,
             );
             throw error;
@@ -343,12 +366,17 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
 
             const newLockState = !existing.is_locked;
             await db.events.update(eventId, { is_locked: newLockState });
-            console.log(
-                `[MemoryStore] Toggled event lock: ${eventId} -> ${newLockState}`,
+            Logger.info(
+                LogModule.MEMORY_STORE,
+                `Toggled event lock: ${eventId} -> ${newLockState}`,
             );
             return newLockState;
         } catch (error) {
-            console.error("[MemoryStore] Failed to toggle event lock:", error);
+            Logger.error(
+                LogModule.MEMORY_STORE,
+                "Failed to toggle event lock",
+                error,
+            );
             return false;
         }
     },
@@ -360,7 +388,7 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
         try {
             return await db.events.orderBy("timestamp").toArray();
         } catch (error) {
-            console.error("[MemoryStore] Failed to get all events:", error);
+            Logger.error(LogModule.MEMORY_STORE, "Failed to get all events", error);
             return [];
         }
     },

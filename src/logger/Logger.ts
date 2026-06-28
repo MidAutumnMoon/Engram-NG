@@ -80,7 +80,8 @@ function write(
         try {
             cb(entry);
         } catch (err) {
-            // 不能用 Logger.error——会重新进入 write 导致重入
+            // console, not Logger: this *is* inside Logger.write — re-entering
+            // would recurse. This is the catch-of-last-resort for a subscriber.
             console.error("[Logger] subscriber threw:", err);
         }
     }

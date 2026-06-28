@@ -37,6 +37,7 @@ export enum LogModule {
     // ===== Memory Management =====
     MEMORY_ENTITY = "Memory/Entity",
     MEMORY_TRIM = "Memory/Trim",
+    MEMORY_STORE = "Memory/Store",
     ENTITY_SCANNER = "EntityScanner",
 
     // ===== RAG =====
@@ -61,6 +62,7 @@ export enum LogModule {
 
     // ===== UI =====
     DASHBOARD = "UI/Dashboard",
+    MEMORY_STREAM = "UI/MemoryStream",
     NOTIFICATION = "Notification",
 
     // ===== Data Layer =====
