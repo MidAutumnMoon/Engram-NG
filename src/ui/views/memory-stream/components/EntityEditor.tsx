@@ -11,7 +11,7 @@ import { currentValue } from "@/domain/memory/fieldHistory.ts";
 import { Divider } from "@/ui/components/layout/Divider.tsx";
 import { useResponsive } from "@/ui/hooks/useResponsive.ts";
 import { safeStringify } from "@/utils/safeStringify.ts";
-import yaml from "js-yaml"; // 需要确认项目是否已安装 js-yaml，如果没有则需要简单实现或引入
+import { dump as yamlDump } from "js-yaml"; // 需要确认项目是否已安装 js-yaml，如果没有则需要简单实现或引入
 import { debounce } from "lodash"; // Phase 3 Performance Add: 引入防抖
 import { AlertTriangle, History, RefreshCw, Trash2 } from "lucide-react";
 import React, {
@@ -279,7 +279,7 @@ export const EntityEditor = ({
                 profile: fullProfile,
             };
 
-            const yamlContent = yaml.dump(entityObj, {
+            const yamlContent = yamlDump(entityObj, {
                 indent: 2,
                 lineWidth: -1,
                 noRefs: true,

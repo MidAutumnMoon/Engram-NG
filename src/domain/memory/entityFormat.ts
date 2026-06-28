@@ -16,7 +16,7 @@
 import type { EntityNode } from "@/data/types/graph.ts";
 import { EntityType } from "@/data/types/graph.ts";
 import { resolveAt } from "@/domain/memory/fieldHistory.ts";
-import yaml from "js-yaml";
+import { dump as yamlDump } from "js-yaml";
 
 /** 实体类型 → XML 标签名 */
 const TYPE_TAG_MAP: Record<string, string> = {
@@ -156,7 +156,7 @@ export function profileToYaml(
     profile: Record<string, unknown>,
 ): string {
     try {
-        const yamlContent = yaml.dump({ profile }, {
+        const yamlContent = yamlDump({ profile }, {
             indent: 2,
             lineWidth: -1,
             noRefs: true,
