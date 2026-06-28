@@ -21,6 +21,13 @@ import {
 } from "@/sillytavern/context.ts";
 import { refreshEngramCache } from "@/domain/macros/Macros.ts";
 import { retriever } from "@/domain/rag/retrieval/Retriever.ts";
+import { chatManager } from "@/data/ChatManager.ts";
+import { getProcessedFloor } from "@/data/types/graph.ts";
+import { computeFlashbackTarget } from "@/domain/rag/injection/flashback.ts";
+
+// 纯函数 computeFlashbackTarget 从 ./flashback.ts 引入并在本模块 re-export，
+// 保持外部 import 路径稳定（外部可从 Injector 或 flashback 任一位置引入）。
+export { computeFlashbackTarget } from "@/domain/rag/injection/flashback.ts";
 
 interface GenerationAfterCommandsParams {
     automatic_trigger?: boolean;
@@ -331,26 +338,23 @@ class Injector {
                             // nodes[0] 是最相关的事件。若它指向足够久远的叙事时刻，
                             // 把实体状态渲染锚定到该事件的 end_index——
                             // 「召回命中了过去事件，则用户很可能在问那个时刻」。
-                            // Recency guard：仅当 top 事件距当前消息超过一定距离时
+                            // Recency guard：仅当 top 事件距前沿超过一定距离时
                             // 才锚定，避免普通查询误锚定到近期事件导致状态偏移。
-                            // 缺省回退（无节点 / 近期事件 / 无 source_range）= latest。
+                            // 基准用 frontier（last_processed_floor）而非 chat.length：
+                            // chat.length 含未提取的缓冲区，会让阈值随 bufferSize 偏移。
                             const topNode = recallResult.nodes[0];
                             const topEndIndex = topNode?.source_range
                                 ?.end_index;
-                            const currentMsgCount = chat.length;
-                            // 锚定阈值：top 事件距今至少 10 条消息才视为 flashback。
-                            // 10 条 ≈ 一两轮对话，保证普通「当前状态」查询不被误锚定。
-                            const FLASHBACK_MIN_DISTANCE = 10;
-                            const isFlashback = topEndIndex != null &&
-                                topEndIndex <=
-                                    currentMsgCount - FLASHBACK_MIN_DISTANCE;
-                            const targetIndex = isFlashback
-                                ? topEndIndex!
-                                : undefined;
-                            if (isFlashback) {
+                            const state = await chatManager.getState();
+                            const frontier = getProcessedFloor(state);
+                            const targetIndex = computeFlashbackTarget(
+                                topEndIndex,
+                                frontier,
+                            );
+                            if (targetIndex != null) {
                                 Logger.debug(
                                     LogModule.RAG_INJECT,
-                                    `[flashback] 实体状态锚定到 msg ${topEndIndex} (当前 ${currentMsgCount})`,
+                                    `[flashback] 实体状态锚定到 msg ${topEndIndex} (前沿 ${frontier})`,
                                     { topEvent: topNode.id },
                                 );
                             }

@@ -4,6 +4,23 @@ import { getSTContext } from "@/sillytavern/context.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
 import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
+import { chatManager } from "@/data/ChatManager.ts";
+import { getProcessedFloor } from "@/data/types/graph.ts";
+
+/**
+ * 读取提取游标（last_processed_floor）作为记忆前沿。
+ *
+ * 不变量：注入读路径的「current」必须等于提取写路径的「last_processed_floor」。
+ * 二者是同一个点——提取 pass 把状态区间 stamp 在 range[1]，并把游标推进到 range[1]，
+ * 所以注入时 as-of 该游标就是「最新已提取状态」。
+ *
+ * 历史上 refreshEngramCache 用 MAX_SAFE_INTEGER 当默认 target，靠 open interval
+ * 恰好落在游标处来「蒙对」。这里改为显式读取游标，把不变量从隐式约定变成显式读取。
+ */
+async function resolveFrontier(): Promise<number> {
+    const state = await chatManager.getState();
+    return getProcessedFloor(state);
+}
 
 /**
  * 宏模块
@@ -88,9 +105,10 @@ export function getEntityStates(): string {
 /**
  * 刷新 Engram DB 缓存 (事件摘要 + 实体状态)。
  * @param recalledIds 可选，RAG 召回的事件 ID 列表
- * @param target_index 可选，实体状态 as-of 解析的消息索引（用于 flashback 查询）。
- *   缺省 = 最新（latest）。Injector 在召回命中过去事件时传入该事件的 end_index，
- *   使 {{engramEntityStates}} 渲染为「那个叙事时刻」的状态快照。
+ * @param target_index 可选，实体状态 as-of 解析的消息索引。
+ *   缺省 = 提取前沿（last_processed_floor）——与提取 pass stamp 状态区间用的 range[1] 对齐。
+ *   flashback 路径会传入召回事件的 end_index，使 {{engramEntityStates}} 渲染为
+ *   「那个叙事时刻」的状态快照；其余场景一律 as-of 前沿。
  */
 export async function refreshEngramCache(
     recalledIds?: string[],
@@ -102,15 +120,20 @@ export async function refreshEngramCache(
         // 1. 刷新事件摘要（带召回 ID）
         cachedSummaries = await store.getEventSummaries(recalledIds);
 
-        // 2. 刷新实体状态（target_index 透传给 as-of 解析）
+        // 2. 刷新实体状态。
+        // target_index 缺省时显式读取提取前沿，而不是依赖 getEntityStates 内部
+        // 的 MAX_SAFE_INTEGER 兜底——把「current = last_processed_floor」
+        // 这个不变量从隐式约定变成显式读取。
+        const resolvedTarget = target_index ?? await resolveFrontier();
         cachedEntityStates = await store.getEntityStates(
             undefined,
-            target_index,
+            resolvedTarget,
         );
 
         Logger.debug(LogModule.MACROS, "Engram DB 缓存已刷新", {
             recalledCount: recalledIds?.length ?? 0,
             summariesLength: cachedSummaries.length,
+            targetIndex: resolvedTarget,
         });
     } catch (error) {
         Logger.warn(LogModule.MACROS, "刷新 Engram DB 缓存失败", error);

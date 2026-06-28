@@ -7,6 +7,10 @@
  *
  * 纯函数——无 I/O、无 Dexie/Zustand 依赖。getEntityStates 只是薄包装。
  *
+ * target_index 由调用方（I/O 层）传入：注入路径传「提取前沿」（last_processed_floor），
+ * flashback 路径传召回事件的 end_index。本模块不读游标——它是纯渲染层。
+ * 函数签名里的 MAX_SAFE_INTEGER 默认值只是「无 I/O 时的兜底」，生产读路径不会走它。
+ *
  * 区间语义：与 fieldHistory.resolveAt 一致（半开 [from, to)）。
  * - target_index 早于第一段区间且无 profile 回退 → 该字段不渲染（as-of 下尚未有状态）
  * - target_index 命中某段区间 → 返回该段 value
@@ -37,6 +41,9 @@ const TYPE_TAG_MAP: Record<string, string> = {
  *
  * UI 读路径（EntityCard 等）和 LLM 读路径（formatEntityYaml）共用此解析，
  * 保证「展示给用户」和「注入给模型」看到同一份状态。
+ *
+ * 默认 target_index = MAX_SAFE_INTEGER 是纯函数的兜底（无法读游标）；
+ * 生产读路径由 Macros.refreshEngramCache 显式传入前沿值，不走此默认。
  */
 export function getEntityDisplaySnapshot(
     entity: EntityNode,
@@ -78,7 +85,7 @@ export function formatEntityYaml(
 /**
  * 渲染实体的「描述风格」字符串（name + YAML），供 UI 只读展示复用。
  * 与 formatEntityYaml 相同，只是命名上更贴近 EntityCard 等读 description 的场景。
- * as-of latest（当前快照）。
+ * as-of 前沿（当前快照）——UI 无 flashback 语义，恒取最新已提取状态。
  */
 export function formatEntityDescription(entity: EntityNode): string {
     const rendered = getEntityDisplaySnapshot(entity);

@@ -283,8 +283,12 @@ export async function applyEntityChanges(
     );
 
     // 刷新宏缓存，让 {{engramEntityStates}} 反映刚写入的实体。
+    // 显式传入 range[1]：实体 pass 在 IngestionService 推进游标之前就刷新缓存，
+    // 而本 pass 刚 stamp 的状态区间 from_index = range[1]，此时 frontier 还停在
+    // 上一轮的位置。若不显式传，resolveFrontier 会读到旧 frontier，
+    // 漏掉本轮刚写入的 interval。entity-only 路径（summary 关闭）尤其依赖此处。
     try {
-        await refreshEngramCache();
+        await refreshEngramCache(undefined, input.range?.[1]);
     } catch (e) {
         Logger.warn(
             LogModule.WF_SAVE_ENTITY,
