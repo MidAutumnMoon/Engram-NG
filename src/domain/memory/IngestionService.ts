@@ -24,6 +24,7 @@
 import { chatManager } from "@/data/ChatManager.ts";
 import { getSetting } from "@/config/settings.ts";
 import { getProcessedFloor } from "@/data/types/graph.ts";
+import type { EntityNode } from "@/data/types/graph.ts";
 import type { IngestionConfig } from "@/config/types/ingestion.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
@@ -39,7 +40,7 @@ import {
 } from "@/domain/memory/pipelines/summary.ts";
 import { runEntityExtraction } from "@/domain/memory/pipelines/entity.ts";
 import { applyEntityChanges } from "@/domain/memory/saveEntities.ts";
-import { reviewService } from "@/domain/review/ReviewBridge.ts";
+import { requestReview } from "@/domain/review/ReviewBridge.ts";
 import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
 
 class IngestionService {
@@ -741,7 +742,10 @@ class IngestionService {
 
         if (signal.cancelled) return;
 
-        let entityPreview: { newEntities: any[]; updatedEntities: any[] } = {
+        let entityPreview: {
+            newEntities: EntityNode[];
+            updatedEntities: EntityNode[];
+        } = {
             newEntities: [],
             updatedEntities: [],
         };
@@ -776,18 +780,18 @@ class IngestionService {
 
         // --- Phase B: combined review loop (summary reroll keeps entity preview) ---
         while (true) {
-            const result = await reviewService.requestReview(
-                "摄取确认",
-                `范围: ${range[0]} - ${range[1]} 楼 | 请确认摘要与实体提取结果`,
-                summaryContent, // fallback text
-                ["confirm", "fill", "reroll", "cancel"],
-                "combined",
-                {
+            const result = await requestReview({
+                title: "摄取确认",
+                description:
+                    `范围: ${range[0]} - ${range[1]} 楼 | 请确认摘要与实体提取结果`,
+                content: summaryContent,
+                actions: ["confirm", "fill", "reroll", "cancel"],
+                type: "combined",
+                data: {
                     summaryContent,
-                    summaryData: undefined,
                     entityData: entityPreview,
                 },
-            );
+            });
 
             if (result.action === "cancel") {
                 Logger.info(
@@ -817,7 +821,11 @@ class IngestionService {
                     summaryContent = rp.cleanedContent;
                     // Preserve any entity edits the user made before rerolling
                     if (result.data?.entityData) {
-                        entityPreview = result.data.entityData;
+                        const ed = result.data.entityData;
+                        entityPreview = {
+                            newEntities: ed.newEntities ?? [],
+                            updatedEntities: ed.updatedEntities ?? [],
+                        };
                     }
                     continue;
                 } catch (e) {
@@ -840,8 +848,13 @@ class IngestionService {
             // confirm / fill → persist both phases
             const confirmedSummaryContent = result.data?.summaryContent ??
                 summaryContent;
-            const confirmedEntityData = result.data?.entityData ??
-                entityPreview;
+            const ed = result.data?.entityData;
+            const confirmedEntityData = ed
+                ? {
+                    newEntities: ed.newEntities ?? [],
+                    updatedEntities: ed.updatedEntities ?? [],
+                }
+                : entityPreview;
 
             // Persist summary
             if (confirmedSummaryContent) {

@@ -17,7 +17,7 @@ import { hideMessageRange } from "@/sillytavern/chat/hideMessageRange.ts";
 import { refreshEngramCache } from "@/domain/macros/Macros.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { toast } from "@/sillytavern/toast.ts";
-import { reviewService } from "@/domain/review/ReviewBridge.ts";
+import { requestReview } from "@/domain/review/ReviewBridge.ts";
 import type { ReviewAction } from "@/domain/review/ReviewBridge.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
 import SUMMARY_SYSTEM from "@/integrations/llm/prompts/SUMMARY_SYSTEM.txt?raw";
@@ -162,13 +162,13 @@ export async function runSummary(
             break;
         }
 
-        const result = await reviewService.requestReview(
-            "剧情摘要修订",
-            `范围: ${input.range[0]} - ${input.range[1]} 楼`,
-            cleanedContent,
-            SUMMARY_REVIEW_ACTIONS,
-            "summary",
-        );
+        const result = await requestReview({
+            title: "剧情摘要修订",
+            description: `范围: ${input.range[0]} - ${input.range[1]} 楼`,
+            content: cleanedContent,
+            actions: SUMMARY_REVIEW_ACTIONS,
+            type: "summary",
+        });
 
         if (result.action === "cancel") {
             Logger.info(LogModule.WF_USER_REVIEW, "User explicitly cancelled via Review UI");

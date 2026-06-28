@@ -23,7 +23,7 @@ This file intentionally omits directory layouts, entry-point paths, and module-t
 
 ## Current Status
 
-- `deno task build` is the source of truth for "does this compile". Run it after structural changes.
+- `deno task build` bundles the app (Vite strips types without checking). For real type-checking that matches the LSP, run `deno task typecheck` (= `deno check` on the entry point). Always run `deno task typecheck`, never `deno check` on individual files — root `global.d.ts` (window.toastr/SillyTavern etc.) is only pulled into the graph via the entry point, so single-file checks report phantom "does not exist on type 'Window'" errors.
 - The agent `grep` tool is **unreliable** currently (tracked: zed#59677). Few failure modes:
   - Parallel calls with overlapping regexes can swap/corrupt each other's results — including across different regexes, not just identical ones. **Run grep calls sequentially, never in parallel**, unless correctness doesn't matter.
   - `include_pattern` of the form `<dir>/**/*.ext` (e.g. `src/**/*.ts`) silently returns no matches. Use `**/*.ext` (no directory prefix) or a full literal path instead.

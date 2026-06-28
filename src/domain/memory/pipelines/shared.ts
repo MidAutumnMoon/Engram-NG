@@ -233,7 +233,15 @@ export async function fetchContext(
             { bytes: history.length },
         );
     } else {
-        history = getMacroChatHistory(range);
+        if (!range) {
+            Logger.warn(
+                LogModule.WF_FETCH_CONTEXT,
+                "无 range 且非导入模式：跳过聊天历史抓取",
+            );
+            history = "";
+        } else {
+            history = getMacroChatHistory(range);
+        }
     }
     history = history || "";
 

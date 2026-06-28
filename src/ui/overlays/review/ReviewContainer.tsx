@@ -1,6 +1,10 @@
 import type {
+    CombinedReviewData,
+    EntityReviewData,
     ReviewAction,
+    ReviewData,
     ReviewRequest,
+    SummaryReviewData,
 } from "@/domain/review/ReviewBridge.ts";
 import { useReviewStore } from "@/state/reviewStore.ts";
 import { ModernButton as Button } from "@/ui/components/form/Button.tsx";
@@ -35,15 +39,22 @@ const ReviewSession: React.FC<ReviewSessionProps> = (
 ) => {
     // Independent state for this session
     const [content, setContent] = useState(request.content);
-    const [data, setData] = useState<any>(request.data);
-    const [query, setQuery] = useState<string | undefined>(request.data?.query);
+    const [data, setData] = useState<ReviewData | undefined>(request.data);
+    // query slot lives on the text-variant payload
+    const isText = request.type === "text" || request.type === undefined;
+    const textPayload = data as { query?: string } | undefined;
+    const [query, setQuery] = useState<string | undefined>(
+        isText ? textPayload?.query : undefined,
+    );
 
     // Phase 2 Fix: 监听 request 的变化以同步状态（防御闭包读取到早期缓存）
     useEffect(() => {
         setContent(request.content);
         setData(request.data);
-        setQuery(request.data?.query);
-    }, [request.content, request.data, request.data?.query]);
+        const it = request.type === "text" || request.type === undefined;
+        const tp = request.data as { query?: string } | undefined;
+        setQuery(it ? tp?.query : undefined);
+    }, [request.content, request.data, request.type]);
 
     // Reject Feedback State
     const [feedback, setFeedback] = useState("");
@@ -118,14 +129,14 @@ const ReviewSession: React.FC<ReviewSessionProps> = (
                         request.type === "combined"
                             ? (
                                 <CombinedReview
-                                    data={data}
+                                    data={data as CombinedReviewData | undefined}
                                     onChange={(newData) => setData(newData)}
                                 />
                             )
                             : request.type === "entity"
                             ? (
                                 <EntityReview
-                                    data={data ||
+                                    data={(data as EntityReviewData) ??
                                         {
                                             newEntities: [],
                                             updatedEntities: [],
@@ -137,10 +148,13 @@ const ReviewSession: React.FC<ReviewSessionProps> = (
                             ? (
                                 <SummaryReview
                                     content={content}
-                                    data={data}
+                                    data={data as
+                                        | SummaryReviewData
+                                        | string[]
+                                        | undefined}
                                     onChange={(newContent, newData) => {
                                         setContent(newContent);
-                                        setData(newData);
+                                        setData(newData as ReviewData);
                                     }}
                                 />
                             )

@@ -21,7 +21,7 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
-import { reviewService } from "@/domain/review/ReviewBridge.ts";
+import { requestReview } from "@/domain/review/ReviewBridge.ts";
 import type { ReviewAction } from "@/domain/review/ReviewBridge.ts";
 import type { EntityNode } from "@/data/types/graph.ts";
 import { chatManager } from "@/data/ChatManager.ts";
@@ -193,14 +193,14 @@ export async function runEntityExtraction(
         updatedEntities: dryRunResult.updatedEntities,
     };
 
-    const result = await reviewService.requestReview(
-        "实体提取确认",
-        "请确认提取的实体列表 (JSON/YAML)。您可以直接编辑以修正错误。",
-        cleaned, // fallback text
-        ENTITY_REVIEW_ACTIONS,
-        "entity",
-        reviewData,
-    );
+    const result = await requestReview({
+        title: "实体提取确认",
+        description: "请确认提取的实体列表 (JSON/YAML)。您可以直接编辑以修正错误。",
+        content: cleaned,
+        actions: ENTITY_REVIEW_ACTIONS,
+        type: "entity",
+        data: reviewData,
+    });
 
     if (result.action === "cancel") {
         Logger.info(LogModule.WF_USER_REVIEW, "User explicitly cancelled entity review");

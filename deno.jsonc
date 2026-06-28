@@ -15,6 +15,7 @@
         "format": "deno fmt",
         "prettify": "deno fmt",
         "test": "deno test --no-check",
+        "typecheck": "deno check src/bootstrap.ts",
         "test:watch": "deno test --no-check --watch",
         "test:coverage": "deno test --no-check --coverage && deno coverage --html",
         "gen:types": "deno run -A scripts/bundle_vendor_types.ts",
