@@ -174,16 +174,16 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                     />
 
                     {/* 模型选择: 下拉 + 手动输入 + 获取按钮在标题旁 */}
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-1.5">
                         {/* 标题行：模型名称 + 刷新图标 */}
-                        <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-foreground">
-                                模型名称{" "}
+                        <div className="flex items-center justify-between">
+                            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                                模型名称
                                 <span className="text-destructive">*</span>
                             </label>
                             <button
                                 type="button"
-                                className="p-0.5 border-none bg-transparent text-muted-foreground cursor-pointer hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+                                className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
                                 onClick={fetchModelList}
                                 disabled={isLoadingModels ||
                                     !preset.custom?.apiUrl}
@@ -192,19 +192,17 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                                 {isLoadingModels
                                     ? (
                                         <Loader2
-                                            size={14}
+                                            size={12}
                                             className="animate-spin"
                                         />
                                     )
                                     : (
-                                        <RefreshCw size={14} />
+                                        <RefreshCw size={12} />
                                     )}
+                                {modelList.length > 0
+                                    ? `${modelList.length} 个模型`
+                                    : "获取模型"}
                             </button>
-                            {modelList.length > 0 && (
-                                <span className="text-[10px] text-muted-foreground">
-                                    ({modelList.length} 个模型)
-                                </span>
-                            )}
                         </div>
                         {/* 输入/选择 */}
                         {modelList.length > 0

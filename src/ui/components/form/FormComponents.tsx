@@ -2,6 +2,22 @@ import { Switch } from "./Switch.tsx";
 import { ChevronDown, Search, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
+/**
+ * 表单原语 — 容器式（contained）布局。
+ *
+ * 设计原则：
+ * - 标签在控件**上方**，控件是一个有柔和边框/底色的「盒子」，
+ *   解决旧版「标签左 / 控件右 + 无框」导致难以扫读、光标需长途移动的问题。
+ * - 描述文字在盒子下方，与标签分离，避免视觉拥挤。
+ * - 所有原语共用同一套盒子样式（fieldBox），保证一致观感。
+ * - 仍然偏「无框流体」：盒子底色极淡（muted/20），边框极淡（border/50），
+ *   聚焦时边框转 primary 提示焦点。不喧宾夺主。
+ */
+
+// 共享的「盒子」样式
+const fieldBox =
+    "w-full bg-muted/20 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/40 focus:border-primary focus:bg-muted/30 disabled:opacity-50 disabled:cursor-not-allowed";
+
 interface FormSectionProps {
     title: string | React.ReactNode;
     description?: string | React.ReactNode;
@@ -24,17 +40,17 @@ export const FormSection: React.FC<FormSectionProps> = ({
     );
 
     return (
-        <div className={`mb-8 ${className}`}>
+        <section className={`mb-7 ${className}`}>
             <div
-                className={`mb-4 ${
+                className={`mb-3 ${
                     collapsible
                         ? "cursor-pointer select-none flex items-center justify-between group"
                         : ""
                 }`}
                 onClick={() => collapsible && setIsCollapsed(!isCollapsed)}
             >
-                <div>
-                    <h3 className="text-sm font-medium text-primary flex items-center gap-2">
+                <div className="min-w-0">
+                    <h3 className="text-sm font-semibold text-heading flex items-center gap-2">
                         {title}
                     </h3>
                     {description &&
@@ -45,7 +61,7 @@ export const FormSection: React.FC<FormSectionProps> = ({
                 {collapsible && (
                     <ChevronDown
                         size={16}
-                        className={`text-muted-foreground ${
+                        className={`text-muted-foreground shrink-0 ${
                             isCollapsed ? "-rotate-90" : "rotate-0"
                         }`}
                     />
@@ -56,7 +72,7 @@ export const FormSection: React.FC<FormSectionProps> = ({
             >
                 {children}
             </div>
-        </div>
+        </section>
     );
 };
 
@@ -79,10 +95,6 @@ interface TextFieldProps extends BaseFieldProps {
     rows?: number;
 }
 
-/**
- * 极简文本输入框 - 无背景，只有底部衬线
- * 使用内联 style 覆盖酒馆全局 CSS
- */
 export const TextField: React.FC<TextFieldProps> = ({
     label,
     description,
@@ -98,57 +110,38 @@ export const TextField: React.FC<TextFieldProps> = ({
     multiline,
     rows = 3,
 }) => {
-    // 内联样式强制覆盖酒馆 CSS
-    const inputStyle: React.CSSProperties = {
-        background: "transparent",
-        backgroundColor: "transparent",
-        border: "none",
-        borderBottom: "1px solid var(--border)",
-        borderRadius: 0,
-        boxShadow: "none",
-        color: "var(--foreground, inherit)",
-        fontSize: "14px",
-        outline: "none",
-        padding: "8px 0",
-        width: "100%",
+    const sharedProps = {
+        value,
+        onChange: (e: React.ChangeEvent<
+            HTMLInputElement | HTMLTextAreaElement
+        >) => onChange(e.target.value),
+        placeholder,
+        disabled,
+        readOnly,
+        className: fieldBox,
     };
 
     return (
-        <div className={`flex flex-col gap-1 ${className}`}>
-            <label className="text-xs text-muted-foreground flex items-center gap-1">
-                {label}
-                {required && <span className="text-destructive">*</span>}
-            </label>
+        <div className={`flex flex-col gap-1.5 ${className}`}>
+            {label &&
+                <FieldLabel
+                    label={label}
+                    required={required}
+                />}
             {multiline
                 ? (
                     <textarea
-                        value={value}
-                        onChange={(e) => onChange(e.target.value)}
-                        placeholder={placeholder}
-                        disabled={disabled}
-                        readOnly={readOnly}
+                        {...sharedProps as React.TextareaHTMLAttributes<
+                            HTMLTextAreaElement
+                        >}
                         rows={rows}
-                        style={inputStyle}
-                        className="font-mono resize-y min-h-[80px] placeholder:text-muted-foreground/40 disabled:opacity-50 focus:border-primary"
+                        className={`${fieldBox} font-mono resize-y min-h-[80px]`}
                     />
                 )
-                : (
-                    <input
-                        type={type}
-                        value={value}
-                        onChange={(e) => onChange(e.target.value)}
-                        placeholder={placeholder}
-                        disabled={disabled}
-                        readOnly={readOnly}
-                        style={inputStyle}
-                        className="placeholder:text-muted-foreground/40 disabled:opacity-50 focus:border-primary"
-                    />
-                )}
+                : <input type={type} {...sharedProps} />}
             {description &&
-                <p className="text-[10px] text-muted-foreground/70 break-words">
-                    {description}
-                </p>}
-            {error && <p className="text-[10px] text-destructive">{error}</p>}
+                <FieldDescription>{description}</FieldDescription>}
+            {error && <FieldError>{error}</FieldError>}
         </div>
     );
 };
@@ -162,10 +155,6 @@ interface NumberFieldProps extends BaseFieldProps {
     suffix?: string;
     disabled?: boolean;
 }
-
-/**
- * 极简数字输入 - 标签/值同行，无框流体设计
- */
 
 export const NumberField: React.FC<NumberFieldProps> = ({
     label,
@@ -182,38 +171,31 @@ export const NumberField: React.FC<NumberFieldProps> = ({
     disabled,
 }) => (
     <div
-        className={`flex flex-col gap-2 ${className} ${
+        className={`flex flex-col gap-1.5 ${className} ${
             disabled ? "opacity-50 pointer-events-none" : ""
         }`}
     >
-        <div className="flex justify-between items-center">
-            <label className="text-xs text-muted-foreground flex items-center gap-1">
-                {label}
-                {required && <span className="text-destructive">*</span>}
-            </label>
-            <div className="flex items-center gap-1">
-                <input
-                    type="number"
-                    min={min}
-                    max={max}
-                    step={step}
-                    value={value}
-                    disabled={disabled}
-                    onChange={(e) => onChange(Number(e.target.value))}
-                    className="bg-transparent border-0 border-b border-transparent focus:border-border outline-none text-base font-medium text-foreground mx-0.5 text-right w-16 px-0 py-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:text-primary disabled:cursor-not-allowed"
-                />
-                {suffix &&
-                    <span className="text-sm font-medium text-muted-foreground">
-                        {suffix}
-                    </span>}
-            </div>
+        {label && <FieldLabel label={label} required={required} />}
+        <div
+            className={`flex items-center gap-2 ${fieldBox} !py-1.5`}
+        >
+            <input
+                type="number"
+                min={min}
+                max={max}
+                step={step}
+                value={value}
+                disabled={disabled}
+                onChange={(e) => onChange(Number(e.target.value))}
+                className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:cursor-not-allowed"
+            />
+            {suffix &&
+                <span className="text-xs font-medium text-muted-foreground shrink-0">
+                    {suffix}
+                </span>}
         </div>
-
-        {description &&
-            <p className="text-[10px] text-muted-foreground/70 break-words">
-                {description}
-            </p>}
-        {error && <p className="text-[10px] text-destructive">{error}</p>}
+        {description && <FieldDescription>{description}</FieldDescription>}
+        {error && <FieldError>{error}</FieldError>}
     </div>
 );
 
@@ -230,10 +212,6 @@ interface SelectFieldProps extends BaseFieldProps {
     disabled?: boolean;
 }
 
-/**
- * 极简下拉框 - 无背景，只有底部衬线
- * 使用内联 style 覆盖酒馆全局 CSS
- */
 export const SelectField: React.FC<SelectFieldProps> = ({
     label,
     description,
@@ -245,69 +223,46 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     options,
     placeholder = "请选择...",
     disabled,
-}) => {
-    // 内联样式强制覆盖
-    const selectStyle: React.CSSProperties = {
-        WebkitAppearance: "none" as const,
-        appearance: "none" as const,
-        background: "transparent",
-        backgroundColor: "transparent",
-        border: "none",
-        borderBottom: "1px solid var(--border)",
-        borderRadius: 0,
-        boxShadow: "none",
-        color: "var(--foreground, inherit)",
-        cursor: "pointer",
-        fontSize: "14px",
-        outline: "none",
-        padding: "8px 24px 8px 0",
-        width: "100%",
-    };
-
-    return (
-        <div className={`flex flex-col gap-1 ${className}`}>
-            <label className="text-xs text-muted-foreground flex items-center gap-1">
-                {label}
-                {required && <span className="text-destructive">*</span>}
-            </label>
-            <div className="relative">
-                <select
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
-                    disabled={disabled}
-                    style={selectStyle}
-                    className="disabled:opacity-50 disabled:cursor-not-allowed focus:border-primary"
+}) => (
+    <div className={`flex flex-col gap-1.5 ${className}`}>
+        {label && <FieldLabel label={label} required={required} />}
+        <div className="relative">
+            <select
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                disabled={disabled}
+                style={{
+                    WebkitAppearance: "none" as const,
+                    appearance: "none" as const,
+                }}
+                className={`${fieldBox} !pr-9 cursor-pointer`}
+            >
+                <option
+                    value=""
+                    disabled
+                    className="bg-popover text-muted-foreground"
                 >
+                    {placeholder}
+                </option>
+                {options.map((opt) => (
                     <option
-                        value=""
-                        disabled
-                        className="bg-popover text-muted-foreground"
+                        key={opt.value}
+                        value={opt.value}
+                        className="bg-popover text-foreground"
                     >
-                        {placeholder}
+                        {opt.label}
                     </option>
-                    {options.map((opt) => (
-                        <option
-                            key={opt.value}
-                            value={opt.value}
-                            className="bg-popover text-foreground"
-                        >
-                            {opt.label}
-                        </option>
-                    ))}
-                </select>
-                <ChevronDown
-                    size={14}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground/50 pointer-events-none"
-                />
-            </div>
-            {description &&
-                <p className="text-[10px] text-muted-foreground/70 break-words">
-                    {description}
-                </p>}
-            {error && <p className="text-[10px] text-destructive">{error}</p>}
+                ))}
+            </select>
+            <ChevronDown
+                size={14}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 pointer-events-none"
+            />
         </div>
-    );
-};
+        {description && <FieldDescription>{description}</FieldDescription>}
+        {error && <FieldError>{error}</FieldError>}
+    </div>
+);
 
 interface SwitchFieldProps extends Omit<BaseFieldProps, "required"> {
     checked: boolean;
@@ -317,8 +272,9 @@ interface SwitchFieldProps extends Omit<BaseFieldProps, "required"> {
 }
 
 /**
- * 极简开关 - 胶囊形轨道 + 圆点
- * 优化可视性，遵循无框流体设计
+ * 开关行 — 整行可点击切换，开关右对齐。
+ * 保留左右布局（开关天然适合右对齐），但把整行做成可点击区域，
+ * 解决「光标需精确点到右侧开关」的可达性问题。
  */
 export const SwitchField: React.FC<SwitchFieldProps> = ({
     label,
@@ -329,39 +285,55 @@ export const SwitchField: React.FC<SwitchFieldProps> = ({
     onChange,
     disabled,
     compact,
-}) => (
-    <div
-        className={`flex items-start justify-between gap-4 ${
-            compact ? "py-0" : "py-1"
-        } ${className} ${disabled ? "opacity-50 pointer-events-none" : ""}`}
-    >
-        {label && (
-            <div className="flex-1 min-w-0">
-                <label
-                    className="text-xs text-foreground cursor-pointer block truncate"
-                    onClick={() => !disabled && onChange(!checked)}
-                >
-                    {label}
-                </label>
-                {description &&
-                    <p className="text-[10px] text-muted-foreground/70 mt-0.5 break-words">
-                        {description}
-                    </p>}
-                {error &&
-                    <p className="text-[10px] text-destructive mt-0.5">
-                        {error}
-                    </p>}
-            </div>
-        )}
+}) => {
+    const handleToggle = () => {
+        if (!disabled) onChange(!checked);
+    };
 
-        {/* 开关按钮 - 使用共享组件 */}
-        <Switch
-            checked={checked}
-            onChange={onChange}
-            disabled={disabled}
-        />
-    </div>
-);
+    return (
+        <div
+            role="switch"
+            aria-checked={checked}
+            tabIndex={disabled ? -1 : 0}
+            onClick={handleToggle}
+            onKeyDown={(e) => {
+                if ((e.key === " " || e.key === "Enter") && !disabled) {
+                    e.preventDefault();
+                    onChange(!checked);
+                }
+            }}
+            className={`flex items-start justify-between gap-4 rounded-md px-3 ${
+                compact ? "py-1" : "py-2"
+            } -mx-3 cursor-pointer select-none transition-colors hover:bg-muted/20 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary ${className} ${
+                disabled
+                    ? "opacity-50 pointer-events-none cursor-not-allowed"
+                    : ""
+            }`}
+        >
+            {label && (
+                <div className="flex-1 min-w-0">
+                    <span className="text-sm text-foreground block break-words">
+                        {label}
+                    </span>
+                    {description &&
+                        <p className="text-[11px] text-muted-foreground/80 mt-0.5 break-words">
+                            {description}
+                        </p>}
+                    {error &&
+                        <p className="text-[10px] text-destructive mt-0.5">
+                            {error}
+                        </p>}
+                </div>
+            )}
+
+            <Switch
+                checked={checked}
+                onChange={onChange}
+                disabled={disabled}
+            />
+        </div>
+    );
+};
 
 /**
  * 可搜索下拉框 - 用于大量选项的模型选择
@@ -376,7 +348,9 @@ interface SearchableSelectFieldProps extends BaseFieldProps {
     emptyText?: string;
 }
 
-export const SearchableSelectField: React.FC<SearchableSelectFieldProps> = ({
+export const SearchableSelectField: React.FC<
+    SearchableSelectFieldProps
+> = ({
     label,
     description,
     error,
@@ -436,25 +410,22 @@ export const SearchableSelectField: React.FC<SearchableSelectFieldProps> = ({
     };
 
     return (
-        <div className={`flex flex-col gap-1 ${className}`} ref={containerRef}>
-            <label className="text-xs text-muted-foreground flex items-center gap-1">
-                {label}
-                {required && <span className="text-destructive">*</span>}
-            </label>
+        <div className={`flex flex-col gap-1.5 ${className}`} ref={containerRef}>
+            {label && <FieldLabel label={label} required={required} />}
 
-            {/* 触发按钮 */}
+            {/* 触发按钮 — 复用 fieldBox 观感 */}
             <button
                 type="button"
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 disabled={disabled}
-                className="relative w-full text-left py-2 pr-6 border-0 border-b border-border bg-transparent text-sm text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:border-primary"
+                className={`relative w-full text-left ${fieldBox} !pr-9 cursor-pointer`}
             >
-                <span className={value ? "" : "text-muted-foreground"}>
+                <span className={value ? "" : "text-muted-foreground/60"}>
                     {selectedLabel}
                 </span>
                 <ChevronDown
                     size={14}
-                    className={`absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground/50 ${
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 transition-transform ${
                         isOpen ? "rotate-180" : ""
                     }`}
                 />
@@ -529,11 +500,36 @@ export const SearchableSelectField: React.FC<SearchableSelectFieldProps> = ({
                 </div>
             )}
 
-            {description &&
-                <p className="text-[10px] text-muted-foreground/70 break-words">
-                    {description}
-                </p>}
-            {error && <p className="text-[10px] text-destructive">{error}</p>}
+            {description && <FieldDescription>{description}</FieldDescription>}
+            {error && <FieldError>{error}</FieldError>}
         </div>
     );
 };
+
+// ==================== 内部小组件 ====================
+
+const FieldLabel: React.FC<{
+    label: React.ReactNode;
+    required?: boolean;
+}> = ({ label, required }) => (
+    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+        {label}
+        {required && <span className="text-destructive">*</span>}
+    </label>
+);
+
+const FieldDescription: React.FC<{ children: React.ReactNode }> = (
+    { children },
+) => (
+    <p className="text-[11px] text-muted-foreground/70 break-words leading-relaxed">
+        {children}
+    </p>
+);
+
+const FieldError: React.FC<{ children: React.ReactNode }> = (
+    { children },
+) => (
+    <p className="text-[11px] text-destructive break-words">
+        {children}
+    </p>
+);

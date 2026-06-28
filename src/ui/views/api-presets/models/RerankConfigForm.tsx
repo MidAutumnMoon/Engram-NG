@@ -76,10 +76,10 @@ export const RerankConfigForm: React.FC<RerankConfigFormProps> = ({
             {config.enabled && (
                 <>
                     <FormSection title="API 配置">
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-1.5">
                             {/* URL 标签行：包含标签和自动后缀复选框 */}
                             <div className="flex items-center justify-between">
-                                <label className="text-xs text-muted-foreground">
+                                <label className="text-xs font-medium text-muted-foreground">
                                     API Base URL
                                 </label>
                                 <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground cursor-pointer select-none">
@@ -101,20 +101,9 @@ export const RerankConfigForm: React.FC<RerankConfigFormProps> = ({
                                 onChange={(e) =>
                                     updateConfig({ url: e.target.value })}
                                 placeholder="http://localhost:8000"
-                                style={{
-                                    background: "transparent",
-                                    border: "none",
-                                    borderBottom: "1px solid var(--border)",
-                                    borderRadius: 0,
-                                    color: "var(--foreground)",
-                                    fontSize: "14px",
-                                    outline: "none",
-                                    padding: "8px 0",
-                                    width: "100%",
-                                }}
-                                className="placeholder:text-muted-foreground/40 focus:border-primary"
+                                className="w-full bg-muted/20 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/40 focus:border-primary focus:bg-muted/30"
                             />
-                            <p className="text-[10px] text-muted-foreground/70 break-all">
+                            <p className="text-[11px] text-muted-foreground/70 break-all leading-relaxed">
                                 {(config.autoSuffix !== false && config.url)
                                     ? `完整 URL: ${
                                         config.url.replace(/\/+$/, "")
@@ -132,43 +121,14 @@ export const RerankConfigForm: React.FC<RerankConfigFormProps> = ({
                             placeholder="输入 API 密钥（如需要）"
                         />
 
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-end gap-2">
-                                {modelList.length > 0
-                                    ? (
-                                        <div className="flex-1 relative">
-                                            <SearchableSelectField
-                                                className="!mb-0"
-                                                label="模型名称"
-                                                value={config.model}
-                                                onChange={(value) =>
-                                                    updateConfig({
-                                                        model: value,
-                                                    })}
-                                                options={modelList.map((m) => ({
-                                                    label: m.name || m.id,
-                                                    value: m.id,
-                                                }))}
-                                                placeholder="选择模型"
-                                                emptyText="未找到可用模型"
-                                            />
-                                        </div>
-                                    )
-                                    : (
-                                        <TextField
-                                            className="flex-1 !mb-0"
-                                            label="模型名称"
-                                            value={config.model}
-                                            onChange={(value) =>
-                                                updateConfig({ model: value })}
-                                            placeholder="BAAI/bge-reranker-v2-m3"
-                                            description="使用的 Rerank 模型"
-                                            required
-                                        />
-                                    )}
+                        <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center justify-between">
+                                <label className="text-xs font-medium text-muted-foreground">
+                                    模型名称
+                                </label>
                                 <button
                                     type="button"
-                                    className="h-[42px] w-[42px] min-w-[42px] flex items-center justify-center border-none rounded-md bg-muted text-muted-foreground cursor-pointer hover:bg-accent hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
                                     onClick={fetchModelList}
                                     disabled={isLoadingModels}
                                     title="获取模型列表"
@@ -176,23 +136,56 @@ export const RerankConfigForm: React.FC<RerankConfigFormProps> = ({
                                     {isLoadingModels
                                         ? (
                                             <Loader2
-                                                size={16}
+                                                size={12}
                                                 className="animate-spin"
                                             />
                                         )
                                         : (
-                                            <RefreshCw size={16} />
+                                            <RefreshCw size={12} />
                                         )}
+                                    {modelList.length > 0
+                                        ? `${modelList.length} 个模型`
+                                        : "获取模型"}
                                 </button>
                             </div>
+                            {modelList.length > 0
+                                ? (
+                                    <div className="relative">
+                                        <SearchableSelectField
+                                            className="!mb-0"
+                                            label=""
+                                            value={config.model}
+                                            onChange={(value) =>
+                                                updateConfig({
+                                                    model: value,
+                                                })}
+                                            options={modelList.map((m) => ({
+                                                label: m.name || m.id,
+                                                value: m.id,
+                                            }))}
+                                            placeholder="选择模型"
+                                            emptyText="未找到可用模型"
+                                        />
+                                    </div>
+                                )
+                                : (
+                                    <input
+                                        type="text"
+                                        value={config.model}
+                                        onChange={(e) =>
+                                            updateConfig({
+                                                model: e.target.value,
+                                            })}
+                                        placeholder="BAAI/bge-reranker-v2-m3"
+                                        className="w-full bg-muted/20 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/40 focus:border-primary focus:bg-muted/30"
+                                    />
+                                )}
+                            <p className="text-[11px] text-muted-foreground/70 break-words leading-relaxed">
+                                使用的 Rerank 模型
+                            </p>
                             {modelError && (
                                 <p className="text-xs text-destructive">
                                     {modelError}
-                                </p>
-                            )}
-                            {modelList.length > 0 && (
-                                <p className="text-xs text-muted-foreground">
-                                    已加载 {modelList.length} 个模型
                                 </p>
                             )}
                         </div>
