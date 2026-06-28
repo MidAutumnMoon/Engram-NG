@@ -15,9 +15,10 @@ import {
     formatEntityDescription,
     formatEntityStateBlocks,
     formatEntityYaml,
+    formatRecalledSection,
     getEntityDisplaySnapshot,
 } from "@/domain/memory/entityFormat.ts";
-import { EntityType, type EntityNode } from "@/data/types/graph.ts";
+import { EntityType, type EntityNode, type EventNode } from "@/data/types/graph.ts";
 
 function mkEntity(over: Partial<EntityNode>): EntityNode {
     return {
@@ -334,5 +335,63 @@ describe("formatArchivedEntityBlock", () => {
 
     it("returns empty string for no archived entities", () => {
         expect(formatArchivedEntityBlock([])).toBe("");
+    });
+});
+
+describe("formatRecalledSection", () => {
+    function mkEvent(over: Partial<EventNode>): EventNode {
+        return {
+            id: "evt_1",
+            is_archived: false,
+            is_embedded: false,
+            level: 0,
+            significance_score: 0.5,
+            source_range: { end_index: 1, start_index: 0 },
+            structured_kv: {
+                causality: "",
+                event: "test",
+                location: [],
+                logic: [],
+                role: [],
+                time_anchor: "",
+            },
+            summary: "a recalled event",
+            timestamp: 0,
+            ...over,
+        };
+    }
+
+    it("wraps recalled states and events in a recalled_context block", () => {
+        const states = "# 召回标签\n<character_state>\nSeraphina\n</character_state>";
+        const events = [mkEvent({ summary: "Day 1 的事件" })];
+        const out = formatRecalledSection(states, events);
+        expect(out.startsWith("<recalled_context>")).toBe(true);
+        expect(out.endsWith("</recalled_context>")).toBe(true);
+        // 状态块在前，事件在后
+        expect(out).toContain("# 召回标签");
+        expect(out).toContain("<character_state>");
+        expect(out).toContain("--- recalled events ---");
+        expect(out).toContain("Day 1 的事件");
+    });
+
+    it("renders only events when states is empty", () => {
+        const events = [mkEvent({ summary: "仅事件" })];
+        const out = formatRecalledSection("", events);
+        expect(out).toContain("<recalled_context>");
+        expect(out).toContain("--- recalled events ---");
+        expect(out).toContain("仅事件");
+    });
+
+    it("renders only states when events list is empty", () => {
+        const states = "# 仅状态\n<character_state>\nX\n</character_state>";
+        const out = formatRecalledSection(states, []);
+        expect(out).toContain("<recalled_context>");
+        expect(out).toContain("# 仅状态");
+        expect(out).not.toContain("--- recalled events ---");
+    });
+
+    it("returns empty string when both states and events are empty", () => {
+        expect(formatRecalledSection("", [])).toBe("");
+        expect(formatRecalledSection("   ", [])).toBe("");
     });
 });

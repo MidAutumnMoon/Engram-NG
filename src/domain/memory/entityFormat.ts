@@ -17,7 +17,7 @@
  * - target_index 落在 gap 内 → 返回 undefined → 回退 profile（当前快照）
  */
 
-import type { EntityNode } from "@/data/types/graph.ts";
+import type { EntityNode, EventNode } from "@/data/types/graph.ts";
 import { EntityType } from "@/data/types/graph.ts";
 import { resolveAt } from "@/domain/memory/fieldHistory.ts";
 import { dump as yamlDump } from "js-yaml";
@@ -161,6 +161,30 @@ export function formatArchivedEntityBlock(
     }
     lines.push("</archived_entities>");
     return lines.join("\n");
+}
+
+/**
+ * 渲染「召回上下文」块——additive recall 的核心。
+ *
+ * 与当前状态块（as-of 前沿）并列存在，而非替换它。包含：
+ * - recalledStates：召回实体的状态块（已带 flashback as-of 标签）
+ * - recalledEvents：召回事件（从 timeline 移出，仅在此处呈现）
+ *
+ * 二者皆空时返回空串（无召回内容 → 不渲染该段）。
+ * recalledStates 内已含 `# 召回...` 标签，本函数只负责包裹分隔。
+ */
+export function formatRecalledSection(
+    recalledStates: string,
+    recalledEvents: EventNode[],
+): string {
+    const parts: string[] = [];
+    if (recalledStates.trim()) parts.push(recalledStates.trim());
+    if (recalledEvents.length > 0) {
+        const eventLines = recalledEvents.map((e) => e.summary);
+        parts.push(`--- recalled events ---\n${eventLines.join("\n\n")}`);
+    }
+    if (parts.length === 0) return "";
+    return `<recalled_context>\n${parts.join("\n\n")}\n</recalled_context>`;
 }
 
 /**

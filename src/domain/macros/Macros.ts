@@ -6,6 +6,8 @@ import { ChatHistoryHelper } from "@/sillytavern/chat/chatHistory.ts";
 import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
 import { chatManager } from "@/data/ChatManager.ts";
 import { getProcessedFloor } from "@/data/types/graph.ts";
+import { formatRecalledSection } from "@/domain/memory/entityFormat.ts";
+import type { SummaryAnchor } from "@/state/memory/slices/eventSlice.ts";
 
 /**
  * 读取提取游标（last_processed_floor）作为记忆前沿。
@@ -126,46 +128,98 @@ function buildAsOfLabel(
 }
 
 /**
+ * Additive recall 的「召回锚点」——flashback 路径的显式信号。
+ *
+ * - `target_index`：召回事件 end_index，实体状态按此 as-of 解析。
+ * - `anchor`：召回事件的剧情锚点（Injector 从 topNode.structured_kv 直接构造），
+ *   用于渲染 flashback 标签。
+ *
+ * 显式结构而非「target_index 是否非空」推断——避免 saveEntities 的 range?.[1]
+ * 误判为 flashback。
+ */
+export interface FlashbackAnchor {
+    target_index: number;
+    anchor: SummaryAnchor;
+}
+
+/**
+ * refreshEngramCache 的选项——单一 options 对象，消除位置参数歧义。
+ *
+ * - `recalledIds`：RAG 召回的事件 ID（Injector 传入；其余路径留空）。
+ * - `frontierOverride`：显式覆盖前沿（saveEntities 用——cursor 未推进时
+ *   resolveFrontier 会读到旧值，漏掉刚写入的区间）。
+ * - `flashbackAnchor`：flashback 信号（Injector 在召回命中过去事件时传入）。
+ *   存在 → 触发 additive recall：当前状态块照常渲染，另加一个 recalled 段。
+ */
+export interface RefreshEngramCacheOptions {
+    recalledIds?: string[];
+    frontierOverride?: number;
+    flashbackAnchor?: FlashbackAnchor;
+}
+
+/**
  * 刷新 Engram DB 缓存 (事件摘要 + 实体状态)。
- * @param recalledIds 可选，RAG 召回的事件 ID 列表
- * @param target_index 可选，实体状态 as-of 解析的消息索引。
- *   缺省 = 提取前沿（last_processed_floor）——与提取 pass stamp 状态区间用的 range[1] 对齐。
- *   flashback 路径会传入召回事件的 end_index，使 {{engramEntityStates}} 渲染为
- *   「那个叙事时刻」的状态快照；其余场景一律 as-of 前沿。
+ *
+ * Additive recall 语义：
+ * - 当前状态块始终 as-of 前沿（或 frontierOverride），带前沿标签，**不被召回替换**。
+ * - 仅当 flashbackAnchor 存在时，额外渲染一个 `<recalled_context>` 段：
+ *   召回实体的 as-of 状态 + 召回事件，带 flashback 标签。
+ * - 召回事件不再回灌进 `<summary>` timeline（timeline 只剩未归档 + level≥1）。
  */
 export async function refreshEngramCache(
-    recalledIds?: string[],
-    target_index?: number,
+    opts: RefreshEngramCacheOptions = {},
 ): Promise<void> {
+    const { recalledIds, frontierOverride, flashbackAnchor } = opts;
     try {
         const store = useMemoryStore.getState();
 
-        // 1. 刷新事件摘要（带召回 ID）
-        cachedSummaries = await store.getEventSummaries(recalledIds);
+        // 1. Timeline 摘要——召回事件不再回灌（它们只出现在 recalled 段）
+        cachedSummaries = await store.getEventSummaries();
 
-        // 2. 解析 as-of 标签锚点（与 summary 共享剧情时钟）。
-        // target_index 是否显式传入 = 是否 flashback 路径（Injector 的信号）。
-        const isFlashback = target_index !== undefined;
-        const anchor = await store.getSummaryAnchor(recalledIds);
-        const asOfLabel = buildAsOfLabel(anchor, isFlashback);
-
-        // 3. 刷新实体状态。
-        // target_index 缺省时显式读取提取前沿，而不是依赖 getEntityStates 内部
-        // 的 MAX_SAFE_INTEGER 兜底——把「current = last_processed_floor」
-        // 这个不变量从隐式约定变成显式读取。
-        const resolvedTarget = target_index ?? await resolveFrontier();
+        // 2. 当前状态块——as-of 前沿（或显式 override），带前沿标签
+        const frontierAnchor = await store.getSummaryAnchor();
+        const frontierLabel = buildAsOfLabel(frontierAnchor, false);
+        const frontier = frontierOverride ?? flashbackAnchor?.target_index ??
+            await resolveFrontier();
         cachedEntityStates = await store.getEntityStates(
             undefined,
-            resolvedTarget,
-            asOfLabel,
+            frontier,
+            frontierLabel,
         );
+
+        // 3. Additive recalled 段——仅 flashback 时渲染。
+        // 召回实体在此首次接入 case-A 提升路径（ids=recalledIds），
+        // 修复了历史上 recalledIds 被丢弃、归档召回实体永远不渲染的死数据 bug。
+        if (flashbackAnchor && recalledIds && recalledIds.length > 0) {
+            const recalledLabel = buildAsOfLabel(
+                flashbackAnchor.anchor,
+                true,
+            );
+            const recalledStates = await store.getEntityStates(
+                recalledIds,
+                flashbackAnchor.target_index,
+                recalledLabel,
+            );
+            const recalledEvents = await store.getRecalledEvents(
+                recalledIds,
+            );
+            const section = formatRecalledSection(
+                recalledStates,
+                recalledEvents,
+            );
+            if (section) {
+                cachedEntityStates = cachedEntityStates
+                    ? `${cachedEntityStates}\n\n${section}`
+                    : section;
+            }
+        }
 
         Logger.debug(LogModule.MACROS, "Engram DB 缓存已刷新", {
             recalledCount: recalledIds?.length ?? 0,
             summariesLength: cachedSummaries.length,
-            targetIndex: resolvedTarget,
-            isFlashback,
-            hasAsOfLabel: asOfLabel.length > 0,
+            frontier,
+            isFlashback: flashbackAnchor != null,
+            hasFrontierLabel: frontierLabel.length > 0,
         });
     } catch (error) {
         Logger.warn(LogModule.MACROS, "刷新 Engram DB 缓存失败", error);

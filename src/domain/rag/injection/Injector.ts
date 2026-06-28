@@ -336,12 +336,16 @@ class Injector {
 
                             // Flashback heuristic：召回工作流已按相关性排序，
                             // nodes[0] 是最相关的事件。若它指向足够久远的叙事时刻，
-                            // 把实体状态渲染锚定到该事件的 end_index——
+                            // 把召回段锚定到该事件的 end_index——
                             // 「召回命中了过去事件，则用户很可能在问那个时刻」。
                             // Recency guard：仅当 top 事件距前沿超过一定距离时
                             // 才锚定，避免普通查询误锚定到近期事件导致状态偏移。
                             // 基准用 frontier（last_processed_floor）而非 chat.length：
                             // chat.length 含未提取的缓冲区，会让阈值随 bufferSize 偏移。
+                            //
+                            // Additive recall：不再用召回替换当前状态。
+                            // flashbackAnchor 仅作为显式信号传给 refreshEngramCache，
+                            // 后者会保留当前状态块、额外渲染一个 recalled 段。
                             const topNode = recallResult.nodes[0];
                             const topEndIndex = topNode?.source_range
                                 ?.end_index;
@@ -351,17 +355,32 @@ class Injector {
                                 topEndIndex,
                                 frontier,
                             );
-                            if (targetIndex != null) {
+                            const flashbackAnchor = targetIndex != null &&
+                                    topNode
+                                ? {
+                                    target_index: targetIndex,
+                                    anchor: {
+                                        time_anchor:
+                                            topNode.structured_kv
+                                                ?.time_anchor ?? "",
+                                        event: topNode.structured_kv?.event ??
+                                            "",
+                                    },
+                                }
+                                : undefined;
+                            if (flashbackAnchor) {
                                 Logger.debug(
                                     LogModule.RAG_INJECT,
-                                    `[flashback] 实体状态锚定到 msg ${topEndIndex} (前沿 ${frontier})`,
+                                    `[flashback] additive 召回段锚定到 msg ${topEndIndex} (前沿 ${frontier})`,
                                     { topEvent: topNode.id },
                                 );
                             }
-                            await refreshEngramCache(
-                                recallResult.nodes.map((n) => n.id),
-                                targetIndex,
-                            );
+                            await refreshEngramCache({
+                                recalledIds: recallResult.nodes.map((n) =>
+                                    n.id
+                                ),
+                                flashbackAnchor,
+                            });
                         } else {
                             Logger.debug(
                                 LogModule.RAG_INJECT,

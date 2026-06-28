@@ -3,16 +3,16 @@ import type { EventNode } from "@/data/types/graph.ts";
 import type { StateCreator } from "zustand";
 import { getCurrentDb, tryGetCurrentDb } from "./coreSlice.ts";
 
-/** 召回/注入路径共享的事件可见性过滤——与 getEventSummaries 的过滤口径一致。 */
-function filterVisibleEvents(
-    events: EventNode[],
-    recalledIds?: string[],
-): EventNode[] {
-    const recalledSet = recalledIds ? new Set(recalledIds) : null;
+/**
+ * 注入路径的事件可见性过滤：timeline 只保留「仍在上下文里」的事件——
+ * level≥1 的精简父事件 + 未归档的 level-0 细节事件。归档事件离开 timeline。
+ *
+ * 召回事件不再回灌进 timeline（additive recall：它们渲染到独立的 recalled 段）。
+ */
+function filterTimelineEvents(events: EventNode[]): EventNode[] {
     return events.filter((e) => {
         if (e.level >= 1) return true;
         if (!e.is_archived) return true;
-        if (e.is_archived && recalledSet?.has(e.id)) return true;
         return false;
     });
 }
@@ -26,20 +26,20 @@ export interface EventState {
     saveEvent: (
         event: Omit<EventNode, "id" | "timestamp"> & { timestamp?: number },
     ) => Promise<EventNode>;
-    getEventSummaries: (recalledIds?: string[]) => Promise<string>;
+    /** 渲染 timeline 摘要块——仅含未归档 + level≥1 事件，召回事件不再回灌。 */
+    getEventSummaries: () => Promise<string>;
     /**
-     * 返回用于实体状态块 as-of 标注的「剧情锚点」。
+     * 返回「前沿锚点」——时间戳最大事件的结构化锚点（=记忆覆盖到哪）。
+     * 用于实体状态块的 as-of 标注。无事件或锚点缺失返回 null。
      *
-     * - 有 recalledIds（flashback 路径）：返回 recalledIds[0] 对应事件的结构化锚点
-     *   （top 召回命中——Injector 据此挑的 target_index）。
-     * - 无 recalledIds（前沿路径）：返回时间戳最大事件的锚点（=记忆覆盖到哪）。
-     * - 无事件或锚点缺失：返回 null（调用方不渲染标签）。
-     *
-     * 过滤口径与 getEventSummaries 完全一致（共享 filterVisibleEvents）。
+     * flashback 锚点由 Injector 直接从 topNode.structured_kv 构造，不经此方法。
      */
-    getSummaryAnchor: (
-        recalledIds?: string[],
-    ) => Promise<SummaryAnchor | null>;
+    getSummaryAnchor: () => Promise<SummaryAnchor | null>;
+    /**
+     * 按 ID 取回召回事件原始节点（供 recalled 段渲染）。
+     * 走主键索引；空数组返回空。
+     */
+    getRecalledEvents: (recalledIds: string[]) => Promise<EventNode[]>;
 
     getEventsToMerge: (keepRecentCount?: number) => Promise<EventNode[]>;
     deleteEvents: (eventIds: string[]) => Promise<void>;
@@ -87,7 +87,7 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
         return event;
     },
 
-    getEventSummaries: async (recalledIds?: string[]) => {
+    getEventSummaries: async () => {
         const db = tryGetCurrentDb();
         if (!db) return "";
 
@@ -95,7 +95,7 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
             const events = await db.events.toArray();
             if (events.length === 0) return "";
 
-            const targetEvents = filterVisibleEvents(events, recalledIds);
+            const targetEvents = filterTimelineEvents(events);
             targetEvents.sort((a, b) => a.timestamp - b.timestamp);
 
             const lines: string[] = [];
@@ -106,6 +106,8 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
                     lines.push(node.summary);
                     hasParent = true;
                 } else if (node.is_archived) {
+                    // 归档事件不再进 timeline（additive recall 后它们只出现在 recalled 段）；
+                    // 此分支理论上不再触发，保留防御性。
                     if (hasParent) {
                         lines.push(`  ${node.summary}`);
                     } else {
@@ -127,7 +129,7 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
         }
     },
 
-    getSummaryAnchor: async (recalledIds?: string[]) => {
+    getSummaryAnchor: async () => {
         const db = tryGetCurrentDb();
         if (!db) return null;
 
@@ -135,16 +137,13 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
             const events = await db.events.toArray();
             if (events.length === 0) return null;
 
-            const visible = filterVisibleEvents(events, recalledIds);
+            const visible = filterTimelineEvents(events);
             if (visible.length === 0) return null;
 
-            // flashback 路径：取 top 召回命中（Injector 用它挑 target_index）。
-            // 前沿路径：取时间戳最大事件（=记忆覆盖到的最新剧情时刻）。
-            const target = recalledIds && recalledIds.length > 0
-                ? visible.find((e) => e.id === recalledIds[0])
-                : visible.reduce((a, b) => a.timestamp > b.timestamp ? a : b);
-            if (!target) return null;
-
+            // 前沿锚点：时间戳最大事件（=记忆覆盖到的最新剧情时刻）。
+            const target = visible.reduce((a, b) =>
+                a.timestamp > b.timestamp ? a : b
+            );
             const time_anchor = target.structured_kv?.time_anchor ?? "";
             const event = target.structured_kv?.event ?? "";
             // 两者皆空 → 无锚点信息，不渲染标签
@@ -156,6 +155,21 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
                 error,
             );
             return null;
+        }
+    },
+
+    getRecalledEvents: async (recalledIds: string[]) => {
+        if (recalledIds.length === 0) return [];
+        const db = tryGetCurrentDb();
+        if (!db) return [];
+        try {
+            return await db.events.where("id").anyOf(recalledIds).toArray();
+        } catch (error) {
+            console.error(
+                "[MemoryStore] Failed to get recalled events:",
+                error,
+            );
+            return [];
         }
     },
 
