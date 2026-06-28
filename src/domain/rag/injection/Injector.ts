@@ -379,6 +379,8 @@ class Injector {
                                 recalledIds: recallResult.nodes.map((n) =>
                                     n.id
                                 ),
+                                recalledEntityIds: recallResult.recalledEntities
+                                    ?.map((e) => e.id),
                                 flashbackAnchor,
                             });
                         } else {

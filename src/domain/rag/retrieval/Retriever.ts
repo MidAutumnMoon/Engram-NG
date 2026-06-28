@@ -129,26 +129,19 @@ class Retriever {
             return this.rollingSearch(limit);
         }
 
-        // V1.4.4: 冷启动保护 —— 没有可召回对象时，不进入召回工作流。
-        // 可召回对象：已向量化事件 / 已归档事件 / 已归档实体。
-        // is_embedded 与 is_archived 自 schema v3 起即有索引，直接走索引查询。
+        // 冷启动保护 —— 没有可召回对象时，不进入召回工作流。
+        // 召回资格不再与 is_archived 绑定（那是 trim/budget 的标志）：任何事件/实体都可被
+        // 关键词或向量召回。因此这里只问「库里有没有东西」，用主键存在性探测，常数时间。
         const chatId = getCurrentChatId();
         const db = chatId ? tryGetDbForChat(chatId) : null;
         if (db) {
             try {
-                const [
-                    embeddedEventCount,
-                    archivedEventCount,
-                    archivedEntityCount,
-                ] = await Promise.all([
-                    db.events.where("is_embedded").equals(1).limit(1).count(),
-                    db.events.where("is_archived").equals(1).limit(1).count(),
-                    db.entities.where("is_archived").equals(1).limit(1)
-                        .count(),
+                const [anyEventCount, anyEntityCount] = await Promise.all([
+                    db.events.limit(1).count(),
+                    db.entities.limit(1).count(),
                 ]);
 
-                const canRecall = embeddedEventCount > 0 ||
-                    archivedEventCount > 0 || archivedEntityCount > 0;
+                const canRecall = anyEventCount > 0 || anyEntityCount > 0;
                 if (!canRecall) {
                     Logger.info(
                         LogModule.RAG_INJECT,
@@ -159,7 +152,7 @@ class Retriever {
                     return {
                         ...fallback,
                         skippedReason:
-                            "当前没有向量化或归档条目，已跳过召回流程",
+                            "当前没有任何事件或实体，已跳过召回流程",
                     };
                 }
             } catch (error) {

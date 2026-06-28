@@ -40,6 +40,12 @@ export interface EventState {
      * 走主键索引；空数组返回空。
      */
     getRecalledEvents: (recalledIds: string[]) => Promise<EventNode[]>;
+    /**
+     * 返回 timeline 会渲染的事件 ID 集合（level≥1，或 level-0 !is_archived）。
+     * 供注入层 dedup：recalled 事件若已在 timeline，则不再重复渲染到 recalled 段。
+     * 过滤口径与 getEventSummaries / filterTimelineEvents 一致。
+     */
+    getTimelineEventIds: () => Promise<Set<string>>;
 
     getEventsToMerge: (keepRecentCount?: number) => Promise<EventNode[]>;
     deleteEvents: (eventIds: string[]) => Promise<void>;
@@ -170,6 +176,23 @@ export const createEventSlice: StateCreator<any, [], [], EventState> = (
                 error,
             );
             return [];
+        }
+    },
+
+    getTimelineEventIds: async () => {
+        const db = tryGetCurrentDb();
+        if (!db) return new Set<string>();
+        try {
+            const events = await db.events.toArray();
+            return new Set(
+                filterTimelineEvents(events).map((e) => e.id),
+            );
+        } catch (error) {
+            console.error(
+                "[MemoryStore] Failed to get timeline event ids:",
+                error,
+            );
+            return new Set<string>();
         }
     },
 

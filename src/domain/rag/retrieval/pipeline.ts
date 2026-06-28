@@ -5,11 +5,15 @@
  * context bag, so the contract between them is compile-checked.
  *
  * Behaviour:
- * - Keyword: composite scan text (history + intent + LLM queries), entity +
- *   archived-event guards, per-stream TopK, relation multi-hop (attenuation 0.8).
+ * - Keyword: composite scan text (history + intent + LLM queries), scans ALL
+ *   events + ALL entities (no is_archived gate — that's trim's flag, not a
+ *   recall-eligibility signal), per-stream TopK, relation multi-hop (attenuation 0.8).
  * - Vector: embedding similarity, bounded TopK insert, char-safe truncation,
  *   preset-driven retry on 429 / rate-limit / timeout / network.
  * - Rerank/Merge: dedup-by-id, hard-limit, rerank-with-fallback.
+ *
+ * Eligibility vs dedup: retrieval returns *candidates*; the injection layer
+ * decides what to render and dedups against the current/timeline blocks.
  *
  * Entity recall is *resurrected* here: the keyword stage returns the multi-hop
  * entity results as shaped `RecalledEntity[]`, so the "已唤醒实体" panel and
@@ -168,29 +172,6 @@ function getRetryConfig(source: "vector" | "rerank"): RetryConfig {
 }
 
 /**
- * Cheap existence check: is there at least one archived event? Used to skip
- * the event-scan pass entirely when there's nothing to match. The `is_archived`
- * index has existed since DB schema v3, so this is a direct indexed lookup.
- * Returns true on error (fail-open) so a flaky query doesn't disable event recall.
- */
-async function hasAnyArchivedEvents(
-    db: NonNullable<ReturnType<typeof tryGetDbForChat>>,
-): Promise<boolean> {
-    try {
-        const count = await db.events.where("is_archived").equals(1).limit(1)
-            .count();
-        return count > 0;
-    } catch (error) {
-        Logger.warn(
-            LogModule.WF_KEYWORD_RETRIEVE,
-            "无法检查归档事件状态，默认尝试扫描",
-            error,
-        );
-        return true;
-    }
-}
-
-/**
  * Relation multi-hop expansion: from each seed entity, walk its declared
  * relations (`profile.relations`, keyed by target entity name — see
  * `entity_extraction.yaml`) one hop out, scoring each reached entity by the
@@ -331,46 +312,35 @@ export async function keywordRetrieve(
         Logger.debug(LogModule.RAG_INJECT, "实体关键词扫描已禁用");
     }
 
-    // --- 事件扫描：仅在配置开启且有归档事件时进行 (P0 Fix: 守卫下沉) ---
+    // --- 事件扫描：扫描所有事件（不再按 is_archived 过滤）。
+    // is_archived 是 trim/budget 的标志，不是召回资格——所有事件都可被关键词命中。
+    // 去重（避免与 timeline 重复）由注入层显式处理，不在检索层做。
+    // Recency 由下游 flashback 阈值处理，扫描只产出候选。
     if (
         config.useKeywordRecall !== false &&
         config.enableEventKeyword !== false
     ) {
-        if (await hasAnyArchivedEvents(db)) {
-            const scannedCount = { archived: 0, matched: 0, total: 0 };
-            await db.events.toCollection().each((event) => {
-                scannedCount.total += 1;
+        const scannedCount = { matched: 0, total: 0 };
+        await db.events.toCollection().each((event) => {
+            scannedCount.total += 1;
 
-                if (!event.is_archived) {
-                    return;
-                }
+            if (!matchEvent(textToScan, event)) {
+                return;
+            }
 
-                scannedCount.archived += 1;
+            scannedCount.matched += 1;
 
-                if (!matchEvent(textToScan, event)) {
-                    return;
-                }
+            if (hitEvents.length < eventTopK) {
+                hitEvents.push(event);
+            }
+        });
 
-                scannedCount.matched += 1;
-
-                if (hitEvents.length < eventTopK) {
-                    hitEvents.push(event);
-                }
-            });
-
-            Logger.debug(LogModule.RAG_INJECT, "事件关键词扫描完成", {
-                eventTopK,
-                kept: hitEvents.length,
-                matched: scannedCount.matched,
-                scannedArchived: scannedCount.archived,
-                scannedTotal: scannedCount.total,
-            });
-        } else {
-            Logger.info(
-                LogModule.RAG_INJECT,
-                "事件关键词扫描跳过：当前无归档事件",
-            );
-        }
+        Logger.debug(LogModule.RAG_INJECT, "事件关键词扫描完成", {
+            eventTopK,
+            kept: hitEvents.length,
+            matched: scannedCount.matched,
+            scannedTotal: scannedCount.total,
+        });
     } else {
         Logger.debug(
             LogModule.RAG_INJECT,

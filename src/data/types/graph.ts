@@ -211,9 +211,11 @@ export interface EntityNode {
     episode_refs?: string[];
 
     /**
-     * 是否已归档 (隐藏)
-     * true: 不参与关键词扫描与 RAG 召回
-     * false: 活跃状态
+     * 是否已归档（预算驱逐）。
+     * true: 实体离开活跃注入块（仅渲染极简提醒）；事件离开 timeline。
+     *       这是 trim/budget 的标志，**不是召回资格**——召回扫描所有实体/事件，
+     *       由注入层 dedup 决定是否重复渲染。
+     * false: 活跃状态。
      */
     is_archived?: boolean;
 

@@ -145,7 +145,9 @@ export interface FlashbackAnchor {
 /**
  * refreshEngramCache 的选项——单一 options 对象，消除位置参数歧义。
  *
- * - `recalledIds`：RAG 召回的事件 ID（Injector 传入；其余路径留空）。
+ * - `recalledIds`：RAG 召回的**事件** ID（供 recalled 段渲染事件）。
+ * - `recalledEntityIds`：RAG 召回的**实体** ID（供 recalled 段渲染实体状态）。
+ *   注意与 recalledIds 区分——二者是不同 ID 空间，曾混用导致死数据 bug。
  * - `frontierOverride`：显式覆盖前沿（saveEntities 用——cursor 未推进时
  *   resolveFrontier 会读到旧值，漏掉刚写入的区间）。
  * - `flashbackAnchor`：flashback 信号（Injector 在召回命中过去事件时传入）。
@@ -153,6 +155,7 @@ export interface FlashbackAnchor {
  */
 export interface RefreshEngramCacheOptions {
     recalledIds?: string[];
+    recalledEntityIds?: string[];
     frontierOverride?: number;
     flashbackAnchor?: FlashbackAnchor;
 }
@@ -165,11 +168,17 @@ export interface RefreshEngramCacheOptions {
  * - 仅当 flashbackAnchor 存在时，额外渲染一个 `<recalled_context>` 段：
  *   召回实体的 as-of 状态 + 召回事件，带 flashback 标签。
  * - 召回事件不再回灌进 `<summary>` timeline（timeline 只剩未归档 + level≥1）。
+ *
+ * Dedup（避免与 timeline/当前块重复）：
+ * - 事件：recalledIds 先扣除已在 timeline 的 ID（getTimelineEventIds），再取回渲染。
+ * - 实体：getEntityStates 的 case-A 只渲染「归档且被召回」的实体——非归档实体已在
+ *   当前块渲染过。dedup 规则在 entitySlice 内，此处只负责传 entity IDs。
  */
 export async function refreshEngramCache(
     opts: RefreshEngramCacheOptions = {},
 ): Promise<void> {
-    const { recalledIds, frontierOverride, flashbackAnchor } = opts;
+    const { recalledIds, recalledEntityIds, frontierOverride, flashbackAnchor } =
+        opts;
     try {
         const store = useMemoryStore.getState();
 
@@ -188,21 +197,36 @@ export async function refreshEngramCache(
         );
 
         // 3. Additive recalled 段——仅 flashback 时渲染。
-        // 召回实体在此首次接入 case-A 提升路径（ids=recalledIds），
-        // 修复了历史上 recalledIds 被丢弃、归档召回实体永远不渲染的死数据 bug。
-        if (flashbackAnchor && recalledIds && recalledIds.length > 0) {
+        // 实体用 recalledEntityIds（实体 ID 空间），事件用 recalledIds（事件 ID 空间）。
+        // 事件先 dedup：扣除已在 timeline 的 ID，避免重复渲染。
+        if (flashbackAnchor) {
             const recalledLabel = buildAsOfLabel(
                 flashbackAnchor.anchor,
                 true,
             );
-            const recalledStates = await store.getEntityStates(
-                recalledIds,
-                flashbackAnchor.target_index,
-                recalledLabel,
-            );
-            const recalledEvents = await store.getRecalledEvents(
-                recalledIds,
-            );
+            const recalledStates = recalledEntityIds &&
+                    recalledEntityIds.length > 0
+                ? await store.getEntityStates(
+                    recalledEntityIds,
+                    flashbackAnchor.target_index,
+                    recalledLabel,
+                )
+                : "";
+            let recalledEvents: Awaited<
+                ReturnType<typeof store.getRecalledEvents>
+            > = [];
+            if (recalledIds && recalledIds.length > 0) {
+                // Dedup against timeline: 已在 <summary> 渲染的事件不进 recalled 段。
+                const timelineIds = await store.getTimelineEventIds();
+                const dedupedIds = recalledIds.filter((id) =>
+                    !timelineIds.has(id)
+                );
+                if (dedupedIds.length > 0) {
+                    recalledEvents = await store.getRecalledEvents(
+                        dedupedIds,
+                    );
+                }
+            }
             const section = formatRecalledSection(
                 recalledStates,
                 recalledEvents,
@@ -215,7 +239,8 @@ export async function refreshEngramCache(
         }
 
         Logger.debug(LogModule.MACROS, "Engram DB 缓存已刷新", {
-            recalledCount: recalledIds?.length ?? 0,
+            recalledEventCount: recalledIds?.length ?? 0,
+            recalledEntityCount: recalledEntityIds?.length ?? 0,
             summariesLength: cachedSummaries.length,
             frontier,
             isFlashback: flashbackAnchor != null,

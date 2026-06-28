@@ -110,19 +110,19 @@ export const createEntitySlice: StateCreator<any, [], [], EntityState> = (
             const all = await db.entities.toArray();
 
             if (ids && ids.length > 0) {
-                // 情况 A: 有召回 ID 列表
-                // 详细展示：活跃实体 + 被召回的归档实体
-                // 简略展示：未被召回的归档实体
+                // 情况 A: 召回路径（recalled 段渲染）。
+                // 这里只渲染「归档且被召回」的实体——非归档实体已在当前状态块（情况 B）
+                // 渲染过，重复出现在 recalled 段会造成重复。is_archived 在此读作
+                // 「是否已在当前块」，是显式 dedup 规则，不是召回资格门槛。
                 fullEntities = all.filter((e) =>
-                    !e.is_archived || ids.includes(e.id)
+                    e.is_archived && ids.includes(e.id)
                 );
                 summaryEntities = all.filter((e) =>
                     e.is_archived && !ids.includes(e.id)
                 );
             } else {
-                // 情况 B: 无召回 ID 列表
-                // 详细展示：所有活跃实体
-                // 简略展示：所有归档实体
+                // 情况 B: 当前状态路径（无召回 ID 列表）。
+                // 详细展示：所有活跃实体；简略展示：所有归档实体。
                 fullEntities = all.filter((e) => !e.is_archived);
                 summaryEntities = all.filter((e) => e.is_archived);
             }
