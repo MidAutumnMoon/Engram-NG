@@ -1,4 +1,4 @@
-import type { PromptTemplate } from "@/config/types/prompt.ts";
+import type { PromptTemplate } from "./types.ts";
 import { FileText } from "lucide-react";
 import React from "react";
 import { PromptTemplateCard } from "./PromptTemplateCard.tsx";

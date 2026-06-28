@@ -1,6 +1,11 @@
-import { getTemplateLabel } from "@/integrations/llm/builtinPrompts.ts";
-import type { PromptTemplate } from "@/config/types/prompt.ts";
+import type { PromptTemplate } from "./types.ts";
 import React from "react";
+
+const TEMPLATE_LABELS: Record<string, string> = {
+    builtin_entity_extraction: "实体提取",
+    builtin_summary: "剧情摘要",
+    builtin_trim: "记忆精简",
+};
 
 interface PromptTemplateCardProps {
     template: PromptTemplate;
@@ -36,7 +41,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                         : "text-muted-foreground group-hover:text-heading"
                 }`}
             >
-                {getTemplateLabel(template.id)}
+                {TEMPLATE_LABELS[template.id] ?? template.id}
             </h4>
         </div>
     );

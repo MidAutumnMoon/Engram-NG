@@ -7,7 +7,7 @@ import { FormSection } from "@/ui/components/form/FormComponents.tsx";
 import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
 import { Check, Copy } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import type { PromptTemplate } from "@/config/types/prompt.ts";
+import type { PromptTemplate } from "./types.ts";
 
 interface PromptTemplateFormProps {
     template: PromptTemplate;

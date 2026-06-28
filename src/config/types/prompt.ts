@@ -1,23 +1,6 @@
-/**
- * Prompt / Worldbook Configuration Schemas
- */
+/** Worldbook Configuration Schemas */
 
 import { z } from "zod";
-
-// ==================== Prompt Template ====================
-
-// Built-in templates are identified solely by `id` (e.g. "builtin_summary").
-// Human-readable labels live next to the template definitions, not here — see
-// `TEMPLATE_LABELS` in `integrations/llm/builtinPrompts.ts`.
-export const promptTemplateSchema = z.object({
-    id: z.string(),
-    systemPrompt: z.string().default(""),
-    userPromptTemplate: z.string().default(""),
-    createdAt: z.number().default(() => Date.now()),
-    updatedAt: z.number().default(() => Date.now()),
-});
-
-export type PromptTemplate = z.infer<typeof promptTemplateSchema>;
 
 // ==================== Worldbook Config ====================
 

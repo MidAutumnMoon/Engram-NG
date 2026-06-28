@@ -1,8 +1,8 @@
 /**
  * UseLLMPresets - LLM 预设管理
  *
- * Prompt templates are built-in only (see `@/integrations/llm/builtinPrompts.ts`)
- * and no longer part of the persisted LLM settings, so this hook is presets-only.
+ * Prompt templates are built-in only and no longer part of the persisted LLM
+ * settings, so this hook is presets-only.
  */
 
 import {

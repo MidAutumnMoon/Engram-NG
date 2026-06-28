@@ -6,15 +6,7 @@
  * - 移动端：列表全屏 → 点击 → 编辑全屏
  */
 
-import {
-    Cpu,
-    FileText,
-    Key,
-    Layers,
-    Plus,
-    Regex,
-    Save,
-} from "lucide-react";
+import { Cpu, FileText, Key, Layers, Plus, Regex, Save } from "lucide-react";
 import React, { useEffect, useState } from "react";
 // Components
 import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
@@ -29,7 +21,13 @@ import { RegexRuleList } from "./regex/RegexRuleList.tsx";
 import { PresetCard } from "./shared/PresetCard.tsx";
 import { WorldbookConfigForm } from "./worldbook/WorldbookConfigForm.tsx";
 
-import { BUILTIN_PROMPTS } from "@/integrations/llm/builtinPrompts.ts";
+import ENTITY_EXTRACTION_SYSTEM from "@/integrations/llm/prompts/ENTITY_EXTRACTION_SYSTEM.txt?raw";
+import ENTITY_EXTRACTION_USER from "@/integrations/llm/prompts/ENTITY_EXTRACTION_USER.txt?raw";
+import SUMMARY_SYSTEM from "@/integrations/llm/prompts/SUMMARY_SYSTEM.txt?raw";
+import SUMMARY_USER from "@/integrations/llm/prompts/SUMMARY_USER.txt?raw";
+import TRIM_SYSTEM from "@/integrations/llm/prompts/TRIM_SYSTEM.txt?raw";
+import TRIM_USER from "@/integrations/llm/prompts/TRIM_USER.txt?raw";
+import type { PromptTemplate } from "./prompts/types.ts";
 import { EmptyState } from "@/ui/components/display/EmptyState.tsx";
 import { MasterDetailLayout } from "@/ui/components/layout/MasterDetailLayout.tsx";
 import { MobileFullscreenForm } from "@/ui/components/overlay/MobileFullscreenForm.tsx";
@@ -39,6 +37,26 @@ import { useConfig } from "../../hooks/useConfig.ts";
 import { useLLMPresets } from "../../hooks/useLLMPresets.ts";
 import { useRegexRules } from "../../hooks/useRegexRules.ts";
 import { useWorldInfo } from "../../hooks/useWorldInfo.ts";
+
+// ==================== 内置提示词模板（只读展示） ====================
+
+const BUILTIN_PROMPTS: PromptTemplate[] = [
+    {
+        id: "builtin_summary",
+        systemPrompt: SUMMARY_SYSTEM,
+        userPromptTemplate: SUMMARY_USER,
+    },
+    {
+        id: "builtin_trim",
+        systemPrompt: TRIM_SYSTEM,
+        userPromptTemplate: TRIM_USER,
+    },
+    {
+        id: "builtin_entity_extraction",
+        systemPrompt: ENTITY_EXTRACTION_SYSTEM,
+        userPromptTemplate: ENTITY_EXTRACTION_USER,
+    },
+];
 
 // Tab 类型
 type MainTabType = "model" | "prompt" | "regex" | "worldbook";
@@ -100,8 +118,6 @@ export const APIPresets: React.FC<APIPresetsProps> = (
             ? initialNestedTab as ModelSubTabType
             : "llm",
     );
-    // Const [worldbookSubTab, setWorldbookSubTab] = useState<WorldbookSubTabType>('global');
-    // Const [editingProfileId, setEditingProfileId] = useState<string | null>(null);
 
     // 移动端状态
     // V0.9.7: 使用统一的 useResponsive Hook
@@ -197,7 +213,7 @@ export const APIPresets: React.FC<APIPresetsProps> = (
     } = useWorldInfo();
 
     // 聚合保存
-    const save = async () => {
+    const save = () => {
         if (llmHasChanges) saveLLMSettings();
         if (configHasChanges) saveConfig();
         if (regexHasChanges) saveRegexRules();
