@@ -136,7 +136,6 @@ export const MemoryStream: React.FC<MemoryStreamProps> = ({ initialTab }) => {
     return (
         <div className="flex flex-col h-full gap-8">
             <PageTitle
-                parent="记忆编辑"
                 title={currentInfo.title}
                 subtitle={currentInfo.subtitle}
             />

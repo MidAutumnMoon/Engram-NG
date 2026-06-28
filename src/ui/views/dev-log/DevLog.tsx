@@ -51,7 +51,6 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
     return (
         <div className="flex flex-col h-full gap-2">
             <PageTitle
-                parent="开发日志"
                 title={currentTab.label}
                 subtitle={currentTab.subtitle}
             />

@@ -1,9 +1,14 @@
 /**
  * Sidebar - 统一侧边栏组件
  *
- * 支持 PC 端和移动端两种模式，复用导航配置和底部功能区
+ * 支持 PC 端和移动端两种模式，复用导航配置和底部功能区。
+ * 导航项按 NAV_SECTIONS 分组，每组带一个小号大写标题。
  */
-import { NAV_ITEMS } from "@/ui/navigation.ts";
+import {
+    NAV_ITEMS,
+    NAV_SECTIONS,
+    type NavItem,
+} from "@/ui/navigation.ts";
 import { EngramTextLogo } from "@/ui/assets/icons/EngramTextLogo.tsx";
 import { X } from "lucide-react";
 import React from "react";
@@ -72,45 +77,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
     // 移动端未打开时不渲染
     if (isMobile && !isOpen) return null;
 
+    // 分组渲染导航。compact 控制内边距，仅 PC 端收紧以容纳三组八项。
+    const renderNav = (compact: boolean) => (
+        <nav
+            className={`flex-1 w-full flex flex-col ${
+                compact ? "gap-0.5" : "gap-1.5"
+            } overflow-y-auto no-scrollbar`}
+        >
+            {NAV_SECTIONS.map((section, sIdx) => {
+                const items = NAV_ITEMS.filter((i) =>
+                    i.section === section.id
+                );
+                return (
+                    <div
+                        key={section.id}
+                        className={sIdx > 0 ? "mt-3" : ""}
+                    >
+                        <div
+                            className={`px-3 ${
+                                compact ? "pt-1 pb-1" : "pt-2 pb-1"
+                            } text-[10px] font-medium uppercase tracking-wider text-muted-foreground/50 select-none`}
+                        >
+                            {section.label}
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                            {items.map((item) =>
+                                renderNavItem(
+                                    item,
+                                    activeTab,
+                                    handleNavClick,
+                                    compact,
+                                )
+                            )}
+                        </div>
+                    </div>
+                );
+            })}
+        </nav>
+    );
+
     // PC 端侧边栏
     if (!isMobile) {
         return (
             <aside className="flex w-44 shrink-0 bg-sidebar/80 flex-col z-40 pt-4 px-3 border-r border-border/50 max-md:hidden">
-                <nav className="flex-1 w-full flex flex-col gap-1.5 overflow-y-auto no-scrollbar">
-                    {NAV_ITEMS.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = activeTab === item.id;
-                        return (
-                            <button
-                                key={item.id}
-                                type="button"
-                                onClick={() => handleNavClick(item.id)}
-                                className={`
-                                    group w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left
-
-                                    ${
-                                    isActive
-                                        ? "bg-primary/10 text-primary"
-                                        : "text-muted-foreground hover:text-foreground hover:bg-muted/10"
-                                }
-                                `}
-                            >
-                                <Icon
-                                    size={20}
-                                    strokeWidth={isActive ? 2 : 1.5}
-                                    className="shrink-0 group-hover:scale-110"
-                                />
-                                <span
-                                    className={`text-sm ${
-                                        isActive ? "font-medium" : "font-normal"
-                                    }`}
-                                >
-                                    {item.label}
-                                </span>
-                            </button>
-                        );
-                    })}
-                </nav>
+                {renderNav(true)}
 
                 {/* 底部区域 */}
                 <div className="pb-3">
@@ -151,39 +161,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </button>
                 </div>
 
-                <nav className="space-y-2 flex-1 overflow-y-auto">
-                    {NAV_ITEMS.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = activeTab === item.id;
-                        return (
-                            <button
-                                key={item.id}
-                                type="button"
-                                onClick={() => handleNavClick(item.id)}
-                                className={`
-                                    group w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left
-
-                                    active:scale-[0.98]
-                                    ${
-                                    isActive
-                                        ? "bg-primary/10 text-primary font-medium"
-                                        : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                                }
-                                `}
-                            >
-                                <Icon
-                                    size={22}
-                                    className={`group-hover:scale-110 ${
-                                        isActive
-                                            ? "text-primary"
-                                            : "text-muted-foreground/70"
-                                    }`}
-                                />
-                                <span>{item.label}</span>
-                            </button>
-                        );
-                    })}
-                </nav>
+                {renderNav(false)}
 
                 {/* 底部区域 - 复用统一组件 */}
                 <div className="mt-auto">
@@ -193,3 +171,59 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
     );
 };
+
+/** 单个导航按钮。PC / 移动端共用，由 compact 切换尺寸。 */
+function renderNavItem(
+    item: NavItem,
+    activeTab: string,
+    onClick: (id: string) => void,
+    compact: boolean,
+) {
+    const Icon = item.icon;
+    const isActive = activeTab.split(":")[0] === item.id;
+    return (
+        <button
+            key={item.id}
+            type="button"
+            onClick={() => onClick(item.id)}
+            className={`
+                group w-full flex items-center gap-2 ${
+                    compact ? "px-3 py-2" : "px-4 py-3"
+                } ${
+                    compact ? "rounded-lg" : "rounded-xl"
+                } text-left
+                ${compact ? "" : "active:scale-[0.98]"}
+                ${
+                isActive
+                    ? compact
+                        ? "bg-primary/10 text-primary"
+                        : "bg-primary/10 text-primary font-medium"
+                    : compact
+                    ? "text-muted-foreground hover:text-foreground hover:bg-muted/10"
+                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            }
+            `}
+        >
+            <Icon
+                size={compact ? 18 : 22}
+                strokeWidth={isActive ? 2 : 1.5}
+                className={`shrink-0 group-hover:scale-110 ${
+                    !compact
+                        ? isActive
+                            ? "text-primary"
+                            : "text-muted-foreground/70"
+                        : ""
+                }`}
+            />
+            <span
+                className={`${compact ? "text-sm" : ""} ${
+                    compact
+                        ? isActive ? "font-medium" : "font-normal"
+                        : ""
+                }`}
+            >
+                {item.label}
+            </span>
+        </button>
+    );
+}

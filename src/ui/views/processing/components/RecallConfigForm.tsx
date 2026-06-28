@@ -1,4 +1,4 @@
-import type { RecallConfig, RerankConfig } from "@/config/types/rag.ts";
+import type { RecallConfig } from "@/config/types/rag.ts";
 import { Switch } from "@/ui/components/form/Switch.tsx";
 import { NumberField } from "@/ui/components/form/FormComponents.tsx";
 import {
@@ -15,13 +15,10 @@ import React from "react";
 interface RecallConfigFormProps {
     config: RecallConfig;
     onChange: (config: RecallConfig) => void;
-    /** Rerank 配置（用于业务参数） */
-    rerankConfig?: RerankConfig;
-    onRerankChange?: (config: RerankConfig) => void;
 }
 
 export const RecallConfigForm: React.FC<RecallConfigFormProps> = (
-    { config, onChange, rerankConfig, onRerankChange },
+    { config, onChange },
 ) => {
     // 更新配置的辅助函数
     const updateConfig = (updates: Partial<RecallConfig>) => {

@@ -293,7 +293,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">
                                 快速入口
                             </h2>
-                            <div className="grid grid-cols-5 gap-3">
+                            <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
                                 {QUICK_ACTIONS.map((
                                     { id, label, icon: Icon, path },
                                 ) => (

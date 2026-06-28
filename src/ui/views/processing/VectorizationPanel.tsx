@@ -295,7 +295,7 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
                     <p className="text-sm text-muted-foreground">
                         请在
                         <span className="text-primary mx-1">
-                            API 配置 → 模型配置 → 向量化
+                            模型与服务 → 向量化
                         </span>
                         中设置向量化服务
                     </p>

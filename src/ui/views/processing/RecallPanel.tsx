@@ -1,12 +1,10 @@
-import type { RecallConfig, RerankConfig } from "@/config/types/rag.ts";
+import type { RecallConfig } from "@/config/types/rag.ts";
 import React from "react";
 import { RecallConfigForm } from "./components/RecallConfigForm.tsx";
 
 interface RecallPanelProps {
     recallConfig: RecallConfig;
-    rerankConfig: RerankConfig;
     onRecallConfigChange: (config: RecallConfig) => void;
-    onRerankConfigChange: (config: RerankConfig) => void;
 }
 
 import { scanEntities, scanEvents } from "@/domain/memory/EntityScanner.ts";
@@ -27,9 +25,7 @@ import {
 
 export const RecallPanel: React.FC<RecallPanelProps> = ({
     recallConfig,
-    rerankConfig,
     onRecallConfigChange,
-    onRerankConfigChange,
 }) => {
     // --- 状态管理 ---
     const [testQuery, setTestQuery] = React.useState("");
@@ -151,8 +147,6 @@ export const RecallPanel: React.FC<RecallPanelProps> = ({
             <RecallConfigForm
                 config={recallConfig}
                 onChange={onRecallConfigChange}
-                rerankConfig={rerankConfig}
-                onRerankChange={onRerankConfigChange}
             />
 
             {/* 静态扫描快速测试（零消耗） */}

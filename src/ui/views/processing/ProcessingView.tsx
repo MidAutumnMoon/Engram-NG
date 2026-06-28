@@ -46,9 +46,9 @@ const QUICK_LINKS: QuickLink[] = [
     },
     {
         icon: BookOpen,
-        id: "presets",
+        id: "prompts",
         label: "提示词模板",
-        linkTo: "presets:prompt",
+        linkTo: "prompts:prompt",
     },
 ];
 
@@ -83,13 +83,11 @@ export const ProcessingView: React.FC<ProcessingViewProps> = (
     // Unified State Management
     const {
         recallConfig,
-        rerankConfig,
         ingestionConfig,
         trimConfig,
         embeddingConfig,
         vectorConfig,
         updateRecallConfig,
-        updateRerankConfig,
         updateIngestionConfig,
         updateTrimConfig,
         updateEmbeddingConfig,
@@ -106,7 +104,6 @@ export const ProcessingView: React.FC<ProcessingViewProps> = (
         <div className="flex flex-col h-full w-full overflow-x-hidden gap-6">
             {/* 页面标题 - 统一样式：大标题 + 简短介绍 */}
             <PageTitle
-                parent="数据处理"
                 title={currentInfo.title}
                 subtitle={currentInfo.subtitle}
             />
@@ -163,9 +160,7 @@ export const ProcessingView: React.FC<ProcessingViewProps> = (
                 {activeTab === "recall" && (
                     <RecallPanel
                         recallConfig={recallConfig}
-                        rerankConfig={rerankConfig}
                         onRecallConfigChange={updateRecallConfig}
-                        onRerankConfigChange={updateRerankConfig}
                     />
                 )}
             </div>

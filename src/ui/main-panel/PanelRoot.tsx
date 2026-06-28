@@ -13,7 +13,9 @@ import React, { useEffect } from "react";
 
 import { Dashboard } from "@/ui/views/dashboard/Dashboard.tsx";
 import { DevLog } from "@/ui/views/dev-log/DevLog.tsx";
-import { APIPresets } from "@/ui/views/api-presets/APIPresetsView.tsx";
+import { ServicesView } from "@/ui/views/services/ServicesView.tsx";
+import { RulesView } from "@/ui/views/rules/RulesView.tsx";
+import { DataView } from "@/ui/views/data/DataView.tsx";
 import { Settings } from "@/ui/views/settings/Settings.tsx";
 import { MemoryStream } from "@/ui/views/memory-stream/MemoryStream.tsx";
 import { ProcessingView } from "@/ui/views/processing/ProcessingView.tsx";
@@ -39,7 +41,7 @@ const PanelRoot: React.FC = () => {
     }, [closePanel]);
 
     const renderContent = () => {
-        // 解析路径，支持 page:subtab[:detail] 格式（如 devlog:model, presets:prompt:macros）
+        // 解析路径，支持 page:subtab[:detail] 格式（如 devlog:model, presets:llm）
         const [page, ...subtabParts] = activeTab.split(":");
         const subtab = subtabParts.join(":") || undefined;
 
@@ -48,18 +50,32 @@ const PanelRoot: React.FC = () => {
                 return <Dashboard onNavigate={navigate} />;
             }
             case "presets": {
+                // 模型与服务：LLM / 向量 / Rerank 端点
                 return (
-                    <APIPresets
+                    <ServicesView
+                        initialSubtab={subtabParts[0] as
+                            | "llm"
+                            | "vector"
+                            | "rerank"
+                            | undefined}
+                    />
+                );
+            }
+            case "prompts": {
+                // 提示词与规则：提示词 / 正则 / 世界书
+                return (
+                    <RulesView
                         onNavigate={navigate}
                         initialTab={subtabParts[0] as
-                            | "model"
                             | "prompt"
                             | "regex"
                             | "worldbook"
                             | undefined}
-                        initialTabPath={subtab}
                     />
                 );
+            }
+            case "data": {
+                return <DataView />;
             }
             case "devlog": {
                 return <DevLog initialTab={subtab as "runtime" | "model"} />;
@@ -76,10 +92,9 @@ const PanelRoot: React.FC = () => {
                 return <ProcessingView
                     onNavigate={navigate}
                     initialTab={subtab as
-                        | "summary"
+                        | "ingestion"
                         | "vectorization"
                         | "recall"
-                        | "entity"
                         | undefined}
                 />;
             }
