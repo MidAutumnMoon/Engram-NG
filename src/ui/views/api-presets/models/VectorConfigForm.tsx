@@ -9,11 +9,11 @@ import type {
 import { ModelService } from "@/integrations/llm/ModelDiscovery.ts";
 import {
     FormSection,
-    SearchableSelectField,
     SelectField,
     TextField,
 } from "@/ui/components/form/FormComponents.tsx";
-import { AlertCircle, AlertTriangle, Loader2, RefreshCw } from "lucide-react";
+import { ModelNameField } from "@/ui/components/form/ModelNameField.tsx";
+import { AlertCircle, AlertTriangle } from "lucide-react";
 import React, { useState } from "react";
 
 /**
@@ -286,70 +286,20 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
                 )}
 
                 {/* 模型选择: 下拉 + 手动输入 + 获取按钮 */}
-                <div className="flex flex-col gap-1.5">
-                    <div className="flex items-center justify-between">
-                        <label className="text-xs font-medium text-muted-foreground">
-                            模型名称
-                        </label>
-                        {(needsUrl || needsKey) && (
-                            <button
-                                type="button"
-                                className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                                onClick={fetchModelList}
-                                disabled={isLoadingModels}
-                                title="获取模型列表"
-                            >
-                                {isLoadingModels
-                                    ? (
-                                        <Loader2
-                                            size={12}
-                                            className="animate-spin"
-                                        />
-                                    )
-                                    : (
-                                        <RefreshCw size={12} />
-                                    )}
-                                {modelList.length > 0
-                                    ? `${modelList.length} 个模型`
-                                    : "获取模型"}
-                            </button>
-                        )}
-                    </div>
-                    {modelList.length > 0
-                        ? (
-                            <div className="relative">
-                                <SearchableSelectField
-                                    className="mb-0!"
-                                    label=""
-                                    value={config.model || ""}
-                                    onChange={(value) =>
-                                        updateConfig({ model: value })}
-                                    options={modelList.map((m) => ({
-                                        label: m.name || m.id,
-                                        value: m.id,
-                                    }))}
-                                    placeholder="选择模型"
-                                    emptyText="未找到可用模型"
-                                />
-                            </div>
-                        )
-                        : (
-                            <input
-                                type="text"
-                                value={config.model || ""}
-                                onChange={(e) =>
-                                    updateConfig({ model: e.target.value })}
-                                placeholder={DEFAULT_MODELS[config.source]}
-                                className="w-full bg-muted/20 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/40 focus:border-primary focus:bg-muted/30"
-                            />
-                        )}
-                    <p className="text-[11px] text-muted-foreground/70 break-words leading-relaxed">
-                        使用的向量化模型
-                    </p>
-                    {modelError && (
-                        <p className="text-xs text-destructive">{modelError}</p>
-                    )}
-                </div>
+                <ModelNameField
+                    value={config.model || ""}
+                    onChange={(value) => updateConfig({ model: value })}
+                    modelList={modelList.map((m) => ({
+                        label: m.name || m.id,
+                        value: m.id,
+                    }))}
+                    onRefresh={fetchModelList}
+                    isLoadingModels={isLoadingModels}
+                    refreshDisabled={!(needsUrl || needsKey)}
+                    placeholder={DEFAULT_MODELS[config.source]}
+                    description="使用的向量化模型"
+                    error={modelError}
+                />
             </FormSection>
 
             <FormSection title="高级选项" collapsible defaultCollapsed>

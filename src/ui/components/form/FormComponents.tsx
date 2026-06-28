@@ -110,39 +110,40 @@ export const TextField: React.FC<TextFieldProps> = ({
     multiline,
     rows = 3,
 }) => {
-    const sharedProps = {
+    const common = {
         value,
-        onChange: (e: React.ChangeEvent<
-            HTMLInputElement | HTMLTextAreaElement
-        >) => onChange(e.target.value),
+        onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+            onChange(e.target.value),
         placeholder,
         disabled,
         readOnly,
-        className: fieldBox,
     };
-
     return (
-        <div className={`flex flex-col gap-1.5 ${className}`}>
-            {label &&
-                <FieldLabel
-                    label={label}
-                    required={required}
-                />}
+        <FieldShell
+            label={label}
+            description={description}
+            error={error}
+            required={required}
+            className={className}
+        >
             {multiline
                 ? (
                     <textarea
-                        {...sharedProps as React.TextareaHTMLAttributes<
+                        {...common as React.TextareaHTMLAttributes<
                             HTMLTextAreaElement
                         >}
                         rows={rows}
                         className={`${fieldBox} font-mono resize-y min-h-[80px]`}
                     />
                 )
-                : <input type={type} {...sharedProps} />}
-            {description &&
-                <FieldDescription>{description}</FieldDescription>}
-            {error && <FieldError>{error}</FieldError>}
-        </div>
+                : (
+                    <input
+                        type={type}
+                        {...common}
+                        className={fieldBox}
+                    />
+                )}
+        </FieldShell>
     );
 };
 
@@ -170,15 +171,14 @@ export const NumberField: React.FC<NumberFieldProps> = ({
     suffix,
     disabled,
 }) => (
-    <div
-        className={`flex flex-col gap-1.5 ${className} ${
-            disabled ? "opacity-50 pointer-events-none" : ""
-        }`}
+    <FieldShell
+        label={label}
+        description={description}
+        error={error}
+        required={required}
+        className={`${className} ${disabled ? "opacity-50 pointer-events-none" : ""}`}
     >
-        {label && <FieldLabel label={label} required={required} />}
-        <div
-            className={`flex items-center gap-2 ${fieldBox} !py-1.5`}
-        >
+        <div className={`flex items-center gap-2 ${fieldBox} !py-1.5`}>
             <input
                 type="number"
                 min={min}
@@ -194,9 +194,7 @@ export const NumberField: React.FC<NumberFieldProps> = ({
                     {suffix}
                 </span>}
         </div>
-        {description && <FieldDescription>{description}</FieldDescription>}
-        {error && <FieldError>{error}</FieldError>}
-    </div>
+    </FieldShell>
 );
 
 interface SelectOption {
@@ -224,8 +222,13 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     placeholder = "请选择...",
     disabled,
 }) => (
-    <div className={`flex flex-col gap-1.5 ${className}`}>
-        {label && <FieldLabel label={label} required={required} />}
+    <FieldShell
+        label={label}
+        description={description}
+        error={error}
+        required={required}
+        className={className}
+    >
         <div className="relative">
             <select
                 value={value}
@@ -259,9 +262,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 pointer-events-none"
             />
         </div>
-        {description && <FieldDescription>{description}</FieldDescription>}
-        {error && <FieldError>{error}</FieldError>}
-    </div>
+    </FieldShell>
 );
 
 interface SwitchFieldProps extends Omit<BaseFieldProps, "required"> {
@@ -411,7 +412,11 @@ export const SearchableSelectField: React.FC<
 
     return (
         <div className={`flex flex-col gap-1.5 ${className}`} ref={containerRef}>
-            {label && <FieldLabel label={label} required={required} />}
+            {label &&
+                <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                    {label}
+                    {required && <span className="text-destructive">*</span>}
+                </label>}
 
             {/* 触发按钮 — 复用 fieldBox 观感 */}
             <button
@@ -500,36 +505,54 @@ export const SearchableSelectField: React.FC<
                 </div>
             )}
 
-            {description && <FieldDescription>{description}</FieldDescription>}
-            {error && <FieldError>{error}</FieldError>}
+            {description &&
+                <p className="text-[11px] text-muted-foreground/70 break-words leading-relaxed">
+                    {description}
+                </p>}
+            {error &&
+                <p className="text-[11px] text-destructive break-words">
+                    {error}
+                </p>}
         </div>
     );
 };
 
 // ==================== 内部小组件 ====================
 
-const FieldLabel: React.FC<{
-    label: React.ReactNode;
+/**
+ * FieldShell — 标签 + 控件 + 描述 + 错误 的统一外壳。
+ * 所有输入型字段共用，消除「标签上、描述下、错误下」的重复包裹。
+ * SwitchField 不用本组件（它需要整行可点击）。
+ */
+const FieldShell: React.FC<{
+    label?: React.ReactNode;
+    description?: React.ReactNode;
+    error?: string;
     required?: boolean;
-}> = ({ label, required }) => (
-    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-        {label}
-        {required && <span className="text-destructive">*</span>}
-    </label>
-);
-
-const FieldDescription: React.FC<{ children: React.ReactNode }> = (
-    { children },
-) => (
-    <p className="text-[11px] text-muted-foreground/70 break-words leading-relaxed">
+    className?: string;
+    children: React.ReactNode;
+}> = ({
+    label,
+    description,
+    error,
+    required,
+    className = "",
+    children,
+}) => (
+    <div className={`flex flex-col gap-1.5 ${className}`}>
+        {label &&
+            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                {label}
+                {required && <span className="text-destructive">*</span>}
+            </label>}
         {children}
-    </p>
-);
-
-const FieldError: React.FC<{ children: React.ReactNode }> = (
-    { children },
-) => (
-    <p className="text-[11px] text-destructive break-words">
-        {children}
-    </p>
+        {description &&
+            <p className="text-[11px] text-muted-foreground/70 break-words leading-relaxed">
+                {description}
+            </p>}
+        {error &&
+            <p className="text-[11px] text-destructive break-words">
+                {error}
+            </p>}
+    </div>
 );

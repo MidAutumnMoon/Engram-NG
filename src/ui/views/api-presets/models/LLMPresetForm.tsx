@@ -11,7 +11,7 @@ import {
     SwitchField,
     TextField,
 } from "@/ui/components/form/FormComponents.tsx";
-import { Loader2, RefreshCw } from "lucide-react";
+import { ModelNameField } from "@/ui/components/form/ModelNameField.tsx";
 import React, { useState } from "react";
 
 interface LLMPresetFormProps {
@@ -174,68 +174,21 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                     />
 
                     {/* 模型选择: 下拉 + 手动输入 + 获取按钮在标题旁 */}
-                    <div className="flex flex-col gap-1.5">
-                        {/* 标题行：模型名称 + 刷新图标 */}
-                        <div className="flex items-center justify-between">
-                            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                                模型名称
-                                <span className="text-destructive">*</span>
-                            </label>
-                            <button
-                                type="button"
-                                className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
-                                onClick={fetchModelList}
-                                disabled={isLoadingModels ||
-                                    !preset.custom?.apiUrl}
-                                title="获取模型列表"
-                            >
-                                {isLoadingModels
-                                    ? (
-                                        <Loader2
-                                            size={12}
-                                            className="animate-spin"
-                                        />
-                                    )
-                                    : (
-                                        <RefreshCw size={12} />
-                                    )}
-                                {modelList.length > 0
-                                    ? `${modelList.length} 个模型`
-                                    : "获取模型"}
-                            </button>
-                        </div>
-                        {/* 输入/选择 */}
-                        {modelList.length > 0
-                            ? (
-                                <SelectField
-                                    className="!mb-0"
-                                    label=""
-                                    value={preset.custom?.model || ""}
-                                    onChange={(value) =>
-                                        updateCustom("model", value)}
-                                    options={modelList.map((m) => ({
-                                        label: m.name || m.id,
-                                        value: m.id,
-                                    }))}
-                                    placeholder="选择模型"
-                                />
-                            )
-                            : (
-                                <TextField
-                                    className="!mb-0"
-                                    label=""
-                                    value={preset.custom?.model || ""}
-                                    onChange={(value) =>
-                                        updateCustom("model", value)}
-                                    placeholder="gpt-4o-mini"
-                                />
-                            )}
-                        {modelError && (
-                            <p className="text-xs text-destructive">
-                                {modelError}
-                            </p>
-                        )}
-                    </div>
+                    <ModelNameField
+                        value={preset.custom?.model || ""}
+                        onChange={(value) => updateCustom("model", value)}
+                        modelList={modelList.map((m) => ({
+                            label: m.name || m.id,
+                            value: m.id,
+                        }))}
+                        onRefresh={fetchModelList}
+                        isLoadingModels={isLoadingModels}
+                        refreshDisabled={!preset.custom?.apiUrl}
+                        placeholder="gpt-4o-mini"
+                        useSearchable={false}
+                        required
+                        error={modelError}
+                    />
                 </FormSection>
             )}
 
