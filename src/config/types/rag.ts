@@ -21,7 +21,6 @@ export const vectorConfigSchema = z.object({
         "openai", // OpenAI Embeddings API
         "ollama", // Ollama
         "vllm", // VLLM
-        "cohere", // Cohere
         "jina", // Jina AI
         "voyage", // Voyage AI
         "custom", // 自定义 (OpenAI 兼容)

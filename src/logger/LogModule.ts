@@ -21,7 +21,7 @@ export enum LogModule {
     TAVERN = "Tavern",
     TAVERN_CHAT = "TavernChat",
     TAVERN_UI = "TavernUI",
-    CHAT_HISTORY = "ChatHistoryHelper",
+    CHAT_HISTORY = "ChatHistory",
     EJS_PROCESSOR = "EjsProcessor",
     MACROS = "Macros",
     WORLDBOOK = "Worldbook",

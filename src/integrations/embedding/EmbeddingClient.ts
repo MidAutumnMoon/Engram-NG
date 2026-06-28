@@ -19,7 +19,6 @@ interface OpenAIEmbeddingResponse {
  * 各 API 的默认端点
  */
 const DEFAULT_ENDPOINTS: Partial<Record<VectorSource, string>> = {
-    cohere: "https://api.cohere.ai/v1/embed",
     jina: "https://api.jina.ai/v1/embeddings",
     ollama: "http://localhost:11434/api/embeddings",
     openai: "https://api.openai.com/v1/embeddings",
@@ -50,10 +49,6 @@ export class EmbeddingClient {
 
             case "ollama": {
                 return this.callOllama(text, config);
-            }
-
-            case "cohere": {
-                return this.callCohere(text, config);
             }
 
             default: {
@@ -204,40 +199,5 @@ export class EmbeddingClient {
                 Object.keys(data).join(", ")
             }`,
         );
-    }
-
-    /**
-     * Cohere API 调用
-     */
-    private static async callCohere(
-        text: string,
-        config: VectorConfig,
-    ): Promise<number[]> {
-        const endpoint = DEFAULT_ENDPOINTS.cohere!;
-
-        const response = await fetch(endpoint, {
-            body: JSON.stringify({
-                model: config.model || "embed-multilingual-v3.0",
-                texts: [text],
-                input_type: "search_document",
-            }),
-            headers: {
-                "Authorization": `Bearer ${config.apiKey}`,
-                "Content-Type": "application/json",
-            },
-            method: "POST",
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Cohere error ${response.status}: ${errorText}`);
-        }
-
-        const data = await response.json();
-        if (!data.embeddings || data.embeddings.length === 0) {
-            throw new Error("No embedding data returned");
-        }
-
-        return data.embeddings[0];
     }
 }

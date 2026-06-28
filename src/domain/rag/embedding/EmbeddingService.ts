@@ -3,7 +3,7 @@
  *
  * 通用向量化 Pipeline 组件
  * - 支持并发队列处理
- * - 适配多种向量 API (OpenAI, Ollama, vLLM, Cohere, Jina, Voyage)
+ * - 适配多种向量 API
  * - 可用于 EventNode 和 EntityNode
  */
 

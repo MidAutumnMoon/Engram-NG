@@ -25,7 +25,6 @@ export type ModelAPIType =
     | "openai"
     | "ollama"
     | "vllm"
-    | "cohere"
     | "jina"
     | "voyage";
 
@@ -57,9 +56,6 @@ export class ModelService {
             }
             case "vllm": {
                 return this.fetchVLLMModels(config);
-            }
-            case "cohere": {
-                return this.fetchCohereModels(config);
             }
             case "jina":
             case "voyage": {
@@ -207,82 +203,10 @@ export class ModelService {
     }
 
     /**
-     * 获取 Cohere 模型列表
-     */
-    static async fetchCohereModels(
-        config: FetchModelsConfig,
-    ): Promise<ModelInfo[]> {
-        const { apiKey, timeout = this.DEFAULT_TIMEOUT } = config;
-
-        if (!apiKey) {
-            Logger.warn(LogModule.MODEL_SERVICE, "Cohere API key required");
-            return this.getPresetModels("cohere");
-        }
-
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-            const response = await fetch("https://api.cohere.ai/v1/models", {
-                headers: {
-                    "Authorization": `Bearer ${apiKey}`,
-                    "Content-Type": "application/json",
-                },
-                method: "GET",
-                signal: controller.signal,
-            });
-
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-                throw new Error(
-                    `HTTP ${response.status}: ${response.statusText}`,
-                );
-            }
-
-            const data = await response.json();
-            const models: ModelInfo[] = (data.models || [])
-                .filter((m: any) => m.endpoints?.includes("embed"))
-                .map((m: any) => ({
-                    contextLength: m.context_length,
-                    id: m.name,
-                    name: m.name,
-                }));
-
-            Logger.info(
-                LogModule.MODEL_SERVICE,
-                `Fetched ${models.length} embed models from Cohere`,
-            );
-            return models;
-        } catch (error: any) {
-            Logger.error(
-                LogModule.MODEL_SERVICE,
-                `Cohere API error: ${error.message}`,
-            );
-            return this.getPresetModels("cohere");
-        }
-    }
-
-    /**
      * 获取预设模型列表（用于不支持动态获取的服务）
      */
     static getPresetModels(type: ModelAPIType): ModelInfo[] {
         const presets: Record<string, ModelInfo[]> = {
-            cohere: [
-                {
-                    id: "embed-multilingual-v3.0",
-                    name: "Embed Multilingual v3.0",
-                },
-                { id: "embed-english-v3.0", name: "Embed English v3.0" },
-                {
-                    id: "embed-multilingual-light-v3.0",
-                    name: "Embed Multilingual Light v3.0",
-                },
-                {
-                    id: "embed-english-light-v3.0",
-                    name: "Embed English Light v3.0",
-                },
-            ],
             jina: [
                 { id: "jina-embeddings-v3", name: "Jina Embeddings v3" },
                 {

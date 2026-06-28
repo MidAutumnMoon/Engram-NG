@@ -94,14 +94,12 @@ const VECTOR_SOURCE_OPTIONS: { value: VectorSource; label: string }[] = [
     { label: "OpenAI Embeddings", value: "openai" },
     { label: "Ollama", value: "ollama" },
     { label: "vLLM", value: "vllm" },
-    { label: "Cohere", value: "cohere" },
     { label: "Jina AI", value: "jina" },
     { label: "Voyage AI", value: "voyage" },
 ];
 
 // 各向量源的默认/推荐模型
 const DEFAULT_MODELS: Record<VectorSource, string> = {
-    cohere: "embed-multilingual-v3.0",
     custom: "text-embedding-3-small",
     jina: "jina-embeddings-v3",
     ollama: "nomic-embed-text",
@@ -117,7 +115,6 @@ const NEEDS_API_URL = new Set<VectorSource>(["custom", "ollama", "vllm"]);
 const NEEDS_API_KEY = [
     "custom",
     "openai",
-    "cohere",
     "jina",
     "voyage",
 ] as VectorSource[];
@@ -186,7 +183,6 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
                     break;
                 }
                 case "openai":
-                case "cohere":
                 case "jina":
                 case "voyage": {
                     // 这些使用预设列表
