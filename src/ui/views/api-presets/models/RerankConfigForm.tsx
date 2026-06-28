@@ -8,7 +8,10 @@ import { ModelNameField } from "@/ui/components/form/ModelNameField.tsx";
 import { RetryConfigFields } from "@/ui/views/api-presets/shared/RetryConfigFields.tsx";
 import type { RerankConfig } from "@/config/types/rag.ts";
 import type { ModelInfo } from "@/integrations/llm/ModelDiscovery.ts";
-import { ModelService } from "@/integrations/llm/ModelDiscovery.ts";
+import {
+    fetchOpenAIModels,
+    getCommonRerankModels,
+} from "@/integrations/llm/ModelDiscovery.ts";
 
 interface RerankConfigFormProps {
     config: RerankConfig;
@@ -40,7 +43,7 @@ export const RerankConfigForm: React.FC<RerankConfigFormProps> = ({
 
         try {
             // 尝试从 OpenAI 兼容 API 获取
-            const models = await ModelService.fetchOpenAIModels({
+            const models = await fetchOpenAIModels({
                 apiKey: config.apiKey,
                 apiUrl: config.url,
             });
@@ -49,11 +52,11 @@ export const RerankConfigForm: React.FC<RerankConfigFormProps> = ({
                 setModelList(models);
             } else {
                 // 如果 API 不返回模型，使用常用预设
-                setModelList(ModelService.getCommonRerankModels());
+                setModelList(getCommonRerankModels());
             }
         } catch {
             // 失败时使用常用模型预设
-            setModelList(ModelService.getCommonRerankModels());
+            setModelList(getCommonRerankModels());
         } finally {
             setIsLoadingModels(false);
         }

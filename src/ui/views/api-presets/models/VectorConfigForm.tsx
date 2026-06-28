@@ -3,7 +3,7 @@
  */
 import type { VectorConfig, VectorSource } from "@/config/types/rag.ts";
 import type { ModelInfo } from "@/integrations/llm/ModelDiscovery.ts";
-import { ModelService } from "@/integrations/llm/ModelDiscovery.ts";
+import { fetchOpenAIModels } from "@/integrations/llm/ModelDiscovery.ts";
 import {
     FormSection,
     SelectField,
@@ -90,14 +90,8 @@ const VECTOR_SOURCE_OPTIONS: { value: VectorSource; label: string }[] = [
     { label: "OpenAI Embeddings", value: "openai" },
 ];
 
-// 各向量源的默认/推荐模型
-const DEFAULT_MODELS: Record<VectorSource, string> = {
-    custom: "text-embedding-3-small",
-    openai: "text-embedding-3-small",
-};
-
-// 需要 API URL 的源（其余源走内置默认端点）
-const NEEDS_API_URL = new Set<VectorSource>(["custom"]);
+// 默认模型（两个源都用 OpenAI 系嵌入模型）
+const DEFAULT_MODEL = "text-embedding-3-small";
 
 export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
     config,
@@ -107,16 +101,17 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
         onChange({ ...config, ...updates });
     };
 
+    // custom 需要用户填写端点；openai 留空则走 OpenAI 官方默认端点。
+    const needsUrl = config.source === "custom";
+
     const handleSourceChange = (source: VectorSource) => {
         updateConfig({
             source,
-            model: DEFAULT_MODELS[source],
-            apiUrl: NEEDS_API_URL.has(source) ? config.apiUrl : undefined,
-            apiKey: config.apiKey,
+            model: DEFAULT_MODEL,
+            // 切换到 openai 时清掉自定义端点，走官方默认。
+            apiUrl: source === "custom" ? config.apiUrl : undefined,
         });
     };
-
-    const needsUrl = NEEDS_API_URL.has(config.source);
 
     // 模型列表状态
     const [modelList, setModelList] = useState<ModelInfo[]>([]);
@@ -134,7 +129,7 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
         setModelError(null);
 
         try {
-            const models = await ModelService.fetchOpenAIModels({
+            const models = await fetchOpenAIModels({
                 apiKey: config.apiKey,
                 apiUrl: config.apiUrl,
             });
@@ -225,7 +220,7 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
                     onRefresh={fetchModelList}
                     isLoadingModels={isLoadingModels}
                     refreshDisabled={!config.apiUrl}
-                    placeholder={DEFAULT_MODELS[config.source]}
+                    placeholder={DEFAULT_MODEL}
                     description="使用的向量化模型"
                     error={modelError}
                 />

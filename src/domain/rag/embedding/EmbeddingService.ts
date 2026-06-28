@@ -12,7 +12,7 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { getDbForChat, tryGetDbForChat } from "@/data/db.ts";
 import type { EventNode } from "@/data/types/graph.ts";
-import { EmbeddingClient } from "@/integrations/embedding/EmbeddingClient.ts";
+import { generateEmbedding } from "@/integrations/embedding/EmbeddingClient.ts";
 import { getCurrentChatId } from "@/sillytavern/context.ts";
 
 // ==================== 类型定义 ====================
@@ -128,7 +128,7 @@ export class EmbeddingService {
 
             const req = requests[index];
             try {
-                const embedding = await this.callEmbeddingAPI(req.text);
+                const embedding = await generateEmbedding(req.text, this.config!);
                 results[index] = { embedding, id: req.id };
             } catch (error: any) {
                 errors++;
@@ -157,13 +157,6 @@ export class EmbeddingService {
         }
 
         return results;
-    }
-
-    /**
-     * 调用嵌入 API
-     */
-    private async callEmbeddingAPI(text: string): Promise<number[]> {
-        return EmbeddingClient.callAPI(text, this.config!);
     }
 
     // ==================== EventNode 批量嵌入 ====================

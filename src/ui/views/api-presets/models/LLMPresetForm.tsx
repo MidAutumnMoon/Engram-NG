@@ -3,7 +3,7 @@
  */
 import type { LLMPreset } from "@/config/types/llm.ts";
 import type { ModelInfo } from "@/integrations/llm/ModelDiscovery.ts";
-import { ModelService } from "@/integrations/llm/ModelDiscovery.ts";
+import { fetchOpenAIModels } from "@/integrations/llm/ModelDiscovery.ts";
 import {
     FormSection,
     NumberField,
@@ -49,7 +49,7 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
         setModelError(null);
 
         try {
-            const models = await ModelService.fetchOpenAIModels({
+            const models = await fetchOpenAIModels({
                 apiKey,
                 apiUrl,
             });
