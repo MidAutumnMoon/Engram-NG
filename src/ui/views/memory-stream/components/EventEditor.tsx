@@ -299,246 +299,241 @@ export const EventEditor = ({
     }
 
     // 共享的表单内容
-    const formContent = (
-        <>
-            {/* 事件类型 */}
-            <div className="flex flex-col gap-1">
-                <label className="text-xs text-meta">事件类型</label>
-                <input
-                    type="text"
-                    value={eventType}
-                    onChange={(e) =>
-                        updateField(setEventType, e.target.value, "eventType")}
-                    onCompositionStart={handleCompositionStart}
-                    onCompositionEnd={(e) =>
-                        handleCompositionEnd(e, setEventType, "eventType")}
-                    onBlur={handleBlur}
-                    style={inputStyle}
-                    className="placeholder:text-meta/40 focus:border-primary text-heading"
-                    placeholder="如：任务确认、战斗结束"
-                />
-            </div>
-
-            {/* 摘要 */}
-            <div className="flex flex-col gap-1">
-                <div className="flex justify-between items-center">
-                    <label className="text-xs text-meta">摘要内容</label>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            const autoSummary = generateSummaryFromKV({
-                                event: eventType,
-                                location: location.split(",").map((s) =>
-                                    s.trim()
-                                ).filter(Boolean),
-                                logic: logicText.split(",").map((s) => s.trim())
-                                    .filter(Boolean),
-                                role: roleText.split(",").map((s) => s.trim())
-                                    .filter(Boolean),
-                                time_anchor: timeAnchor,
-                            });
-                            setSummary(autoSummary);
-                            setIsDirty(true);
-                            // V1.2.9: Pass summary directly to avoid stale closure
-                            syncToParent({ summary: autoSummary });
-                        }}
-                        className="text-[10px] text-primary hover:underline"
-                    >
-                        使用 KV 生成
-                    </button>
-                </div>
-                <TextField
-                    label=""
-                    value={summary}
-                    onChange={(value: string) => {
-                        setSummary(value);
-                        setIsDirty(true);
-                        // 走统一防抖链路，避免每次输入都触发父层全量重算
-                        syncToParent({ summary: value });
-                    }}
-                    multiline
-                    rows={6}
-                    placeholder="输入事件摘要..."
-                    className="font-mono text-sm"
-                />
-            </div>
-
-            {/* 时间锚点 */}
-            <div className="flex flex-col gap-1">
-                <label className="text-xs text-meta">时间锚点</label>
-                <input
-                    type="text"
-                    value={timeAnchor}
-                    onChange={(e) =>
-                        updateField(
-                            setTimeAnchor,
-                            e.target.value,
-                            "timeAnchor",
-                        )}
-                    onCompositionStart={handleCompositionStart}
-                    onCompositionEnd={(e) =>
-                        handleCompositionEnd(e, setTimeAnchor, "timeAnchor")}
-                    onBlur={handleBlur}
-                    style={inputStyle}
-                    className="placeholder:text-meta/40 focus:border-primary"
-                    placeholder="如：太阳历1023年4月4日"
-                />
-            </div>
-
-            {/* 地点 */}
-            <div className="flex flex-col gap-1">
-                <label className="text-xs text-meta">地点</label>
-                <input
-                    type="text"
-                    value={location}
-                    onChange={(e) =>
-                        updateField(setLocation, e.target.value, "location")}
-                    onCompositionStart={handleCompositionStart}
-                    onCompositionEnd={(e) =>
-                        handleCompositionEnd(e, setLocation, "location")}
-                    onBlur={handleBlur}
-                    style={inputStyle}
-                    className="placeholder:text-meta/40 focus:border-primary text-value"
-                    placeholder="地点（逗号分隔多个），如：边境公会大厅, 小镇酒馆"
-                />
-            </div>
-
-            {/* 人物 */}
-            <div className="flex flex-col gap-1">
-                <label className="text-xs text-meta">人物（逗号分隔）</label>
-                <input
-                    type="text"
-                    value={roleText}
-                    onChange={(e) =>
-                        updateField(setRoleText, e.target.value, "roleText")}
-                    onCompositionStart={handleCompositionStart}
-                    onCompositionEnd={(e) =>
-                        handleCompositionEnd(e, setRoleText, "roleText")}
-                    onBlur={handleBlur}
-                    style={inputStyle}
-                    className="placeholder:text-meta/40 focus:border-primary text-emphasis"
-                    placeholder="如：{{user}}, 赫伯"
-                />
-            </div>
-
-            {/* 逻辑标签 */}
-            <div className="flex flex-col gap-1">
-                <label className="text-xs text-meta">
-                    逻辑标签（逗号分隔）
-                </label>
-                <input
-                    type="text"
-                    value={logicText}
-                    onChange={(e) =>
-                        updateField(setLogicText, e.target.value, "logicText")}
-                    onCompositionStart={handleCompositionStart}
-                    onCompositionEnd={(e) =>
-                        handleCompositionEnd(e, setLogicText, "logicText")}
-                    onBlur={handleBlur}
-                    style={inputStyle}
-                    className="placeholder:text-meta/40 focus:border-primary text-label"
-                    placeholder="如：起点, 伏笔"
-                />
-            </div>
-
-            {/* 重要性分数 */}
-            <div className="flex flex-col gap-2">
-                <div className="flex justify-between items-center">
-                    <label className="text-xs text-meta">重要性分数</label>
-                    <div className="flex items-center gap-1">
-                        <input
-                            type="number"
-                            min={0}
-                            max={1}
-                            step={0.05}
-                            value={score}
-                            onChange={(e) => {
-                                let val = Number.parseFloat(e.target.value);
-                                if (Number.isNaN(val)) val = 0;
-                                val = Math.max(0, Math.min(1, val));
-                                setScore(val);
-                                setIsDirty(true);
-                                syncToParent({ score: val });
-                            }}
-                            className={`bg-transparent border-0 border-b border-transparent focus:border-border outline-none text-base font-medium mx-0.5 text-right w-16 px-0 py-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
-                                score >= 0.8
-                                    ? "text-emphasis"
-                                    : (score >= 0.5
-                                        ? "text-value"
-                                        : "text-label")
-                            }`}
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* 锁定状态 */}
-            <ToggleRow
-                label="锁定此事件"
-                hint="锁定后将防止该记忆在自动精简或清理时被删除"
-                icon={isLocked
-                    ? <Lock size={12} className="text-emphasis" />
-                    : <LockOpen size={12} className="text-meta/60" />}
-                checked={isLocked}
-                activeColor="emphasis"
-                onChange={(val) => {
-                    setIsLocked(val);
-                    setIsDirty(true);
-                    syncToParent({ isLocked: val });
-                }}
+    const formContent = <>
+        {/* 事件类型 */}
+        <div className="flex flex-col gap-1">
+            <label className="text-xs text-meta">事件类型</label>
+            <input
+                type="text"
+                value={eventType}
+                onChange={(e) =>
+                    updateField(setEventType, e.target.value, "eventType")}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={(e) =>
+                    handleCompositionEnd(e, setEventType, "eventType")}
+                onBlur={handleBlur}
+                style={inputStyle}
+                className="placeholder:text-meta/40 focus:border-primary text-heading"
+                placeholder="如：任务确认、战斗结束"
             />
+        </div>
 
-            {/* 归档状态 */}
-            <ToggleRow
-                label="归档此事件"
-                hint="归档后将不再参与自动摘要生成和实时上下文"
-                icon={<Archive
+        {/* 摘要 */}
+        <div className="flex flex-col gap-1">
+            <div className="flex justify-between items-center">
+                <label className="text-xs text-meta">摘要内容</label>
+                <button
+                    type="button"
+                    onClick={() => {
+                        const autoSummary = generateSummaryFromKV({
+                            event: eventType,
+                            location: location.split(",").map((s) => s.trim())
+                                .filter(Boolean),
+                            logic: logicText.split(",").map((s) => s.trim())
+                                .filter(Boolean),
+                            role: roleText.split(",").map((s) => s.trim())
+                                .filter(Boolean),
+                            time_anchor: timeAnchor,
+                        });
+                        setSummary(autoSummary);
+                        setIsDirty(true);
+                        // V1.2.9: Pass summary directly to avoid stale closure
+                        syncToParent({ summary: autoSummary });
+                    }}
+                    className="text-[10px] text-primary hover:underline"
+                >
+                    使用 KV 生成
+                </button>
+            </div>
+            <TextField
+                label=""
+                value={summary}
+                onChange={(value: string) => {
+                    setSummary(value);
+                    setIsDirty(true);
+                    // 走统一防抖链路，避免每次输入都触发父层全量重算
+                    syncToParent({ summary: value });
+                }}
+                multiline
+                rows={6}
+                placeholder="输入事件摘要..."
+                className="font-mono text-sm"
+            />
+        </div>
+
+        {/* 时间锚点 */}
+        <div className="flex flex-col gap-1">
+            <label className="text-xs text-meta">时间锚点</label>
+            <input
+                type="text"
+                value={timeAnchor}
+                onChange={(e) =>
+                    updateField(
+                        setTimeAnchor,
+                        e.target.value,
+                        "timeAnchor",
+                    )}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={(e) =>
+                    handleCompositionEnd(e, setTimeAnchor, "timeAnchor")}
+                onBlur={handleBlur}
+                style={inputStyle}
+                className="placeholder:text-meta/40 focus:border-primary"
+                placeholder="如：太阳历1023年4月4日"
+            />
+        </div>
+
+        {/* 地点 */}
+        <div className="flex flex-col gap-1">
+            <label className="text-xs text-meta">地点</label>
+            <input
+                type="text"
+                value={location}
+                onChange={(e) =>
+                    updateField(setLocation, e.target.value, "location")}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={(e) =>
+                    handleCompositionEnd(e, setLocation, "location")}
+                onBlur={handleBlur}
+                style={inputStyle}
+                className="placeholder:text-meta/40 focus:border-primary text-value"
+                placeholder="地点（逗号分隔多个），如：边境公会大厅, 小镇酒馆"
+            />
+        </div>
+
+        {/* 人物 */}
+        <div className="flex flex-col gap-1">
+            <label className="text-xs text-meta">人物（逗号分隔）</label>
+            <input
+                type="text"
+                value={roleText}
+                onChange={(e) =>
+                    updateField(setRoleText, e.target.value, "roleText")}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={(e) =>
+                    handleCompositionEnd(e, setRoleText, "roleText")}
+                onBlur={handleBlur}
+                style={inputStyle}
+                className="placeholder:text-meta/40 focus:border-primary text-emphasis"
+                placeholder="如：{{user}}, 赫伯"
+            />
+        </div>
+
+        {/* 逻辑标签 */}
+        <div className="flex flex-col gap-1">
+            <label className="text-xs text-meta">
+                逻辑标签（逗号分隔）
+            </label>
+            <input
+                type="text"
+                value={logicText}
+                onChange={(e) =>
+                    updateField(setLogicText, e.target.value, "logicText")}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={(e) =>
+                    handleCompositionEnd(e, setLogicText, "logicText")}
+                onBlur={handleBlur}
+                style={inputStyle}
+                className="placeholder:text-meta/40 focus:border-primary text-label"
+                placeholder="如：起点, 伏笔"
+            />
+        </div>
+
+        {/* 重要性分数 */}
+        <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center">
+                <label className="text-xs text-meta">重要性分数</label>
+                <div className="flex items-center gap-1">
+                    <input
+                        type="number"
+                        min={0}
+                        max={1}
+                        step={0.05}
+                        value={score}
+                        onChange={(e) => {
+                            let val = Number.parseFloat(e.target.value);
+                            if (Number.isNaN(val)) val = 0;
+                            val = Math.max(0, Math.min(1, val));
+                            setScore(val);
+                            setIsDirty(true);
+                            syncToParent({ score: val });
+                        }}
+                        className={`bg-transparent border-0 border-b border-transparent focus:border-border outline-none text-base font-medium mx-0.5 text-right w-16 px-0 py-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+                            score >= 0.8
+                                ? "text-emphasis"
+                                : (score >= 0.5 ? "text-value" : "text-label")
+                        }`}
+                    />
+                </div>
+            </div>
+        </div>
+
+        {/* 锁定状态 */}
+        <ToggleRow
+            label="锁定此事件"
+            hint="锁定后将防止该记忆在自动精简或清理时被删除"
+            icon={isLocked
+                ? <Lock size={12} className="text-emphasis" />
+                : <LockOpen size={12} className="text-meta/60" />}
+            checked={isLocked}
+            activeColor="emphasis"
+            onChange={(val) => {
+                setIsLocked(val);
+                setIsDirty(true);
+                syncToParent({ isLocked: val });
+            }}
+        />
+
+        {/* 归档状态 */}
+        <ToggleRow
+            label="归档此事件"
+            hint="归档后将不再参与自动摘要生成和实时上下文"
+            icon={
+                <Archive
                     size={12}
                     className={isArchived ? "text-primary" : "text-meta/60"}
-                />}
-                checked={isArchived}
-                activeColor="primary"
-                onChange={(val) => {
-                    setIsArchived(val);
-                    setIsDirty(true);
-                    syncToParent({ isArchived: val });
-                }}
-            />
+                />
+            }
+            checked={isArchived}
+            activeColor="primary"
+            onChange={(val) => {
+                setIsArchived(val);
+                setIsDirty(true);
+                syncToParent({ isArchived: val });
+            }}
+        />
 
-            <Divider spacing="md" />
+        <Divider spacing="md" />
 
-            {/* 只读信息 */}
-            <div className="space-y-1 text-xs text-meta">
+        {/* 只读信息 */}
+        <div className="space-y-1 text-xs text-meta">
+            <p>
+                ID: <span className="font-mono">{event.id.slice(0, 8)}...</span>
+            </p>
+            <p>
+                Level:{" "}
+                <span className="text-value font-medium">
+                    {event.level}
+                </span>
+            </p>
+            {event.source_range && (
                 <p>
-                    ID:{" "}
-                    <span className="font-mono">{event.id.slice(0, 8)}...</span>
+                    来源: {event.source_range.start_index}-{event.source_range
+                        .end_index}楼
                 </p>
-                <p>
-                    Level:{" "}
-                    <span className="text-value font-medium">
-                        {event.level}
-                    </span>
-                </p>
-                {event.source_range && (
-                    <p>
-                        来源:{" "}
-                        {event.source_range.start_index}-{event.source_range
-                            .end_index}楼
-                    </p>
-                )}
-                <p>创建时间: {new Date(event.timestamp).toLocaleString()}</p>
-                <p>
-                    状态:
-                    {event.is_archived &&
-                        <span className="ml-1 text-emphasis">已归档</span>}
-                    {event.is_embedded &&
-                        <span className="ml-1 text-value">已嵌入</span>}
-                    {!event.is_archived && !event.is_embedded &&
-                        <span className="ml-1">活跃</span>}
-                </p>
-            </div>
-        </>
-    );
+            )}
+            <p>创建时间: {new Date(event.timestamp).toLocaleString()}</p>
+            <p>
+                状态:
+                {event.is_archived &&
+                    <span className="ml-1 text-emphasis">已归档</span>}
+                {event.is_embedded &&
+                    <span className="ml-1 text-value">已嵌入</span>}
+                {!event.is_archived && !event.is_embedded &&
+                    <span className="ml-1">活跃</span>}
+            </p>
+        </div>
+    </>;
 
     // 全屏模式（移动端）
     if (isFullScreen) {

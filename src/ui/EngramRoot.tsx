@@ -23,17 +23,15 @@ export const EngramRoot: React.FC = () => {
     const quickOpen = useUiStore((s) => s.quickPanelOpen);
     const closeQuickPanel = useUiStore((s) => s.closeQuickPanel);
 
-    return (
-        <>
-            <ReviewContainer />
-            <QuickPanel isOpen={quickOpen} onClose={closeQuickPanel} />
-            {panelOpen && (
-                <ErrorBoundary fallback={null}>
-                    <Suspense fallback={null}>
-                        <LazyPanel />
-                    </Suspense>
-                </ErrorBoundary>
-            )}
-        </>
-    );
+    return <>
+        <ReviewContainer />
+        <QuickPanel isOpen={quickOpen} onClose={closeQuickPanel} />
+        {panelOpen && (
+            <ErrorBoundary fallback={null}>
+                <Suspense fallback={null}>
+                    <LazyPanel />
+                </Suspense>
+            </ErrorBoundary>
+        )}
+    </>;
 };

@@ -136,7 +136,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                 className={`
                     flex items-center gap-3 p-3 cursor-pointer
                     border-b border-border
-                   
+
                     ${
                     isSelected
                         ? "border-l-4 border-l-primary bg-transparent"
@@ -368,18 +368,16 @@ export const EventCard: React.FC<EventCardProps> = ({
                         {event.level}
                     </span>
                 </span>
-                {event.source_range && (
-                    <>
-                        <span>•</span>
-                        <span>
-                            来源:{" "}
-                            <span className="text-value">
-                                {event.source_range.start_index}-{event
-                                    .source_range.end_index}楼
-                            </span>
+                {event.source_range && <>
+                    <span>•</span>
+                    <span>
+                        来源:{" "}
+                        <span className="text-value">
+                            {event.source_range.start_index}-{event
+                                .source_range.end_index}楼
                         </span>
-                    </>
-                )}
+                    </span>
+                </>}
             </div>
         </div>
     );

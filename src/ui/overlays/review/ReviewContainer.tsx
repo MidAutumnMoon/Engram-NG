@@ -129,7 +129,9 @@ const ReviewSession: React.FC<ReviewSessionProps> = (
                         request.type === "combined"
                             ? (
                                 <CombinedReview
-                                    data={data as CombinedReviewData | undefined}
+                                    data={data as
+                                        | CombinedReviewData
+                                        | undefined}
                                     onChange={(newData) => setData(newData)}
                                 />
                             )
@@ -206,35 +208,30 @@ const ReviewSession: React.FC<ReviewSessionProps> = (
                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto"
                                 />
                             )
-                            : (
-                                <>
-                                    {request.actions?.includes("reject") &&
-                                        <Button
-                                            label="打回"
-                                            icon={RotateCcw}
-                                            onClick={() =>
-                                                handleAction("reject")}
-                                            className="text-destructive hover:bg-destructive/10 border-destructive/30 flex-1 sm:flex-none"
-                                        />}
-                                    {request.actions?.includes("reroll") &&
-                                        <Button
-                                            label="重抽"
-                                            icon={RefreshCw}
-                                            onClick={() =>
-                                                handleAction("reroll")}
-                                            className="flex-1 sm:flex-none"
-                                        />}
-                                    {request.actions?.includes("confirm") &&
-                                        <Button
-                                            label="确认"
-                                            icon={Check}
-                                            primary
-                                            onClick={() =>
-                                                handleAction("confirm")}
-                                            className="min-w-[100px] flex-1 sm:flex-none"
-                                        />}
-                                </>
-                            )}
+                            : <>
+                                {request.actions?.includes("reject") &&
+                                    <Button
+                                        label="打回"
+                                        icon={RotateCcw}
+                                        onClick={() => handleAction("reject")}
+                                        className="text-destructive hover:bg-destructive/10 border-destructive/30 flex-1 sm:flex-none"
+                                    />}
+                                {request.actions?.includes("reroll") &&
+                                    <Button
+                                        label="重抽"
+                                        icon={RefreshCw}
+                                        onClick={() => handleAction("reroll")}
+                                        className="flex-1 sm:flex-none"
+                                    />}
+                                {request.actions?.includes("confirm") &&
+                                    <Button
+                                        label="确认"
+                                        icon={Check}
+                                        primary
+                                        onClick={() => handleAction("confirm")}
+                                        className="min-w-[100px] flex-1 sm:flex-none"
+                                    />}
+                            </>}
                     </div>
                 </div>,
                 footerEl,

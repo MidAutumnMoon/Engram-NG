@@ -18,17 +18,15 @@ export const PageTitle: React.FC<PageTitleProps> = ({
 }) => (
     <div className="px-4 md:px-0 flex items-center justify-between gap-2">
         <h1 className="text-3xl font-light tracking-tight text-foreground flex items-baseline gap-2 flex-wrap">
-            {parent && (
-                <>
-                    <span className="text-muted-foreground/60 text-xl">
-                        {parent}
-                    </span>
-                    <ChevronRight
-                        size={20}
-                        className="text-muted-foreground/30 px-0.5 self-center"
-                    />
-                </>
-            )}
+            {parent && <>
+                <span className="text-muted-foreground/60 text-xl">
+                    {parent}
+                </span>
+                <ChevronRight
+                    size={20}
+                    className="text-muted-foreground/30 px-0.5 self-center"
+                />
+            </>}
             <span className="drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] text-foreground">
                 {title}
             </span>
