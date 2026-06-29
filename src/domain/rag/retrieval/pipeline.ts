@@ -540,8 +540,6 @@ export async function mergeAndRerank(
     config: RecallConfig,
     input: MergeAndRerankInput,
 ): Promise<MergeAndRerankResult> {
-    const startTime = Date.now();
-
     // 1. 合并向量检索和关键词检索的候选 (按 ID 去重，保留最高分)
     const candidateMap = new Map<string, ScoredEvent>();
 

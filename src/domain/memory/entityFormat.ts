@@ -52,7 +52,7 @@ export function getEntityDisplaySnapshot(
     const tracked = Array.isArray(entity.tracked_fields)
         ? entity.tracked_fields
         : [];
-    const snapshot: Record<string, unknown> = { ...(entity.profile ?? {}) };
+    const snapshot: Record<string, unknown> = { ...entity.profile };
 
     for (const field of tracked) {
         const hist = entity.field_history?.[field];

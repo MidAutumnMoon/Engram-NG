@@ -3,7 +3,6 @@ import { getSTContext, getTavernHelper } from "@/sillytavern/context.ts";
 import {
     checkWorldInfo,
     getSortedEntries,
-    type StWorldInfoEntry,
 } from "@/sillytavern/worldInfo.ts";
 import { getEntries } from "./crud.ts";
 import type { WorldInfoEntry } from "./types.ts";

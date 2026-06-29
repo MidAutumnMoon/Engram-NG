@@ -18,7 +18,6 @@ import React, { useState } from "react";
 interface LLMPresetFormProps {
     preset: LLMPreset;
     onChange: (preset: LLMPreset) => void;
-    isNew?: boolean;
 }
 
 // 配置源选项
@@ -30,7 +29,6 @@ const SOURCE_OPTIONS = [
 export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
     preset,
     onChange,
-    isNew = false,
 }) => {
     // 模型列表状态 (自定义 API 用)
     const [modelList, setModelList] = useState<ModelInfo[]>([]);

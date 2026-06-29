@@ -76,7 +76,7 @@ function write(
     }
 
     // 快照迭代：避免回调内 subscribe/unsubscribe 破坏迭代；逐个 try/catch 隔离异常
-    for (const cb of [...subscribers]) {
+    for (const cb of Array.from(subscribers)) {
         try {
             cb(entry);
         } catch (err) {
