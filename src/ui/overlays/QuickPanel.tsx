@@ -65,7 +65,7 @@ const NAV_QUICK_LINKS = [
         icon: Wand2,
         id: "prompts-prompt",
         label: "提示词模板",
-        path: "prompts:prompt",
+        path: "prompts",
     },
     {
         description: "查看 LLM 通信记录",

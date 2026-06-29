@@ -48,7 +48,7 @@ const QUICK_LINKS: QuickLink[] = [
         icon: BookOpen,
         id: "prompts",
         label: "提示词模板",
-        linkTo: "prompts:prompt",
+        linkTo: "prompts",
     },
 ];
 

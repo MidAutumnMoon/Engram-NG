@@ -6,14 +6,17 @@ interface PageTitleProps {
     subtitle?: string;
     /** Optional parent label, rendered as 'Parent > Title' */
     parent?: string;
+    /** 右侧操作区（如保存按钮）。无 TabPills 的视图用它承载主操作。 */
+    actions?: React.ReactNode;
 }
 
 export const PageTitle: React.FC<PageTitleProps> = ({
     title,
     subtitle,
     parent,
+    actions,
 }) => (
-    <div className="px-4 md:px-0">
+    <div className="px-4 md:px-0 flex items-center justify-between gap-2">
         <h1 className="text-3xl font-light tracking-tight text-foreground flex items-baseline gap-2 flex-wrap">
             {parent && (
                 <>
@@ -35,5 +38,6 @@ export const PageTitle: React.FC<PageTitleProps> = ({
                 </span>
             )}
         </h1>
+        {actions && <div className="shrink-0">{actions}</div>}
     </div>
 );

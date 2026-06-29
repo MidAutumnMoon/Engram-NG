@@ -1,10 +1,12 @@
 // 导航配置
 import {
+    BookText,
     Database,
     FileText,
     LayoutDashboard,
     ListTree,
     type LucideIcon,
+    Regex,
     Server,
     Cpu,
     Settings,
@@ -80,8 +82,22 @@ export const NAV_ITEMS: NavItem[] = [
     {
         icon: FileText,
         id: "prompts",
-        label: "提示词与规则",
+        label: "提示词模板",
         path: "/prompts",
+        section: "config",
+    },
+    {
+        icon: Regex,
+        id: "regex",
+        label: "正则规则",
+        path: "/regex",
+        section: "config",
+    },
+    {
+        icon: BookText,
+        id: "worldbook",
+        label: "世界书",
+        path: "/worldbook",
         section: "config",
     },
     // ── 系统 ──

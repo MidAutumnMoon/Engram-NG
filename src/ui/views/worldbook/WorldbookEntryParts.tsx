@@ -1,13 +1,14 @@
 /**
  * WorldbookConfigForm 的内部子组件。
  *
- * 把原本 14 层缩进的条目渲染拆为：
- * - WorldbookHeader   世界书头部（展开箭头 + 名称 + 激活计数 + 总开关）
+ * 把原本深嵌套的世界书渲染拆为：
+ * - WorldbookItem    单本世界书（头部 + 可展开条目列表），吸收每本书的渲染逻辑
+ * - WorldbookHeader  世界书头部（展开箭头 + 名称 + 激活计数 + 总开关）
  * - WorldbookEntryRow 单条目（状态灯 + 名称 + 关键词徽章 + 预览 + 开关）
  */
 import { SwitchField } from "@/ui/components/form/FormComponents.tsx";
 import { Book, ChevronDown, ChevronRight } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 
 export interface WorldbookEntry {
     uid: number;
@@ -165,6 +166,75 @@ export const WorldbookEntryRow: React.FC<WorldbookEntryRowProps> = ({
                     compact
                 />
             </div>
+        </div>
+    );
+};
+
+interface WorldbookItemProps {
+    book: string;
+    entries: WorldbookEntry[];
+    isDisabled: boolean;
+    /** 判断某条目是否被禁用（由父级持有 disabledEntries 状态） */
+    isEntryDisabled: (uid: number) => boolean;
+    onToggleExpand?: () => void;
+    onToggleWorldbook: (disabled: boolean) => void;
+    onToggleEntry: (uid: number, disabled: boolean) => void;
+}
+
+/**
+ * 单本世界书：头部 + 展开后的条目列表。
+ * 展开状态由本组件自持；启用/禁用由父级驱动。
+ */
+export const WorldbookItem: React.FC<WorldbookItemProps> = ({
+    book,
+    entries,
+    isDisabled,
+    isEntryDisabled,
+    onToggleWorldbook,
+    onToggleEntry,
+}) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const activeEntriesCount = entries.filter((e) =>
+        !isEntryDisabled(e.uid)
+    ).length;
+
+    return (
+        <div
+            className={`border-b border-border last:border-0 ${
+                isDisabled ? "bg-muted/10 opacity-60 grayscale" : ""
+            }`}
+        >
+            <WorldbookHeader
+                book={book}
+                isExpanded={isExpanded}
+                isDisabled={isDisabled}
+                activeEntriesCount={activeEntriesCount}
+                totalEntries={entries.length}
+                onToggleExpand={() => setIsExpanded((v) => !v)}
+                onToggle={onToggleWorldbook}
+            />
+
+            {isExpanded && !isDisabled && (
+                <div className="pl-4 pr-1 py-1 flex flex-col gap-0">
+                    {entries.length === 0
+                        ? (
+                            <div className="text-xs text-muted-foreground text-center py-4">
+                                暂无条目
+                            </div>
+                        )
+                        : (
+                            entries.map((entry) => (
+                                <WorldbookEntryRow
+                                    key={entry.uid}
+                                    entry={entry}
+                                    isDisabled={isEntryDisabled(entry.uid)}
+                                    onToggle={(disabled) =>
+                                        onToggleEntry(entry.uid, disabled)}
+                                />
+                            ))
+                        )}
+                </div>
+            )}
         </div>
     );
 };

@@ -14,7 +14,9 @@ import React, { useEffect } from "react";
 import { Dashboard } from "@/ui/views/dashboard/Dashboard.tsx";
 import { DevLog } from "@/ui/views/dev-log/DevLog.tsx";
 import { ServicesView } from "@/ui/views/services/ServicesView.tsx";
-import { RulesView } from "@/ui/views/rules/RulesView.tsx";
+import { PromptTemplatesView } from "@/ui/views/prompts/PromptTemplatesView.tsx";
+import { RegexRulesView } from "@/ui/views/regex/RegexRulesView.tsx";
+import { WorldbookView } from "@/ui/views/worldbook/WorldbookView.tsx";
 import { DataView } from "@/ui/views/data/DataView.tsx";
 import { Settings } from "@/ui/views/settings/Settings.tsx";
 import { MemoryStream } from "@/ui/views/memory-stream/MemoryStream.tsx";
@@ -62,17 +64,13 @@ const PanelRoot: React.FC = () => {
                 );
             }
             case "prompts": {
-                // 提示词与规则：提示词 / 正则 / 世界书
-                return (
-                    <RulesView
-                        onNavigate={navigate}
-                        initialTab={subtabParts[0] as
-                            | "prompt"
-                            | "regex"
-                            | "worldbook"
-                            | undefined}
-                    />
-                );
+                return <PromptTemplatesView />;
+            }
+            case "regex": {
+                return <RegexRulesView />;
+            }
+            case "worldbook": {
+                return <WorldbookView />;
             }
             case "data": {
                 return <DataView />;
