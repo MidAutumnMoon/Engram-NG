@@ -27,6 +27,7 @@ import { getProcessedFloor } from "@/data/types/graph.ts";
 import { formatExtractionEntityBlock } from "@/domain/memory/entityFormat.ts";
 import ENTITY_EXTRACTION_SYSTEM from "@/integrations/llm/prompts/ENTITY_EXTRACTION_SYSTEM.txt?raw";
 import ENTITY_EXTRACTION_USER from "@/integrations/llm/prompts/ENTITY_EXTRACTION_USER.txt?raw";
+import { entityResponseShape } from "@/integrations/llm/schemas.ts";
 import {
     type CancelSignal,
     cleanRegex,
@@ -134,6 +135,7 @@ export async function runEntityExtraction(
         logType: "entity_extraction",
         range: input.range,
         signal,
+        responseShape: entityResponseShape(),
     });
     if (isCancelled(signal)) throwUserCancelled();
 

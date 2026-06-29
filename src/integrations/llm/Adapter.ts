@@ -6,8 +6,10 @@ import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
 import { getTavernHelper, type TavernHelper } from "@/sillytavern/context.ts";
 import {
     type CustomApiConfig,
+    type JsonSchema,
     RolePrompt,
 } from "@/types/vendor/jsr-function.d.ts";
+import type { ResponseShape } from "@/integrations/llm/schemas.ts";
 
 /** LLM 生成请求 */
 interface LLMRequest {
@@ -15,6 +17,12 @@ interface LLMRequest {
     systemPrompt: string;
     /** 用户提示词 */
     userPrompt: string;
+    /**
+     * 该调用期望的结构化输出形状。仅当预设 `structuredOutput !== "off"` 时，
+     * adapter 才会据此向 generateRaw 注入 json_schema / response_format。
+     * 不声明形状的调用（未来非 JSON 用途）不受影响。
+     */
+    responseShape?: ResponseShape;
 }
 
 /** LLM 生成响应 */
@@ -221,6 +229,37 @@ class LLMAdapter {
             should_silence: true, // V0.9.1: 后台请求静默，不绑定停止按钮
         };
 
+        // ---- 结构化输出注入（off 时完全跳过，行为同前） ----
+        // 形状由流水线声明（LLMRequest.responseShape），模式由预设决定。
+        // json_schema：generateRaw 原生支持，JSR 按 provider 自动转换
+        //   （OpenAI/DeepSeek/Mistral → response_format.json_schema；Claude → forced tool）。
+        // json_object：JSR 不暴露该选项，只能经 custom_api.custom_include_body
+        //   注入 response_format，且仅在 source==='custom' 时生效；tavern 源无法注入。
+        let effectiveCustomApi = customApiConfig;
+        let jsonSchemaArg: JsonSchema | undefined;
+        const mode = currentPreset?.structuredOutput ?? "off";
+        if (mode !== "off" && request.responseShape) {
+            if (mode === "json_schema") {
+                jsonSchemaArg = request.responseShape.jsonSchema;
+            } else if (mode === "json_object") {
+                if (currentPreset?.source === "custom") {
+                    effectiveCustomApi = {
+                        ...customApiConfig,
+                        custom_include_body: {
+                            ...customApiConfig?.custom_include_body,
+                            response_format: { type: "json_object" },
+                        },
+                    };
+                } else {
+                    // tavern 源走 ST 当前连接，无法注入 response_format；降级为 prompt-only。
+                    Logger.warn(
+                        LogModule.WF_LLM_REQUEST,
+                        "json_object 模式仅对 source==='custom' 预设生效，当前预设走 tavern 连接，降级为 prompt-only",
+                    );
+                }
+            }
+        }
+
         let content: string;
 
         const prompts: RolePrompt[] = [];
@@ -239,8 +278,9 @@ class LLMAdapter {
         // 返回值在传入 tools 时会是 GenerateToolCallResult，Engram 从不传 tools，
         // 故此处只可能是 string；做一次归一化以防万一。
         const result = await helper.generateRaw({
-            custom_api: customApiConfig,
+            custom_api: effectiveCustomApi,
             ordered_prompts: prompts,
+            json_schema: jsonSchemaArg,
             ...generationOptions,
         });
         content = typeof result === "string" ? result : result.content;

@@ -23,6 +23,7 @@ import type { ReviewAction } from "@/domain/review/ReviewBridge.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
 import SUMMARY_SYSTEM from "@/integrations/llm/prompts/SUMMARY_SYSTEM.txt?raw";
 import SUMMARY_USER from "@/integrations/llm/prompts/SUMMARY_USER.txt?raw";
+import { summaryResponseShape } from "@/integrations/llm/schemas.ts";
 import {
     type CancelSignal,
     cleanRegex,
@@ -140,6 +141,7 @@ export async function runSummary(
             logType: "summarize",
             range: input.range,
             signal,
+            responseShape: summaryResponseShape(),
         });
         if (isCancelled(signal)) throwUserCancelled();
 

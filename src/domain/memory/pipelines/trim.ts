@@ -21,6 +21,7 @@ import { toast } from "@/sillytavern/toast.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
 import TRIM_SYSTEM from "@/integrations/llm/prompts/TRIM_SYSTEM.txt?raw";
 import TRIM_USER from "@/integrations/llm/prompts/TRIM_USER.txt?raw";
+import { trimResponseShape } from "@/integrations/llm/schemas.ts";
 import {
     type CancelSignal,
     cleanRegex,
@@ -115,6 +116,7 @@ Significance: ${e.significance_score}`;
     const llm = await runLlm(prompt, {
         logType: "trim",
         signal,
+        responseShape: trimResponseShape(),
     });
 
     const cleaned = cleanRegex(llm.content, "output");

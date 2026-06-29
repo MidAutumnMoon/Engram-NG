@@ -21,6 +21,7 @@ import {
 } from "@/domain/macros/Macros.ts";
 import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
 import { llmAdapter } from "@/integrations/llm/Adapter.ts";
+import type { ResponseShape } from "@/integrations/llm/schemas.ts";
 import { useModelLogStore } from "@/logger/modelLog.ts";
 import type { ModelLogEntry } from "@/logger/modelLog.ts";
 import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
@@ -340,6 +341,11 @@ export interface LlmRunOptions {
     logType?: ModelLogEntry["type"];
     range?: [number, number];
     signal?: CancelSignal;
+    /**
+     * 该流水线期望的结构化输出形状。adapter 仅在预设 structuredOutput !== "off"
+     * 时据此注入 json_schema / response_format。不传则该次调用不受约束。
+     */
+    responseShape?: ResponseShape;
 }
 
 export interface LlmResult {
@@ -376,6 +382,7 @@ export async function runLlm(
         const response = await llmAdapter.generate({
             systemPrompt: prompt.system,
             userPrompt: prompt.user,
+            responseShape: opts.responseShape,
         });
 
         useModelLogStore.getState().logReceive(logId, {
