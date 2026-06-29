@@ -36,5 +36,5 @@ interface Window {
     // https://github.com/zonde306/ST-Prompt-Template/
     // deno-lint-ignore-line no-restricted-globals
     // oxlint-disable-next-line no-restricted-globals
-    EjsTemplate?: typeof EjsTemplate;
+    EjsTemplate: typeof EjsTemplate;
 }

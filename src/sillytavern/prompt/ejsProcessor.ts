@@ -1,5 +1,6 @@
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
+import { getEjsTemplate, getMvu } from "@/sillytavern/context.ts";
 
 /**
  * Render an array of strings through ST-Prompt-Template's EJS engine,
@@ -10,25 +11,17 @@ import { LogModule } from "@/logger/LogModule.ts";
 export async function processEjs(entries: string[]): Promise<string[]> {
     if (entries.length === 0) return entries;
 
-    const { EjsTemplate, Mvu } = window;
-
-    // Check if ST-Prompt-Template is available
-    if (!EjsTemplate) {
-        Logger.debug(
-            LogModule.EJS_PROCESSOR,
-            "ST-Prompt-Template 未检测到，跳过 EJS 处理",
-        );
-        return entries;
-    }
+    const ejs = getEjsTemplate();
+    const mvu = getMvu();
 
     try {
         // 1. 准备上下文 (自动包含 {{user}}, {{char}} 及所有酒馆变量)
-        const context = await EjsTemplate.prepareContext();
+        const context = await ejs.prepareContext();
 
         // 2. 尝试获取 MVU 变量并合并
-        if (Mvu !== undefined && Mvu.getMvuData) {
+        if (mvu) {
             try {
-                const mvuObj = Mvu.getMvuData({
+                const mvuObj = mvu.getMvuData({
                     message_id: "latest",
                     type: "message",
                 });
@@ -47,7 +40,7 @@ export async function processEjs(entries: string[]): Promise<string[]> {
         // 3. 逐条渲染
         const processed = await Promise.all(entries.map(async (content) => {
             try {
-                return await EjsTemplate.evaltemplate(content, context);
+                return await ejs.evaltemplate(content, context);
             } catch (error) {
                 Logger.warn(
                     LogModule.EJS_PROCESSOR,

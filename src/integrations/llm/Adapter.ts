@@ -3,7 +3,7 @@ import type { LLMPreset } from "@/config/types/llm.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { regexProcessor } from "@/domain/regex/RegexProcessor.ts";
-import { getTavernHelper, TavernHelper } from "@/sillytavern/context.ts";
+import { getTavernHelper, type TavernHelper } from "@/sillytavern/context.ts";
 import {
     type CustomApiConfig,
     RolePrompt,

@@ -30,7 +30,7 @@ export async function hideMessageRange(
         // 统一在执行隐藏后尝试强制保存聊天状态，避免刷新后隐藏失效（SillyTavern 的常见坑）
         setTimeout(async () => {
             try {
-                await SillyTavern.saveChat();
+                await getSTContext().saveChat();
                 Logger.debug(
                     LogModule.TAVERN_CHAT,
                     `Chat explicitly saved after hiding range: ${start}-${end}`,

@@ -62,3 +62,11 @@ export type TavernHelper = typeof window.TavernHelper;
 export function getTavernHelper(): TavernHelper {
     return window.TavernHelper;
 }
+
+export function getMvu(): typeof window.Mvu {
+    return window.Mvu;
+}
+
+export function getEjsTemplate(): typeof window.EjsTemplate {
+    return window.EjsTemplate;
+}
