@@ -10,7 +10,7 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import type { ChatDatabase } from "@/data/db.ts";
-import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
+import { countTokens } from "@/sillytavern/tokens.ts";
 import { toast } from "@/sillytavern/toast.ts";
 import type { ChatContext } from "./types.ts";
 import { runTrim } from "./pipelines/trim.ts";
@@ -131,9 +131,7 @@ class EventTrimmer {
             const allSummaries = activeEvents.map((e) => e.summary).join(
                 "\n\n",
             );
-            const totalTokens = await WorldInfoService.countTokens(
-                allSummaries,
-            );
+            const totalTokens = countTokens(allSummaries);
             return {
                 activeEventCount: activeEvents.length,
                 eventCount: events.length,

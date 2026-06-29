@@ -1,24 +1,14 @@
 import { getTavernHelper } from "@/sillytavern/context.ts";
 import { getEntries } from "./crud.ts";
 import { getCurrentCharWorldbooks, WorldbookEngramService } from "./engram.ts";
-import { countTokens } from "./metrics.ts";
 import { WorldbookScannerService } from "./scanner.ts";
 
 /**
  * WorldInfoService — 聚合各个分散模块的功能，提供统一的静态方法访问接口。
  *
- * 仅保留有外部消费者的方法。CRUD 原语、token 统计等
- * 请直接从对应模块 (crud.ts / metrics.ts) 导入。
+ * 仅保留有外部消费者的方法。CRUD 原语请直接从对应模块 (crud.ts) 导入
  */
 export class WorldInfoService {
-    // =========================================================================
-    // Metrics 代理 (metrics.ts)
-    // =========================================================================
-
-    static countTokens(text: string): Promise<number> {
-        return countTokens(text);
-    }
-
     // =========================================================================
     // Scanner 代理 (scanner.ts)
     // =========================================================================

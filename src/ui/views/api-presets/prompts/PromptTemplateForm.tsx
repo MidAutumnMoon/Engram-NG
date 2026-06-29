@@ -4,7 +4,7 @@
  * 模板为内置（源码定义）；此组件仅展示模板内容，不提供编辑。
  */
 import { FormSection } from "@/ui/components/form/FormComponents.tsx";
-import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
+import { countTokens } from "@/sillytavern/tokens.ts";
 import { Check, Copy } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import type { PromptTemplate } from "./types.ts";
@@ -100,16 +100,14 @@ export const PromptTemplateForm: React.FC<PromptTemplateFormProps> = ({
     const [userTokens, setUserTokens] = useState(0);
 
     useEffect(() => {
-        const timer = setTimeout(async () => {
+        const timer = setTimeout(() => {
             try {
                 const t1 = template.systemPrompt
-                    ? await WorldInfoService.countTokens(template.systemPrompt)
+                    ? countTokens(template.systemPrompt)
                     : 0;
                 setSysTokens(t1);
                 const t2 = template.userPromptTemplate
-                    ? await WorldInfoService.countTokens(
-                        template.userPromptTemplate,
-                    )
+                    ? countTokens(template.userPromptTemplate)
                     : 0;
                 setUserTokens(t2);
             } catch {

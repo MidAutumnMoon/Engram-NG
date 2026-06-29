@@ -7,7 +7,7 @@ import type { ModelLogEntry } from "@/logger/modelLog.ts";
 import { useModelLogStore } from "@/logger/modelLog.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
-import { WorldInfoService } from "@/domain/worldbook/WorldInfo.ts";
+import { countTokens } from "@/sillytavern/tokens.ts";
 import {
     AlertCircle,
     Bot,
@@ -95,30 +95,28 @@ const LogCard: React.FC<{
     useEffect(() => {
         if (!expanded) return;
 
-        const countTokens = async () => {
+        const recount = () => {
             try {
                 if (
                     !sent.tokensSent && (sent.systemPrompt || sent.userPrompt)
                 ) {
                     const t1 = sent.systemPrompt
-                        ? await WorldInfoService.countTokens(sent.systemPrompt)
+                        ? countTokens(sent.systemPrompt)
                         : 0;
                     const t2 = sent.userPrompt
-                        ? await WorldInfoService.countTokens(sent.userPrompt)
+                        ? countTokens(sent.userPrompt)
                         : 0;
                     setCalcSentTokens(t1 + t2);
                 }
                 if (received?.response && !received.tokensReceived) {
-                    const t = await WorldInfoService.countTokens(
-                        received.response,
-                    );
+                    const t = countTokens(received.response);
                     setCalcRecvTokens(t);
                 }
             } catch (error) {
                 Logger.warn(LogModule.LLM, "Failed to count tokens", error);
             }
         };
-        countTokens();
+        recount();
     }, [sent, received, expanded]);
 
     const typeConfig = TYPE_LABELS[sent.type];
