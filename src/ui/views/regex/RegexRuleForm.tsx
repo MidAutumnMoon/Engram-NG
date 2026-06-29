@@ -6,12 +6,14 @@ import {
     RegexProcessor,
     type RegexRule,
 } from "@/domain/regex/RegexProcessor.ts";
-import { AlertCircle, CheckCircle, Info, Play } from "lucide-react";
+import { AlertCircle, CheckCircle, Info, Lock, Play } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
 interface RegexRuleFormProps {
     rule: RegexRule;
     onChange: (updates: Partial<RegexRule>) => void;
+    /** 只读模式：禁用所有编辑字段，但 测试正则 仍可用（内置规则）。 */
+    readOnly?: boolean;
 }
 
 const FLAGS_OPTIONS = [
@@ -22,7 +24,7 @@ const FLAGS_OPTIONS = [
 ];
 
 export const RegexRuleForm: React.FC<RegexRuleFormProps> = (
-    { rule, onChange },
+    { rule, onChange, readOnly = false },
 ) => {
     const [testInput, setTestInput] = useState("");
     const [testOutput, setTestOutput] = useState("");
@@ -61,6 +63,13 @@ export const RegexRuleForm: React.FC<RegexRuleFormProps> = (
 
     return (
         <div className="flex flex-col gap-4">
+            {readOnly && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-border/50 bg-muted/10 text-xs text-muted-foreground">
+                    <Lock size={12} />
+                    内置规则（只读）— 不可编辑，但可启用/禁用与测试
+                </div>
+            )}
+
             {/* 基本信息 */}
             <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1.5">
@@ -69,10 +78,11 @@ export const RegexRuleForm: React.FC<RegexRuleFormProps> = (
                     </label>
                     <input
                         type="text"
-                        className="w-full px-3 py-2 rounded-md border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full px-3 py-2 rounded-md border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60 disabled:cursor-not-allowed"
                         value={rule.name}
                         onChange={(e) => onChange({ name: e.target.value })}
                         placeholder="例如：移除思维链"
+                        disabled={readOnly}
                     />
                 </div>
 
@@ -82,11 +92,12 @@ export const RegexRuleForm: React.FC<RegexRuleFormProps> = (
                     </label>
                     <input
                         type="text"
-                        className="w-full px-3 py-2 rounded-md border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full px-3 py-2 rounded-md border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60 disabled:cursor-not-allowed"
                         value={rule.description || ""}
                         onChange={(e) =>
                             onChange({ description: e.target.value })}
                         placeholder="简短描述此规则的用途"
+                        disabled={readOnly}
                     />
                 </div>
 
@@ -100,7 +111,8 @@ export const RegexRuleForm: React.FC<RegexRuleFormProps> = (
                             <button
                                 type="button"
                                 key={opt.value}
-                                className={`flex-1 px-3 py-2 text-sm rounded-md border ${
+                                disabled={readOnly}
+                                className={`flex-1 px-3 py-2 text-sm rounded-md border disabled:opacity-60 disabled:cursor-not-allowed ${
                                     rule.scope === opt.value
                                         ? "bg-primary-20 border-primary text-primary"
                                         : "bg-background border-border text-muted-foreground hover:bg-muted"
@@ -139,7 +151,7 @@ export const RegexRuleForm: React.FC<RegexRuleFormProps> = (
                     </div>
                     <input
                         type="text"
-                        className={`w-full px-3 py-2 rounded-md border bg-background text-foreground font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${
+                        className={`w-full px-3 py-2 rounded-md border bg-background text-foreground font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 disabled:opacity-60 disabled:cursor-not-allowed ${
                             validation.valid
                                 ? "border-input focus:ring-ring"
                                 : "border-destructive focus:ring-destructive"
@@ -147,6 +159,7 @@ export const RegexRuleForm: React.FC<RegexRuleFormProps> = (
                         value={rule.pattern}
                         onChange={(e) => onChange({ pattern: e.target.value })}
                         placeholder="例如：<think>[\s\S]*?</think>"
+                        disabled={readOnly}
                     />
                     {!validation.valid && validation.error && (
                         <p className="text-xs text-destructive">
@@ -161,11 +174,12 @@ export const RegexRuleForm: React.FC<RegexRuleFormProps> = (
                     </label>
                     <input
                         type="text"
-                        className="w-full px-3 py-2 rounded-md border border-input bg-background text-foreground font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full px-3 py-2 rounded-md border border-input bg-background text-foreground font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60 disabled:cursor-not-allowed"
                         value={rule.replacement}
                         onChange={(e) =>
                             onChange({ replacement: e.target.value })}
                         placeholder="留空表示删除匹配内容"
+                        disabled={readOnly}
                     />
                 </div>
 
@@ -179,7 +193,8 @@ export const RegexRuleForm: React.FC<RegexRuleFormProps> = (
                             <button
                                 type="button"
                                 key={opt.value}
-                                className={`px-2 py-1 text-xs rounded-md border ${
+                                disabled={readOnly}
+                                className={`px-2 py-1 text-xs rounded-md border disabled:opacity-60 disabled:cursor-not-allowed ${
                                     rule.flags.includes(opt.value)
                                         ? "bg-primary-20 border-primary text-primary"
                                         : "bg-background border-border text-muted-foreground hover:bg-muted"

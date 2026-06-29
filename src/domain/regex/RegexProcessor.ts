@@ -14,11 +14,13 @@ import type { RegexRule, RegexScope } from "@/config/types/data_processing.ts";
 import {
     DEFAULT_REGEX_RULES,
     REGEX_SCOPE_OPTIONS,
+    isDefaultRule,
+    reconcileRegexRules,
 } from "@/config/types/data_processing.ts";
 
 // 重新导出以便其他模块使用（保持原有 import 路径兼容性的入口在 ./index.ts）
 export type { RegexRule, RegexScope };
-export { DEFAULT_REGEX_RULES, REGEX_SCOPE_OPTIONS };
+export { DEFAULT_REGEX_RULES, REGEX_SCOPE_OPTIONS, isDefaultRule, reconcileRegexRules };
 
 /**
  * 正则处理器类

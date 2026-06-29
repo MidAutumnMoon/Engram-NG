@@ -5,6 +5,7 @@
 import { getSetting, setSetting } from "@/config/settings.ts";
 import {
     DEFAULT_REGEX_RULES,
+    reconcileRegexRules,
     regexProcessor,
     type RegexRule,
 } from "@/domain/regex/RegexProcessor.ts";
@@ -20,7 +21,6 @@ export interface UseRegexRulesReturn {
     updateRule: (updates: Partial<RegexRule>) => void;
     toggleRule: (id: string) => void;
     deleteRule: (id: string) => void;
-    resetRules: () => void;
     reorderRules: (rules: RegexRule[]) => void;
     saveRegexRules: () => Promise<void>;
 }
@@ -34,9 +34,8 @@ export function useRegexRules(): UseRegexRulesReturn {
 
     useEffect(() => {
         const savedRules = getSetting("regexRules");
-        if (savedRules && savedRules.length > 0) {
-            setRegexRules(savedRules);
-        }
+        // 始终对齐：内置规则以源码为准，用户规则原样保留
+        setRegexRules(reconcileRegexRules(savedRules ?? []));
     }, []);
 
     const selectRule = useCallback((id: string) => {
@@ -83,12 +82,6 @@ export function useRegexRules(): UseRegexRulesReturn {
         setHasChanges(true);
     }, []);
 
-    const resetRules = useCallback(() => {
-        setRegexRules([...DEFAULT_REGEX_RULES]);
-        setEditingRule(null);
-        setHasChanges(true);
-    }, []);
-
     const reorderRules = useCallback((newOrder: RegexRule[]) => {
         setRegexRules(newOrder);
         setHasChanges(true);
@@ -108,7 +101,6 @@ export function useRegexRules(): UseRegexRulesReturn {
         hasChanges,
         regexRules,
         reorderRules,
-        resetRules,
         saveRegexRules,
         selectRule,
         toggleRule,

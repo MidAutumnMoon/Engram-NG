@@ -6,6 +6,7 @@ import "@/ui/styles/main.css";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import { getSetting, initSettings } from "@/config/settings.ts";
+import { reconcileRegexRules } from "@/config/types/data_processing.ts";
 import { trimConfigSchema } from "@/config/types/memory.ts";
 import { getDbForChat } from "@/data/db.ts";
 import type { ChatContext } from "@/domain/memory/types.ts";
@@ -54,15 +55,14 @@ initSettings();
 // Restore persisted lastOpenedTab into uiStore (must happen after initSettings)
 useUiStore.getState().hydrateFromSettings();
 
-// 2. Regex rules
+// 2. Regex rules — 对齐内置规则（以源码为准，保留用户开关）+ 用户规则
 const savedRegexRules = getSetting("regexRules");
-if (savedRegexRules && savedRegexRules.length > 0) {
-    regexProcessor.setRules(savedRegexRules);
-    Logger.info(
-        LogModule.STBRIDGE,
-        `已加载 ${savedRegexRules.length} 条正则规则`,
-    );
-}
+const reconciledRules = reconcileRegexRules(savedRegexRules ?? []);
+regexProcessor.setRules(reconciledRules);
+Logger.info(
+    LogModule.STBRIDGE,
+    `已加载 ${reconciledRules.length} 条正则规则`,
+);
 
 // 3. Injection config and chat context
 const globalPreviewEnabled = getSetting("globalPreviewEnabled") ??

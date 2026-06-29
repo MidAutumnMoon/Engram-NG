@@ -5,6 +5,7 @@
  */
 import { Regex, Save } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { isDefaultRule } from "@/domain/regex/RegexProcessor.ts";
 import { EmptyState } from "@/ui/components/display/EmptyState.tsx";
 import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
 import { MasterDetailLayout } from "@/ui/components/layout/MasterDetailLayout.tsx";
@@ -29,7 +30,6 @@ export const RegexRulesView: React.FC = () => {
         updateRule,
         toggleRule,
         deleteRule,
-        resetRules,
         reorderRules,
         saveRegexRules,
     } = useRegexRules();
@@ -60,7 +60,11 @@ export const RegexRulesView: React.FC = () => {
                     </button>
                 )}
             >
-                <RegexRuleForm rule={editingRule} onChange={updateRule} />
+                <RegexRuleForm
+                    rule={editingRule}
+                    onChange={updateRule}
+                    readOnly={isDefaultRule(editingRule)}
+                />
             </MobileFullscreenForm>
         );
     }
@@ -96,7 +100,6 @@ export const RegexRulesView: React.FC = () => {
                             onToggle={toggleRule}
                             onDelete={deleteRule}
                             onAdd={addRule}
-                            onReset={resetRules}
                             onReorder={reorderRules}
                             enableNativeRegex={regexConfig
                                 ?.enableNativeRegex ?? true}
@@ -109,7 +112,11 @@ export const RegexRulesView: React.FC = () => {
                     }
                     detail={editingRule
                         ? (
-                            <RegexRuleForm rule={editingRule} onChange={updateRule} />
+                            <RegexRuleForm
+                                rule={editingRule}
+                                onChange={updateRule}
+                                readOnly={isDefaultRule(editingRule)}
+                            />
                         )
                         : (
                             <EmptyState
