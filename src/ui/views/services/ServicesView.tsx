@@ -196,12 +196,10 @@ export const ServicesView: React.FC<ServicesViewProps> = ({ initialSubtab }) => 
                         }
                         detail={editingPreset
                             ? (
-                                <div>
-                                    <LLMPresetForm
-                                        preset={editingPreset}
-                                        onChange={updatePreset}
-                                    />
-                                </div>
+                                <LLMPresetForm
+                                    preset={editingPreset}
+                                    onChange={updatePreset}
+                                />
                             )
                             : (
                                 <EmptyState

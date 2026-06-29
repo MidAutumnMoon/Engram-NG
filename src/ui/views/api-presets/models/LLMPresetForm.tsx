@@ -98,169 +98,166 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
         updatePreset({ source });
     };
 
-    return (
-        <div className="">
-            {/* 基本信息 */}
-            <FormSection title="基本信息">
+    return <>
+        {/* 基本信息 */}
+        <FormSection title="基本信息">
+            <TextField
+                label="预设名称"
+                value={preset.name}
+                onChange={(value) => updatePreset({ name: value })}
+                placeholder="输入预设名称"
+                required
+            />
+
+            <SelectField
+                label="配置源"
+                value={preset.source}
+                onChange={handleSourceChange}
+                options={SOURCE_OPTIONS}
+                description="选择 API 配置的来源"
+            />
+
+            <SwitchField
+                label="流式传输 (Streaming)"
+                checked={preset.stream || false}
+                onChange={(checked) => updatePreset({ stream: checked })}
+                description="针对特定后端的兼容性开关。开启后对强制校验 stream 的 Custom API 生效，同时解放酒馆原生 generateRaw 获取流式分块（后台自动拼合，不影响前台展现）。遇报错时可尝试拨动。"
+            />
+        </FormSection>
+
+        {/* 自定义 API 配置 */}
+        {preset.source === "custom" && (
+            <FormSection
+                title="API 配置"
+                description="自定义 OpenAI 兼容端点和密钥"
+            >
                 <TextField
-                    label="预设名称"
-                    value={preset.name}
-                    onChange={(value) => updatePreset({ name: value })}
-                    placeholder="输入预设名称"
+                    label="API URL"
+                    type="url"
+                    value={preset.custom?.apiUrl || ""}
+                    onChange={(value) => updateCustom("apiUrl", value)}
+                    placeholder="https://api.openai.com/v1"
                     required
                 />
 
-                <SelectField
-                    label="配置源"
-                    value={preset.source}
-                    onChange={handleSourceChange}
-                    options={SOURCE_OPTIONS}
-                    description="选择 API 配置的来源"
+                <TextField
+                    label="API Key"
+                    type="password"
+                    value={preset.custom?.apiKey || ""}
+                    onChange={(value) => updateCustom("apiKey", value)}
+                    placeholder="sk-..."
                 />
 
-                <SwitchField
-                    label="流式传输 (Streaming)"
-                    checked={preset.stream || false}
-                    onChange={(checked) => updatePreset({ stream: checked })}
-                    description="针对特定后端的兼容性开关。开启后对强制校验 stream 的 Custom API 生效，同时解放酒馆原生 generateRaw 获取流式分块（后台自动拼合，不影响前台展现）。遇报错时可尝试拨动。"
+                {/* 模型选择: 下拉 + 手动输入 + 获取按钮在标题旁 */}
+                <ModelNameField
+                    value={preset.custom?.model || ""}
+                    onChange={(value) => updateCustom("model", value)}
+                    modelList={modelList.map((m) => ({
+                        label: m.name || m.id,
+                        value: m.id,
+                    }))}
+                    onRefresh={fetchModelList}
+                    isLoadingModels={isLoadingModels}
+                    refreshDisabled={!preset.custom?.apiUrl}
+                    placeholder="gpt-4o-mini"
+                    useSearchable={false}
+                    required
+                    error={modelError}
                 />
             </FormSection>
+        )}
 
-            {/* 自定义 API 配置 */}
-            {preset.source === "custom" && (
-                <FormSection
-                    title="API 配置"
-                    description="自定义 OpenAI 兼容端点和密钥"
-                >
-                    <TextField
-                        label="API URL"
-                        type="url"
-                        value={preset.custom?.apiUrl || ""}
-                        onChange={(value) => updateCustom("apiUrl", value)}
-                        placeholder="https://api.openai.com/v1"
-                        required
-                    />
+        {/* 采样参数 */}
+        <FormSection
+            title="采样参数"
+            description="控制模型输出的随机性和多样性"
+        >
+            <div className="space-y-4">
+                <NumberField
+                    label="温度 (Temperature)"
+                    description="较高的值使输出更随机，较低的值使输出更确定。"
+                    min={0}
+                    max={2}
+                    step={0.1}
+                    value={preset.parameters.temperature}
+                    onChange={(val) => updateParameters("temperature", val)}
+                />
 
-                    <TextField
-                        label="API Key"
-                        type="password"
-                        value={preset.custom?.apiKey || ""}
-                        onChange={(value) => updateCustom("apiKey", value)}
-                        placeholder="sk-..."
-                    />
+                <NumberField
+                    label="核采样阈值 (Top-P)"
+                    description="控制候选 token 的累积概率截断。"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={preset.parameters.topP}
+                    onChange={(val) => updateParameters("topP", val)}
+                />
 
-                    {/* 模型选择: 下拉 + 手动输入 + 获取按钮在标题旁 */}
-                    <ModelNameField
-                        value={preset.custom?.model || ""}
-                        onChange={(value) => updateCustom("model", value)}
-                        modelList={modelList.map((m) => ({
-                            label: m.name || m.id,
-                            value: m.id,
-                        }))}
-                        onRefresh={fetchModelList}
-                        isLoadingModels={isLoadingModels}
-                        refreshDisabled={!preset.custom?.apiUrl}
-                        placeholder="gpt-4o-mini"
-                        useSearchable={false}
-                        required
-                        error={modelError}
-                    />
-                </FormSection>
-            )}
+                <NumberField
+                    label="候选词采样截断 (Top-K)"
+                    description="只从前 K 个最可能的结果中进行概率抽取（建议保留 0 为关闭或 60 默认）。"
+                    min={0}
+                    max={200}
+                    step={1}
+                    value={preset.parameters.topK ?? 60}
+                    onChange={(val) => updateParameters("topK", val)}
+                />
 
-            {/* 采样参数 */}
-            <FormSection
-                title="采样参数"
-                description="控制模型输出的随机性和多样性"
-            >
-                <div className="space-y-4">
-                    <NumberField
-                        label="温度 (Temperature)"
-                        description="较高的值使输出更随机，较低的值使输出更确定。"
-                        min={0}
-                        max={2}
-                        step={0.1}
-                        value={preset.parameters.temperature}
-                        onChange={(val) => updateParameters("temperature", val)}
-                    />
+                <NumberField
+                    label="最大输出 Token"
+                    min={64}
+                    max={16_384}
+                    step={64}
+                    value={preset.parameters.maxTokens}
+                    onChange={(val) => updateParameters("maxTokens", val)}
+                />
 
-                    <NumberField
-                        label="核采样阈值 (Top-P)"
-                        description="控制候选 token 的累积概率截断。"
-                        min={0}
-                        max={1}
-                        step={0.05}
-                        value={preset.parameters.topP}
-                        onChange={(val) => updateParameters("topP", val)}
-                    />
+                <NumberField
+                    label="上下文 Token 上限"
+                    description="建议值: 150000。限制传给大模型的最大上下文 Token 长度。"
+                    min={0}
+                    max={2_000_000}
+                    step={1000}
+                    value={preset.parameters.maxContext ?? 150_000}
+                    onChange={(val) => updateParameters("maxContext", val)}
+                />
 
-                    <NumberField
-                        label="候选词采样截断 (Top-K)"
-                        description="只从前 K 个最可能的结果中进行概率抽取（建议保留 0 为关闭或 60 默认）。"
-                        min={0}
-                        max={200}
-                        step={1}
-                        value={preset.parameters.topK ?? 60}
-                        onChange={(val) => updateParameters("topK", val)}
-                    />
+                <NumberField
+                    label="频率惩罚 (Frequency Penalty)"
+                    description="降低重复 token 的概率。"
+                    min={-2}
+                    max={2}
+                    step={0.1}
+                    value={preset.parameters.frequencyPenalty}
+                    onChange={(val) =>
+                        updateParameters("frequencyPenalty", val)}
+                />
 
-                    <NumberField
-                        label="最大输出 Token"
-                        min={64}
-                        max={16_384}
-                        step={64}
-                        value={preset.parameters.maxTokens}
-                        onChange={(val) => updateParameters("maxTokens", val)}
-                    />
+                <NumberField
+                    label="存在惩罚 (Presence Penalty)"
+                    description="鼓励模型讨论新主题。"
+                    min={-2}
+                    max={2}
+                    step={0.1}
+                    value={preset.parameters.presencePenalty}
+                    onChange={(val) => updateParameters("presencePenalty", val)}
+                />
+            </div>
+        </FormSection>
 
-                    <NumberField
-                        label="上下文 Token 上限"
-                        description="建议值: 150000。限制传给大模型的最大上下文 Token 长度。"
-                        min={0}
-                        max={2_000_000}
-                        step={1000}
-                        value={preset.parameters.maxContext ?? 150_000}
-                        onChange={(val) => updateParameters("maxContext", val)}
-                    />
-
-                    <NumberField
-                        label="频率惩罚 (Frequency Penalty)"
-                        description="降低重复 token 的概率。"
-                        min={-2}
-                        max={2}
-                        step={0.1}
-                        value={preset.parameters.frequencyPenalty}
-                        onChange={(val) =>
-                            updateParameters("frequencyPenalty", val)}
-                    />
-
-                    <NumberField
-                        label="存在惩罚 (Presence Penalty)"
-                        description="鼓励模型讨论新主题。"
-                        min={-2}
-                        max={2}
-                        step={0.1}
-                        value={preset.parameters.presencePenalty}
-                        onChange={(val) =>
-                            updateParameters("presencePenalty", val)}
-                    />
-                </div>
-            </FormSection>
-
-            {/* 网络与重试 */}
-            <FormSection
-                title="网络与重试"
-                description="控制 API 请求的容错重试行为"
-                collapsible
-                defaultCollapsed
-            >
-                <div className="space-y-4">
-                    <RetryConfigFields
-                        value={preset.retryConfig}
-                        onChange={(retryConfig) => updatePreset({ retryConfig })}
-                    />
-                </div>
-            </FormSection>
-        </div>
-    );
+        {/* 网络与重试 */}
+        <FormSection
+            title="网络与重试"
+            description="控制 API 请求的容错重试行为"
+            collapsible
+            defaultCollapsed
+        >
+            <div className="space-y-4">
+                <RetryConfigFields
+                    value={preset.retryConfig}
+                    onChange={(retryConfig) => updatePreset({ retryConfig })}
+                />
+            </div>
+        </FormSection>
+    </>;
 };
