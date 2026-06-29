@@ -15,9 +15,7 @@ import { safeStringify } from "@/utils/safeStringify.ts";
 import { type LLMPreset, llmPresetSchema } from "@/config/types/llm.ts";
 import { regexRuleSchema } from "@/config/types/data_processing.ts";
 import {
-    DEFAULT_REGEX_CONFIG,
     entityExtractConfigSchema,
-    globalRegexConfigSchema,
     summarizerConfigSchema,
     trimConfigSchema,
 } from "@/config/types/memory.ts";
@@ -56,8 +54,6 @@ const engramApiSettingsSchema = z.object({
     rerankConfig: rerankConfigSchema.prefault({}),
     /** 世界书配置 */
     worldbookConfig: worldbookConfigSchema.prefault({}),
-    /** 正则配置 (V0.8) */
-    regexConfig: globalRegexConfigSchema.prefault({}),
     /** 精简配置（可选，二层总结） */
     trimConfig: trimConfigSchema.optional(),
     /** V0.7: 嵌入配置 */
@@ -112,7 +108,6 @@ export function getDefaultAPISettings(): EngramAPISettings {
         vectorConfig: { ...DEFAULT_VECTOR_CONFIG },
         rerankConfig: { ...DEFAULT_RERANK_CONFIG },
         worldbookConfig: { ...DEFAULT_WORLDBOOK_CONFIG },
-        regexConfig: { ...DEFAULT_REGEX_CONFIG },
         recallConfig: { ...DEFAULT_RECALL_CONFIG },
         ingestionConfig: { ...DEFAULT_INGESTION_CONFIG },
         worldbookProfiles: [],

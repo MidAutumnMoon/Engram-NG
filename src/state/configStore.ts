@@ -4,7 +4,7 @@ import {
     getSettings,
     setSetting,
 } from "@/config/settings.ts";
-import type { GlobalRegexConfig, TrimConfig } from "@/config/types/memory.ts";
+import type { TrimConfig } from "@/config/types/memory.ts";
 import {
     DEFAULT_INGESTION_CONFIG,
     type IngestionConfig,
@@ -31,7 +31,6 @@ const debouncedSave = (state: ConfigState) => {
             embeddingConfig: state.embeddingConfig,
             ingestionConfig: state.ingestionConfig,
             recallConfig: state.recallConfig,
-            regexConfig: state.regexConfig,
             rerankConfig: state.rerankConfig,
             trimConfig: state.trimConfig,
             vectorConfig: state.vectorConfig,
@@ -49,7 +48,6 @@ export interface ConfigState {
     vectorConfig: VectorConfig;
     rerankConfig: RerankConfig;
     recallConfig: RecallConfig;
-    regexConfig: GlobalRegexConfig;
     /** V2.1: 统一摄取配置（summary+entity 共享）。新代码读这个。 */
     ingestionConfig: IngestionConfig;
     /** V2.3: 精简配置（事件压缩），独立于摄取但由摄取联动触发 */
@@ -73,7 +71,6 @@ export interface ConfigState {
     updateVectorConfig: (config: VectorConfig) => void;
     updateRerankConfig: (config: RerankConfig) => void;
     updateRecallConfig: (config: RecallConfig) => void;
-    updateRegexConfig: (config: GlobalRegexConfig) => void;
     /** V2.1: unified ingestion config (summary + entity shared knobs) */
     updateIngestionConfig: (config: IngestionConfig) => void;
     updateTrimConfig: (config: TrimConfig) => void;
@@ -106,7 +103,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
             showConfirmation: true,
         },
     recallConfig: savedContext.recallConfig || defaults.recallConfig!,
-    regexConfig: savedContext.regexConfig || defaults.regexConfig!,
     rerankConfig: savedContext.rerankConfig || defaults.rerankConfig!,
 
     saveConfig: () => {
@@ -133,9 +129,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
 
     updateRecallConfig: (config) =>
         set({ recallConfig: config, hasChanges: true }),
-
-    updateRegexConfig: (config) =>
-        set({ regexConfig: config, hasChanges: true }),
 
     updateRerankConfig: (config) =>
         set({ rerankConfig: config, hasChanges: true }),

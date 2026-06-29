@@ -1,7 +1,7 @@
 /**
  * RegexRulesView - 正则规则
  *
- * 配置基于正则的文本替换与处理规则（CRUD + 重排 + 原生兼容开关）。
+ * 配置基于正则的文本替换与处理规则（CRUD + 重排 + 内置/自定义分类）。
  */
 import { Regex, Save } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -10,7 +10,6 @@ import { EmptyState } from "@/ui/components/display/EmptyState.tsx";
 import { PageTitle } from "@/ui/components/display/PageTitle.tsx";
 import { MasterDetailLayout } from "@/ui/components/layout/MasterDetailLayout.tsx";
 import { MobileFullscreenForm } from "@/ui/components/overlay/MobileFullscreenForm.tsx";
-import { useConfig } from "@/ui/hooks/useConfig.ts";
 import { useRegexRules } from "@/ui/hooks/useRegexRules.ts";
 import { useResponsive } from "@/ui/hooks/useResponsive.ts";
 import { RegexRuleForm } from "@/ui/views/regex/RegexRuleForm.tsx";
@@ -20,7 +19,6 @@ export const RegexRulesView: React.FC = () => {
     const isMobile = useResponsive();
     const [showMobileForm, setShowMobileForm] = useState(false);
 
-    const { regexConfig, updateRegexConfig } = useConfig();
     const {
         regexRules,
         editingRule,
@@ -101,13 +99,6 @@ export const RegexRulesView: React.FC = () => {
                             onDelete={deleteRule}
                             onAdd={addRule}
                             onReorder={reorderRules}
-                            enableNativeRegex={regexConfig
-                                ?.enableNativeRegex ?? true}
-                            onToggleNativeRegex={(enabled) =>
-                                updateRegexConfig({
-                                    ...regexConfig,
-                                    enableNativeRegex: enabled,
-                                })}
                         />
                     }
                     detail={editingRule

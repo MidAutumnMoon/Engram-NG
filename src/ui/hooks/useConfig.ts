@@ -7,7 +7,6 @@
  */
 
 import type {
-    GlobalRegexConfig,
     TrimConfig,
 } from "@/config/types/memory.ts";
 import type { IngestionConfig } from "@/config/types/ingestion.ts";
@@ -23,7 +22,6 @@ export interface UseConfigReturn {
     vectorConfig: VectorConfig;
     rerankConfig: RerankConfig;
     recallConfig: RecallConfig;
-    regexConfig: GlobalRegexConfig;
     ingestionConfig: IngestionConfig;
     trimConfig?: TrimConfig;
     embeddingConfig: EmbeddingConfig;
@@ -31,7 +29,6 @@ export interface UseConfigReturn {
     updateVectorConfig: (config: VectorConfig) => void;
     updateRerankConfig: (config: RerankConfig) => void;
     updateRecallConfig: (config: RecallConfig) => void;
-    updateRegexConfig: (config: GlobalRegexConfig) => void;
     updateIngestionConfig: (config: IngestionConfig) => void;
     updateTrimConfig: (config: TrimConfig) => void;
     updateEmbeddingConfig: (config: EmbeddingConfig) => void;
@@ -42,7 +39,6 @@ export interface UseConfigReturn {
             vectorConfig: VectorConfig;
             rerankConfig: RerankConfig;
             recallConfig: RecallConfig;
-            regexConfig: GlobalRegexConfig;
             embeddingConfig: EmbeddingConfig;
         }>,
     ) => void;
@@ -60,7 +56,6 @@ export function useConfig(): UseConfigReturn {
         ingestionConfig: store.ingestionConfig,
         trimConfig: store.trimConfig,
         recallConfig: store.recallConfig,
-        regexConfig: store.regexConfig,
 
         rerankConfig: store.rerankConfig,
         saveConfig: store.saveConfig,
@@ -71,7 +66,6 @@ export function useConfig(): UseConfigReturn {
         updateMultipleConfigs: store.updateMultipleConfigs,
 
         updateRecallConfig: store.updateRecallConfig,
-        updateRegexConfig: store.updateRegexConfig,
         updateRerankConfig: store.updateRerankConfig,
         updateVectorConfig: store.updateVectorConfig,
 

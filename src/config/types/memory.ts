@@ -69,15 +69,6 @@ export const entityExtractConfigSchema = z.object({
 export type EntityExtractConfig = z.infer<typeof entityExtractConfigSchema>;
 export type EntityTriggerType = EntityExtractConfig["trigger"];
 
-// ==================== Global Regex Config ====================
-
-export const globalRegexConfigSchema = z.object({
-    /** 是否启用酒馆原生 Regex (SillyTavern) */
-    enableNativeRegex: z.boolean().default(true),
-});
-
-export type GlobalRegexConfig = z.infer<typeof globalRegexConfigSchema>;
-
 // ==================== Summarizer Config ====================
 
 export const triggerModeSchema = z.enum(["auto", "manual"]);
@@ -119,5 +110,3 @@ export const DEFAULT_SUMMARIZER_CONFIG: SummarizerConfig =
 export const DEFAULT_TRIM_CONFIG: TrimConfig = trimConfigSchema.parse({});
 export const DEFAULT_ENTITY_CONFIG: EntityExtractConfig =
     entityExtractConfigSchema.parse({});
-export const DEFAULT_REGEX_CONFIG: GlobalRegexConfig = globalRegexConfigSchema
-    .parse({});

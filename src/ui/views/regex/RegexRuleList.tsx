@@ -1,5 +1,4 @@
 import { isDefaultRule, type RegexRule } from "@/domain/regex/RegexProcessor.ts";
-import { Switch } from "@/ui/components/form/Switch.tsx";
 import { GripVertical, Plus, Power, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 
@@ -11,8 +10,6 @@ interface RegexRuleListProps {
     onDelete: (id: string) => void;
     onAdd: () => void;
     onReorder: (rules: RegexRule[]) => void;
-    enableNativeRegex?: boolean;
-    onToggleNativeRegex?: (enabled: boolean) => void;
 }
 
 export const RegexRuleList: React.FC<RegexRuleListProps> = ({
@@ -23,8 +20,6 @@ export const RegexRuleList: React.FC<RegexRuleListProps> = ({
     onDelete,
     onAdd,
     onReorder,
-    enableNativeRegex,
-    onToggleNativeRegex,
 }) => {
     const builtinRules = rules.filter((r) => isDefaultRule(r));
     const userRules = rules.filter((r) => !isDefaultRule(r));
@@ -63,25 +58,6 @@ export const RegexRuleList: React.FC<RegexRuleListProps> = ({
 
     return (
         <div className="flex flex-col gap-4">
-            {/* Native Compatibility Toggle */}
-            <div className="bg-muted/10 border border-border/50 rounded-lg p-3 mb-2">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                    <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium">
-                            酒馆原生 Regex 兼容
-                        </h4>
-                        <p className="text-xs text-muted-foreground mt-0.5 break-words">
-                            启用后将应用 SillyTavern 的 Regex 脚本
-                        </p>
-                    </div>
-
-                    <Switch
-                        checked={enableNativeRegex ?? true}
-                        onChange={(checked) => onToggleNativeRegex?.(checked)}
-                    />
-                </div>
-            </div>
-
             {/* 内置规则（只读，仅可开关/选择） */}
             <RuleSection title="内置规则">
                 <ul className="flex flex-col gap-1 list-none p-0 m-0">
