@@ -64,17 +64,14 @@ export const RerankConfigForm: React.FC<RerankConfigFormProps> = ({
 
     return (
         <div className="">
-            <FormSection
-                title="Rerank 设置"
-                description="配置重排序模型以优化检索结果"
-            >
+            <div className="flex flex-col gap-4 mb-4">
                 <SwitchField
                     label="启用 Rerank"
                     checked={config.enabled}
                     onChange={(value) => updateConfig({ enabled: value })}
                     description="使用 Rerank 模型对检索结果进行重新排序"
                 />
-            </FormSection>
+            </div>
 
             {config.enabled && (
                 <>

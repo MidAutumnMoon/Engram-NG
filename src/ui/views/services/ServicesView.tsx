@@ -163,18 +163,14 @@ export const ServicesView: React.FC<ServicesViewProps> = ({ initialSubtab }) => 
                         listWidth="30%"
                         list={
                             <div className="flex flex-col gap-4">
-                                <div
-                                    className="flex items-center justify-between"
-                                >
-                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                                        预设列表
-                                    </h3>
+                                <div className="flex justify-end">
                                     <button
                                         type="button"
-                                        className="text-muted-foreground hover:text-foreground"
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-md shadow-sm active:scale-95"
                                         onClick={addPreset}
                                     >
-                                        <Plus size={16} />
+                                        <Plus size={14} strokeWidth={2.5} />
+                                        新增预设
                                     </button>
                                 </div>
                                 <div className="flex flex-col gap-1">

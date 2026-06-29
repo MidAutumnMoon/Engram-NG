@@ -16,13 +16,6 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
 }) => {
     return (
         <div className="flex flex-col gap-4 h-full">
-            {/* 头部 */}
-            <div className="flex items-center justify-between gap-2">
-                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                    提示词模板
-                </h3>
-            </div>
-
             {/* 模板列表 */}
             <div className="flex flex-col gap-1 overflow-y-auto flex-1 no-scrollbar">
                 {templates.map((template) => (

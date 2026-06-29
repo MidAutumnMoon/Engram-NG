@@ -148,10 +148,7 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
 
     return (
         <div className="">
-            <FormSection
-                title="向量化设置"
-                description="配置文本向量化使用的模型和端点"
-            >
+            <div className="flex flex-col gap-4">
                 <SelectField
                     label="向量源"
                     value={config.source}
@@ -224,7 +221,7 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
                     description="使用的向量化模型"
                     error={modelError}
                 />
-            </FormSection>
+            </div>
 
             <FormSection title="高级选项" collapsible defaultCollapsed>
                 <TextField

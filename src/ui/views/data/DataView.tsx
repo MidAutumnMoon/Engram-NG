@@ -84,10 +84,6 @@ export const DataView: React.FC = () => {
 
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
                 <section>
-                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">
-                        数据管理与维护
-                    </h3>
-
                     <div
                         className="bg-muted/30 border border-border rounded-lg p-4 space-y-4"
                     >
