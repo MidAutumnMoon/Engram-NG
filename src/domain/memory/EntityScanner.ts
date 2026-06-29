@@ -1,36 +1,5 @@
-import { Logger } from "@/logger/Logger.ts";
-import { LogModule } from "@/logger/LogModule.ts";
 import type { EntityNode, EventNode } from "@/data/types/graph.ts";
-
-/**
- * 封装酒馆原生的正则解析方法
- */
-function parseRegexFromString(input: string): RegExp | null {
-    try {
-        // @ts-expect-error - 尝试从全局获取，SillyTavern 导出了这个方法
-        if (typeof window.parseRegexFromString === "function") {
-            // @ts-expect-error
-            return window.parseRegexFromString(input);
-        }
-    } catch (error) {
-        Logger.warn(
-            LogModule.ENTITY_SCANNER,
-            "无法获取酒馆原生 parseRegexFromString，降级为普通正则",
-            error,
-        );
-    }
-
-    // 降级方案：简单的斜杠包裹正则解析
-    const match = input.match(/^\/(.*)\/([gimsuy]*)$/);
-    if (match) {
-        try {
-            return new RegExp(match[1], match[2] || "i");
-        } catch {
-            return null;
-        }
-    }
-    return null;
-}
+import { getTavernHelper } from "@/sillytavern/context.ts";
 
 /**
  * 匹配函数，尽可能复刻酒馆的 matchKeys 逻辑
@@ -39,7 +8,10 @@ export function matchKey(text: string, keyword: string): boolean {
     if (!keyword || !text) return false;
 
     // 1. 尝试正则匹配
-    const regex = parseRegexFromString(keyword);
+    const regex = getTavernHelper()
+        .builtin
+        .parseRegexFromString(keyword);
+
     if (regex) {
         return regex.test(text);
     }
