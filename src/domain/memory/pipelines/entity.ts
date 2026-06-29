@@ -308,9 +308,6 @@ function extractPatches(parsed: any): any[] {
     if (Array.isArray(parsed?.patches)) {
         return parsed.patches;
     }
-    if (Array.isArray(parsed?.entities) || Array.isArray(parsed?.patches)) {
-        return [];
-    }
     return [];
 }
 

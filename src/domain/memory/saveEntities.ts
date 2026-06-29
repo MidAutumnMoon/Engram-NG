@@ -34,10 +34,6 @@ import { refreshEngramCache } from "@/domain/macros/Macros.ts";
 import * as jsonpatch from "fast-json-patch";
 import { z } from "zod";
 
-// V1.3: 统一 JSON Patch 格式
-// 新实体: { op: "add", path: "/entities/{name}", value: {...} }
-// 更新:   { op: "replace/add/remove", path: "/entities/{name}/profile/{key}", value: ... }
-
 const PatchOpSchema = z.object({
     from: z.string().optional(),
     op: z.enum(["add", "replace", "remove", "copy", "move", "test"]),
@@ -47,24 +43,6 @@ const PatchOpSchema = z.object({
 
 const UnifiedPatchSchema = z.object({
     patches: z.array(PatchOpSchema),
-});
-
-// 向后兼容的 Legacy Schema
-const LegacyEntitySchema = z.object({
-    aliases: z.array(z.string()).optional(),
-    name: z.string(),
-    profile: z.record(z.string(), z.unknown()).optional(),
-    type: z.string(),
-});
-
-const LegacyPatchSchema = z.object({
-    name: z.string(),
-    ops: z.array(z.any()),
-});
-
-const LegacySchema = z.object({
-    entities: z.array(LegacyEntitySchema).optional(),
-    patches: z.array(LegacyPatchSchema).optional(),
 });
 
 const ProcessedResultSchema = z.object({
@@ -97,7 +75,7 @@ export interface EntityChanges {
 // ============================================================================
 
 export interface ComputeEntityInput {
-    /** Raw parsed source content (UnifiedPatch / Legacy / ProcessedResult). */
+    /** Raw parsed LLM output (UnifiedPatch format). */
     sourceContent: any;
     /** Existing entities (pre-fetched by the caller). REQUIRED. */
     existingEntities: EntityNode[];
@@ -109,8 +87,7 @@ export interface ComputeEntityInput {
 
 /**
  * Compute an entity extraction preview without writing to the DB or emitting
- * events. Handles three input formats; the UnifiedPatch/Legacy paths build
- * `_diff`/`_original`/`temp-` ids for the review UI.
+ * events. Builds `_diff`/`_original`/`temp-` ids for the review UI.
  *
  * The returned `EntityChanges` is a human-readable preview, NOT a machine
  * plan — `applyEntityChanges` re-derives field_history/episode_refs from the
@@ -149,53 +126,23 @@ export async function computeEntityPreview(
         range: input.range,
     };
 
-    // V1.3.1: Processed data (from DryRun + UserReview) — pass-through.
-    const processedResult = ProcessedResultSchema.safeParse(sourceContent);
-    const hasProcessedData = processedResult.success &&
-        ((processedResult.data.newEntities?.length ?? 0) > 0 ||
-            (processedResult.data.updatedEntities?.length ?? 0) > 0);
-
-    if (hasProcessedData) {
-        Logger.debug(
-            LogModule.WF_SAVE_ENTITY,
-            "Detected processed data structure, bypassing extraction logic",
-        );
-        previewProcessedEntities(
-            processedResult.data,
+    const unifiedResult = UnifiedPatchSchema.safeParse(sourceContent);
+    if (
+        unifiedResult.success &&
+        isUnifiedFormat(unifiedResult.data.patches)
+    ) {
+        await previewUnifiedPatches(
+            unifiedResult.data.patches,
+            existingEntities,
             newEntities,
             updatedEntities,
+            ctx,
+            stateFields,
         );
     } else {
-        const unifiedResult = UnifiedPatchSchema.safeParse(sourceContent);
-        if (
-            unifiedResult.success &&
-            isUnifiedFormat(unifiedResult.data.patches)
-        ) {
-            await previewUnifiedPatches(
-                unifiedResult.data.patches,
-                existingEntities,
-                newEntities,
-                updatedEntities,
-                ctx,
-                stateFields,
-            );
-        } else {
-            const legacyResult = LegacySchema.safeParse(sourceContent);
-            if (legacyResult.success) {
-                await previewLegacyFormat(
-                    legacyResult.data,
-                    existingEntities,
-                    newEntities,
-                    updatedEntities,
-                    ctx,
-                    stateFields,
-                );
-            } else {
-                throw new Error(
-                    `computeEntityPreview: Zod Validation Failed - 无法解析为统一或旧版格式`,
-                );
-            }
-        }
+        throw new Error(
+            `computeEntityPreview: Zod Validation Failed - 无法解析为统一 patch 格式`,
+        );
     }
 
     Logger.info(
@@ -227,9 +174,9 @@ export interface ApplyEntityInput {
  * — does NOT trust the preview's computed fields. Emits state-change events
  * for tracked-field mutations and refreshes the macro cache afterward.
  *
- * Only the ProcessedResult format is supported here; the UnifiedPatch/Legacy
- * formats live entirely in `computeEntityPreview` (verified: every real-save
- * call site passes a ProcessedResult-shaped object).
+ * Only the ProcessedResult format is supported here; the UnifiedPatch format
+ * lives entirely in `computeEntityPreview` (verified: every real-save call
+ * site passes a ProcessedResult-shaped object).
  */
 export async function applyEntityChanges(
     input: ApplyEntityInput,
@@ -306,27 +253,6 @@ export async function applyEntityChanges(
 // ============================================================================
 // PREVIEW path helpers (compute-only; no store/IO)
 // ============================================================================
-
-/**
- * ProcessedResult preview: pass-through. The input entities flow through
- * unchanged (the review UI edits them; apply re-derives fields on persist).
- */
-function previewProcessedEntities(
-    data: z.infer<typeof ProcessedResultSchema>,
-    outNewEntities: EntityNode[],
-    outUpdatedEntities: EntityNode[],
-): void {
-    if (data.newEntities) {
-        for (const entity of data.newEntities) {
-            outNewEntities.push(entity);
-        }
-    }
-    if (data.updatedEntities) {
-        for (const entity of data.updatedEntities) {
-            outUpdatedEntities.push(entity);
-        }
-    }
-}
 
 async function previewUnifiedPatches(
     patches: z.infer<typeof PatchOpSchema>[],
@@ -562,71 +488,6 @@ function previewMergePatches(
     }
 }
 
-async function previewLegacyFormat(
-    data: z.infer<typeof LegacySchema>,
-    existingEntities: EntityNode[],
-    newEntities: EntityNode[],
-    updatedEntities: EntityNode[],
-    ctx: SaveContext,
-    stateFields: string[],
-): Promise<void> {
-    if (data.entities) {
-        for (const extracted of data.entities) {
-            const exists = existingEntities.find((e) =>
-                e.name === extracted.name ||
-                e.aliases?.includes(extracted.name)
-            );
-            if (exists) continue;
-
-            const entity: any = {
-                aliases: extracted.aliases || [],
-                description: profileToYaml(
-                    extracted.name,
-                    extracted.profile || {},
-                ),
-                name: extracted.name,
-                profile: extracted.profile || {},
-                type: (extracted.type as EntityType) || EntityType.Unknown,
-            };
-            entity.id = `temp-${Date.now()}`;
-            newEntities.push(entity);
-        }
-    }
-
-    if (data.patches) {
-        for (const patch of data.patches) {
-            if (!patch.name) {
-                Logger.warn(
-                    LogModule.WF_SAVE_ENTITY,
-                    "Skipping legacy patch due to missing name field",
-                    { patch },
-                );
-                continue;
-            }
-            const target = existingEntities.find((e) =>
-                e.name === patch.name || e.id === patch.name
-            );
-            if (!target) continue;
-
-            const prefixedOps = patch.ops.map((op: any) => ({
-                ...op,
-                path: `/entities/${
-                    encodeURIComponent(patch.name)
-                }${op.path}`,
-            }));
-
-            previewMergePatches(
-                patch.name,
-                target,
-                prefixedOps,
-                updatedEntities,
-                ctx,
-                stateFields,
-            );
-        }
-    }
-}
-
 // ============================================================================
 // APPLY path helper (I/O; ProcessedResult real-save only)
 // ============================================================================
@@ -687,14 +548,13 @@ async function persistProcessedEntities(
         for (const entity of data.updatedEntities) {
             if (entity.id && !entity.id.startsWith("temp-")) {
                 const existing = existingMap.get(entity.id);
-                const trackedFields =
-                    (Array.isArray(entity.tracked_fields) &&
-                            entity.tracked_fields.length > 0)
-                        ? entity.tracked_fields
-                        : (Array.isArray(existing?.tracked_fields) &&
-                                existing!.tracked_fields!.length > 0)
-                        ? existing!.tracked_fields!
-                        : stateFields;
+                const trackedFields = (Array.isArray(entity.tracked_fields) &&
+                        entity.tracked_fields.length > 0)
+                    ? entity.tracked_fields
+                    : (Array.isArray(existing?.tracked_fields) &&
+                            existing!.tracked_fields!.length > 0)
+                    ? existing!.tracked_fields!
+                    : stateFields;
 
                 let fieldHistory = existing?.field_history ?? {};
                 const emittedChanges: {
