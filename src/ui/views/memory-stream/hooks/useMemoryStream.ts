@@ -106,7 +106,11 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
 
             setActiveIds(new Set());
         } catch (error) {
-            Logger.error(LogModule.MEMORY_STREAM, "Failed to load events", error);
+            Logger.error(
+                LogModule.MEMORY_STREAM,
+                "Failed to load events",
+                error,
+            );
         } finally {
             setIsLoading(false);
         }

@@ -85,7 +85,8 @@ export const Settings: React.FC = () => {
                                                 摄取修订模式
                                             </h4>
                                             <p className="text-sm text-meta line-clamp-2">
-                                                摄取 pass（摘要 + 实体）写入前，弹出预览窗口
+                                                摄取 pass（摘要 +
+                                                实体）写入前，弹出预览窗口
                                             </p>
                                         </div>
                                     </div>

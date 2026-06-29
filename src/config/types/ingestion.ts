@@ -67,8 +67,8 @@ export const ingestionConfigSchema = z.object({
 
 export type IngestionConfig = z.infer<typeof ingestionConfigSchema>;
 
-export const DEFAULT_INGESTION_CONFIG: IngestionConfig =
-    ingestionConfigSchema.parse({});
+export const DEFAULT_INGESTION_CONFIG: IngestionConfig = ingestionConfigSchema
+    .parse({});
 
 /**
  * 把旧的 split 配置（summarizerConfig + entityExtractConfig）映射为统一的

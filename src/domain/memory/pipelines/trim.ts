@@ -23,8 +23,8 @@ import TRIM_SYSTEM from "@/integrations/llm/prompts/TRIM_SYSTEM.txt?raw";
 import TRIM_USER from "@/integrations/llm/prompts/TRIM_USER.txt?raw";
 import {
     type CancelSignal,
-    type LlmPrompt,
     cleanRegex,
+    type LlmPrompt,
     runLlm,
     stopGeneration,
 } from "./shared.ts";

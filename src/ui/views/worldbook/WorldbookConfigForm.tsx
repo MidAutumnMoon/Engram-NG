@@ -5,10 +5,7 @@ import {
 } from "@/ui/components/form/FormComponents.tsx";
 import { AlertCircle, RefreshCw, Search } from "lucide-react";
 import React, { useState } from "react";
-import {
-    WorldbookItem,
-    type WorldbookEntry,
-} from "./WorldbookEntryParts.tsx";
+import { type WorldbookEntry, WorldbookItem } from "./WorldbookEntryParts.tsx";
 
 interface WorldbookConfigFormProps {
     config: WorldbookConfig;
@@ -108,7 +105,10 @@ export const WorldbookConfigForm: React.FC<WorldbookConfigFormProps> = ({
                         {filteredWorldbooks.length === 0
                             ? (
                                 <div className="flex flex-col items-center justify-center py-8 text-muted-foreground gap-2 border border-dashed rounded-lg">
-                                    <AlertCircle size={24} className="opacity-50" />
+                                    <AlertCircle
+                                        size={24}
+                                        className="opacity-50"
+                                    />
                                     <span className="text-sm">
                                         未找到匹配的世界书
                                     </span>
@@ -126,7 +126,11 @@ export const WorldbookConfigForm: React.FC<WorldbookConfigFormProps> = ({
                                         onToggleWorldbook={(disabled) =>
                                             onToggleWorldbook?.(book, disabled)}
                                         onToggleEntry={(uid, disabled) =>
-                                            onToggleEntry?.(book, uid, disabled)}
+                                            onToggleEntry?.(
+                                                book,
+                                                uid,
+                                                disabled,
+                                            )}
                                     />
                                 ))
                             )}

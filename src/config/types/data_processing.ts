@@ -137,4 +137,3 @@ export const reconcileRegexRules = (saved: RegexRule[]): RegexRule[] => {
     const userRules = saved.filter((r) => !DEFAULT_RULE_IDS.has(r.id));
     return [...builtins, ...userRules];
 };
-

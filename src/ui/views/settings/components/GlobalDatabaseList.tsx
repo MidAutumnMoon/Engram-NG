@@ -22,7 +22,11 @@ export const GlobalDatabaseList: React.FC = () => {
             stats.sort((a, b) => b.lastUpdateTime - a.lastUpdateTime);
             setDbs(stats);
         } catch (error) {
-            Logger.error(LogModule.DATABASE, "Failed to fetch databases", error);
+            Logger.error(
+                LogModule.DATABASE,
+                "Failed to fetch databases",
+                error,
+            );
         } finally {
             setLoading(false);
         }

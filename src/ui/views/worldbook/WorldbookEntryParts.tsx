@@ -194,9 +194,8 @@ export const WorldbookItem: React.FC<WorldbookItemProps> = ({
     onToggleEntry,
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    const activeEntriesCount = entries.filter((e) =>
-        !isEntryDisabled(e.uid)
-    ).length;
+    const activeEntriesCount =
+        entries.filter((e) => !isEntryDisabled(e.uid)).length;
 
     return (
         <div

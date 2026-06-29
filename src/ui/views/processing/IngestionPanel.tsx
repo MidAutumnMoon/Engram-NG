@@ -10,9 +10,12 @@ import type { TrimConfig, TrimTriggerType } from "@/config/types/memory.ts";
 import { ingestionService } from "@/domain/memory/IngestionService.ts";
 import { eventTrimmer } from "@/domain/memory/EventTrimmer.ts";
 import { chatManager } from "@/data/ChatManager.ts";
-import { NumberField, SwitchField } from "@/ui/components/form/FormComponents.tsx";
+import {
+    NumberField,
+    SwitchField,
+} from "@/ui/components/form/FormComponents.tsx";
 import { Divider } from "@/ui/components/layout/Divider.tsx";
-import { Brain, RotateCcw, Scissors, Sparkles, RefreshCw } from "lucide-react";
+import { Brain, RefreshCw, RotateCcw, Scissors, Sparkles } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 
 interface IngestionPanelProps {
@@ -245,11 +248,9 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                     value={config.entity.archiveLimit}
                     onChange={handleArchiveLimit}
                     suffix="个"
-                    disabled={
-                        !config.enabled ||
+                    disabled={!config.enabled ||
                         !config.entity.enabled ||
-                        !config.entity.autoArchive
-                    }
+                        !config.entity.autoArchive}
                 />
             </section>
 
@@ -287,7 +288,8 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                                     <button
                                         type="button"
                                         key={opt.id}
-                                        onClick={() => handleTrimTrigger(opt.id)}
+                                        onClick={() =>
+                                            handleTrimTrigger(opt.id)}
                                         className={`px-3 py-1.5 text-xs font-medium rounded border ${
                                             trim.trigger === opt.id
                                                 ? "border-primary text-primary bg-primary/5"
@@ -302,20 +304,18 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                     </div>
 
                     <NumberField
-                        label={trim.trigger === "token" ? "Token 阈值" : "事件数阈值"}
-                        description={
-                            trim.trigger === "token"
-                                ? "总 token 超过此值时触发精简"
-                                : "活跃事件数超过此值时触发精简"
-                        }
+                        label={trim.trigger === "token"
+                            ? "Token 阈值"
+                            : "事件数阈值"}
+                        description={trim.trigger === "token"
+                            ? "总 token 超过此值时触发精简"
+                            : "活跃事件数超过此值时触发精简"}
                         min={trim.trigger === "token" ? 1024 : 2}
                         max={trim.trigger === "token" ? 100000 : 50}
                         step={trim.trigger === "token" ? 1024 : 1}
-                        value={
-                            trim.trigger === "token"
-                                ? trim.tokenLimit
-                                : trim.countLimit
-                        }
+                        value={trim.trigger === "token"
+                            ? trim.tokenLimit
+                            : trim.countLimit}
                         onChange={handleTrimThreshold}
                         suffix={trim.trigger === "token" ? "tokens" : "条"}
                         disabled={!trim.enabled}
@@ -356,11 +356,11 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                         className="flex flex-col items-start gap-1 p-3 border border-border rounded-lg text-left transition-colors hover:border-primary/50 hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border disabled:hover:bg-transparent"
                         disabled={!canRerun || !config.summary.enabled}
                         onClick={handleRerunSummary}
-                        title={
-                            lastPass.range
-                                ? `重新总结楼层 ${lastPass.range[0]}-${lastPass.range[1]}`
-                                : "尚未有可重跑的 pass"
-                        }
+                        title={lastPass.range
+                            ? `重新总结楼层 ${lastPass.range[0]}-${
+                                lastPass.range[1]
+                            }`
+                            : "尚未有可重跑的 pass"}
                     >
                         <div className="flex items-center gap-2 w-full">
                             <Brain
@@ -390,11 +390,11 @@ export const IngestionPanel: React.FC<IngestionPanelProps> = (
                         className="flex flex-col items-start gap-1 p-3 border border-border rounded-lg text-left transition-colors hover:border-primary/50 hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border disabled:hover:bg-transparent"
                         disabled={!canRerun || !config.entity.enabled}
                         onClick={handleRerunEntity}
-                        title={
-                            lastPass.range
-                                ? `重新提取楼层 ${lastPass.range[0]}-${lastPass.range[1]} 的实体`
-                                : "尚未有可重跑的 pass"
-                        }
+                        title={lastPass.range
+                            ? `重新提取楼层 ${lastPass.range[0]}-${
+                                lastPass.range[1]
+                            } 的实体`
+                            : "尚未有可重跑的 pass"}
                     >
                         <div className="flex items-center gap-2 w-full">
                             <Sparkles

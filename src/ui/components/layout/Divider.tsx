@@ -22,5 +22,9 @@ export const Divider: React.FC<DividerProps> = ({
     spacing = "none",
     className = "",
 }) => (
-    <div className={`border-t border-border/30 ${spacingClasses[spacing]} ${className}`} />
+    <div
+        className={`border-t border-border/30 ${
+            spacingClasses[spacing]
+        } ${className}`}
+    />
 );

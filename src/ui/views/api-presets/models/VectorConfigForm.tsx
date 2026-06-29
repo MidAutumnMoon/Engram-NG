@@ -149,77 +149,76 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
     return (
         <div className="flex flex-col gap-4">
             <SelectField
-                    label="向量源"
-                    value={config.source}
-                    onChange={(value) =>
-                        handleSourceChange(value as VectorSource)}
-                    options={VECTOR_SOURCE_OPTIONS}
-                    description="选择向量化服务提供商"
-                />
+                label="向量源"
+                value={config.source}
+                onChange={(value) => handleSourceChange(value as VectorSource)}
+                options={VECTOR_SOURCE_OPTIONS}
+                description="选择向量化服务提供商"
+            />
 
-                {needsUrl && (
-                    <div className="flex flex-col gap-1.5">
-                        {/* URL 标签行：包含标签和自动后缀复选框 */}
-                        <div className="flex items-center justify-between">
-                            <label className="text-xs font-medium text-muted-foreground">
-                                API Base URL
-                            </label>
-                            <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground cursor-pointer select-none">
-                                <input
-                                    type="checkbox"
-                                    checked={config.autoSuffix !== false}
-                                    onChange={(e) =>
-                                        updateConfig({
-                                            autoSuffix: e.target.checked,
-                                        })}
-                                    className="w-3 h-3 rounded border-border accent-primary cursor-pointer"
-                                />
-                                自动后缀
-                            </label>
-                        </div>
-                        <input
-                            type="url"
-                            value={config.apiUrl || ""}
-                            onChange={(e) =>
-                                updateConfig({ apiUrl: e.target.value })}
-                            placeholder="http://localhost:8000"
-                            className="w-full bg-muted/20 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/40 focus:border-primary focus:bg-muted/30"
-                        />
-                        <p className="text-[11px] text-muted-foreground/70 break-all leading-relaxed">
-                            {(config.autoSuffix !== false && config.apiUrl)
-                                ? `完整 URL: ${
-                                    config.apiUrl.replace(/\/+$/, "")
-                                }/embeddings`
-                                : "输入 base URL (如 http://xxx/v1)，将自动添加 /embeddings 后缀"}
-                        </p>
-                        {/* 部署诊断组件 (针对 Failed to fetch 错误) */}
-                        <DeploymentDiagnostics url={config.apiUrl || ""} />
+            {needsUrl && (
+                <div className="flex flex-col gap-1.5">
+                    {/* URL 标签行：包含标签和自动后缀复选框 */}
+                    <div className="flex items-center justify-between">
+                        <label className="text-xs font-medium text-muted-foreground">
+                            API Base URL
+                        </label>
+                        <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={config.autoSuffix !== false}
+                                onChange={(e) =>
+                                    updateConfig({
+                                        autoSuffix: e.target.checked,
+                                    })}
+                                className="w-3 h-3 rounded border-border accent-primary cursor-pointer"
+                            />
+                            自动后缀
+                        </label>
                     </div>
-                )}
+                    <input
+                        type="url"
+                        value={config.apiUrl || ""}
+                        onChange={(e) =>
+                            updateConfig({ apiUrl: e.target.value })}
+                        placeholder="http://localhost:8000"
+                        className="w-full bg-muted/20 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/40 focus:border-primary focus:bg-muted/30"
+                    />
+                    <p className="text-[11px] text-muted-foreground/70 break-all leading-relaxed">
+                        {(config.autoSuffix !== false && config.apiUrl)
+                            ? `完整 URL: ${
+                                config.apiUrl.replace(/\/+$/, "")
+                            }/embeddings`
+                            : "输入 base URL (如 http://xxx/v1)，将自动添加 /embeddings 后缀"}
+                    </p>
+                    {/* 部署诊断组件 (针对 Failed to fetch 错误) */}
+                    <DeploymentDiagnostics url={config.apiUrl || ""} />
+                </div>
+            )}
 
-                <TextField
-                    label="API Key"
-                    type="password"
-                    value={config.apiKey || ""}
-                    onChange={(value) => updateConfig({ apiKey: value })}
-                    placeholder="输入 API 密钥"
-                />
+            <TextField
+                label="API Key"
+                type="password"
+                value={config.apiKey || ""}
+                onChange={(value) => updateConfig({ apiKey: value })}
+                placeholder="输入 API 密钥"
+            />
 
-                {/* 模型选择: 下拉 + 手动输入 + 获取按钮 */}
-                <ModelNameField
-                    value={config.model || ""}
-                    onChange={(value) => updateConfig({ model: value })}
-                    modelList={modelList.map((m) => ({
-                        label: m.name || m.id,
-                        value: m.id,
-                    }))}
-                    onRefresh={fetchModelList}
-                    isLoadingModels={isLoadingModels}
-                    refreshDisabled={!config.apiUrl}
-                    placeholder={DEFAULT_MODEL}
-                    description="使用的向量化模型"
-                    error={modelError}
-                />
+            {/* 模型选择: 下拉 + 手动输入 + 获取按钮 */}
+            <ModelNameField
+                value={config.model || ""}
+                onChange={(value) => updateConfig({ model: value })}
+                modelList={modelList.map((m) => ({
+                    label: m.name || m.id,
+                    value: m.id,
+                }))}
+                onRefresh={fetchModelList}
+                isLoadingModels={isLoadingModels}
+                refreshDisabled={!config.apiUrl}
+                placeholder={DEFAULT_MODEL}
+                description="使用的向量化模型"
+                error={modelError}
+            />
 
             <FormSection title="高级选项" collapsible defaultCollapsed>
                 <TextField

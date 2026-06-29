@@ -128,7 +128,10 @@ export class EmbeddingService {
 
             const req = requests[index];
             try {
-                const embedding = await generateEmbedding(req.text, this.config!);
+                const embedding = await generateEmbedding(
+                    req.text,
+                    this.config!,
+                );
                 results[index] = { embedding, id: req.id };
             } catch (error: any) {
                 errors++;

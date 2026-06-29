@@ -38,7 +38,7 @@ interface GenerationAfterCommandsParams {
     force_chid?: number;
     signal?: AbortSignal;
     quietImage?: string;
-            _engram_processed?: boolean; // 我们添加的标记，防止重复处理
+    _engram_processed?: boolean; // 我们添加的标记，防止重复处理
 }
 
 class Injector {
@@ -341,9 +341,8 @@ class Injector {
                                 ? {
                                     target_index: targetIndex,
                                     anchor: {
-                                        time_anchor:
-                                            topNode.structured_kv
-                                                ?.time_anchor ?? "",
+                                        time_anchor: topNode.structured_kv
+                                            ?.time_anchor ?? "",
                                         event: topNode.structured_kv?.event ??
                                             "",
                                     },

@@ -11,10 +11,10 @@ import { afterEach, describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
 
 import {
-    getCurrentChatId,
     getCurrentCharacter,
+    getCurrentChatId,
 } from "@/sillytavern/context.ts";
-import { installFakeHost, getFakeContext } from "./stHost.ts";
+import { getFakeContext, installFakeHost } from "./stHost.ts";
 
 let cleanup: (() => void) | null = null;
 afterEach(() => {

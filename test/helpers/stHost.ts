@@ -41,7 +41,10 @@ interface FakeHostGlobals {
 /**
  * Snapshot of the installed fake host, used by `restoreGlobalThis`.
  */
-let snapshot: { window: FakeHostGlobals; ownKeys: Set<string | number | symbol> } | null = null;
+let snapshot: {
+    window: FakeHostGlobals;
+    ownKeys: Set<string | number | symbol>;
+} | null = null;
 
 /**
  * Install a fake SillyTavern host onto `globalThis.window`.
@@ -73,7 +76,9 @@ export function installFakeHost(ctx: FakeTavernContext = {}): () => void {
     const eventSource = (ctx.eventSource as EventTarget | undefined) ??
         (baseContext.eventSource as EventTarget);
 
-    const prevWindow = globalThis.window as unknown as FakeHostGlobals | undefined;
+    const prevWindow = globalThis.window as unknown as
+        | FakeHostGlobals
+        | undefined;
     const ownKeys = new Set<string | number | symbol>();
 
     // Record keys that did not previously exist (under `test`, `window` usually
@@ -87,7 +92,12 @@ export function installFakeHost(ctx: FakeTavernContext = {}): () => void {
             lib: undefined,
         },
         eventSource,
-        toastr: { info: () => {}, success: () => {}, warning: () => {}, error: () => {} },
+        toastr: {
+            info: () => {},
+            success: () => {},
+            warning: () => {},
+            error: () => {},
+        },
         TavernHelper: undefined,
         Mvu: undefined,
         EjsTemplate: undefined,

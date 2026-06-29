@@ -140,7 +140,9 @@ export const EntityEditor = ({
             // 不在此编辑（编辑它们会绕过版本化）。回写时再把 tracked 字段从 field_history
             // 合并回 profile，保持 profile 作为完整当前快照（向后兼容）。
             const tracked = new Set(
-                Array.isArray(entity.tracked_fields) ? entity.tracked_fields : [],
+                Array.isArray(entity.tracked_fields)
+                    ? entity.tracked_fields
+                    : [],
             );
             const editableProfile: Record<string, unknown> = {};
             for (const [k, v] of Object.entries(entity.profile || {})) {
@@ -161,7 +163,11 @@ export const EntityEditor = ({
         try {
             parsedProfile = JSON.parse(profileJson);
         } catch (error) {
-            Logger.error(LogModule.MEMORY_STREAM, "JSON Parse Error during sync", error);
+            Logger.error(
+                LogModule.MEMORY_STREAM,
+                "JSON Parse Error during sync",
+                error,
+            );
             // 🐛 P0 Bugfix: 如果 JSON 有语法错误，直接阻断提交，绝不使用 `{}` 覆盖原数据
             return;
         }
@@ -399,7 +405,9 @@ export const EntityEditor = ({
                         这些字段由剧情提取自动维护变更历史，不在此手动编辑。
                     </p>
                     <div className="flex flex-col gap-1.5 mt-1">
-                        {trackedFieldsView.map(({ field, value, intervalCount }) => (
+                        {trackedFieldsView.map((
+                            { field, value, intervalCount },
+                        ) => (
                             <div
                                 key={field}
                                 className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-md bg-muted/40 border border-border/60"

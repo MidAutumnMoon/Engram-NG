@@ -85,7 +85,10 @@ function shouldIncludeEntry(
 
     // (3) 条目级黑名单：uid 在禁用列表中则排除
     const bookDisabledList = disabledEntries[world];
-    if (bookDisabledList && entry.uid != null && bookDisabledList.includes(entry.uid)) {
+    if (
+        bookDisabledList && entry.uid != null &&
+        bookDisabledList.includes(entry.uid)
+    ) {
         return false;
     }
 
@@ -263,7 +266,8 @@ export class WorldbookScannerService {
                 `扫描完成，共激活 ${entries.length} 个条目`,
             );
 
-            const { disabledGlobalBooks, disabledEntries } = loadFilteringState();
+            const { disabledGlobalBooks, disabledEntries } =
+                loadFilteringState();
             const filteredEntries = entries.filter((entry) =>
                 shouldIncludeEntry(
                     entry,

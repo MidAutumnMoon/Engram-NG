@@ -71,4 +71,3 @@ export interface WorldInfoEntry {
         prevent_outgoing?: boolean;
     };
 }
-

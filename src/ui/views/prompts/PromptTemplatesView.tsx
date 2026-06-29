@@ -63,7 +63,10 @@ export const PromptTemplatesView: React.FC = () => {
     // 移动端独立渲染（顶层覆盖）
     if (isMobile && showMobileForm && selectedTemplate) {
         return (
-            <MobileFullscreenForm title="提示词模板" onClose={handleMobileClose}>
+            <MobileFullscreenForm
+                title="提示词模板"
+                onClose={handleMobileClose}
+            >
                 <PromptTemplateForm template={selectedTemplate} />
             </MobileFullscreenForm>
         );

@@ -10,9 +10,7 @@
  * `ParseJson`, `ResolveEntitiesStep`, `SaveEntity`, `UserReview`).
  */
 
-import {
-    stringCandidates,
-} from "@/domain/memory/entityResolve.ts";
+import { stringCandidates } from "@/domain/memory/entityResolve.ts";
 import {
     applyEntityChanges,
     computeEntityPreview,
@@ -30,13 +28,13 @@ import { formatExtractionEntityBlock } from "@/domain/memory/entityFormat.ts";
 import ENTITY_EXTRACTION_SYSTEM from "@/integrations/llm/prompts/ENTITY_EXTRACTION_SYSTEM.txt?raw";
 import ENTITY_EXTRACTION_USER from "@/integrations/llm/prompts/ENTITY_EXTRACTION_USER.txt?raw";
 import {
+    type CancelSignal,
     cleanRegex,
     fetchContext,
-    isCancelled,
-    runLlm,
-    type CancelSignal,
     type FetchContextResult,
+    isCancelled,
     type LlmPrompt,
+    runLlm,
 } from "./shared.ts";
 
 /**
@@ -195,7 +193,8 @@ export async function runEntityExtraction(
 
     const result = await requestReview({
         title: "实体提取确认",
-        description: "请确认提取的实体列表 (JSON/YAML)。您可以直接编辑以修正错误。",
+        description:
+            "请确认提取的实体列表 (JSON/YAML)。您可以直接编辑以修正错误。",
         content: cleaned,
         actions: ENTITY_REVIEW_ACTIONS,
         type: "entity",
@@ -203,7 +202,10 @@ export async function runEntityExtraction(
     });
 
     if (result.action === "cancel") {
-        Logger.info(LogModule.WF_USER_REVIEW, "User explicitly cancelled entity review");
+        Logger.info(
+            LogModule.WF_USER_REVIEW,
+            "User explicitly cancelled entity review",
+        );
         throwUserCancelled();
     }
 

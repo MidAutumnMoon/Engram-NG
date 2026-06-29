@@ -6,9 +6,7 @@
  * 为了控制渲染粒度，建议新组件直接通过 useConfigStore 选择所需切片，此 hook 仅供向下兼容及简易聚合使用。
  */
 
-import type {
-    TrimConfig,
-} from "@/config/types/memory.ts";
+import type { TrimConfig } from "@/config/types/memory.ts";
 import type { IngestionConfig } from "@/config/types/ingestion.ts";
 import type {
     EmbeddingConfig,

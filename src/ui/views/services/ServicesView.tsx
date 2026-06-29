@@ -51,7 +51,9 @@ interface ServicesViewProps {
     initialSubtab?: SubTab;
 }
 
-export const ServicesView: React.FC<ServicesViewProps> = ({ initialSubtab }) => {
+export const ServicesView: React.FC<ServicesViewProps> = (
+    { initialSubtab },
+) => {
     const [subtab, setSubtab] = useState<SubTab>(
         SUB_TAB_IDS.includes(initialSubtab as SubTab)
             ? (initialSubtab as SubTab)
@@ -182,10 +184,12 @@ export const ServicesView: React.FC<ServicesViewProps> = ({ initialSubtab }) => 
                                                 preset.id}
                                             onSelect={() =>
                                                 handleMobileSelect(() =>
-                                                    selectPreset(preset))}
+                                                    selectPreset(preset)
+                                                )}
                                             onEdit={() =>
                                                 handleMobileSelect(() =>
-                                                    selectPreset(preset))}
+                                                    selectPreset(preset)
+                                                )}
                                             onCopy={() => copyPreset(preset)}
                                             onDelete={() =>
                                                 deletePreset(preset)}

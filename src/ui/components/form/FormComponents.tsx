@@ -180,7 +180,9 @@ export const NumberField: React.FC<NumberFieldProps> = ({
         description={description}
         error={error}
         required={required}
-        className={`${className} ${disabled ? "opacity-50 pointer-events-none" : ""}`}
+        className={`${className} ${
+            disabled ? "opacity-50 pointer-events-none" : ""
+        }`}
     >
         <div className={`flex items-center gap-2 ${fieldBox} !py-1.5`}>
             <input
@@ -415,7 +417,10 @@ export const SearchableSelectField: React.FC<
     };
 
     return (
-        <div className={`flex flex-col gap-1.5 ${className}`} ref={containerRef}>
+        <div
+            className={`flex flex-col gap-1.5 ${className}`}
+            ref={containerRef}
+        >
             {label &&
                 <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                     {label}

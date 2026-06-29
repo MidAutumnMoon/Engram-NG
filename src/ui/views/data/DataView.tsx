@@ -84,9 +84,7 @@ export const DataView: React.FC = () => {
 
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
                 <section>
-                    <div
-                        className="bg-muted/30 border border-border rounded-lg p-4 space-y-4"
-                    >
+                    <div className="bg-muted/30 border border-border rounded-lg p-4 space-y-4">
                         {/* 联动删除 */}
                         <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -118,7 +116,7 @@ export const DataView: React.FC = () => {
                                     </span>
                                     <Switch
                                         checked={linkedDeletion
-                                                .showConfirmation ?? true}
+                                            .showConfirmation ?? true}
                                         onChange={handleLinkedDeletionChange(
                                             "showConfirmation",
                                         )}

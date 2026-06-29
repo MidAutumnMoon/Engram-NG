@@ -1,6 +1,7 @@
 // 导航配置
 import {
     BookText,
+    Cpu,
     Database,
     FileText,
     LayoutDashboard,
@@ -8,7 +9,6 @@ import {
     type LucideIcon,
     Regex,
     Server,
-    Cpu,
     Settings,
     Terminal,
 } from "lucide-react";

@@ -19,7 +19,11 @@ import {
     formatRecalledSection,
     getEntityDisplaySnapshot,
 } from "@/domain/memory/entityFormat.ts";
-import { EntityType, type EntityNode, type EventNode } from "@/data/types/graph.ts";
+import {
+    type EntityNode,
+    EntityType,
+    type EventNode,
+} from "@/data/types/graph.ts";
 
 function mkEntity(over: Partial<EntityNode>): EntityNode {
     return {
@@ -41,10 +45,20 @@ describe("getEntityDisplaySnapshot", () => {
             tracked_fields: ["status", "magic_reserve"],
             field_history: {
                 status: [
-                    { value: "警觉", from_index: 1, to_index: null, episode_id: "ep1" },
+                    {
+                        value: "警觉",
+                        from_index: 1,
+                        to_index: null,
+                        episode_id: "ep1",
+                    },
                 ],
                 magic_reserve: [
-                    { value: "低", from_index: 1, to_index: null, episode_id: "ep1" },
+                    {
+                        value: "低",
+                        from_index: 1,
+                        to_index: null,
+                        episode_id: "ep1",
+                    },
                 ],
             },
             // profile 不再含状态字段（移除并行写后）；仅保留非状态字段
@@ -65,8 +79,18 @@ describe("getEntityDisplaySnapshot", () => {
             tracked_fields: ["status"],
             field_history: {
                 status: [
-                    { value: "wounded", from_index: 0, to_index: 10, episode_id: "ep1" },
-                    { value: "healed", from_index: 10, to_index: null, episode_id: "ep2" },
+                    {
+                        value: "wounded",
+                        from_index: 0,
+                        to_index: 10,
+                        episode_id: "ep1",
+                    },
+                    {
+                        value: "healed",
+                        from_index: 10,
+                        to_index: null,
+                        episode_id: "ep2",
+                    },
                 ],
             },
             profile: { identity: "a knight" },
@@ -85,8 +109,18 @@ describe("getEntityDisplaySnapshot", () => {
             tracked_fields: ["status"],
             field_history: {
                 status: [
-                    { value: "wounded", from_index: 0, to_index: 10, episode_id: "ep1" },
-                    { value: "healed", from_index: 20, to_index: null, episode_id: "ep2" },
+                    {
+                        value: "wounded",
+                        from_index: 0,
+                        to_index: 10,
+                        episode_id: "ep1",
+                    },
+                    {
+                        value: "healed",
+                        from_index: 20,
+                        to_index: null,
+                        episode_id: "ep2",
+                    },
                 ],
             },
             // 迁移期数据：profile 仍带旧值；gap 时回退到此
@@ -114,7 +148,12 @@ describe("getEntityDisplaySnapshot", () => {
             tracked_fields: ["equipment"],
             field_history: {
                 equipment: [
-                    { value: ["匕首", "剑"], from_index: 1, to_index: null, episode_id: "ep1" },
+                    {
+                        value: ["匕首", "剑"],
+                        from_index: 1,
+                        to_index: null,
+                        episode_id: "ep1",
+                    },
                 ],
             },
             profile: { identity: "旅者" },
@@ -146,8 +185,18 @@ describe("formatEntityYaml", () => {
             tracked_fields: ["status"],
             field_history: {
                 status: [
-                    { value: "警觉", from_index: 1, to_index: 10, episode_id: "ep1" },
-                    { value: "魔力耗尽", from_index: 10, to_index: null, episode_id: "ep2" },
+                    {
+                        value: "警觉",
+                        from_index: 1,
+                        to_index: 10,
+                        episode_id: "ep1",
+                    },
+                    {
+                        value: "魔力耗尽",
+                        from_index: 10,
+                        to_index: null,
+                        episode_id: "ep2",
+                    },
                 ],
             },
             profile: { status: "魔力耗尽", identity: "森林守护者" },
@@ -168,8 +217,18 @@ describe("formatEntityYaml", () => {
             tracked_fields: ["status"],
             field_history: {
                 status: [
-                    { value: "wounded", from_index: 0, to_index: 10, episode_id: "ep1" },
-                    { value: "healed", from_index: 20, to_index: null, episode_id: "ep2" },
+                    {
+                        value: "wounded",
+                        from_index: 0,
+                        to_index: 10,
+                        episode_id: "ep1",
+                    },
+                    {
+                        value: "healed",
+                        from_index: 20,
+                        to_index: null,
+                        episode_id: "ep2",
+                    },
                 ],
             },
             profile: { status: "healed" },
@@ -184,7 +243,12 @@ describe("formatEntityYaml", () => {
             tracked_fields: ["equipment"],
             field_history: {
                 equipment: [
-                    { value: ["匕首", "旧剑"], from_index: 1, to_index: null, episode_id: "ep1" },
+                    {
+                        value: ["匕首", "旧剑"],
+                        from_index: 1,
+                        to_index: null,
+                        episode_id: "ep1",
+                    },
                 ],
             },
             profile: { equipment: ["匕首", "旧剑"] },
@@ -211,7 +275,12 @@ describe("formatEntityDescription", () => {
             tracked_fields: ["status"],
             field_history: {
                 status: [
-                    { value: "警觉", from_index: 1, to_index: null, episode_id: "ep1" },
+                    {
+                        value: "警觉",
+                        from_index: 1,
+                        to_index: null,
+                        episode_id: "ep1",
+                    },
                 ],
             },
             profile: { identity: "守护者" },
@@ -228,7 +297,12 @@ describe("formatEntityDescription", () => {
             tracked_fields: ["equipment"],
             field_history: {
                 equipment: [
-                    { value: ["匕首", "旧剑"], from_index: 1, to_index: null, episode_id: "ep1" },
+                    {
+                        value: ["匕首", "旧剑"],
+                        from_index: 1,
+                        to_index: null,
+                        episode_id: "ep1",
+                    },
                 ],
             },
             profile: { identity: "旅者" },
@@ -363,7 +437,8 @@ describe("formatRecalledSection", () => {
     }
 
     it("wraps recalled states and events in a recalled_context block", () => {
-        const states = "# 召回标签\n<character_state>\nSeraphina\n</character_state>";
+        const states =
+            "# 召回标签\n<character_state>\nSeraphina\n</character_state>";
         const events = [mkEvent({ summary: "Day 1 的事件" })];
         const out = formatRecalledSection(states, events);
         expect(out.startsWith("<recalled_context>")).toBe(true);
@@ -406,7 +481,12 @@ describe("formatExtractionEntityBlock", () => {
             tracked_fields: ["status", "mood"],
             field_history: {
                 status: [
-                    { value: "alert", from_index: 1, to_index: null, episode_id: "ep1" },
+                    {
+                        value: "alert",
+                        from_index: 1,
+                        to_index: null,
+                        episode_id: "ep1",
+                    },
                 ],
             },
             profile: { identity: "守护者", status: "alert" },
@@ -486,8 +566,18 @@ describe("formatExtractionEntityBlock", () => {
             tracked_fields: ["status"],
             field_history: {
                 status: [
-                    { value: "wounded", from_index: 0, to_index: 10, episode_id: "ep1" },
-                    { value: "healed", from_index: 10, to_index: null, episode_id: "ep2" },
+                    {
+                        value: "wounded",
+                        from_index: 0,
+                        to_index: 10,
+                        episode_id: "ep1",
+                    },
+                    {
+                        value: "healed",
+                        from_index: 10,
+                        to_index: null,
+                        episode_id: "ep2",
+                    },
                 ],
             },
             profile: { identity: "a knight" },

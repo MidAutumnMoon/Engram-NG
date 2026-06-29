@@ -4,11 +4,7 @@
  * 支持 PC 端和移动端两种模式。导航项按 NAV_SECTIONS 分组，每组带小号大写标题。
  * PC / 移动端共用 NavItemButton，仅 variant 不同；尺寸/状态类预计算，避免嵌套三元。
  */
-import {
-    NAV_ITEMS,
-    NAV_SECTIONS,
-    type NavItem,
-} from "@/ui/navigation.ts";
+import { NAV_ITEMS, NAV_SECTIONS, type NavItem } from "@/ui/navigation.ts";
 import { EngramTextLogo } from "@/ui/assets/icons/EngramTextLogo.tsx";
 import { X } from "lucide-react";
 import React from "react";
@@ -177,12 +173,10 @@ const NavItemButton: React.FC<{
     const state = isActive
         ? "bg-primary/10 text-primary font-medium"
         : mobile
-            ? "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
-            : "text-muted-foreground hover:text-foreground hover:bg-muted/10";
+        ? "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+        : "text-muted-foreground hover:text-foreground hover:bg-muted/10";
     const iconExtra = mobile
-        ? isActive
-            ? "text-primary"
-            : "text-muted-foreground/70"
+        ? isActive ? "text-primary" : "text-muted-foreground/70"
         : "";
 
     return (

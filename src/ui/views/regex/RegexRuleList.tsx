@@ -1,4 +1,7 @@
-import { isDefaultRule, type RegexRule } from "@/domain/regex/RegexProcessor.ts";
+import {
+    isDefaultRule,
+    type RegexRule,
+} from "@/domain/regex/RegexProcessor.ts";
 import { GripVertical, Plus, Power, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 
@@ -98,11 +101,9 @@ export const RegexRuleList: React.FC<RegexRuleListProps> = ({
                             onDelete={onDelete}
                             draggable
                             isDragged={draggedIndex === index}
-                            isDragOver={
-                                dragOverIndex === index &&
+                            isDragOver={dragOverIndex === index &&
                                 draggedIndex !== null &&
-                                draggedIndex !== index
-                            }
+                                draggedIndex !== index}
                             onDragStart={handleDragStart(index)}
                             onDragOver={handleDragOver(index)}
                             onDrop={handleDrop(index)}
@@ -178,9 +179,11 @@ const RegexRuleRow: React.FC<{
             onDragEnd={onDragEnd}
             className={`
                 group p-3 rounded-lg cursor-pointer border flex items-center gap-3
-                ${isSelected
+                ${
+                isSelected
                     ? "bg-accent/50 border-input"
-                    : "bg-transparent border-transparent hover:bg-muted/50 hover:border-border"}
+                    : "bg-transparent border-transparent hover:bg-muted/50 hover:border-border"
+            }
                 ${!rule.enabled && "opacity-50"}
                 ${isDragged ? "opacity-40" : ""}
                 ${isDragOver ? "border-t-2 border-t-primary" : ""}
@@ -199,11 +202,13 @@ const RegexRuleRow: React.FC<{
                 type="button"
                 className={`
                     w-8 h-8 flex items-center justify-center rounded-lg
-                    ${rule.enabled
+                    ${
+                    rule.enabled
                         ? isSelected
                             ? "bg-primary/20 text-primary"
                             : "bg-muted text-primary"
-                        : "bg-muted text-muted-foreground"}
+                        : "bg-muted text-muted-foreground"
+                }
                 `}
                 onClick={(e) => {
                     e.stopPropagation();
@@ -235,7 +240,9 @@ const RegexRuleRow: React.FC<{
             {onDelete && (
                 <div
                     className={`flex items-center ${
-                        isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                        isSelected
+                            ? "opacity-100"
+                            : "opacity-0 group-hover:opacity-100"
                     }`}
                 >
                     <button
