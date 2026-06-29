@@ -1,6 +1,7 @@
 // Pull root global.d.ts (window.toastr/SillyTavern augmentations + vendor types)
 // into the module graph. Without this, `deno check` of the app entry doesn't
 // see the ambient globals — only the LSP does (it scans workspace .d.ts files).
+// oxlint-disable-next-line triple-slash-reference
 /// <reference path="../global.d.ts" />
 import "@/ui/styles/main.css";
 import { Logger } from "@/logger/Logger.ts";
