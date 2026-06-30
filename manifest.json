@@ -1,0 +1,15 @@
+{
+    "display_name": "Engram",
+    "loading_order": 500,
+    "optional": ["embeddings"],
+    "js": "dist/index.js",
+    "css": "dist/style.css",
+    "author": "MidAutumnMoon",
+    "version": "1.5.11",
+    "dependencies": [
+        "third-party/ST-Prompt-Template",
+        "third-party/JS-Slash-Runner"
+    ],
+    "homePage": "https://github.com/shiyue137mh-netizen/Engram.git",
+    "description": "Graph RAG 记忆操作系统 - Where memories leave their trace."
+}
