@@ -33,12 +33,6 @@ interface LLMResponse {
     success: boolean;
     /** 错误信息 */
     error?: string;
-    /** Token 使用量 */
-    tokenUsage?: {
-        prompt: number;
-        completion: number;
-        total: number;
-    };
 }
 
 /** 队列中的请求项 */
@@ -211,10 +205,6 @@ class LLMAdapter {
     }
 
     // =========================================================================
-    // 执行路径：custom (自定义 API)
-    // =========================================================================
-
-    // =========================================================================
     // 助手方法：提取预设参数
     // =========================================================================
 
@@ -223,21 +213,18 @@ class LLMAdapter {
         // 而 preset.parameters 里都是 number，直接赋值即可。
         // max_context 故意不放进来：JS-Slash-Runner 运行时从不读 custom_api.max_context，
         // 它自行用 getMaxContextSize() 计算，放进来是死写字段。
+        const parameters = preset.parameters;
         const config: CustomApiConfig = {
-            frequency_penalty: preset.parameters?.frequencyPenalty,
-            max_tokens: preset.parameters?.maxTokens,
-            presence_penalty: preset.parameters?.presencePenalty,
-            temperature: preset.parameters?.temperature,
-            top_k: preset.parameters?.topK,
-            top_p: preset.parameters?.topP,
+            frequency_penalty: parameters.frequencyPenalty,
+            max_tokens: parameters.maxTokens,
+            presence_penalty: parameters.presencePenalty,
+            temperature: parameters.temperature,
+            top_p: parameters.topP,
+            // topK 是唯一的可选字段；不传时让酒馆用默认值
+            ...(parameters.topK !== undefined
+                ? { top_k: parameters.topK }
+                : {}),
         };
-
-        // 移除 undefined 项，避免覆盖酒馆默认值
-        for (const key of Object.keys(config) as (keyof CustomApiConfig)[]) {
-            if (config[key] === undefined) {
-                delete config[key];
-            }
-        }
 
         // 如果是 custom，额外添加连接信息
         if (preset.source === "custom") {
@@ -268,46 +255,39 @@ class LLMAdapter {
     private async callTavernHelper(
         request: LLMRequest,
         helper: NonNullable<TavernHelper>,
-        customApiConfig: CustomApiConfig | undefined,
+        customApiConfig: CustomApiConfig,
         currentPreset: LLMPreset,
         generationId: string,
     ): Promise<LLMResponse> {
-        // =========================================================================
-        // Prompt Pre-processing (V1.0 Fix)
-        // =========================================================================
-        const finalSystemPrompt = request.systemPrompt || "";
-        let finalUserPrompt = request.userPrompt || "";
-
-        // Engram Pipeline (RegexProcessor)
-        finalUserPrompt = regexProcessor.process(finalUserPrompt, "input");
-
-        // =========================================================================
-        // 调用 TavernHelper
-        // =========================================================================
+        // 输入正则清洗（Engram 自有规则，与酒馆原生正则独立）
+        const finalUserPrompt = regexProcessor.process(
+            request.userPrompt,
+            "input",
+        );
 
         const generationOptions = {
             should_stream: currentPreset.stream ?? false, // 释放底层硬编码
-            should_silence: true, // V0.9.1: 后台请求静默，不绑定停止按钮
+            should_silence: true, // 后台请求静默，不绑定停止按钮
         };
 
-        // ---- 结构化输出注入（off 时完全跳过，行为同前） ----
+        // ---- 结构化输出注入（off 时完全跳过） ----
         // 形状由流水线声明（LLMRequest.responseShape），模式由预设决定。
         // 仅剩 json_schema：generateRaw 原生支持，JSR 按 provider 自动转换
         //   （OpenAI/DeepSeek/Mistral → response_format.json_schema；Claude → forced tool）。
         //   不支持的 provider 会被 ST 服务端静默丢弃并告警，回退 prompt-only。
         let jsonSchemaArg: JsonSchema | undefined;
-        const mode = currentPreset.structuredOutput ?? "off";
-        if (mode === "json_schema" && request.responseShape) {
+        if (
+            currentPreset.structuredOutput === "json_schema" &&
+            request.responseShape
+        ) {
             jsonSchemaArg = request.responseShape.jsonSchema;
         }
-
-        let content: string;
 
         const prompts: RolePrompt[] = [];
 
         // 严格遵循：System -> User 顺序
-        if (finalSystemPrompt) {
-            prompts.push({ content: finalSystemPrompt, role: "system" });
+        if (request.systemPrompt) {
+            prompts.push({ content: request.systemPrompt, role: "system" });
         }
 
         // 直接将用户内容作为 user 角色推入，不再使用 'user_input' 占位符
@@ -325,45 +305,12 @@ class LLMAdapter {
             json_schema: jsonSchemaArg,
             ...generationOptions,
         });
-        content = typeof result === "string" ? result : result.content;
-
-        // V1.5.5: TavernHelper 不返回 token 用量，这里用本地估算兜底
-        const estimatedPromptTokens = this.estimateTokens(
-            finalSystemPrompt + finalUserPrompt,
-        );
-        const estimatedCompletionTokens = this.estimateTokens(content);
+        const content = typeof result === "string" ? result : result.content;
 
         return {
-            content: content || "",
+            content,
             success: true,
-            tokenUsage: {
-                completion: estimatedCompletionTokens,
-                prompt: estimatedPromptTokens,
-                total: estimatedPromptTokens + estimatedCompletionTokens,
-            },
         };
-    }
-
-    /**
-     * 估算文本 Token 数（简单估算）
-     * @param text 文本
-     */
-    estimateTokens(text: string): number {
-        return Math.ceil(text.length / 3);
-    }
-
-    /**
-     * 获取队列长度 (调试用)
-     */
-    getQueueLength(): number {
-        return this.requestQueue.length;
-    }
-
-    /**
-     * 是否正在执行 (调试用)
-     */
-    isBusy(): boolean {
-        return this.isExecuting;
     }
 
     /**

@@ -352,7 +352,6 @@ export interface LlmResult {
     content: string;
     success: boolean;
     error?: string;
-    tokenUsage?: any;
 }
 
 /**
@@ -399,7 +398,6 @@ export async function runLlm(
         return {
             content: response.content,
             success: true,
-            tokenUsage: response.tokenUsage,
         };
     };
 
