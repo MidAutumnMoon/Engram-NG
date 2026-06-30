@@ -137,7 +137,7 @@ export async function runSummary(
         const prompt = buildSummaryPrompt(ctx, feedback, previousOutput);
         if (isCancelled(signal)) throwUserCancelled();
 
-        const llm = await runLlm(prompt, {
+        const content = await runLlm(prompt, {
             logType: "summarize",
             range: input.range,
             signal,
@@ -145,7 +145,7 @@ export async function runSummary(
         });
         if (isCancelled(signal)) throwUserCancelled();
 
-        cleanedContent = cleanRegex(llm.content, "output");
+        cleanedContent = cleanRegex(content, "output");
 
         // Empty content → generation failure, abort before review (UserReview behaviour)
         if (!cleanedContent || !cleanedContent.trim()) {

@@ -342,30 +342,24 @@ export interface LlmRunOptions {
     range?: [number, number];
     signal?: CancelSignal;
     /**
-     * 该流水线期望的结构化输出形状。adapter 仅在预设 structuredOutput !== "off"
-     * 时据此注入 json_schema / response_format。不传则该次调用不受约束。
+     * 该流水线期望的结构化输出形状。adapter 仅在预设 structuredOutput === "json_schema"
+     * 时据此注入 json_schema。不传则该次调用不受约束。
      */
     responseShape?: ResponseShape;
 }
 
-export interface LlmResult {
-    content: string;
-    success: boolean;
-    error?: string;
-}
-
 /**
  * Send a prompt to the LLM adapter with preset-derived retry, logging the
- * request/response to the model-log store. Mirrors `LlmRequest` step logic.
+ * request/response to the model-log store.
  *
- * Throws on failure (after retries exhausted) or cancellation. The thrown
- * error carries `isCancellation` when the user cancelled, matching the old
- * `UserCancelled` convention.
+ * Returns the generated content. Throws on failure (after retries exhausted)
+ * or cancellation. The thrown error carries `isCancellation` when the user
+ * cancelled, matching the old `UserCancelled` convention.
  */
 export async function runLlm(
     prompt: LlmPrompt,
     opts: LlmRunOptions = {},
-): Promise<LlmResult> {
+): Promise<string> {
     const logId = useModelLogStore.getState().logSend({
         type: opts.logType || "generation",
         systemPrompt: prompt.system,
@@ -377,8 +371,8 @@ export async function runLlm(
 
     const startTime = Date.now();
 
-    const doCall = async (): Promise<LlmResult> => {
-        const response = await llmAdapter.generate({
+    const doCall = async (): Promise<string> => {
+        const content = await llmAdapter.generate({
             systemPrompt: prompt.system,
             userPrompt: prompt.user,
             responseShape: opts.responseShape,
@@ -386,23 +380,15 @@ export async function runLlm(
 
         useModelLogStore.getState().logReceive(logId, {
             duration: Date.now() - startTime,
-            error: response.error,
-            response: response.content,
-            status: response.success ? "success" : "error",
+            response: content,
+            status: "success",
         });
 
-        if (!response.success) {
-            throw new Error(response.error || "LLM Generation Failed");
-        }
-
-        return {
-            content: response.content,
-            success: true,
-        };
+        return content;
     };
 
     try {
-        const result = await retryWithBackoff(
+        const content = await retryWithBackoff(
             doCall,
             getLlmRetryConfig(),
             opts.signal,
@@ -412,7 +398,7 @@ export async function runLlm(
             duration: Date.now() - startTime,
         });
 
-        return result;
+        return content;
     } catch (error: any) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         const wasCancelled = error.isCancellation ||

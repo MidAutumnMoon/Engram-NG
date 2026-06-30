@@ -131,7 +131,7 @@ export async function runEntityExtraction(
     if (isCancelled(signal)) throwUserCancelled();
 
     // 3-5. LLM → Clean → Parse
-    const llm = await runLlm(prompt, {
+    const content = await runLlm(prompt, {
         logType: "entity_extraction",
         range: input.range,
         signal,
@@ -139,7 +139,7 @@ export async function runEntityExtraction(
     });
     if (isCancelled(signal)) throwUserCancelled();
 
-    const cleaned = cleanRegex(llm.content, "output");
+    const cleaned = cleanRegex(content, "output");
     const parsed = RobustJsonParser.parse<any>(cleaned);
     if (!parsed) {
         throw new Error("ParseJson: JSON 解析失败");

@@ -113,13 +113,13 @@ Significance: ${e.significance_score}`;
     // 4-6. Build prompt → LLM → clean
     const prompt = buildTrimPrompt(formattedText);
 
-    const llm = await runLlm(prompt, {
+    const content = await runLlm(prompt, {
         logType: "trim",
         signal,
         responseShape: trimResponseShape(),
     });
 
-    const cleaned = cleanRegex(llm.content, "output");
+    const cleaned = cleanRegex(content, "output");
 
     // 7. Parse (ParseJson)
     const parsed = RobustJsonParser.parse<any>(cleaned);

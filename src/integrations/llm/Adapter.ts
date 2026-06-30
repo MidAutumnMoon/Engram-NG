@@ -25,20 +25,10 @@ interface LLMRequest {
     responseShape?: ResponseShape;
 }
 
-/** LLM 生成响应 */
-interface LLMResponse {
-    /** 生成内容 */
-    content: string;
-    /** 是否成功 */
-    success: boolean;
-    /** 错误信息 */
-    error?: string;
-}
-
 /** 队列中的请求项 */
 interface QueuedRequest {
     request: LLMRequest;
-    resolve: (value: LLMResponse) => void;
+    resolve: (value: string) => void;
     reject: (reason: unknown) => void;
 }
 
@@ -62,8 +52,9 @@ class LLMAdapter {
     /**
      * 调用 LLM 生成 (队列模式)
      * @param request 请求参数
+     * @returns 生成的内容；失败时抛错
      */
-    async generate(request: LLMRequest): Promise<LLMResponse> {
+    async generate(request: LLMRequest): Promise<string> {
         return new Promise((resolve, reject) => {
             this.requestQueue.push({ reject, request, resolve });
             this.processQueue();
@@ -95,17 +86,10 @@ class LLMAdapter {
 
     /**
      * 执行单个请求
+     * @returns 生成的内容；失败时抛错
      */
-    private async executeRequest(request: LLMRequest): Promise<LLMResponse> {
+    private async executeRequest(request: LLMRequest): Promise<string> {
         const helper = getTavernHelper();
-
-        if (!helper?.generateRaw) {
-            return {
-                content: "",
-                error: "TavernHelper 不可用",
-                success: false,
-            };
-        }
 
         let preset: LLMPreset | undefined;
         try {
@@ -160,21 +144,12 @@ class LLMAdapter {
                 this.activeGenerations.delete(generationId);
             }
         } catch (error) {
-            const errorMsg = error instanceof Error
-                ? error.message
-                : String(error);
-            const presetLabel = preset?.name ?? "default";
             Logger.error(
                 LogModule.LLM_ADAPTER,
-                `调用失败 (preset: '${presetLabel}')`,
+                `调用失败 (preset: '${preset?.name ?? "default"}')`,
                 error,
             );
-
-            return {
-                content: "",
-                error: errorMsg,
-                success: false,
-            };
+            throw error;
         }
     }
 
@@ -258,7 +233,7 @@ class LLMAdapter {
         customApiConfig: CustomApiConfig,
         currentPreset: LLMPreset,
         generationId: string,
-    ): Promise<LLMResponse> {
+    ): Promise<string> {
         // 输入正则清洗（Engram 自有规则，与酒馆原生正则独立）
         const finalUserPrompt = regexProcessor.process(
             request.userPrompt,
@@ -305,12 +280,7 @@ class LLMAdapter {
             json_schema: jsonSchemaArg,
             ...generationOptions,
         });
-        const content = typeof result === "string" ? result : result.content;
-
-        return {
-            content,
-            success: true,
-        };
+        return typeof result === "string" ? result : result.content;
     }
 
     /**
