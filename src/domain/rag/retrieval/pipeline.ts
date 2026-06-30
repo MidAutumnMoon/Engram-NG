@@ -33,7 +33,7 @@ import { LogModule } from "@/logger/LogModule.ts";
 import { tryGetDbForChat } from "@/data/db.ts";
 import { getCurrentChatId } from "@/sillytavern/context.ts";
 import { matchEvent, scanEntities } from "@/domain/memory/EntityScanner.ts";
-import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
+import { cosineSimilarity, embed } from "@/domain/rag/embedding/EmbeddingService.ts";
 import {
     mergeResults,
     scoreAndSort,
@@ -424,7 +424,6 @@ export async function vectorRetrieve(
         );
         return { candidates: [], retrieveTime: 0 };
     }
-    embeddingService.setConfig(vectorConfig);
 
     // V1.0.3: 优先使用 unifiedQueries 第一条，否则使用 userInput
     const { query, unifiedQueries } = input;
@@ -456,7 +455,7 @@ export async function vectorRetrieve(
     let queryVector: number[];
     try {
         queryVector = await retryWithBackoff(
-            () => embeddingService.embed(searchQuery),
+            () => embed(searchQuery, vectorConfig),
             getRetryConfig("vector"),
         );
     } catch (error: any) {
@@ -483,7 +482,7 @@ export async function vectorRetrieve(
 
         embeddedEvents += 1;
 
-        const similarity = embeddingService.cosineSimilarity(
+        const similarity = cosineSimilarity(
             queryVector,
             event.embedding,
         );

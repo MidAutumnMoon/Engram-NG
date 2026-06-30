@@ -31,12 +31,11 @@ import type { RegexScope } from "@/config/types/data_processing.ts";
 // Cancellation & retry primitives
 // ============================================================================
 
-export type CancelSignal = { cancelled: boolean };
-
-/** True if the caller has requested cancellation. */
-export function isCancelled(signal?: CancelSignal): boolean {
-    return Boolean(signal?.cancelled);
-}
+// Imported from the neutral utils home and re-exported so existing
+// `./shared.ts` importers keep working; new callers should import directly
+// from `@/utils/cancel.ts`.
+import { type CancelSignal, isCancelled } from "@/utils/cancel.ts";
+export { type CancelSignal, isCancelled };
 
 export interface RetryConfig {
     maxAttempts: number;

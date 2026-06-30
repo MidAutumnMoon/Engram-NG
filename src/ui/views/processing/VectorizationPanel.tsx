@@ -8,7 +8,12 @@
  * - 进度显示
  */
 import type { EmbeddingConfig, VectorConfig } from "@/config/types/rag.ts";
-import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
+import {
+    embedUnprocessedEvents,
+    getEmbeddingStats,
+    reembedAllEvents,
+} from "@/domain/rag/embedding/EmbeddingService.ts";
+import type { CancelSignal } from "@/utils/cancel.ts";
 import {
     NumberField,
     SelectField,
@@ -24,7 +29,7 @@ import {
     RefreshCw,
     Square,
 } from "lucide-react";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 // ==================== 类型 ====================
 
@@ -71,6 +76,10 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
     const [rangeStart, setRangeStart] = useState<string>("");
     const [rangeEnd, setRangeEnd] = useState<string>("");
 
+    // 取消信号：批处理过程中由 stop 按钮置位，传给嵌入函数。
+    // 每次开始新批次时创建一个新对象。
+    const cancelRef = useRef<CancelSignal>({ cancelled: false });
+
     // 加载初始数据
     useEffect(() => {
         loadData();
@@ -81,7 +90,7 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
         setError(null);
         try {
             // 获取统计
-            const newStats = await embeddingService.getEmbeddingStats();
+            const newStats = await getEmbeddingStats();
             setStats(newStats);
         } catch (error: any) {
             setError(error.message || "加载失败");
@@ -92,7 +101,7 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
 
     // 刷新统计
     const refreshStats = useCallback(async () => {
-        const newStats = await embeddingService.getEmbeddingStats();
+        const newStats = await getEmbeddingStats();
         setStats(newStats);
     }, []);
 
@@ -107,22 +116,22 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
         setProgress({ current: 0, errors: 0, total: stats.pending });
         setError(null);
         setLastResult(null);
+        cancelRef.current = { cancelled: false };
 
         try {
-            embeddingService.setConfig(vectorConfig);
-            embeddingService.setConcurrency(config.concurrency);
-
             const range = {
                 end: rangeEnd ? parseInt(rangeEnd, 10) : undefined,
                 start: rangeStart ? parseInt(rangeStart, 10) : undefined,
             };
 
-            const result = await embeddingService.embedUnprocessedEvents(
-                (current, total, errors) => {
+            const result = await embedUnprocessedEvents(vectorConfig, {
+                concurrency: config.concurrency,
+                signal: cancelRef.current,
+                range,
+                onProgress: (current, total, errors) => {
                     setProgress({ current, errors, total });
                 },
-                range,
-            );
+            });
 
             setLastResult(result);
             await refreshStats();
@@ -136,7 +145,7 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
 
     // 停止嵌入
     const handleStopEmbedding = () => {
-        embeddingService.stop();
+        cancelRef.current.cancelled = true;
     };
 
     // 重新嵌入所有
@@ -156,22 +165,22 @@ export const VectorizationPanel: React.FC<VectorizationPanelProps> = ({
         setProgress({ current: 0, errors: 0, total: stats.total });
         setError(null);
         setLastResult(null);
+        cancelRef.current = { cancelled: false };
 
         try {
-            embeddingService.setConfig(vectorConfig);
-            embeddingService.setConcurrency(config.concurrency);
-
             const range = {
                 end: rangeEnd ? parseInt(rangeEnd, 10) : undefined,
                 start: rangeStart ? parseInt(rangeStart, 10) : undefined,
             };
 
-            const result = await embeddingService.reembedAllEvents(
-                (current, total, errors) => {
+            const result = await reembedAllEvents(vectorConfig, {
+                concurrency: config.concurrency,
+                signal: cancelRef.current,
+                range,
+                onProgress: (current, total, errors) => {
                     setProgress({ current, errors, total });
                 },
-                range,
-            );
+            });
 
             setLastResult(result);
             await refreshStats();

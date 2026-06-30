@@ -1,6 +1,6 @@
 import { getSetting } from "@/config/settings.ts";
 import type { EntityNode, EventNode } from "@/data/types/graph.ts";
-import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
+import { reembedAllEvents } from "@/domain/rag/embedding/EmbeddingService.ts";
 import { refreshEngramCache } from "@/domain/macros/Macros.ts";
 import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
@@ -505,20 +505,17 @@ export function useMemoryStream(initialTab: ViewTab = "list") {
 
         setIsReembedding(true);
         try {
-            embeddingService.setConfig(vectorConfig);
             const config = apiSettings?.embeddingConfig;
-            if (config?.concurrency) {
-                embeddingService.setConcurrency(config.concurrency);
-            }
 
-            await embeddingService.reembedAllEvents(
-                (current, total, errors) => {
+            await reembedAllEvents(vectorConfig, {
+                concurrency: config?.concurrency,
+                onProgress: (current, total, errors) => {
                     Logger.debug(
                         LogModule.MEMORY_STREAM,
                         `Reembedding: ${current}/${total}, errors: ${errors}`,
                     );
                 },
-            );
+            });
 
             await loadEvents();
             toast("success", "重嵌完工！", "MemoryStream");

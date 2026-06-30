@@ -15,7 +15,7 @@ import { Logger } from "@/logger/Logger.ts";
 import { LogModule } from "@/logger/LogModule.ts";
 import type { EventNode } from "@/data/types/graph.ts";
 import { refreshEngramCache } from "@/domain/macros/Macros.ts";
-import { embeddingService } from "@/domain/rag/embedding/EmbeddingService.ts";
+import { embedEvents } from "@/domain/rag/embedding/EmbeddingService.ts";
 import { useMemoryStore } from "@/state/memoryStore.ts";
 import { toast } from "@/sillytavern/toast.ts";
 import { RobustJsonParser } from "@/utils/JsonParser.ts";
@@ -187,9 +187,8 @@ Significance: ${e.significance_score}`;
         try {
             const vectorConfig = settings?.vectorConfig;
             if (vectorConfig) {
-                embeddingService.setConfig(vectorConfig);
+                await embedEvents(eventsToMerge, vectorConfig);
             }
-            await embeddingService.embedEvents(eventsToMerge);
             await store.markEventsAsEmbedded(sourceEventIds);
         } catch (embedError) {
             Logger.error(LogModule.WF_APPLY_TRIM, "联动嵌入失败", {

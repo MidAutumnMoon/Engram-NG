@@ -7,7 +7,7 @@
  *
  * 拆成可测的两段：
  *   1. stringCandidates —— 字符串阶段（精确名 > 单别名 > 多别名歧义）
- *   2. embeddingCandidates —— 余弦 top-K（与 EmbeddingService.cosineSimilarity 同算法）
+ *   2. embeddingCandidates —— 余弦 top-K（与 cosineSimilarity 同算法）
  *
  * 「is_duplicate?」LLM 判定（Graphiti 的两段式第二段）是 IO，留在 ResolveEntitiesStep
  * 里做薄包装；本模块只做无副作用的候选生成。
@@ -49,7 +49,7 @@ export function stringCandidates(
 }
 
 /**
- * 余弦相似度——与 EmbeddingService.cosineSimilarity 同算法。
+ * 余弦相似度——与 cosineSimilarity 同算法。
  * 维度不一致或零向量返回 0。
  */
 export function cosineSimilarity(
