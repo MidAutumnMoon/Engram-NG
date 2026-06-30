@@ -18,8 +18,8 @@ interface LLMRequest {
     /** 用户提示词 */
     userPrompt: string;
     /**
-     * 该调用期望的结构化输出形状。仅当预设 `structuredOutput !== "off"` 时，
-     * adapter 才会据此向 generateRaw 注入 json_schema / response_format。
+     * 该调用期望的结构化输出形状。仅当预设 `structuredOutput === "json_schema"` 时，
+     * adapter 才会据此向 generateRaw 注入 json_schema。
      * 不声明形状的调用（未来非 JSON 用途）不受影响。
      */
     responseShape?: ResponseShape;
@@ -58,6 +58,12 @@ class LLMAdapter {
 
     /** 请求队列 */
     private requestQueue: QueuedRequest[] = [];
+
+    /**
+     * 进行中的生成（generationId → 开始时间）。
+     * 用于超时中止与 reset()：底层 generateRaw 不返回时，可据此中止 ST 侧的僵尸请求。
+     */
+    private activeGenerations = new Map<string, { startedAt: number }>();
 
     /**
      * 调用 LLM 生成 (队列模式)
@@ -109,26 +115,56 @@ class LLMAdapter {
 
         let preset: LLMPreset | undefined;
         try {
-            // 获取预设配置：使用全局选中的预设
-            const settings = getSettings();
+            preset = this.resolveActivePreset();
 
-            if (settings.apiSettings?.selectedPresetId) {
-                preset = settings.apiSettings?.llmPresets?.find((p) =>
-                    p.id === settings.apiSettings?.selectedPresetId
+            // 统一提取预设中的参数配置（含 custom 源完整性校验）
+            const customApiConfig = this.extractPresetParameters(preset);
+
+            // 生成唯一 generationId，用于超时中止与 reset()
+            const generationId = crypto.randomUUID?.() ??
+                `engram-${Date.now()}-${Math.random()}`;
+
+            // 超时保护：底层 generateRaw 不返回时不能让队列永久卡死
+            const timeoutMs = LLM_REQUEST_TIMEOUT_MS;
+            let timer: ReturnType<typeof setTimeout> | undefined;
+            const timeout = new Promise<never>((_, reject) => {
+                timer = setTimeout(
+                    () =>
+                        reject(
+                            new Error(
+                                `LLM 生成超时 (${timeoutMs / 1000}s)`,
+                            ),
+                        ),
+                    timeoutMs,
                 );
+            });
+
+            try {
+                this.activeGenerations.set(generationId, {
+                    startedAt: Date.now(),
+                });
+                return await Promise.race([
+                    this.callTavernHelper(
+                        request,
+                        helper,
+                        customApiConfig,
+                        preset,
+                        generationId,
+                    ),
+                    timeout,
+                ]);
+            } catch (error) {
+                // 尽力中止底层 ST 生成，避免它继续在后台消耗 token
+                try {
+                    helper.stopGenerationById?.(generationId);
+                } catch {
+                    // 中止失败不掩盖原始错误
+                }
+                throw error;
+            } finally {
+                if (timer) clearTimeout(timer);
+                this.activeGenerations.delete(generationId);
             }
-
-            // 统一提取预设中的参数配置
-            const customApiConfig = preset
-                ? this.extractPresetParameters(preset)
-                : undefined;
-
-            return await this.callTavernHelper(
-                request,
-                helper,
-                customApiConfig,
-                preset,
-            );
         } catch (error) {
             const errorMsg = error instanceof Error
                 ? error.message
@@ -146,6 +182,32 @@ class LLMAdapter {
                 success: false,
             };
         }
+    }
+
+    /**
+     * 解析当前选中的 LLM 预设。
+     *
+     * 严格策略：selectedPresetId 必须非空且指向一个存在的预设，否则抛错。
+     * 这避免了「未选预设时悄悄回退到 ST 当前连接」这一隐性行为——
+     * 用户应在服务页明确选择一个预设。
+     */
+    private resolveActivePreset(): LLMPreset {
+        const settings = getSettings();
+        const selectedId = settings.apiSettings?.selectedPresetId;
+        if (!selectedId) {
+            throw new Error(
+                "未选择 LLM 预设：请在服务页选中一个预设后再发起生成。",
+            );
+        }
+        const preset = settings.apiSettings?.llmPresets?.find((p) =>
+            p.id === selectedId
+        );
+        if (!preset) {
+            throw new Error(
+                `选中的预设 (id='${selectedId}') 已被删除；请在服务页重新选择。`,
+            );
+        }
+        return preset;
     }
 
     // =========================================================================
@@ -178,7 +240,13 @@ class LLMAdapter {
         }
 
         // 如果是 custom，额外添加连接信息
-        if (preset.source === "custom" && preset.custom) {
+        if (preset.source === "custom") {
+            // 自定义源必须有可用端点；否则会静默落到 ST 当前连接，行为难以诊断
+            if (!preset.custom?.apiUrl || !preset.custom?.model) {
+                throw new Error(
+                    "自定义预设缺少 apiUrl/model，请在服务页补全后再使用。",
+                );
+            }
             config.apiurl = preset.custom.apiUrl;
             config.key = preset.custom.apiKey;
             config.model = preset.custom.model;
@@ -200,8 +268,9 @@ class LLMAdapter {
     private async callTavernHelper(
         request: LLMRequest,
         helper: NonNullable<TavernHelper>,
-        customApiConfig?: CustomApiConfig,
-        currentPreset?: LLMPreset,
+        customApiConfig: CustomApiConfig | undefined,
+        currentPreset: LLMPreset,
+        generationId: string,
     ): Promise<LLMResponse> {
         // =========================================================================
         // Prompt Pre-processing (V1.0 Fix)
@@ -216,48 +285,20 @@ class LLMAdapter {
         // 调用 TavernHelper
         // =========================================================================
 
-        // V1.5 获取此请求所用的 Preset (由 executeRequest 传递进来，或者回退到默认)
-        if (!currentPreset) {
-            const settings = getSettings();
-            currentPreset = settings.apiSettings?.llmPresets?.find((p) =>
-                p.id === settings.apiSettings?.selectedPresetId
-            );
-        }
-
         const generationOptions = {
-            should_stream: currentPreset?.stream ?? false, // 释放底层硬编码
+            should_stream: currentPreset.stream ?? false, // 释放底层硬编码
             should_silence: true, // V0.9.1: 后台请求静默，不绑定停止按钮
         };
 
         // ---- 结构化输出注入（off 时完全跳过，行为同前） ----
         // 形状由流水线声明（LLMRequest.responseShape），模式由预设决定。
-        // json_schema：generateRaw 原生支持，JSR 按 provider 自动转换
+        // 仅剩 json_schema：generateRaw 原生支持，JSR 按 provider 自动转换
         //   （OpenAI/DeepSeek/Mistral → response_format.json_schema；Claude → forced tool）。
-        // json_object：JSR 不暴露该选项，只能经 custom_api.custom_include_body
-        //   注入 response_format，且仅在 source==='custom' 时生效；tavern 源无法注入。
-        let effectiveCustomApi = customApiConfig;
+        //   不支持的 provider 会被 ST 服务端静默丢弃并告警，回退 prompt-only。
         let jsonSchemaArg: JsonSchema | undefined;
-        const mode = currentPreset?.structuredOutput ?? "off";
-        if (mode !== "off" && request.responseShape) {
-            if (mode === "json_schema") {
-                jsonSchemaArg = request.responseShape.jsonSchema;
-            } else if (mode === "json_object") {
-                if (currentPreset?.source === "custom") {
-                    effectiveCustomApi = {
-                        ...customApiConfig,
-                        custom_include_body: {
-                            ...customApiConfig?.custom_include_body,
-                            response_format: { type: "json_object" },
-                        },
-                    };
-                } else {
-                    // tavern 源走 ST 当前连接，无法注入 response_format；降级为 prompt-only。
-                    Logger.warn(
-                        LogModule.WF_LLM_REQUEST,
-                        "json_object 模式仅对 source==='custom' 预设生效，当前预设走 tavern 连接，降级为 prompt-only",
-                    );
-                }
-            }
+        const mode = currentPreset.structuredOutput ?? "off";
+        if (mode === "json_schema" && request.responseShape) {
+            jsonSchemaArg = request.responseShape.jsonSchema;
         }
 
         let content: string;
@@ -278,7 +319,8 @@ class LLMAdapter {
         // 返回值在传入 tools 时会是 GenerateToolCallResult，Engram 从不传 tools，
         // 故此处只可能是 string；做一次归一化以防万一。
         const result = await helper.generateRaw({
-            custom_api: effectiveCustomApi,
+            generation_id: generationId,
+            custom_api: customApiConfig,
             ordered_prompts: prompts,
             json_schema: jsonSchemaArg,
             ...generationOptions,
@@ -323,7 +365,41 @@ class LLMAdapter {
     isBusy(): boolean {
         return this.isExecuting;
     }
+
+    /**
+     * 强制重置：清空队列、释放执行锁、尽力中止所有进行中的底层生成。
+     *
+     * 用于底层 generateRaw 不返回（队列卡死）或需要紧急中断时的恢复路径。
+     * 排队中的请求会被 reject，调用方（runLlm）会看到错误。
+     */
+    reset(): void {
+        const helper = getTavernHelper();
+        for (const id of this.activeGenerations.keys()) {
+            try {
+                helper?.stopGenerationById?.(id);
+            } catch {
+                // 单条中止失败不阻断其余清理
+            }
+        }
+        this.activeGenerations.clear();
+
+        const queued = this.requestQueue.splice(0);
+        for (const { reject } of queued) {
+            try {
+                reject(new Error("LLM adapter 已重置"));
+            } catch {
+                // 调用方的 reject 回调抛错不应阻断其余 reject
+            }
+        }
+        this.isExecuting = false;
+    }
 }
+
+/**
+ * 单次 LLM 请求的硬超时。底层 generateRaw 卡住时强制中止，避免队列永久停滞。
+ * 5 分钟覆盖绝大多数长上下文摘要/精简生成。
+ */
+const LLM_REQUEST_TIMEOUT_MS = 300_000;
 
 /** 默认实例 */
 export const llmAdapter = new LLMAdapter();

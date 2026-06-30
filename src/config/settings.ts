@@ -169,6 +169,36 @@ function migrateIngestionConfig(parsed: EngramSettings): EngramSettings {
 }
 
 /**
+ * 预解析迁移：修正 schema 之前的脏数据，使 `engramSettingsSchema.parse` 不会拒绝。
+ *
+ * 目前处理：
+ * - 预设 `structuredOutput: "json_object"`（已从 enum 移除）→ 降级为 `"off"`。
+ *
+ * 在 `getSettings()` / `initSettings()` 调用 `parse` 之前执行。仅做最小化的、
+ * 无歧义的归一化；不在这里做语义迁移。
+ */
+function migrateRawSettings(raw: unknown): unknown {
+    if (!raw || typeof raw !== "object") return raw;
+    const root = raw as Record<string, unknown>;
+    const api = root.apiSettings;
+    if (!api || typeof api !== "object") return raw;
+    const apiObj = api as Record<string, unknown>;
+    const presets = apiObj.llmPresets;
+    if (!Array.isArray(presets)) return raw;
+
+    let touched = false;
+    for (const p of presets) {
+        if (!p || typeof p !== "object") continue;
+        const preset = p as Record<string, unknown>;
+        if (preset.structuredOutput === "json_object") {
+            preset.structuredOutput = "off";
+            touched = true;
+        }
+    }
+    return touched ? root : raw;
+}
+
+/**
  * 获取扩展设置对象 (schema-validated, defaults filled)
  *
  * `initSettings()` must be called at startup to ensure ST storage exists.
@@ -177,7 +207,7 @@ function migrateIngestionConfig(parsed: EngramSettings): EngramSettings {
  */
 export function getSettings(): EngramSettings {
     const raw = getSTContext().extensionSettings?.[EXTENSION_NAME];
-    const parsed = engramSettingsSchema.parse(raw ?? {});
+    const parsed = engramSettingsSchema.parse(migrateRawSettings(raw ?? {}));
     return migrateIngestionConfig(parsed);
 }
 
@@ -198,9 +228,8 @@ export function initSettings(): void {
         return;
     }
     const raw = context.extensionSettings[EXTENSION_NAME];
-    const parsed = migrateIngestionConfig(
-        engramSettingsSchema.parse(raw ?? {}),
-    );
+    const migrated = migrateRawSettings(raw ?? {});
+    const parsed = migrateIngestionConfig(engramSettingsSchema.parse(migrated));
     context.extensionSettings[EXTENSION_NAME] = parsed;
     save();
     Logger.debug(LogModule.SETTINGS, "Settings initialized and validated");

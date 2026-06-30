@@ -29,7 +29,6 @@ const SOURCE_OPTIONS = [
 // 结构化输出选项（仅作用于摘要/实体/精简等 JSON 抽取流水线）
 const STRUCTURED_OUTPUT_OPTIONS = [
     { label: "关闭", value: "off" },
-    { label: "JSON Object", value: "json_object" },
     { label: "JSON Schema", value: "json_schema" },
 ];
 
@@ -136,16 +135,10 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                     updatePreset({
                         structuredOutput: value as
                             | "off"
-                            | "json_object"
                             | "json_schema",
                     })}
                 options={STRUCTURED_OUTPUT_OPTIONS}
-                description={
-                    preset.structuredOutput === "json_object" &&
-                        preset.source !== "custom"
-                        ? "强制模型输出合法 JSON。⚠️ 仅 source==='custom' 预设可注入 response_format；当前走 tavern 连接，将降级为 prompt-only。"
-                        : "强制摘要/实体/精简输出 JSON。JSON Schema 通过 generateRaw 原生约束（不支持的 provider 会告警回退）；JSON Object 仅 custom 源生效。"
-                }
+                description="强制摘要/实体/精简输出 JSON。JSON Schema 通过 generateRaw 原生约束（不支持的 provider 会告警回退为 prompt-only）。"
             />
         </FormSection>
 

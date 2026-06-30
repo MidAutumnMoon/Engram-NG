@@ -75,15 +75,14 @@ export const llmPresetSchema = z.object({
     /**
      * 结构化输出模式（仅在摘要/实体/精简等 JSON 抽取流水线生效）：
      * - `off`：不强制，沿用 prompt 指示 + RobustJsonParser 兜底（默认）。
-     * - `json_object`：要求模型输出合法 JSON。仅 `source==='custom'` 时生效
-     *   （通过 custom_include_body 注入 response_format；tavern 源无法注入，
-     *   将降级为 prompt-only）。
      * - `json_schema`：通过 generateRaw({json_schema}) 强制模型输出符合 schema
      *   的 JSON。不支持的 provider 会被 ST 服务端静默丢弃并告警，回退 prompt-only。
+     *
+     * 历史上还有 `json_object`，但它在 Engram 路由下从不生效（custom_include_body
+     * 只在 vendor source==='custom' 时被采纳，而 Engram 始终用 'openai'），已移除。
+     * 旧存档里的 `structuredOutput: "json_object"` 会在 getSettings() 迁移为 "off"。
      */
-    structuredOutput: z.enum(["off", "json_object", "json_schema"]).default(
-        "off",
-    ),
+    structuredOutput: z.enum(["off", "json_schema"]).default("off"),
     /** 模型采样参数 */
     parameters: samplingParametersSchema.prefault({}),
     /** 上下文设置 */

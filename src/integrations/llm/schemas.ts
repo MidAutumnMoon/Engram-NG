@@ -8,7 +8,7 @@
  *
  * The pipeline declares intent via a `ResponseShape`; the adapter decides
  * whether/how to enforce it based on the active preset's `structuredOutput`
- * setting (off / json_object / json_schema). See Adapter.ts.
+ * setting (off / json_schema). See Adapter.ts.
  *
  * These Zod definitions mirror the `<output_template>` blocks documented in
  * src/integrations/llm/prompts/*.txt — keep them in sync when editing either.
